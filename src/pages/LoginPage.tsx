@@ -39,36 +39,40 @@ export default function LoginPage() {
 
     setIsLoading(true);
     const { error } = await signIn(email, password);
-    setIsLoading(false);
 
     if (error) {
+      setIsLoading(false);
       setError(error);
       return;
     }
 
-    // Aguardar o perfil ser determinado e redirecionar
-    const checkProfile = async () => {
-      await new Promise(r => setTimeout(r, 500));
+    // Aguardar o AuthContext determinar o perfil e redirecionar
+    const maxAttempts = 20;
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(r => setTimeout(r, 300));
       const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        const { data: admin } = await supabase.from('admins').select('id').eq('user_id', data.user.id).maybeSingle();
-        if (admin) { navigate('/admin', { replace: true }); return; }
+      if (!data.user) continue;
 
-        const { data: gestorGeral } = await supabase.from('gestores_gerais').select('id').eq('user_id', data.user.id).maybeSingle();
-        if (gestorGeral) { navigate('/consolidar', { replace: true }); return; }
+      const { data: admin } = await supabase.from('admins').select('id').eq('user_id', data.user.id).maybeSingle();
+      if (admin) { navigate('/admin', { replace: true }); return; }
 
-        const { data: prof } = await supabase.from('profissionais').select('unidade_id, perfil_institucional').eq('user_id', data.user.id).maybeSingle();
-        if (!prof) {
-          setError('Conta não vinculada a nenhum perfil. Entre em contato com o suporte.');
-          return;
-        }
+      const { data: gestorGeral } = await supabase.from('gestores_gerais').select('id').eq('user_id', data.user.id).maybeSingle();
+      if (gestorGeral) { navigate('/consolidar', { replace: true }); return; }
 
-        if (!prof.unidade_id) { navigate('/dashboard', { replace: true }); return; }
-        if (prof.perfil_institucional === 'gestor') { navigate('/gestao', { replace: true }); return; }
-        navigate('/dashboard', { replace: true });
+      const { data: prof } = await supabase.from('profissionais').select('unidade_id, perfil_institucional').eq('user_id', data.user.id).maybeSingle();
+      if (!prof) {
+        setIsLoading(false);
+        setError('Conta não vinculada a nenhum perfil. Entre em contato com o suporte.');
+        return;
       }
-    };
-    checkProfile();
+
+      if (!prof.unidade_id) { navigate('/dashboard', { replace: true }); return; }
+      if (prof.perfil_institucional === 'gestor') { navigate('/gestao', { replace: true }); return; }
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+    setIsLoading(false);
+    setError('Tempo esgotado. Tente novamente.');
   };
 
   return (
