@@ -62,9 +62,15 @@ export type Database = {
           crm: string | null
           especialidade: string | null
           id: string
+          laudos_limite: number
+          laudos_usados: number
           nome: string
           perfil_institucional: string | null
+          periodo_renovacao: string | null
           plano: string
+          plano_status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           unidade_id: string | null
           updated_at: string
           user_id: string
@@ -74,9 +80,15 @@ export type Database = {
           crm?: string | null
           especialidade?: string | null
           id?: string
+          laudos_limite?: number
+          laudos_usados?: number
           nome: string
           perfil_institucional?: string | null
+          periodo_renovacao?: string | null
           plano?: string
+          plano_status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           unidade_id?: string | null
           updated_at?: string
           user_id: string
@@ -86,9 +98,15 @@ export type Database = {
           crm?: string | null
           especialidade?: string | null
           id?: string
+          laudos_limite?: number
+          laudos_usados?: number
           nome?: string
           perfil_institucional?: string | null
+          periodo_renovacao?: string | null
           plano?: string
+          plano_status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           unidade_id?: string | null
           updated_at?: string
           user_id?: string
@@ -129,7 +147,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      pode_criar_ficha: {
+        Args: { p_profissional_id: string }
+        Returns: boolean
+      }
+      pode_gerar_laudo: { Args: { p_profissional_id: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
