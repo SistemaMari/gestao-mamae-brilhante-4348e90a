@@ -17,7 +17,11 @@ import PlanosPage from "./pages/PlanosPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
 import GestaoEquipePage from "./pages/GestaoEquipePage";
 import CadastroConvitePage from "./pages/CadastroConvitePage";
-import PreviewHubPage, { PreviewCompletarPerfilPage } from "./pages/PreviewHubPage";
+import PreviewHubPage, {
+  PreviewCompletarPerfilPage,
+  PreviewGestaoEquipePage,
+  PreviewCadastroConvitePage,
+} from "./pages/PreviewHubPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,20 +39,24 @@ const App = () => (
             <Route path="/vitrine/completar-perfil" element={<PreviewCompletarPerfilPage />} />
             <Route path="/vitrine/dashboard" element={<DashboardPage />} />
             <Route path="/vitrine/gestao" element={<GestaoPage />} />
-            <Route path="/vitrine/gestao/equipe" element={<GestaoEquipePage />} />
+            <Route path="/vitrine/gestao/equipe" element={<PreviewGestaoEquipePage />} />
             <Route path="/vitrine/admin" element={<AdminPage />} />
             <Route path="/vitrine/consolidar" element={<ConsolidarPage />} />
+            <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
             <Route path="/preview" element={<Navigate to="/" replace />} />
             <Route path="/preview/completar-perfil" element={<Navigate to="/vitrine/completar-perfil" replace />} />
             <Route path="/preview/dashboard" element={<Navigate to="/vitrine/dashboard" replace />} />
             <Route path="/preview/gestao" element={<Navigate to="/vitrine/gestao" replace />} />
+            <Route path="/preview/gestao/equipe" element={<Navigate to="/vitrine/gestao/equipe" replace />} />
             <Route path="/preview/admin" element={<Navigate to="/vitrine/admin" replace />} />
             <Route path="/preview/consolidar" element={<Navigate to="/vitrine/consolidar" replace />} />
+            <Route path="/preview/cadastro-convite" element={<Navigate to="/vitrine/cadastro-convite" replace />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/recuperar-senha" element={<RecuperarSenhaPage />} />
             <Route path="/nova-senha" element={<NovaSenhaPage />} />
             <Route path="/reset-password" element={<Navigate to="/nova-senha" replace />} />
             <Route path="/planos" element={<PlanosPage />} />
+            <Route path="/convite/token-exemplo-preview" element={<Navigate to="/vitrine/cadastro-convite" replace />} />
             <Route path="/convite/:token" element={<CadastroConvitePage />} />
             <Route path="/completar-perfil" element={<ProtectedRoute skipProfileCheck><CompletarPerfilPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
