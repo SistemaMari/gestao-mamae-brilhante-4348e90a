@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, getRedirectPath } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +16,7 @@ export default function LoginPage() {
   const [resetMode, setResetMode] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
-  const { signIn, resetPassword, profile } = useAuth();
+  const { signIn, resetPassword } = useAuth();
   const navigate = useNavigate();
 
   const isFormValid = email.trim() !== '' && (resetMode || password.length >= 6);
@@ -46,15 +47,10 @@ export default function LoginPage() {
     }
 
     // Aguardar o perfil ser determinado e redirecionar
-    // O onAuthStateChange vai atualizar o profile
     const checkProfile = async () => {
-      // Pequeno delay para o state atualizar
       await new Promise(r => setTimeout(r, 500));
-      const { data } = await (await import('@/lib/supabase')).supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser();
       if (data.user) {
-        // Determinar perfil diretamente
-        const { supabase } = await import('@/lib/supabase');
-        
         const { data: admin } = await supabase.from('admins').select('id').eq('user_id', data.user.id).maybeSingle();
         if (admin) { navigate('/admin', { replace: true }); return; }
 
