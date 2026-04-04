@@ -42,7 +42,9 @@ const App = () => (
             <Route path="/preview/admin" element={<Navigate to="/vitrine/admin" replace />} />
             <Route path="/preview/consolidar" element={<Navigate to="/vitrine/consolidar" replace />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/recuperar-senha" element={<RecuperarSenhaPage />} />
+            <Route path="/nova-senha" element={<NovaSenhaPage />} />
+            <Route path="/reset-password" element={<Navigate to="/nova-senha" replace />} />
             <Route path="/planos" element={<PlanosPage />} />
             <Route path="/completar-perfil" element={<ProtectedRoute skipProfileCheck><CompletarPerfilPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
