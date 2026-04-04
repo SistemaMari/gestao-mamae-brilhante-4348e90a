@@ -12,9 +12,9 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   LogOut, Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
-  User, Info, FileText, Loader2
+  User, Info, Loader2
 } from 'lucide-react';
-import { differenceInDays, differenceInWeeks, format, addDays } from 'date-fns';
+import { differenceInDays, format, addDays } from 'date-fns';
 
 interface Paciente {
   id: string;
