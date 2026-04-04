@@ -192,6 +192,15 @@ export default function LoginPage() {
             </form>
           )}
         </div>
+
+        <div className="mt-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Quer só visualizar o que já foi criado?{' '}
+            <Link to="/preview" className="font-medium text-primary transition-colors hover:opacity-80">
+              Abrir prévias sem login
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
