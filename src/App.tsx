@@ -48,9 +48,11 @@ const App = () => (
             <Route path="/nova-senha" element={<NovaSenhaPage />} />
             <Route path="/reset-password" element={<Navigate to="/nova-senha" replace />} />
             <Route path="/planos" element={<PlanosPage />} />
+            <Route path="/convite/:token" element={<CadastroConvitePage />} />
             <Route path="/completar-perfil" element={<ProtectedRoute skipProfileCheck><CompletarPerfilPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/gestao" element={<ProtectedRoute><GestaoPage /></ProtectedRoute>} />
+            <Route path="/gestao/equipe" element={<ProtectedRoute><GestaoEquipePage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
             <Route path="/consolidar" element={<ProtectedRoute><ConsolidarPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
