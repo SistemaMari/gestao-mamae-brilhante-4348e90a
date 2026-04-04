@@ -1,7 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-import {
   LayoutDashboard, FileText, Users, Settings, LogOut, ChevronLeft, ChevronRight,
   Building2, BarChart3, ShieldCheck, UserPlus, Activity
 } from 'lucide-react';
