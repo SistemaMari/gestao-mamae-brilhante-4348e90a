@@ -22,6 +22,7 @@ import PreviewHubPage, {
   PreviewGestaoEquipePage,
   PreviewCadastroConvitePage,
 } from "./pages/PreviewHubPage";
+import PacientePage from "./pages/PacientePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
