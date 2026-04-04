@@ -13,6 +13,11 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        heading: ["Sora", "sans-serif"],
+        body: ["Plus Jakarta Sans", "sans-serif"],
+        editorial: ["DM Serif Display", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +62,29 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Brand colors
+        lavender: {
+          bg: "hsl(var(--lavender-bg))",
+          mid: "hsl(var(--lavender-mid))",
+          border: "hsl(var(--lavender-border))",
+        },
+        mint: {
+          bg: "hsl(var(--mint-bg))",
+          mid: "hsl(var(--mint-mid))",
+          border: "hsl(var(--mint-border))",
+        },
+        // Clinical semantic
+        clinical: {
+          "normal-bg": "hsl(var(--clinical-normal-bg))",
+          "normal-text": "hsl(var(--clinical-normal-text))",
+          "normal-icon": "hsl(var(--clinical-normal-icon))",
+          "warning-bg": "hsl(var(--clinical-warning-bg))",
+          "warning-text": "hsl(var(--clinical-warning-text))",
+          "warning-icon": "hsl(var(--clinical-warning-icon))",
+          "danger-bg": "hsl(var(--clinical-danger-bg))",
+          "danger-text": "hsl(var(--clinical-danger-text))",
+          "danger-icon": "hsl(var(--clinical-danger-icon))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,25 +93,27 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.4s ease-out",
+        "pulse-soft": "pulse-soft 2s ease-in-out infinite",
       },
     },
   },
