@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [resetMode, setResetMode] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
-  const { signIn, resetPassword, profile } = useAuth();
+  const { signIn, resetPassword } = useAuth();
   const navigate = useNavigate();
 
   const isFormValid = email.trim() !== '' && (resetMode || password.length >= 6);
