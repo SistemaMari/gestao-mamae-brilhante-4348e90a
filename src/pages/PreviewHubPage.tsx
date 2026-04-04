@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ClipboardList, LayoutDashboard, Shield, Stethoscope, KeyRound, LucideIcon } from 'lucide-react';
+import { ArrowRight, ClipboardList, LayoutDashboard, Shield, Stethoscope, KeyRound, Users, UserPlus, LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import ProfileForm, { ProfileFormData } from '@/components/ProfileForm';
 
@@ -52,6 +52,18 @@ const previewCards: PreviewCardProps[] = [
     title: 'Consolidação',
     description: 'Veja a área de consolidação em construção em um clique.',
     icon: ClipboardList,
+  },
+  {
+    to: '/vitrine/gestao/equipe',
+    title: 'Gerenciar Equipe',
+    description: 'Tela do gestor para gerenciar profissionais e enviar convites.',
+    icon: Users,
+  },
+  {
+    to: '/convite/token-exemplo-preview',
+    title: 'Cadastro via Convite',
+    description: 'Tela pública de cadastro quando um profissional recebe convite.',
+    icon: UserPlus,
   },
 ];
 

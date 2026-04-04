@@ -8,13 +8,15 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import RecuperarSenhaPage from "./pages/RecuperarSenhaPage";
 import NovaSenhaPage from "./pages/NovaSenhaPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
+
 import DashboardPage from "./pages/DashboardPage";
 import GestaoPage from "./pages/GestaoPage";
 import AdminPage from "./pages/AdminPage";
 import ConsolidarPage from "./pages/ConsolidarPage";
 import PlanosPage from "./pages/PlanosPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
+import GestaoEquipePage from "./pages/GestaoEquipePage";
+import CadastroConvitePage from "./pages/CadastroConvitePage";
 import PreviewHubPage, { PreviewCompletarPerfilPage } from "./pages/PreviewHubPage";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +35,7 @@ const App = () => (
             <Route path="/vitrine/completar-perfil" element={<PreviewCompletarPerfilPage />} />
             <Route path="/vitrine/dashboard" element={<DashboardPage />} />
             <Route path="/vitrine/gestao" element={<GestaoPage />} />
+            <Route path="/vitrine/gestao/equipe" element={<GestaoEquipePage />} />
             <Route path="/vitrine/admin" element={<AdminPage />} />
             <Route path="/vitrine/consolidar" element={<ConsolidarPage />} />
             <Route path="/preview" element={<Navigate to="/" replace />} />
@@ -46,9 +49,11 @@ const App = () => (
             <Route path="/nova-senha" element={<NovaSenhaPage />} />
             <Route path="/reset-password" element={<Navigate to="/nova-senha" replace />} />
             <Route path="/planos" element={<PlanosPage />} />
+            <Route path="/convite/:token" element={<CadastroConvitePage />} />
             <Route path="/completar-perfil" element={<ProtectedRoute skipProfileCheck><CompletarPerfilPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/gestao" element={<ProtectedRoute><GestaoPage /></ProtectedRoute>} />
+            <Route path="/gestao/equipe" element={<ProtectedRoute><GestaoEquipePage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
             <Route path="/consolidar" element={<ProtectedRoute><ConsolidarPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />

@@ -35,6 +35,47 @@ export type Database = {
         }
         Relationships: []
       }
+      convites: {
+        Row: {
+          convidado_por: string
+          created_at: string
+          email_convidado: string
+          expires_at: string
+          id: string
+          status: string
+          token: string
+          unidade_id: string
+        }
+        Insert: {
+          convidado_por: string
+          created_at?: string
+          email_convidado: string
+          expires_at?: string
+          id?: string
+          status?: string
+          token: string
+          unidade_id: string
+        }
+        Update: {
+          convidado_por?: string
+          created_at?: string
+          email_convidado?: string
+          expires_at?: string
+          id?: string
+          status?: string
+          token?: string
+          unidade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convites_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gestores_gerais: {
         Row: {
           created_at: string
