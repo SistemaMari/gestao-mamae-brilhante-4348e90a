@@ -58,55 +58,73 @@ export type Database = {
       }
       profissionais: {
         Row: {
+          cidade: string | null
           created_at: string
           crm: string | null
           especialidade: string | null
+          estado: string | null
           id: string
+          identificador_padrao: string | null
+          idioma: string | null
           laudos_limite: number
           laudos_usados: number
           nome: string
+          pais: string | null
           perfil_institucional: string | null
           periodo_renovacao: string | null
           plano: string
           plano_status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
+          telefone: string | null
           unidade_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          cidade?: string | null
           created_at?: string
           crm?: string | null
           especialidade?: string | null
+          estado?: string | null
           id?: string
+          identificador_padrao?: string | null
+          idioma?: string | null
           laudos_limite?: number
           laudos_usados?: number
           nome: string
+          pais?: string | null
           perfil_institucional?: string | null
           periodo_renovacao?: string | null
           plano?: string
           plano_status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          telefone?: string | null
           unidade_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          cidade?: string | null
           created_at?: string
           crm?: string | null
           especialidade?: string | null
+          estado?: string | null
           id?: string
+          identificador_padrao?: string | null
+          idioma?: string | null
           laudos_limite?: number
           laudos_usados?: number
           nome?: string
+          pais?: string | null
           perfil_institucional?: string | null
           periodo_renovacao?: string | null
           plano?: string
           plano_status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          telefone?: string | null
           unidade_id?: string | null
           updated_at?: string
           user_id?: string
