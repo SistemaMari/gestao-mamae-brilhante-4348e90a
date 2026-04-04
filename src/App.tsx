@@ -22,6 +22,7 @@ import PreviewHubPage, {
   PreviewGestaoEquipePage,
   PreviewCadastroConvitePage,
 } from "./pages/PreviewHubPage";
+import PacientePage from "./pages/PacientePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,8 @@ const App = () => (
             <Route path="/convite/:token" element={<CadastroConvitePage />} />
             <Route path="/completar-perfil" element={<ProtectedRoute skipProfileCheck><CompletarPerfilPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/paciente/nova" element={<ProtectedRoute><PacientePage /></ProtectedRoute>} />
+            <Route path="/paciente/:id" element={<ProtectedRoute><PacientePage /></ProtectedRoute>} />
             <Route path="/gestao" element={<ProtectedRoute><GestaoPage /></ProtectedRoute>} />
             <Route path="/gestao/equipe" element={<ProtectedRoute><GestaoEquipePage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />

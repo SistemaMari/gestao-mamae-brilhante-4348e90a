@@ -97,6 +97,78 @@ export type Database = {
         }
         Relationships: []
       }
+      pacientes: {
+        Row: {
+          created_at: string
+          data_proximo_retorno: string | null
+          data_ultima_consulta: string | null
+          dmg_gestacao_anterior: boolean | null
+          dum: string | null
+          id: string
+          nome: string
+          numero_identificacao: string | null
+          profissional_id: string
+          status_ficha: string
+          tipo_retorno: string | null
+          unidade_id: string | null
+          updated_at: string
+          usg_data: string | null
+          usg_ig_dias: number | null
+          usg_ig_semanas: number | null
+        }
+        Insert: {
+          created_at?: string
+          data_proximo_retorno?: string | null
+          data_ultima_consulta?: string | null
+          dmg_gestacao_anterior?: boolean | null
+          dum?: string | null
+          id?: string
+          nome: string
+          numero_identificacao?: string | null
+          profissional_id: string
+          status_ficha?: string
+          tipo_retorno?: string | null
+          unidade_id?: string | null
+          updated_at?: string
+          usg_data?: string | null
+          usg_ig_dias?: number | null
+          usg_ig_semanas?: number | null
+        }
+        Update: {
+          created_at?: string
+          data_proximo_retorno?: string | null
+          data_ultima_consulta?: string | null
+          dmg_gestacao_anterior?: boolean | null
+          dum?: string | null
+          id?: string
+          nome?: string
+          numero_identificacao?: string | null
+          profissional_id?: string
+          status_ficha?: string
+          tipo_retorno?: string | null
+          unidade_id?: string | null
+          updated_at?: string
+          usg_data?: string | null
+          usg_ig_dias?: number | null
+          usg_ig_semanas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pacientes_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pacientes_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profissionais: {
         Row: {
           cidade: string | null
