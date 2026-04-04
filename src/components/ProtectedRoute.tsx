@@ -33,7 +33,7 @@ export default function ProtectedRoute({ children, skipProfileCheck = false }: {
   }
 
   // Verificar perfil incompleto para profissionais (consultório / institucional)
-  if ((profile === 'consultorio' || profile === 'institucional') && perfilIncompleto) {
+  if (!skipProfileCheck && (profile === 'consultorio' || profile === 'institucional') && perfilIncompleto) {
     return <Navigate to="/completar-perfil" replace />;
   }
 
