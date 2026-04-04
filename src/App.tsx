@@ -17,7 +17,11 @@ import PlanosPage from "./pages/PlanosPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
 import GestaoEquipePage from "./pages/GestaoEquipePage";
 import CadastroConvitePage from "./pages/CadastroConvitePage";
-import PreviewHubPage, { PreviewCompletarPerfilPage } from "./pages/PreviewHubPage";
+import PreviewHubPage, {
+  PreviewCompletarPerfilPage,
+  PreviewGestaoEquipePage,
+  PreviewCadastroConvitePage,
+} from "./pages/PreviewHubPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
