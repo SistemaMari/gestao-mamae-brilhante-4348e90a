@@ -125,7 +125,10 @@ export default function DashboardPage() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    if (!profissionalData) return;
+    if (!profissionalData) {
+      setLoadingPacientes(false);
+      return;
+    }
     fetchPacientes();
   }, [profissionalData]);
 
