@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ClipboardList, LayoutDashboard, Shield, Stethoscope, KeyRound, LucideIcon } from 'lucide-react';
+import { ArrowRight, ClipboardList, LayoutDashboard, Shield, Stethoscope, KeyRound, Users, UserPlus, LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import ProfileForm, { ProfileFormData } from '@/components/ProfileForm';
 
