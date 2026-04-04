@@ -26,13 +26,19 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Navigate to="/preview" replace />} />
-            <Route path="/preview" element={<PreviewHubPage />} />
-            <Route path="/preview/completar-perfil" element={<PreviewCompletarPerfilPage />} />
-            <Route path="/preview/dashboard" element={<DashboardPage />} />
-            <Route path="/preview/gestao" element={<GestaoPage />} />
-            <Route path="/preview/admin" element={<AdminPage />} />
-            <Route path="/preview/consolidar" element={<ConsolidarPage />} />
+            <Route path="/" element={<PreviewHubPage />} />
+            <Route path="/vitrine" element={<Navigate to="/" replace />} />
+            <Route path="/vitrine/completar-perfil" element={<PreviewCompletarPerfilPage />} />
+            <Route path="/vitrine/dashboard" element={<DashboardPage />} />
+            <Route path="/vitrine/gestao" element={<GestaoPage />} />
+            <Route path="/vitrine/admin" element={<AdminPage />} />
+            <Route path="/vitrine/consolidar" element={<ConsolidarPage />} />
+            <Route path="/preview" element={<Navigate to="/" replace />} />
+            <Route path="/preview/completar-perfil" element={<Navigate to="/vitrine/completar-perfil" replace />} />
+            <Route path="/preview/dashboard" element={<Navigate to="/vitrine/dashboard" replace />} />
+            <Route path="/preview/gestao" element={<Navigate to="/vitrine/gestao" replace />} />
+            <Route path="/preview/admin" element={<Navigate to="/vitrine/admin" replace />} />
+            <Route path="/preview/consolidar" element={<Navigate to="/vitrine/consolidar" replace />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/planos" element={<PlanosPage />} />

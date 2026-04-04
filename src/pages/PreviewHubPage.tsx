@@ -12,7 +12,7 @@ interface PreviewCardProps {
 
 const previewCards: PreviewCardProps[] = [
   {
-    to: '/preview/completar-perfil',
+    to: '/vitrine/completar-perfil',
     title: 'Completar perfil',
     description: 'Veja e edite visualmente o formulário real sem bloqueio de login.',
     icon: ClipboardList,
@@ -24,25 +24,25 @@ const previewCards: PreviewCardProps[] = [
     icon: Stethoscope,
   },
   {
-    to: '/preview/dashboard',
+    to: '/vitrine/dashboard',
     title: 'Dashboard clínico',
     description: 'Visualize a tela atual do módulo clínico sem autenticação.',
     icon: LayoutDashboard,
   },
   {
-    to: '/preview/gestao',
+    to: '/vitrine/gestao',
     title: 'Dashboard de gestão',
     description: 'Abra a área institucional em construção sem depender de perfil.',
     icon: Shield,
   },
   {
-    to: '/preview/admin',
+    to: '/vitrine/admin',
     title: 'Dashboard admin',
     description: 'Confira a tela administrativa atual sem passar pelo login.',
     icon: Shield,
   },
   {
-    to: '/preview/consolidar',
+    to: '/vitrine/consolidar',
     title: 'Consolidação',
     description: 'Veja a área de consolidação em construção em um clique.',
     icon: ClipboardList,
@@ -76,13 +76,13 @@ export default function PreviewHubPage() {
         <section className="rounded-[28px] border border-border bg-card p-6 shadow-sm sm:p-8">
           <div className="max-w-2xl">
             <p className="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-              Prévia liberada sem login
+              Vitrine liberada sem login
             </p>
             <h1 className="mt-4 font-heading text-3xl font-bold text-foreground sm:text-4xl">
               Veja tudo o que está sendo criado
             </h1>
             <p className="mt-3 text-base text-muted-foreground sm:text-lg">
-              Durante a fase de construção, você pode navegar por telas públicas de prévia antes dos testes reais com autenticação e backend.
+              Agora o preview abre direto nesta vitrine pública para você acompanhar a construção antes dos testes reais com autenticação.
             </p>
           </div>
 
@@ -100,10 +100,10 @@ export default function PreviewHubPage() {
               Ir para o login real
             </Link>
             <a
-              href="https://id-preview--8b197c7e-b34e-494b-a96f-525cfb50face.lovable.app/preview"
+              href="https://id-preview--8b197c7e-b34e-494b-a96f-525cfb50face.lovable.app/"
               className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Abrir link direto da prévia
+              Abrir link direto da vitrine
             </a>
           </div>
         </section>
@@ -148,8 +148,8 @@ export function PreviewCompletarPerfilPage() {
         </div>
 
         <div className="mt-4 text-center">
-          <Link to="/preview" className="text-sm font-medium text-primary transition-colors hover:opacity-80">
-            Voltar para a central de prévias
+          <Link to="/" className="text-sm font-medium text-primary transition-colors hover:opacity-80">
+            Voltar para a vitrine
           </Link>
         </div>
       </div>
