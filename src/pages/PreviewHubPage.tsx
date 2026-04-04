@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ClipboardList, LayoutDashboard, Shield, Stethoscope, LucideIcon } from 'lucide-react';
+import { ArrowRight, ClipboardList, LayoutDashboard, Shield, Stethoscope, KeyRound, LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import ProfileForm, { ProfileFormData } from '@/components/ProfileForm';
 import ProfileForm, { ProfileFormData } from '@/components/ProfileForm';
 
 interface PreviewCardProps {
