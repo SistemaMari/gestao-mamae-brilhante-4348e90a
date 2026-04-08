@@ -45,16 +45,22 @@ const previewCards: PreviewCardProps[] = [
     icon: KeyRound,
   },
   {
-    to: '/planos',
+    to: '/vitrine/planos',
     title: 'Planos',
-    description: 'Abra a página pública de planos exatamente como está hoje.',
+    description: 'Abra a página de planos dentro do shell do sistema, sem autenticação.',
     icon: Stethoscope,
   },
   {
     to: '/vitrine/dashboard',
     title: 'Dashboard clínico',
-    description: 'Visualize a tela atual do módulo clínico sem autenticação.',
+    description: 'Visualize a tela atual do módulo clínico dentro do shell completo.',
     icon: LayoutDashboard,
+  },
+  {
+    to: '/vitrine/perfil',
+    title: 'Meu Perfil',
+    description: 'Veja a área de perfil no shell do sistema com dados fictícios.',
+    icon: UserPlus,
   },
   {
     to: '/vitrine/gestao',

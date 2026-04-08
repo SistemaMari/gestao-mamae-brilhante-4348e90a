@@ -23,7 +23,7 @@ const DUMMY_PROFILE: PerfilData = {
 const DUMMY_EMAIL = 'mari.exemplo@dramari.com';
 
 export default function PerfilPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const location = useLocation();
   const isPreview = location.pathname.startsWith('/vitrine');
   const [data, setData] = useState<PerfilData | null>(isPreview ? DUMMY_PROFILE : null);
@@ -36,6 +36,11 @@ export default function PerfilPage() {
       return;
     }
 
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
+
     if (!user) {
       setData(null);
       setLoading(false);
@@ -43,25 +48,26 @@ export default function PerfilPage() {
     }
 
     let cancelled = false;
-    setLoading(true);
 
-    supabase
-      .from('profissionais')
-      .select('nome, crm, especialidade, estado, pais')
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data: d }) => {
-        if (cancelled) return;
-        setData(d as PerfilData | null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    const fetchProfile = async () => {
+      setLoading(true);
+      const { data: profileData } = await supabase
+        .from('profissionais')
+        .select('nome, crm, especialidade, estado, pais')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+      setData(profileData as PerfilData | null);
+      setLoading(false);
+    };
+
+    void fetchProfile();
 
     return () => {
       cancelled = true;
     };
-  }, [isPreview, user]);
+  }, [authLoading, isPreview, user]);
 
   if (loading) {
     return (

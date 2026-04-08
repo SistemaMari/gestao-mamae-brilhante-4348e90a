@@ -51,7 +51,7 @@ const App = () => (
             {/* Vitrine com App Shell */}
             <Route element={<PreviewAppShell />}>
               <Route path="/vitrine/dashboard" element={<DashboardPage />} />
-              <Route path="/vitrine/paciente/nova" element={<PacientePage />} />
+              <Route path="/vitrine/paciente/:id" element={<PacientePage />} />
               <Route path="/vitrine/planos" element={<PlanosPage />} />
               <Route path="/vitrine/perfil" element={<PerfilPage />} />
             </Route>
