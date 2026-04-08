@@ -109,7 +109,7 @@ export default function PlanosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background px-4 py-8">
+    <div className="px-4 py-8">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-10 text-center">

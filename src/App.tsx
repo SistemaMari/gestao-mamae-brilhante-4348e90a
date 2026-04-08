@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AppShellClinico from "@/components/AppShellClinico";
 import LoginPage from "./pages/LoginPage";
 import RecuperarSenhaPage from "./pages/RecuperarSenhaPage";
 import NovaSenhaPage from "./pages/NovaSenhaPage";
@@ -23,6 +24,7 @@ import PreviewHubPage, {
   PreviewCadastroConvitePage,
 } from "./pages/PreviewHubPage";
 import PacientePage from "./pages/PacientePage";
+import PerfilPage from "./pages/PerfilPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Vitrine (preview sem login) */}
             <Route path="/" element={<PreviewHubPage />} />
             <Route path="/vitrine" element={<Navigate to="/" replace />} />
             <Route path="/vitrine/completar-perfil" element={<PreviewCompletarPerfilPage />} />
@@ -44,6 +47,8 @@ const App = () => (
             <Route path="/vitrine/admin" element={<AdminPage />} />
             <Route path="/vitrine/consolidar" element={<ConsolidarPage />} />
             <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
+
+            {/* Redirects /preview → /vitrine */}
             <Route path="/preview" element={<Navigate to="/" replace />} />
             <Route path="/preview/completar-perfil" element={<Navigate to="/vitrine/completar-perfil" replace />} />
             <Route path="/preview/dashboard" element={<Navigate to="/vitrine/dashboard" replace />} />
@@ -52,21 +57,35 @@ const App = () => (
             <Route path="/preview/admin" element={<Navigate to="/vitrine/admin" replace />} />
             <Route path="/preview/consolidar" element={<Navigate to="/vitrine/consolidar" replace />} />
             <Route path="/preview/cadastro-convite" element={<Navigate to="/vitrine/cadastro-convite" replace />} />
+
+            {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/recuperar-senha" element={<RecuperarSenhaPage />} />
             <Route path="/nova-senha" element={<NovaSenhaPage />} />
             <Route path="/reset-password" element={<Navigate to="/nova-senha" replace />} />
-            <Route path="/planos" element={<PlanosPage />} />
             <Route path="/convite/token-exemplo-preview" element={<Navigate to="/vitrine/cadastro-convite" replace />} />
             <Route path="/convite/:token" element={<CadastroConvitePage />} />
-            <Route path="/completar-perfil" element={<ProtectedRoute skipProfileCheck><CompletarPerfilPage /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/paciente/nova" element={<ProtectedRoute><PacientePage /></ProtectedRoute>} />
-            <Route path="/paciente/:id" element={<ProtectedRoute><PacientePage /></ProtectedRoute>} />
+
+            {/* App Shell do profissional clínico */}
+            <Route element={<ProtectedRoute><AppShellClinico /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/paciente/nova" element={<PacientePage />} />
+              <Route path="/paciente/:id" element={<PacientePage />} />
+              <Route path="/planos" element={<PlanosPage />} />
+              <Route path="/perfil" element={<PerfilPage />} />
+            </Route>
+
+            {/* Completar perfil (dentro do shell mas skip profile check) */}
+            <Route element={<ProtectedRoute skipProfileCheck><AppShellClinico /></ProtectedRoute>}>
+              <Route path="/completar-perfil" element={<CompletarPerfilPage />} />
+            </Route>
+
+            {/* Rotas que NÃO usam o shell clínico */}
             <Route path="/gestao" element={<ProtectedRoute><GestaoPage /></ProtectedRoute>} />
             <Route path="/gestao/equipe" element={<ProtectedRoute><GestaoEquipePage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
             <Route path="/consolidar" element={<ProtectedRoute><ConsolidarPage /></ProtectedRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

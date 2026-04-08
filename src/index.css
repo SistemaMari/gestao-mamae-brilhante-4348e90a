@@ -117,3 +117,15 @@
     font-family: 'Sora', sans-serif;
   }
 }
+
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:block {
+    display: block !important;
+  }
+  .print\:overflow-visible {
+    overflow: visible !important;
+  }
+}

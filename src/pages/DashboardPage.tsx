@@ -1,17 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
 import UsageWarningBanner from '@/components/UsageWarningBanner';
 import BlockingModal from '@/components/BlockingModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  LogOut, Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
+  Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
   User, Info, Loader2
 } from 'lucide-react';
 import { differenceInDays, format, addDays } from 'date-fns';
@@ -114,7 +112,6 @@ function getReturnBadge(paciente: Paciente): { type: 'proximo' | 'vencido'; tool
 const PAGE_SIZE = 20;
 
 export default function DashboardPage() {
-  const { signOut, user } = useAuth();
   const { profissionalData, loading: profLoading } = useProfissionalData();
   const navigate = useNavigate();
 
@@ -178,7 +175,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div>
       {/* Usage warning banner */}
       {profissionalData && (
         <UsageWarningBanner
@@ -187,30 +184,7 @@ export default function DashboardPage() {
         />
       )}
 
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-heading text-2xl font-bold text-foreground">
-              Olá, {profissionalData?.nome ? `Dr(a). ${profissionalData.nome.split(' ')[0]}` : user?.email?.split('@')[0]}
-            </h1>
-            {profissionalData && (
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="outline" className="font-normal capitalize">
-                  Plano {profissionalData.plano}
-                </Badge>
-                <span>·</span>
-                <span>{profissionalData.laudos_usados} de {profissionalData.laudos_limite} laudos usados</span>
-                <span>·</span>
-                <Link to="/planos" className="font-medium text-primary hover:underline">Gerenciar plano</Link>
-              </div>
-            )}
-          </div>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
-        </header>
+      <div>
 
         {/* Plan usage bar */}
         {profissionalData && (
