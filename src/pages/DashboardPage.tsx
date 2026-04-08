@@ -290,7 +290,7 @@ export default function DashboardPage() {
                       <tr
                         key={pac.id}
                         className="cursor-pointer transition-colors hover:bg-muted/30"
-                        onClick={() => navigate(`/paciente/${pac.id}`)}
+                        onClick={() => navigate(`${isPreview ? '/vitrine' : ''}/paciente/${pac.id}`)}
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -364,7 +364,7 @@ export default function DashboardPage() {
                 return (
                   <button
                     key={pac.id}
-                    onClick={() => navigate(`/paciente/${pac.id}`)}
+                    onClick={() => navigate(`${isPreview ? '/vitrine' : ''}/paciente/${pac.id}`)}
                     className="w-full rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/30"
                   >
                     <div className="flex items-start justify-between gap-2">
