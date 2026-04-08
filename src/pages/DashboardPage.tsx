@@ -178,7 +178,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div>
       {/* Usage warning banner */}
       {profissionalData && (
         <UsageWarningBanner
@@ -187,30 +187,7 @@ export default function DashboardPage() {
         />
       )}
 
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-heading text-2xl font-bold text-foreground">
-              Olá, {profissionalData?.nome ? `Dr(a). ${profissionalData.nome.split(' ')[0]}` : user?.email?.split('@')[0]}
-            </h1>
-            {profissionalData && (
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="outline" className="font-normal capitalize">
-                  Plano {profissionalData.plano}
-                </Badge>
-                <span>·</span>
-                <span>{profissionalData.laudos_usados} de {profissionalData.laudos_limite} laudos usados</span>
-                <span>·</span>
-                <Link to="/planos" className="font-medium text-primary hover:underline">Gerenciar plano</Link>
-              </div>
-            )}
-          </div>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
-        </header>
+      <div>
 
         {/* Plan usage bar */}
         {profissionalData && (
