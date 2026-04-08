@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
 import UsageWarningBanner from '@/components/UsageWarningBanner';
@@ -114,6 +114,8 @@ const PAGE_SIZE = 20;
 export default function DashboardPage() {
   const { profissionalData, loading: profLoading } = useProfissionalData();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isPreview = location.pathname.startsWith('/vitrine');
 
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [loadingPacientes, setLoadingPacientes] = useState(true);
@@ -122,15 +124,22 @@ export default function DashboardPage() {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
+    if (isPreview) {
+      setPacientes([]);
+      setLoadingPacientes(false);
+      return;
+    }
+
     if (!profissionalData) {
       setLoadingPacientes(false);
       return;
     }
+
     fetchPacientes();
-  }, [profissionalData]);
+  }, [isPreview, profissionalData]);
 
   const fetchPacientes = async () => {
-    if (!profissionalData) return;
+    if (!profissionalData || isPreview) return;
     setLoadingPacientes(true);
 
     const { data } = await supabase
@@ -152,6 +161,11 @@ export default function DashboardPage() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleNovaPaciente = async () => {
+    if (isPreview) {
+      navigate('/vitrine/paciente/nova');
+      return;
+    }
+
     if (!profissionalData) return;
 
     const { data } = await supabase.rpc('pode_criar_ficha', { p_profissional_id: profissionalData.id });
@@ -166,7 +180,7 @@ export default function DashboardPage() {
     ? Math.round((profissionalData.laudos_usados / profissionalData.laudos_limite) * 100)
     : 0;
 
-  if (profLoading) {
+  if (profLoading && !isPreview) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
