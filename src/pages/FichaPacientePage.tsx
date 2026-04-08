@@ -153,9 +153,11 @@ export default function FichaPacientePage() {
           <div>
             <h1 className="font-heading text-xl font-bold text-foreground">{paciente.nome}</h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              {idade !== null && (
+              {paciente.data_nascimento && (
                 <span className="flex items-center gap-1">
-                  <User className="h-3.5 w-3.5" /> {idade} anos
+                  <User className="h-3.5 w-3.5" />
+                  {format(new Date(paciente.data_nascimento), 'dd/MM/yyyy')}
+                  {idade !== null && ` (${idade} anos)`}
                 </span>
               )}
               {igAtual && (
