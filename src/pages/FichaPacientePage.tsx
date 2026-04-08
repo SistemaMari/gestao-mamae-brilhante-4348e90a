@@ -22,7 +22,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   dmg_afastado: { label: 'DMG afastado', color: 'bg-emerald-500' },
   dmg_confirmado: { label: 'DMG confirmado', color: 'bg-orange-500' },
   resultado_parto: { label: 'Resultado do parto', color: 'bg-purple-500' },
-  encaminhada_endocrino: { label: 'Encaminhada — endocrino', color: 'bg-red-500' },
+  encaminhada_endocrino: { label: 'Associar endocrino', color: 'bg-red-500' },
 };
 
 export default function FichaPacientePage() {
@@ -193,11 +193,20 @@ export default function FichaPacientePage() {
               </span>
             </div>
           )}
+          {primeiraConsulta && primeiraConsulta.ig_semanas != null && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                <span className="font-medium text-foreground">IG na consulta 1:</span>{' '}
+                {primeiraConsulta.ig_semanas}s {primeiraConsulta.ig_dias || 0}d
+              </span>
+            </div>
+          )}
           {igAtual && (
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Calendar className="h-3.5 w-3.5 shrink-0" />
               <span>
-                <span className="font-medium text-foreground">IG atual:</span>{' '}
+                <span className="font-medium text-foreground">IG hoje:</span>{' '}
                 {igAtual.semanas} sem + {igAtual.dias} dias
               </span>
             </div>
@@ -211,20 +220,11 @@ export default function FichaPacientePage() {
               </span>
             </div>
           )}
-          {primeiraConsulta && primeiraConsulta.ig_semanas != null && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Calendar className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                <span className="font-medium text-foreground">IG na consulta 1:</span>{' '}
-                {primeiraConsulta.ig_semanas}s {primeiraConsulta.ig_dias || 0}d
-              </span>
-            </div>
-          )}
           {dumCalculada && (
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Calendar className="h-3.5 w-3.5 shrink-0" />
               <span>
-                <span className="font-medium text-foreground">DUM calculada:</span>{' '}
+                <span className="font-medium text-foreground">DUM:</span>{' '}
                 {format(dumCalculada, 'dd/MM/yyyy')}
               </span>
             </div>

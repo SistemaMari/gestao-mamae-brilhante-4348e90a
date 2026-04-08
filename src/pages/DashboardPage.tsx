@@ -44,7 +44,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; meaning: str
     meaning: 'Parto realizado. Desfecho perinatal registrado.',
   },
   encaminhada_endocrino: {
-    label: 'Encaminhada — endocrino',
+    label: 'Associar endocrino',
     color: 'bg-red-500',
     meaning: 'Cenário 7: controle inadequado com insulina. Acompanhamento compartilhado GO + endocrinologista.',
   },
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Paciente</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">IG</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">IG hoje</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Última consulta</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Retorno</th>
