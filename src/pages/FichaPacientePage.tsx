@@ -113,21 +113,25 @@ export default function FichaPacientePage() {
     setShowRetorno1(false);
   };
 
-  // Current IG calculated from consulta 1
-  const igAtual = useMemo(() => {
-    if (!primeiraConsulta || primeiraConsulta.ig_semanas == null) return null;
-    const diasC1 = primeiraConsulta.ig_semanas * 7 + (primeiraConsulta.ig_dias || 0);
-    const elapsed = differenceInDays(new Date(), new Date(primeiraConsulta.data));
-    const totalDias = diasC1 + elapsed;
-    return { semanas: Math.floor(totalDias / 7), dias: totalDias % 7 };
-  }, [primeiraConsulta]);
+  // IG calculated from DUM
+  const igNaConsulta1 = useMemo(() => {
+    if (!paciente?.dum || !primeiraConsulta) return null;
+    const dias = differenceInDays(new Date(primeiraConsulta.data), new Date(paciente.dum));
+    if (dias < 0) return null;
+    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
+  }, [paciente?.dum, primeiraConsulta]);
 
-  // DUM calculada
-  const dumCalculada = useMemo(() => {
-    if (!primeiraConsulta || primeiraConsulta.ig_semanas == null) return null;
-    const totalDias = primeiraConsulta.ig_semanas * 7 + (primeiraConsulta.ig_dias || 0);
-    return addDays(new Date(primeiraConsulta.data), -totalDias);
-  }, [primeiraConsulta]);
+  const igAtual = useMemo(() => {
+    if (!paciente?.dum) return null;
+    const dias = differenceInDays(new Date(), new Date(paciente.dum));
+    if (dias < 0) return null;
+    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
+  }, [paciente?.dum]);
+
+  const dumDate = useMemo(() => {
+    if (!paciente?.dum) return null;
+    return new Date(paciente.dum);
+  }, [paciente?.dum]);
 
   // GTT window: 24-28 weeks from DUM
   const janelaGTT = useMemo(() => {
