@@ -26,7 +26,7 @@ export interface PreviewPaciente {
   consultas: PreviewConsulta[];
 }
 
-const STORAGE_KEY = 'dramari_preview_pacientes';
+const STORAGE_KEY = 'dramari_preview_pacientes_v2';
 
 function canUseStorage() {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';

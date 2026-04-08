@@ -12,8 +12,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  AlertTriangle, Calendar, Clock, FileText, Plus, User,
+  AlertTriangle, Calendar, ChevronDown, Clock, FileText, Plus, User,
 } from 'lucide-react';
+import {
+  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
+} from '@/components/ui/accordion';
 import { differenceInYears, differenceInDays, addDays, format } from 'date-fns';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -175,60 +178,50 @@ export default function FichaPacientePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          {paciente.data_nascimento && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <User className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                <span className="font-medium text-foreground">Nascimento:</span>{' '}
-                {format(new Date(paciente.data_nascimento), 'dd/MM/yyyy')}
-              </span>
-            </div>
-          )}
-          {paciente.numero_identificacao && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <FileText className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                <span className="font-medium text-foreground">Identificação:</span>{' '}
-                {paciente.numero_identificacao}
-              </span>
-            </div>
-          )}
-          {primeiraConsulta && primeiraConsulta.ig_semanas != null && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Calendar className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                <span className="font-medium text-foreground">IG na consulta 1:</span>{' '}
-                {primeiraConsulta.ig_semanas}s {primeiraConsulta.ig_dias || 0}d
-              </span>
-            </div>
-          )}
-          {igAtual && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Calendar className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                <span className="font-medium text-foreground">IG hoje:</span>{' '}
-                {igAtual.semanas} sem + {igAtual.dias} dias
-              </span>
-            </div>
-          )}
-          {primeiraConsulta && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Calendar className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                <span className="font-medium text-foreground">Data da consulta 1:</span>{' '}
-                {format(new Date(primeiraConsulta.data), 'dd/MM/yyyy')}
-              </span>
-            </div>
-          )}
-          {dumCalculada && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Calendar className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                <span className="font-medium text-foreground">DUM:</span>{' '}
-                {format(dumCalculada, 'dd/MM/yyyy')}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <User className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              <span className="font-medium text-foreground">Nascimento:</span>{' '}
+              {paciente.data_nascimento ? format(new Date(paciente.data_nascimento), 'dd/MM/yyyy') : '—'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <FileText className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              <span className="font-medium text-foreground">Identificação:</span>{' '}
+              {paciente.numero_identificacao || '—'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              <span className="font-medium text-foreground">IG na consulta 1:</span>{' '}
+              {primeiraConsulta && primeiraConsulta.ig_semanas != null
+                ? `${primeiraConsulta.ig_semanas}s ${primeiraConsulta.ig_dias || 0}d`
+                : '—'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              <span className="font-medium text-foreground">IG hoje:</span>{' '}
+              {igAtual ? `${igAtual.semanas} sem + ${igAtual.dias} dias` : '—'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              <span className="font-medium text-foreground">Data da consulta 1:</span>{' '}
+              {primeiraConsulta ? format(new Date(primeiraConsulta.data), 'dd/MM/yyyy') : '—'}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              <span className="font-medium text-foreground">DUM:</span>{' '}
+              {dumCalculada ? format(dumCalculada, 'dd/MM/yyyy') : '—'}
+            </span>
+          </div>
         </div>
 
         {/* Observações da consulta 1 */}
@@ -299,28 +292,39 @@ export default function FichaPacientePage() {
         {consultas.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhuma consulta registrada.</p>
         ) : (
-          <div className="space-y-3">
+          <Accordion type="multiple" className="space-y-2">
             {consultas.map((c) => (
-              <div key={c.id} className="rounded-lg border border-border p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">
-                    {c.tipo === 'consulta_1' ? 'Consulta 1' : `Retorno ${c.numero_sequencial}`}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(c.data), 'dd/MM/yyyy')}
-                  </span>
-                </div>
-                {c.ig_semanas != null && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    IG: {c.ig_semanas}s {c.ig_dias || 0}d
-                  </p>
-                )}
-                {c.observacoes && (
-                  <p className="mt-1 text-xs text-muted-foreground italic">{c.observacoes}</p>
-                )}
-              </div>
+              <AccordionItem key={c.id} value={c.id} className="rounded-lg border border-border px-3 py-0">
+                <AccordionTrigger className="py-3 hover:no-underline">
+                  <div className="flex w-full items-center justify-between pr-2">
+                    <span className="text-sm font-medium text-foreground">
+                      {c.tipo === 'consulta_1' ? 'Consulta 1' : `Retorno ${c.numero_sequencial}`}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(c.data), 'dd/MM/yyyy')}
+                    </span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3">
+                  {c.ig_semanas != null && (
+                    <p className="text-xs text-muted-foreground mb-1">
+                      IG: {c.ig_semanas}s {c.ig_dias || 0}d
+                    </p>
+                  )}
+                  {c.status_gerado && STATUS_CONFIG[c.status_gerado] && (
+                    <Badge className={`${STATUS_CONFIG[c.status_gerado].color} text-white border-0 text-[10px] mb-2`}>
+                      {STATUS_CONFIG[c.status_gerado].label}
+                    </Badge>
+                  )}
+                  {c.observacoes ? (
+                    <p className="text-xs text-muted-foreground italic">{c.observacoes}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Sem observações.</p>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
         )}
 
         {/* Botão nova consulta de retorno */}
