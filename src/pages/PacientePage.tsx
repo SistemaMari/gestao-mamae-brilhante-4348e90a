@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
+import { addPreviewPaciente } from '@/lib/previewPatients';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,8 +56,18 @@ export default function PacientePage() {
     }
 
     if (isPreview) {
-      toast.success('Cadastro simulado com sucesso na vitrine!');
-      navigate(isPreview ? '/vitrine/dashboard' : '/dashboard');
+      addPreviewPaciente({
+        nome: nome.trim(),
+        numero_identificacao: numeroId.trim() || null,
+        dum: dum || null,
+        usg_data: usgData || null,
+        usg_ig_semanas: usgSemanas ? parseInt(usgSemanas, 10) : null,
+        usg_ig_dias: usgDias ? parseInt(usgDias, 10) : null,
+        dmg_gestacao_anterior: dmgAnterior,
+      });
+      window.dispatchEvent(new Event('preview-pacientes-updated'));
+      toast.success('Paciente cadastrada com sucesso na vitrine!');
+      navigate('/vitrine/dashboard');
       return;
     }
 

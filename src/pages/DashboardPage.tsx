@@ -8,26 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { getPreviewPacientes, type PreviewPaciente } from '@/lib/previewPatients';
 import {
   Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
   User, Info, Loader2
 } from 'lucide-react';
 import { differenceInDays, format, addDays } from 'date-fns';
 
-interface Paciente {
-  id: string;
-  nome: string;
-  numero_identificacao: string | null;
-  dum: string | null;
-  usg_data: string | null;
-  usg_ig_semanas: number | null;
-  usg_ig_dias: number | null;
-  status_ficha: string;
-  dmg_gestacao_anterior: boolean | null;
-  data_ultima_consulta: string | null;
-  data_proximo_retorno: string | null;
-  tipo_retorno: string | null;
-}
+interface Paciente extends PreviewPaciente {}
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; meaning: string }> = {
   aguardando_gj: {
@@ -125,7 +113,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isPreview) {
-      setPacientes([]);
+      setPacientes(getPreviewPacientes());
       setLoadingPacientes(false);
       return;
     }
@@ -137,6 +125,22 @@ export default function DashboardPage() {
 
     fetchPacientes();
   }, [isPreview, profissionalData]);
+
+  useEffect(() => {
+    if (!isPreview) return;
+
+    const syncPreviewPacientes = () => {
+      setPacientes(getPreviewPacientes());
+    };
+
+    window.addEventListener('storage', syncPreviewPacientes);
+    window.addEventListener('preview-pacientes-updated', syncPreviewPacientes as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', syncPreviewPacientes);
+      window.removeEventListener('preview-pacientes-updated', syncPreviewPacientes as EventListener);
+    };
+  }, [isPreview]);
 
   const fetchPacientes = async () => {
     if (!profissionalData || isPreview) return;
