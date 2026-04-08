@@ -220,17 +220,21 @@ export type Database = {
       }
       pacientes: {
         Row: {
+          cidade: string | null
           created_at: string
           data_nascimento: string | null
           data_proximo_retorno: string | null
           data_ultima_consulta: string | null
           dmg_gestacao_anterior: boolean | null
           dum: string | null
+          estado: string | null
           id: string
           nome: string
           numero_identificacao: string | null
+          pais: string | null
           profissional_id: string
           status_ficha: string
+          tipo_identificacao: string | null
           tipo_retorno: string | null
           unidade_id: string | null
           updated_at: string
@@ -239,17 +243,21 @@ export type Database = {
           usg_ig_semanas: number | null
         }
         Insert: {
+          cidade?: string | null
           created_at?: string
           data_nascimento?: string | null
           data_proximo_retorno?: string | null
           data_ultima_consulta?: string | null
           dmg_gestacao_anterior?: boolean | null
           dum?: string | null
+          estado?: string | null
           id?: string
           nome: string
           numero_identificacao?: string | null
+          pais?: string | null
           profissional_id: string
           status_ficha?: string
+          tipo_identificacao?: string | null
           tipo_retorno?: string | null
           unidade_id?: string | null
           updated_at?: string
@@ -258,17 +266,21 @@ export type Database = {
           usg_ig_semanas?: number | null
         }
         Update: {
+          cidade?: string | null
           created_at?: string
           data_nascimento?: string | null
           data_proximo_retorno?: string | null
           data_ultima_consulta?: string | null
           dmg_gestacao_anterior?: boolean | null
           dum?: string | null
+          estado?: string | null
           id?: string
           nome?: string
           numero_identificacao?: string | null
+          pais?: string | null
           profissional_id?: string
           status_ficha?: string
+          tipo_identificacao?: string | null
           tipo_retorno?: string | null
           unidade_id?: string | null
           updated_at?: string
