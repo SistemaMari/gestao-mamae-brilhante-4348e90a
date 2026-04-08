@@ -4,14 +4,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
 import { addPreviewPaciente } from '@/lib/previewPatients';
+import { countries } from '@/data/locationData';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { Info, Loader2 } from 'lucide-react';
-import { differenceInYears, addDays } from 'date-fns';
+import { differenceInYears } from 'date-fns';
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -26,52 +30,31 @@ export default function Consulta1Form() {
 
   const [nome, setNome] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
+  const [tipoIdentificacao, setTipoIdentificacao] = useState('cpf');
   const [numeroId, setNumeroId] = useState('');
-  const [igSemanas, setIgSemanas] = useState('');
-  const [igDias, setIgDias] = useState('');
+  const [dum, setDum] = useState('');
   const [dataConsulta, setDataConsulta] = useState(todayISO());
   const [observacoes, setObservacoes] = useState('');
   const [dmgAnterior, setDmgAnterior] = useState<boolean | null>(null);
+  const [pais, setPais] = useState('Brasil');
+  const [estado, setEstado] = useState('');
+  const [cidade, setCidade] = useState('');
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
-
-  // Determine if numero_identificacao field should show
-  const identificadorPadrao = useMemo(() => {
-    if (!profissionalData) return null;
-    const id = (profissionalData as any).identificador_padrao;
-    if (!id || id === 'nenhum') return null;
-    return id;
-  }, [profissionalData]);
-
-  const identificadorLabel = useMemo(() => {
-    if (identificadorPadrao === 'cpf') return 'CPF';
-    if (identificadorPadrao === 'prontuario') return 'Prontuário';
-    if (identificadorPadrao === 'cns') return 'CNS';
-    return 'Número de identificação';
-  }, [identificadorPadrao]);
-
-  // In preview mode, always show the field
-  const showNumeroId = isPreview || !!identificadorPadrao;
 
   const idade = useMemo(() => {
     if (!dataNascimento) return null;
     return differenceInYears(new Date(), new Date(dataNascimento));
   }, [dataNascimento]);
 
-  const igAtConsulta = useMemo(() => {
-    const s = parseInt(igSemanas, 10);
-    const d = parseInt(igDias, 10) || 0;
-    if (isNaN(s)) return null;
-    return { semanas: s, dias: d };
-  }, [igSemanas, igDias]);
+  // Location cascading logic
+  const selectedCountry = useMemo(() => countries.find((c) => c.value === pais), [pais]);
+  const stateList = selectedCountry?.states || [];
+  const selectedState = useMemo(() => stateList.find((s) => s.value === estado), [stateList, estado]);
+  const cityList = selectedState?.cities || [];
+  const isOutro = pais === 'Outro';
 
-  const dumCalculada = useMemo(() => {
-    if (!igAtConsulta || !dataConsulta) return null;
-    const totalDias = igAtConsulta.semanas * 7 + igAtConsulta.dias;
-    return addDays(new Date(dataConsulta), -totalDias).toISOString().slice(0, 10);
-  }, [igAtConsulta, dataConsulta]);
-
-  const isValid = nome.trim() && dataNascimento && igSemanas && dataConsulta && dmgAnterior !== null;
+  const isValid = nome.trim() && dataNascimento && dum && dataConsulta && dmgAnterior !== null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +71,11 @@ export default function Consulta1Form() {
         nome: nome.trim(),
         data_nascimento: dataNascimento,
         numero_identificacao: numeroId.trim() || null,
-        dum: dumCalculada,
+        tipo_identificacao: tipoIdentificacao,
+        dum,
+        pais,
+        estado: estado || null,
+        cidade: cidade || null,
         usg_data: null,
         usg_ig_semanas: null,
         usg_ig_dias: null,
@@ -100,8 +87,8 @@ export default function Consulta1Form() {
             tipo: 'consulta_1',
             numero_sequencial: 1,
             data: dataConsulta,
-            ig_semanas: parseInt(igSemanas, 10),
-            ig_dias: parseInt(igDias, 10) || 0,
+            ig_semanas: null,
+            ig_dias: null,
             observacoes: observacoes.trim() || null,
             status_gerado: 'aguardando_gj',
           },
@@ -136,7 +123,11 @@ export default function Consulta1Form() {
       profissional_id: profissionalData.id,
       data_nascimento: dataNascimento,
       numero_identificacao: numeroId.trim() || null,
-      dum: dumCalculada,
+      tipo_identificacao: tipoIdentificacao,
+      dum,
+      pais,
+      estado: estado || null,
+      cidade: cidade || null,
       dmg_gestacao_anterior: dmgAnterior === true,
       data_ultima_consulta: dataConsulta,
       status_ficha: 'aguardando_gj',
@@ -165,8 +156,6 @@ export default function Consulta1Form() {
       tipo: 'consulta_1',
       numero_sequencial: 1,
       data: dataConsulta,
-      ig_semanas: parseInt(igSemanas, 10),
-      ig_dias: parseInt(igDias, 10) || 0,
       observacoes: observacoes.trim() || null,
       status_gerado: 'aguardando_gj',
     });
@@ -237,54 +226,100 @@ export default function Consulta1Form() {
             {errorMsg(!!dataNascimento)}
           </div>
 
-          {/* Número de identificação (condicional) */}
-          {showNumeroId && (
-            <div className="space-y-2">
-              <FieldLabel htmlFor="numero-id" tooltip="Prontuário, CPF ou outro identificador configurado no seu perfil.">
-                {identificadorLabel}
-              </FieldLabel>
+          {/* Tipo de identificação + Número */}
+          <div className="space-y-2">
+            <FieldLabel tooltip="Selecione o tipo de documento e informe o número de identificação da paciente.">
+              Identificação
+            </FieldLabel>
+            <div className="grid grid-cols-[140px_1fr] gap-3">
+              <Select value={tipoIdentificacao} onValueChange={setTipoIdentificacao}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cpf">CPF</SelectItem>
+                  <SelectItem value="prontuario">Prontuário</SelectItem>
+                  <SelectItem value="cns">CNS</SelectItem>
+                </SelectContent>
+              </Select>
               <Input
-                id="numero-id"
                 value={numeroId}
                 onChange={(e) => setNumeroId(e.target.value)}
-                placeholder="Opcional"
+                placeholder="Número (opcional)"
               />
             </div>
-          )}
+          </div>
 
-          {/* Idade gestacional */}
+          {/* País / Estado / Cidade */}
           <div className="space-y-2">
-            <FieldLabel required tooltip="Informe a IG em semanas e dias no momento desta consulta. A DUM será calculada automaticamente.">
-              Idade gestacional na consulta
+            <FieldLabel tooltip="Local de residência da paciente. A lista de estados e cidades muda conforme o país.">
+              Localização
             </FieldLabel>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="ig-semanas" className="text-xs text-muted-foreground">Semanas</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Select value={pais} onValueChange={(v) => { setPais(v); setEstado(''); setCidade(''); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="País" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {isOutro ? (
                 <Input
-                  id="ig-semanas"
-                  type="number"
-                  min="0"
-                  max="42"
-                  value={igSemanas}
-                  onChange={(e) => setIgSemanas(e.target.value)}
-                  placeholder="Ex: 12"
-                  className={fieldError(!!igSemanas)}
+                  value={estado}
+                  onChange={(e) => { setEstado(e.target.value); setCidade(''); }}
+                  placeholder="Estado"
                 />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="ig-dias" className="text-xs text-muted-foreground">Dias</Label>
+              ) : (
+                <Select value={estado} onValueChange={(v) => { setEstado(v); setCidade(''); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stateList.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {isOutro ? (
                 <Input
-                  id="ig-dias"
-                  type="number"
-                  min="0"
-                  max="6"
-                  value={igDias}
-                  onChange={(e) => setIgDias(e.target.value)}
-                  placeholder="0"
+                  value={cidade}
+                  onChange={(e) => setCidade(e.target.value)}
+                  placeholder="Cidade"
                 />
-              </div>
+              ) : (
+                <Select value={cidade} onValueChange={setCidade}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Cidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cityList.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-            {errorMsg(!!igSemanas)}
+          </div>
+
+          {/* DUM */}
+          <div className="space-y-2">
+            <FieldLabel htmlFor="dum" required tooltip="Data da última menstruação. Usada para calcular a idade gestacional automaticamente.">
+              DUM (Data da última menstruação)
+            </FieldLabel>
+            <Input
+              id="dum"
+              type="date"
+              value={dum}
+              onChange={(e) => setDum(e.target.value)}
+              className={fieldError(!!dum)}
+            />
+            {errorMsg(!!dum)}
           </div>
 
           {/* Data da consulta */}
