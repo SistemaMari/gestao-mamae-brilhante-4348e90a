@@ -1,6 +1,5 @@
-import { useParams, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { FileText } from 'lucide-react';
 
 export default function PacientePage() {
   const { id } = useParams<{ id: string }>();

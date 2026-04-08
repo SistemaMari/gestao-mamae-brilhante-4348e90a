@@ -1,17 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
 import UsageWarningBanner from '@/components/UsageWarningBanner';
 import BlockingModal from '@/components/BlockingModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  LogOut, Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
+  Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
   User, Info, Loader2
 } from 'lucide-react';
 import { differenceInDays, format, addDays } from 'date-fns';
