@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,7 +50,6 @@ export default function FichaPacientePage() {
       return;
     }
 
-    // Real mode
     (async () => {
       const { data: pac } = await supabase
         .from('pacientes')
@@ -60,12 +60,12 @@ export default function FichaPacientePage() {
       if (pac) {
         setPaciente({
           ...pac,
-          data_nascimento: (pac as any).data_nascimento || null,
+          data_nascimento: pac.data_nascimento || null,
           consultas: [],
         } as any);
 
         const { data: cons } = await supabase
-          .from('consultas' as any)
+          .from('consultas')
           .select('*')
           .eq('paciente_id', id)
           .order('data', { ascending: true });
@@ -92,25 +92,23 @@ export default function FichaPacientePage() {
     return differenceInYears(new Date(), new Date(paciente.data_nascimento));
   }, [paciente?.data_nascimento]);
 
-  // Current IG: from consulta 1 IG + days elapsed
+  const primeiraConsulta = consultas.find((c) => c.tipo === 'consulta_1');
+
+  // Current IG calculated from consulta 1
   const igAtual = useMemo(() => {
-    if (!consultas.length) return null;
-    const c1 = consultas.find((c) => c.tipo === 'consulta_1');
-    if (!c1 || c1.ig_semanas == null) return null;
-    const diasC1 = c1.ig_semanas * 7 + (c1.ig_dias || 0);
-    const elapsed = differenceInDays(new Date(), new Date(c1.data));
+    if (!primeiraConsulta || primeiraConsulta.ig_semanas == null) return null;
+    const diasC1 = primeiraConsulta.ig_semanas * 7 + (primeiraConsulta.ig_dias || 0);
+    const elapsed = differenceInDays(new Date(), new Date(primeiraConsulta.data));
     const totalDias = diasC1 + elapsed;
     return { semanas: Math.floor(totalDias / 7), dias: totalDias % 7 };
-  }, [consultas]);
+  }, [primeiraConsulta]);
 
   // DUM calculada
   const dumCalculada = useMemo(() => {
-    if (!consultas.length) return null;
-    const c1 = consultas.find((c) => c.tipo === 'consulta_1');
-    if (!c1 || c1.ig_semanas == null) return null;
-    const totalDias = c1.ig_semanas * 7 + (c1.ig_dias || 0);
-    return addDays(new Date(c1.data), -totalDias);
-  }, [consultas]);
+    if (!primeiraConsulta || primeiraConsulta.ig_semanas == null) return null;
+    const totalDias = primeiraConsulta.ig_semanas * 7 + (primeiraConsulta.ig_dias || 0);
+    return addDays(new Date(primeiraConsulta.data), -totalDias);
+  }, [primeiraConsulta]);
 
   // GTT window: 24-28 weeks from DUM
   const janelaGTT = useMemo(() => {
@@ -119,6 +117,9 @@ export default function FichaPacientePage() {
     const fim = addDays(dumCalculada, 28 * 7);
     return { inicio, fim };
   }, [dumCalculada]);
+
+  // Is IG >= 24 weeks?
+  const igMaior24 = igAtual ? igAtual.semanas >= 24 : false;
 
   const status = paciente ? STATUS_CONFIG[paciente.status_ficha] : null;
 
@@ -145,14 +146,27 @@ export default function FichaPacientePage() {
     );
   }
 
-  const primeiraConsulta = consultas.find((c) => c.tipo === 'consulta_1');
-
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      {/* Header */}
+      {/* DMG anterior banner — fixed at top, not closeable */}
+      {paciente.dmg_gestacao_anterior && (
+        <div className="flex items-start gap-3 rounded-xl border-2 border-orange-400 bg-orange-50 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
+          <p className="text-sm font-semibold text-orange-800">
+            ATENÇÃO — Histórico de DMG em gestação anterior. Fator de risco elevado para recorrência. Monitorar com atenção redobrada.
+          </p>
+        </div>
+      )}
+
+      {/* Header card */}
       <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <h1 className="font-heading text-xl font-bold text-foreground">{paciente.nome}</h1>
+          <div>
+            <h1 className="font-heading text-xl font-bold text-foreground">{paciente.nome}</h1>
+            {idade !== null && (
+              <span className="text-sm text-muted-foreground">{idade} anos</span>
+            )}
+          </div>
           {status && (
             <Badge className={`${status.color} text-white border-0 shrink-0`}>
               {status.label}
@@ -160,15 +174,13 @@ export default function FichaPacientePage() {
           )}
         </div>
 
-        {/* Dados da paciente */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
           {paciente.data_nascimento && (
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <User className="h-3.5 w-3.5 shrink-0" />
               <span>
                 <span className="font-medium text-foreground">Nascimento:</span>{' '}
                 {format(new Date(paciente.data_nascimento), 'dd/MM/yyyy')}
-                {idade !== null && ` (${idade} anos)`}
               </span>
             </div>
           )}
@@ -186,7 +198,7 @@ export default function FichaPacientePage() {
               <Calendar className="h-3.5 w-3.5 shrink-0" />
               <span>
                 <span className="font-medium text-foreground">IG atual:</span>{' '}
-                {igAtual.semanas}s {igAtual.dias}d
+                {igAtual.semanas} sem + {igAtual.dias} dias
               </span>
             </div>
           )}
@@ -194,7 +206,7 @@ export default function FichaPacientePage() {
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Calendar className="h-3.5 w-3.5 shrink-0" />
               <span>
-                <span className="font-medium text-foreground">Data da consulta:</span>{' '}
+                <span className="font-medium text-foreground">Data da consulta 1:</span>{' '}
                 {format(new Date(primeiraConsulta.data), 'dd/MM/yyyy')}
               </span>
             </div>
@@ -228,60 +240,53 @@ export default function FichaPacientePage() {
         )}
       </div>
 
-      {/* DMG anterior banner */}
-      {paciente.dmg_gestacao_anterior && (
-        <div className="flex items-start gap-3 rounded-xl border border-orange-300 bg-orange-50 p-4">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
-          <div>
-            <p className="text-sm font-semibold text-orange-800">
-              ⚠️ DMG em gestação anterior
-            </p>
-            <p className="mt-0.5 text-xs text-orange-700">
-              Esta paciente já teve diagnóstico de Diabete Mellitus Gestacional em gestação prévia. Atenção redobrada ao rastreamento.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Confirmation card — orientações */}
+      {/* Confirmation card — green */}
       {paciente.status_ficha === 'aguardando_gj' && (
-        <div className="rounded-xl border border-emerald-200 bg-[#DCFCE7] p-5 space-y-4">
-          <h2 className="text-sm font-bold text-emerald-800 flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Pedido de exame — Consulta 1
-          </h2>
+        <>
+          <div className="rounded-xl border border-emerald-200 bg-[#DCFCE7] p-5 space-y-4">
+            <h2 className="text-sm font-bold text-emerald-800 flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Pedido de exame — Consulta 1
+            </h2>
 
-          {/* Glicemia de jejum */}
-          <div className="rounded-lg bg-white/70 p-3">
-            <p className="text-sm font-semibold text-emerald-900">Glicemia de jejum</p>
-            <p className="mt-1 text-xs text-emerald-800">
-              Solicitar glicemia plasmática de jejum (8-14h de jejum). Resultado esperado antes do próximo retorno.
-            </p>
-          </div>
-
-          {/* Janela GTT */}
-          {janelaGTT && (
+            {/* Parte 1 — Orientação do exame */}
             <div className="rounded-lg bg-white/70 p-3">
-              <p className="text-sm font-semibold text-emerald-900">Janela para GTT 75g</p>
+              <p className="text-sm font-semibold text-emerald-900">Orientação do exame</p>
               <p className="mt-1 text-xs text-emerald-800">
-                Se GJ &lt; 92 mg/dL, solicitar GTT 75g entre{' '}
-                <strong>{format(janelaGTT.inicio, 'dd/MM/yyyy')}</strong> e{' '}
-                <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>{' '}
-                (24ª a 28ª semana).
+                Consulta 1 registrada com sucesso. Solicitar glicemia plasmática de jejum. Jejum de 8 a 12 horas. Coleta venosa processada em laboratório — glicemia capilar em ponta de dedo não é válida para fins diagnósticos.
               </p>
             </div>
-          )}
 
-          {/* Notas técnicas */}
-          <div className="rounded-lg bg-white/70 p-3">
-            <p className="text-sm font-semibold text-emerald-900">Notas técnicas</p>
-            <ul className="mt-1 list-disc pl-4 text-xs text-emerald-800 space-y-0.5">
-              <li>GJ ≥ 92 mg/dL → diagnóstico de DMG na primeira consulta</li>
-              <li>GJ ≥ 126 mg/dL → diabetes prévio (encaminhar endocrinologia)</li>
-              <li>GJ &lt; 92 mg/dL → aguardar GTT na janela indicada</li>
+            {/* Parte 2 — Janela GTT */}
+            {janelaGTT && (
+              <div className="rounded-lg bg-white/70 p-3">
+                <p className="text-sm font-semibold text-emerald-900">Janela para GTT 75g</p>
+                <p className="mt-1 text-xs text-emerald-800">
+                  {igMaior24 ? (
+                    'O GTT 75g já está na janela — solicitar o mais breve possível.'
+                  ) : (
+                    <>
+                      O GTT 75g deverá ser realizado o mais próximo possível da 24ª semana (entre{' '}
+                      <strong>{format(janelaGTT.inicio, 'dd/MM/yyyy')}</strong> e{' '}
+                      <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>
+                      ). Oriente a paciente desde já.
+                    </>
+                  )}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Parte 3 — Notas técnicas — card cinza separado */}
+          <div className="rounded-xl border border-border bg-[#F1F5F9] p-5">
+            <p className="text-sm font-semibold text-foreground mb-2">Notas técnicas</p>
+            <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1.5">
+              <li>Não repetir glicemia de jejum para fins diagnósticos — em nenhum cenário, seja resultado positivo ou negativo.</li>
+              <li>Glicemia plasmática é OBRIGATÓRIA para diagnóstico — glicemia capilar em ponta de dedo não é válida para este fim.</li>
+              <li>Glicemia capilar de jejum e pós-prandiais são utilizadas exclusivamente para acompanhamento do perfil glicêmico — nunca para diagnóstico.</li>
             </ul>
           </div>
-        </div>
+        </>
       )}
 
       {/* Histórico de consultas */}
@@ -318,14 +323,14 @@ export default function FichaPacientePage() {
           </div>
         )}
 
-        {/* Botão nova consulta de retorno (placeholder) */}
+        {/* Botão nova consulta de retorno */}
         <Button
           variant="outline"
           className="mt-4 w-full"
-          disabled
+          onClick={() => toast('Consulta de retorno ainda não implementada (Prompt 9).')}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Nova consulta de retorno (em breve)
+          + Nova consulta de retorno
         </Button>
       </div>
     </div>

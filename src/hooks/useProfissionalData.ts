@@ -27,7 +27,7 @@ export function useProfissionalData() {
     const fetch = async () => {
       const { data: prof } = await supabase
         .from('profissionais')
-        .select('id, plano, plano_status, laudos_limite, laudos_usados, crm, especialidade, nome')
+        .select('id, plano, plano_status, laudos_limite, laudos_usados, crm, especialidade, nome, identificador_padrao, unidade_id')
         .eq('user_id', user.id)
         .maybeSingle();
 

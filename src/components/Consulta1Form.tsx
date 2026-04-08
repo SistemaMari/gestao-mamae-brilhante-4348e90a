@@ -35,21 +35,29 @@ export default function Consulta1Form() {
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
 
-  const identificadorLabel = useMemo(() => {
-    if (!profissionalData) return 'Número de identificação';
+  // Determine if numero_identificacao field should show
+  const identificadorPadrao = useMemo(() => {
+    if (!profissionalData) return null;
     const id = (profissionalData as any).identificador_padrao;
-    if (id === 'cpf') return 'CPF';
-    if (id === 'prontuario') return 'Prontuário';
-    if (id === 'cns') return 'CNS';
-    return 'Número de identificação';
+    if (!id || id === 'nenhum') return null;
+    return id;
   }, [profissionalData]);
+
+  const identificadorLabel = useMemo(() => {
+    if (identificadorPadrao === 'cpf') return 'CPF';
+    if (identificadorPadrao === 'prontuario') return 'Prontuário';
+    if (identificadorPadrao === 'cns') return 'CNS';
+    return 'Número de identificação';
+  }, [identificadorPadrao]);
+
+  // In preview mode, always show the field
+  const showNumeroId = isPreview || !!identificadorPadrao;
 
   const idade = useMemo(() => {
     if (!dataNascimento) return null;
     return differenceInYears(new Date(), new Date(dataNascimento));
   }, [dataNascimento]);
 
-  // Calculate IG at consultation date from IG entered
   const igAtConsulta = useMemo(() => {
     const s = parseInt(igSemanas, 10);
     const d = parseInt(igDias, 10) || 0;
@@ -57,13 +65,11 @@ export default function Consulta1Form() {
     return { semanas: s, dias: d };
   }, [igSemanas, igDias]);
 
-  // Calculate DUM from IG + data consulta
   const dumCalculada = useMemo(() => {
     if (!igAtConsulta || !dataConsulta) return null;
     const totalDias = igAtConsulta.semanas * 7 + igAtConsulta.dias;
     return addDays(new Date(dataConsulta), -totalDias).toISOString().slice(0, 10);
   }, [igAtConsulta, dataConsulta]);
-
 
   const isValid = nome.trim() && dataNascimento && igSemanas && dataConsulta && dmgAnterior !== null;
 
@@ -115,7 +121,6 @@ export default function Consulta1Form() {
 
     setSaving(true);
 
-    // Check pode_criar_ficha
     const { data: podeCriar } = await supabase.rpc('pode_criar_ficha', {
       p_profissional_id: profissionalData.id,
     });
@@ -154,7 +159,7 @@ export default function Consulta1Form() {
       return;
     }
 
-    const { error: consErr } = await supabase.from('consultas' as any).insert({
+    const { error: consErr } = await supabase.from('consultas').insert({
       paciente_id: pacienteData.id,
       profissional_id: profissionalData.id,
       tipo: 'consulta_1',
@@ -164,7 +169,7 @@ export default function Consulta1Form() {
       ig_dias: parseInt(igDias, 10) || 0,
       observacoes: observacoes.trim() || null,
       status_gerado: 'aguardando_gj',
-    } as any);
+    });
 
     setSaving(false);
 
@@ -181,6 +186,11 @@ export default function Consulta1Form() {
   const fieldError = (valid: boolean) =>
     touched && !valid ? 'border-destructive ring-1 ring-destructive' : '';
 
+  const errorMsg = (valid: boolean) =>
+    touched && !valid ? (
+      <span className="text-xs text-destructive">Campo obrigatório</span>
+    ) : null;
+
   return (
     <div className="mx-auto max-w-lg">
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
@@ -192,7 +202,7 @@ export default function Consulta1Form() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           {/* Nome completo */}
           <div className="space-y-2">
-            <FieldLabel htmlFor="nome" required tooltip="Nome completo da gestante.">
+            <FieldLabel htmlFor="nome" required tooltip="Nome completo para identificação na ficha e no laudo.">
               Nome completo
             </FieldLabel>
             <Input
@@ -202,11 +212,12 @@ export default function Consulta1Form() {
               placeholder="Nome da paciente"
               className={fieldError(!!nome.trim())}
             />
+            {errorMsg(!!nome.trim())}
           </div>
 
           {/* Data de nascimento */}
           <div className="space-y-2">
-            <FieldLabel htmlFor="data-nasc" required tooltip="Data de nascimento da gestante. A idade será calculada automaticamente.">
+            <FieldLabel htmlFor="data-nasc" required tooltip="Usada para calcular a idade automaticamente.">
               Data de nascimento
             </FieldLabel>
             <div className="flex items-center gap-3">
@@ -223,35 +234,32 @@ export default function Consulta1Form() {
                 </span>
               )}
             </div>
+            {errorMsg(!!dataNascimento)}
           </div>
 
           {/* Número de identificação (condicional) */}
-          <div className="space-y-2">
-            <FieldLabel htmlFor="numero-id" tooltip="Prontuário, CPF ou outro identificador configurado no seu perfil.">
-              {identificadorLabel}
-            </FieldLabel>
-            <Input
-              id="numero-id"
-              value={numeroId}
-              onChange={(e) => setNumeroId(e.target.value)}
-              placeholder="Opcional"
-            />
-          </div>
+          {showNumeroId && (
+            <div className="space-y-2">
+              <FieldLabel htmlFor="numero-id" tooltip="Prontuário, CPF ou outro identificador configurado no seu perfil.">
+                {identificadorLabel}
+              </FieldLabel>
+              <Input
+                id="numero-id"
+                value={numeroId}
+                onChange={(e) => setNumeroId(e.target.value)}
+                placeholder="Opcional"
+              />
+            </div>
+          )}
 
           {/* Idade gestacional */}
-          <fieldset className="space-y-3 rounded-lg border border-border p-4">
-            <legend className="px-2 text-sm font-medium text-foreground flex items-center gap-1.5">
-              Idade gestacional na consulta *
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent>Informe a IG em semanas e dias no momento desta consulta. A DUM será calculada automaticamente.</TooltipContent>
-              </Tooltip>
-            </legend>
+          <div className="space-y-2">
+            <FieldLabel required tooltip="Informe a IG em semanas e dias no momento desta consulta. A DUM será calculada automaticamente.">
+              Idade gestacional na consulta
+            </FieldLabel>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="ig-semanas">Semanas</Label>
+                <Label htmlFor="ig-semanas" className="text-xs text-muted-foreground">Semanas</Label>
                 <Input
                   id="ig-semanas"
                   type="number"
@@ -264,7 +272,7 @@ export default function Consulta1Form() {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="ig-dias">Dias</Label>
+                <Label htmlFor="ig-dias" className="text-xs text-muted-foreground">Dias</Label>
                 <Input
                   id="ig-dias"
                   type="number"
@@ -276,7 +284,8 @@ export default function Consulta1Form() {
                 />
               </div>
             </div>
-          </fieldset>
+            {errorMsg(!!igSemanas)}
+          </div>
 
           {/* Data da consulta */}
           <div className="space-y-2">
@@ -290,11 +299,12 @@ export default function Consulta1Form() {
               onChange={(e) => setDataConsulta(e.target.value)}
               className={fieldError(!!dataConsulta)}
             />
+            {errorMsg(!!dataConsulta)}
           </div>
 
           {/* Observações */}
           <div className="space-y-2">
-            <FieldLabel htmlFor="obs" tooltip="Anotações clínicas livres desta consulta.">
+            <FieldLabel htmlFor="obs" tooltip="Anotações adicionais sobre a paciente: histórico, comorbidades, medicamentos em uso, etc.">
               Observações clínicas
             </FieldLabel>
             <Textarea
@@ -317,8 +327,8 @@ export default function Consulta1Form() {
                 onClick={() => setDmgAnterior(true)}
                 className={`flex-1 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                   dmgAnterior === true
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border bg-card text-muted-foreground hover:border-primary/40'
+                    ? 'border-[#9b87f5] bg-[#9b87f5]/10 text-[#9b87f5]'
+                    : 'border-[#9b87f5]/30 bg-card text-muted-foreground hover:border-[#9b87f5]/60'
                 } ${touched && dmgAnterior === null ? 'border-destructive' : ''}`}
               >
                 Sim
@@ -328,13 +338,14 @@ export default function Consulta1Form() {
                 onClick={() => setDmgAnterior(false)}
                 className={`flex-1 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                   dmgAnterior === false
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border bg-card text-muted-foreground hover:border-primary/40'
+                    ? 'border-[#9b87f5] bg-[#9b87f5]/10 text-[#9b87f5]'
+                    : 'border-[#9b87f5]/30 bg-card text-muted-foreground hover:border-[#9b87f5]/60'
                 } ${touched && dmgAnterior === null ? 'border-destructive' : ''}`}
               >
                 Não
               </button>
             </div>
+            {errorMsg(dmgAnterior !== null)}
           </div>
 
           {/* Botões */}
@@ -346,9 +357,13 @@ export default function Consulta1Form() {
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+            >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Registrar Consulta 1
+              Salvar consulta
             </Button>
           </div>
         </form>
@@ -371,13 +386,13 @@ function FieldLabel({
   return (
     <div className="flex items-center gap-1.5">
       <Label htmlFor={htmlFor}>
-        {children} {required && '*'}
+        {children} {required && <span className="text-destructive">*</span>}
       </Label>
       <Tooltip>
         <TooltipTrigger asChild>
           <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
         </TooltipTrigger>
-        <TooltipContent>{tooltip}</TooltipContent>
+        <TooltipContent className="max-w-xs">{tooltip}</TooltipContent>
       </Tooltip>
     </div>
   );
