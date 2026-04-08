@@ -145,39 +145,87 @@ export default function FichaPacientePage() {
     );
   }
 
+  const primeiraConsulta = consultas.find((c) => c.tipo === 'consulta_1');
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Header */}
-      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="font-heading text-xl font-bold text-foreground">{paciente.nome}</h1>
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              {paciente.data_nascimento && (
-                <span className="flex items-center gap-1">
-                  <User className="h-3.5 w-3.5" />
-                  {format(new Date(paciente.data_nascimento), 'dd/MM/yyyy')}
-                  {idade !== null && ` (${idade} anos)`}
-                </span>
-              )}
-              {igAtual && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" /> IG {igAtual.semanas}s {igAtual.dias}d
-                </span>
-              )}
-              {paciente.numero_identificacao && (
-                <span className="flex items-center gap-1">
-                  <FileText className="h-3.5 w-3.5" /> {paciente.numero_identificacao}
-                </span>
-              )}
-            </div>
-          </div>
+          <h1 className="font-heading text-xl font-bold text-foreground">{paciente.nome}</h1>
           {status && (
             <Badge className={`${status.color} text-white border-0 shrink-0`}>
               {status.label}
             </Badge>
           )}
         </div>
+
+        {/* Dados da paciente */}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          {paciente.data_nascimento && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <User className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                <span className="font-medium text-foreground">Nascimento:</span>{' '}
+                {format(new Date(paciente.data_nascimento), 'dd/MM/yyyy')}
+                {idade !== null && ` (${idade} anos)`}
+              </span>
+            </div>
+          )}
+          {paciente.numero_identificacao && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <FileText className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                <span className="font-medium text-foreground">Identificação:</span>{' '}
+                {paciente.numero_identificacao}
+              </span>
+            </div>
+          )}
+          {igAtual && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                <span className="font-medium text-foreground">IG atual:</span>{' '}
+                {igAtual.semanas}s {igAtual.dias}d
+              </span>
+            </div>
+          )}
+          {primeiraConsulta && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                <span className="font-medium text-foreground">Data da consulta:</span>{' '}
+                {format(new Date(primeiraConsulta.data), 'dd/MM/yyyy')}
+              </span>
+            </div>
+          )}
+          {primeiraConsulta && primeiraConsulta.ig_semanas != null && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                <span className="font-medium text-foreground">IG na consulta 1:</span>{' '}
+                {primeiraConsulta.ig_semanas}s {primeiraConsulta.ig_dias || 0}d
+              </span>
+            </div>
+          )}
+          {dumCalculada && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                <span className="font-medium text-foreground">DUM calculada:</span>{' '}
+                {format(dumCalculada, 'dd/MM/yyyy')}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Observações da consulta 1 */}
+        {primeiraConsulta?.observacoes && (
+          <div className="rounded-lg border border-border bg-muted/30 p-3">
+            <p className="text-xs font-medium text-foreground mb-1">Observações clínicas:</p>
+            <p className="text-sm text-muted-foreground italic">{primeiraConsulta.observacoes}</p>
+          </div>
+        )}
       </div>
 
       {/* DMG anterior banner */}
