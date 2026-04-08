@@ -27,6 +27,7 @@ function usePreviewBreadcrumb() {
   const path = useLocation().pathname;
   if (path === '/vitrine/dashboard') return null;
   if (path === '/vitrine/paciente/nova') return { parent: { label: 'Pacientes', path: '/vitrine/dashboard' }, current: 'Nova paciente' };
+  if (path.startsWith('/vitrine/paciente/')) return { parent: { label: 'Pacientes', path: '/vitrine/dashboard' }, current: 'Ficha da paciente' };
   if (path === '/vitrine/planos') return { parent: null, current: 'Meu Plano' };
   if (path === '/vitrine/perfil') return { parent: null, current: 'Meu Perfil' };
   return null;
