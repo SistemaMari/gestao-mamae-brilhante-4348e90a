@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Users, Settings, LogOut, ChevronLeft, ChevronRight,
-  Building2, BarChart3, ShieldCheck, UserPlus, Activity
+  Building2, BarChart3, ShieldCheck, UserPlus, Activity, BookOpen
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -40,6 +40,7 @@ const navByProfile: Record<string, NavItem[]> = {
     { label: 'Usuários', icon: Users, path: '/admin' },
     { label: 'Unidades', icon: Building2, path: '/admin' },
     { label: 'Convites', icon: UserPlus, path: '/admin' },
+    { label: 'Base de Conhecimento', icon: BookOpen, path: '/admin/base-conhecimento' },
     { label: 'Monitoramento', icon: Activity, path: '/admin' },
   ],
 };
