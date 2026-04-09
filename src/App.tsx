@@ -18,6 +18,7 @@ import PlanosPage from "./pages/PlanosPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
 import GestaoEquipePage from "./pages/GestaoEquipePage";
 import CadastroConvitePage from "./pages/CadastroConvitePage";
+import BaseConhecimentoPage from "./pages/BaseConhecimentoPage";
 import PreviewHubPage, {
   PreviewCompletarPerfilPage,
   PreviewGestaoEquipePage,
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/vitrine/gestao" element={<GestaoPage />} />
             <Route path="/vitrine/gestao/equipe" element={<PreviewGestaoEquipePage />} />
             <Route path="/vitrine/admin" element={<AdminPage />} />
+            <Route path="/vitrine/admin/base-conhecimento" element={<BaseConhecimentoPage />} />
             <Route path="/vitrine/consolidar" element={<ConsolidarPage />} />
             <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
 
@@ -92,6 +94,7 @@ const App = () => (
             <Route path="/gestao" element={<ProtectedRoute><GestaoPage /></ProtectedRoute>} />
             <Route path="/gestao/equipe" element={<ProtectedRoute><GestaoEquipePage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+            <Route path="/admin/base-conhecimento" element={<ProtectedRoute><BaseConhecimentoPage /></ProtectedRoute>} />
             <Route path="/consolidar" element={<ProtectedRoute><ConsolidarPage /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
