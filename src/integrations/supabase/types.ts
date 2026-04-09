@@ -322,6 +322,7 @@ export type Database = {
           perfil_institucional: string | null
           periodo_renovacao: string | null
           plano: string
+          plano_expira_em: string | null
           plano_status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -346,6 +347,7 @@ export type Database = {
           perfil_institucional?: string | null
           periodo_renovacao?: string | null
           plano?: string
+          plano_expira_em?: string | null
           plano_status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -370,6 +372,7 @@ export type Database = {
           perfil_institucional?: string | null
           periodo_renovacao?: string | null
           plano?: string
+          plano_expira_em?: string | null
           plano_status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -393,18 +396,30 @@ export type Database = {
           created_at: string
           id: string
           nome: string
+          plano_expira_em: string | null
+          plano_status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           tipo: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           nome: string
+          plano_expira_em?: string | null
+          plano_status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           tipo?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           nome?: string
+          plano_expira_em?: string | null
+          plano_status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           tipo?: string | null
         }
         Relationships: []
