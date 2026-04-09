@@ -18,6 +18,7 @@ import PlanosPage from "./pages/PlanosPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
 import GestaoEquipePage from "./pages/GestaoEquipePage";
 import CadastroConvitePage from "./pages/CadastroConvitePage";
+import BaseConhecimentoPage from "./pages/BaseConhecimentoPage";
 import PreviewHubPage, {
   PreviewCompletarPerfilPage,
   PreviewGestaoEquipePage,
@@ -92,6 +93,7 @@ const App = () => (
             <Route path="/gestao" element={<ProtectedRoute><GestaoPage /></ProtectedRoute>} />
             <Route path="/gestao/equipe" element={<ProtectedRoute><GestaoEquipePage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+            <Route path="/admin/base-conhecimento" element={<ProtectedRoute><BaseConhecimentoPage /></ProtectedRoute>} />
             <Route path="/consolidar" element={<ProtectedRoute><ConsolidarPage /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
