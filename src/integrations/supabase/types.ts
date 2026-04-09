@@ -218,6 +218,60 @@ export type Database = {
         }
         Relationships: []
       }
+      laudos: {
+        Row: {
+          cenario_clinico: string | null
+          consulta_id: string
+          conteudo_laudo: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          paciente_id: string
+          profissional_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cenario_clinico?: string | null
+          consulta_id: string
+          conteudo_laudo?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          paciente_id: string
+          profissional_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cenario_clinico?: string | null
+          consulta_id?: string
+          conteudo_laudo?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          paciente_id?: string
+          profissional_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "laudos_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "consultas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "laudos_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pacientes: {
         Row: {
           cidade: string | null
