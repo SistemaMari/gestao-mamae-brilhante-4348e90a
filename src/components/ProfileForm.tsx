@@ -230,31 +230,23 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
             placeholder="Digite a cidade"
           />
         ) : (
-          <div className="space-y-1">
-            <Input
-              placeholder="Buscar cidade..."
-              value={citySearch}
-              onChange={e => setCitySearch(e.target.value)}
-              className="mb-1"
-            />
-            <Select
-              value={form.cidade}
-              onValueChange={v => { handleChange('cidade', v); setCitySearch(''); }}
-              disabled={!form.estado}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={form.estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'} />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredCities.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-                {filteredCities.length === 0 && form.estado && (
-                  <div className="px-2 py-1.5 text-xs text-muted-foreground">Nenhuma cidade encontrada</div>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select
+            value={form.cidade}
+            onValueChange={v => handleChange('cidade', v)}
+            disabled={!form.estado}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={form.estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'} />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredCities.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+              {filteredCities.length === 0 && form.estado && (
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">Nenhuma cidade encontrada</div>
+              )}
+            </SelectContent>
+          </Select>
         )}
         {showError('cidade') && <p className="text-xs text-destructive">{errors.cidade}</p>}
       </div>
