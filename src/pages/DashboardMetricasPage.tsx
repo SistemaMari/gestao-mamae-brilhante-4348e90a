@@ -384,46 +384,46 @@ export default function DashboardMetricasPage() {
         <SectionTitle>Visão Geral</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <StatusCard
-            icon={<Clock className="h-4 w-4" style={{ color: BRAND.textLabel }} />}
+            icon={<Clock className="h-4 w-4" style={{ color: '#64748B' }} />}
             label="Aguardando GJ"
             value={statusCounts.aguardando_gj}
             detail={`${pct(statusCounts.aguardando_gj)}% do total`}
-            bg={BRAND.bgBranco} border={BRAND.borderCinza}
+            bg="#F1F5F9" border="#CBD5E1"
           />
           <StatusCard
-            icon={<Clock className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
+            icon={<Clock className="h-4 w-4" style={{ color: '#3B82F6' }} />}
             label="Aguardando GTT"
             value={statusCounts.aguardando_gtt}
             detail={`${pct(statusCounts.aguardando_gtt)}% do total`}
-            bg={BRAND.bgLavanda} border={BRAND.borderLilas}
+            bg="#EFF6FF" border="#93C5FD"
           />
           <StatusCard
-            icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
+            icon={<Activity className="h-4 w-4" style={{ color: '#F97316' }} />}
             label="DMG confirmado"
             value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino}
             detail={`${pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino)}% do total`}
-            bg={BRAND.bgLavandaDef} border={BRAND.borderLilasPrimario}
+            bg="#FFF7ED" border="#FDBA74"
           />
           <StatusCard
-            icon={<CheckCircle className="h-4 w-4" style={{ color: BRAND.verdaAgua }} />}
+            icon={<CheckCircle className="h-4 w-4" style={{ color: '#10B981' }} />}
             label="DMG afastado"
             value={statusCounts.dmg_afastado}
             detail={`${pct(statusCounts.dmg_afastado)}% do total`}
-            bg={BRAND.bgVerdeSuave} border={BRAND.borderVerdeAgua}
+            bg="#ECFDF5" border="#6EE7B7"
           />
           <StatusCard
-            icon={<Baby className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
+            icon={<Baby className="h-4 w-4" style={{ color: '#8B5CF6' }} />}
             label="Resultado do parto"
             value={statusCounts.resultado_parto}
             detail={`${pct(statusCounts.resultado_parto)}% do total`}
-            bg={BRAND.bgLavanda} border={BRAND.borderLilas}
+            bg="#F5F3FF" border="#C4B5FD"
           />
           <StatusCard
-            icon={<Stethoscope className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
+            icon={<Stethoscope className="h-4 w-4" style={{ color: '#EF4444' }} />}
             label="Associar endocrino"
             value={statusCounts.encaminhada_endocrino}
             detail={`${pct(statusCounts.encaminhada_endocrino)}% do total`}
-            bg={BRAND.bgRosaSuave} border={BRAND.borderRosa}
+            bg="#FEF2F2" border="#FCA5A5"
           />
         </div>
 
