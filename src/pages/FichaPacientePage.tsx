@@ -596,6 +596,57 @@ export default function FichaPacientePage() {
         )}
       </div>
 
+      {/* CORREÇÃO 3: Card fixo de destaque da janela do GTT — aparece entre cabeçalho e histórico */}
+      {paciente.status_ficha === 'aguardando_gtt' && janelaGTT && igAtual && (() => {
+        const igSem = igAtual.semanas;
+        if (igSem > 28) {
+          // Estado 3 — Crítico
+          return (
+            <div className="rounded-xl border-2 border-[#EF4444] bg-[#FEE2E2] p-4 flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#EF4444]" />
+              <div>
+                <p className="text-sm font-bold text-red-800">
+                  ATENÇÃO: Janela do GTT ultrapassada. Solicitar imediatamente.
+                </p>
+                <p className="mt-1 text-xs text-red-700">
+                  A janela ideal (24-28 sem) já foi ultrapassada. Realizar o quanto antes.
+                </p>
+              </div>
+            </div>
+          );
+        }
+        if (igSem >= 24) {
+          // Estado 2 — Na janela (urgência)
+          return (
+            <div className="rounded-xl border-2 border-[#F59E0B] bg-[#FEF3C7] p-4 flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#F59E0B]" />
+              <div>
+                <p className="text-sm font-bold text-amber-800">
+                  O GTT 75g já está na janela — solicitar o mais breve possível.
+                </p>
+                <p className="mt-1 text-xs text-amber-700">
+                  Janela: até 28 semanas (limite: <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>).
+                </p>
+              </div>
+            </div>
+          );
+        }
+        // Estado 1 — IG < 24 semanas (normal)
+        return (
+          <div className="rounded-xl border-2 border-[#9b87f5] bg-[#E8E0FF] p-4 flex items-start gap-3">
+            <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-[#9b87f5]" />
+            <div>
+              <p className="text-sm font-bold text-[#5B21B6]">
+                GTT 75g deverá ser realizado entre <strong>{format(janelaGTT.inicio, 'dd/MM/yyyy')}</strong> e <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>
+              </p>
+              <p className="mt-1 text-xs text-[#6D28D9]">
+                O mais próximo possível da 24ª semana.
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Confirmation card — green — only when status is still aguardando_gj and no retorno form active */}
       {paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && !retorno1Completed && (
         <>
@@ -642,7 +693,7 @@ export default function FichaPacientePage() {
         </>
       )}
 
-      {/* Histórico de consultas — P5/P6: detailed expansion with proper names */}
+      {/* Histórico de consultas */}
       {consultasHistorico.length > 0 && (
         <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
@@ -664,7 +715,6 @@ export default function FichaPacientePage() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-3 space-y-2">
-                  {/* P5: Show detailed data for consulta_1 */}
                   {c.tipo === 'consulta_1' && (
                     <>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
@@ -696,7 +746,6 @@ export default function FichaPacientePage() {
                     </>
                   )}
 
-                  {/* For retorno types show IG and status */}
                   {c.tipo !== 'consulta_1' && c.ig_semanas != null && (
                     <p className="text-xs text-muted-foreground">
                       <span className="font-medium text-foreground">IG:</span> {c.ig_semanas}s {c.ig_dias || 0}d
@@ -721,7 +770,7 @@ export default function FichaPacientePage() {
         </div>
       )}
 
-      {/* P3: Retorno 1 form / result card — stays mounted after saving */}
+      {/* Retorno 1 form / result card — stays mounted after saving */}
       {canShowRetorno1Form && primeiraConsulta && paciente && (
         <div>
           <Retorno1Form
@@ -735,40 +784,50 @@ export default function FichaPacientePage() {
         </div>
       )}
 
-      {/* P6: Button with next step name */}
-      {canShowRetorno1 && (
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => setShowRetorno1(true)}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          {getNextStepButton(paciente.status_ficha)}
-        </Button>
-      )}
+      {/* CORREÇÃO 1+2: Next step button — dynamic based on status + history + IG */}
+      {(() => {
+        // Don't show button if retorno1 form is active
+        if (showRetorno1) return null;
+        // Don't show if status has no next step
+        if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
 
-      {/* Button for statuses beyond aguardando_gj (future steps) — only if not showing retorno1 result */}
-      {paciente && paciente.status_ficha !== 'aguardando_gj' && !retorno1Completed && (
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => toast('Próximo retorno ainda não implementado.')}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          {getNextStepButton(paciente.status_ficha)}
-        </Button>
-      )}
+        const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
+        if (!nextStep) return null;
 
-      {/* P3: After retorno1 completed and popup closed, show next step button below result */}
-      {retorno1Completed && paciente.status_ficha !== 'aguardando_gj' && (
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => toast('Próximo retorno ainda não implementado.')}
+        const isRetorno1Button = nextStep.formType === 'retorno_1';
+
+        // If retorno1 is completed, don't show retorno1 button again
+        if (isRetorno1Button && retorno1Completed) return null;
+        // If showing retorno1 form, don't show
+        if (isRetorno1Button && canShowRetorno1Form) return null;
+
+        return (
+          <Button
+            variant="outline"
+            className="w-full text-left"
+            onClick={() => {
+              if (isRetorno1Button) {
+                setShowRetorno1(true);
+              } else {
+                toast('Próximo retorno ainda não implementado.');
+              }
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4 shrink-0" />
+            <span className="truncate">{nextStep.label}</span>
+          </Button>
+        );
+      })()}
+
+      {/* CORREÇÃO 2: Botão secundário — Registro do Parto */}
+      {canShowRegistroParto(paciente.status_ficha) && (
+        <button
+          type="button"
+          className="w-full text-center text-sm font-medium text-[#7C3AED] hover:text-[#6D28D9] transition-colors py-2"
+          onClick={() => toast('Registro do parto ainda não implementado.')}
         >
-          <Plus className="mr-2 h-4 w-4" />
-          {getNextStepButton(paciente.status_ficha)}
-        </Button>
+          + FICHA DE REGISTRO DO PARTO
+        </button>
       )}
     </div>
   );
