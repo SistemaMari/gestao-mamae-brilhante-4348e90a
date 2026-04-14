@@ -210,12 +210,6 @@ export default function DashboardMetricasPage() {
     return exames.filter(e => patientIds.has(e.paciente_id));
   }, [exames, filteredPacientes]);
 
-  // GTT consultations split by IG
-  const gttConsultaIds = new Set(
-    filteredConsultas
-      .filter(c => c.cenario_clinico === 'cenario_6' || c.cenario_clinico === 'cenario_6b')
-      .map(c => c.id)
-  );
 
   const gttNormal = filteredConsultas.filter(c => {
     if (c.cenario_clinico !== 'cenario_6' && c.cenario_clinico !== 'cenario_6b') return false;
@@ -413,7 +407,6 @@ export default function DashboardMetricasPage() {
             label="Retornos vencidos"
             value={retornosVencidos}
             bg={BRAND.bgRosaSuave} border={BRAND.borderRosa}
-            isAlert
           />
           <StatusCard
             icon={<FileText className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
@@ -609,7 +602,6 @@ function generatePreviewConsultas(): Consulta[] {
 }
 
 function generatePreviewExames(): ExameGlicemia[] {
-  const now = new Date();
   return Array.from({ length: 10 }, (_, i) => ({
     id: `ex-${i}`,
     paciente_id: `preview-${i % 15}`,
