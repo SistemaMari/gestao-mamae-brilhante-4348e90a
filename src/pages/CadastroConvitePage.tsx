@@ -352,7 +352,7 @@ export default function CadastroConvitePage() {
 
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Criar conta
+            Criar minha conta
           </Button>
         </form>
       </div>
