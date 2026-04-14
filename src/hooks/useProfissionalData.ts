@@ -11,6 +11,7 @@ export interface ProfissionalData {
   crm: string | null;
   especialidade: string | null;
   nome: string;
+  unidade_id: string | null;
 }
 
 export function useProfissionalData() {
