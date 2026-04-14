@@ -58,8 +58,8 @@ function getNextStepInfo(
   consultas: PreviewConsulta[],
   igAtual: { semanas: number; dias: number } | null,
 ): { label: string; formType: string } | null {
-  const hasRetorno1 = consultas.some(c => c.tipo === 'retorno_1');
-  const hasRetornoGtt = consultas.some(c => c.tipo === 'retorno_gtt');
+  const _hasRetorno1 = consultas.some(c => c.tipo === 'retorno_1');
+  const _hasRetornoGtt = consultas.some(c => c.tipo === 'retorno_gtt');
   const hasRetorno2 = consultas.some(c => c.tipo === 'retorno_2');
   const hasRetorno3 = consultas.some(c => c.tipo === 'retorno_3');
 
@@ -222,7 +222,7 @@ export default function FichaPacientePage() {
     return [];
   }, [consultas, retorno1Completed]);
 
-  const canShowRetorno1 = paciente?.status_ficha === 'aguardando_gj' && !!primeiraConsulta && !showRetorno1 && !retorno1Completed;
+  const _canShowRetorno1 = paciente?.status_ficha === 'aguardando_gj' && !!primeiraConsulta && !showRetorno1 && !retorno1Completed;
   const canShowRetorno1Form = (showRetorno1 || retorno1Completed) && !!primeiraConsulta;
 
   // P3: Reload patient data without hiding the retorno form
