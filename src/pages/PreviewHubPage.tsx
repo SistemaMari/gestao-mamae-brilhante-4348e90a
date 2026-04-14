@@ -456,19 +456,13 @@ export function PreviewCadastroConvitePage() {
 
   return (
     <main className="min-h-screen bg-background px-4 py-8">
-      <div className="mx-auto w-full max-w-[520px]">
+      <div className="mx-auto w-full max-w-[500px]">
         <div className="mb-6 text-center">
-          <Link to="/" className="text-sm font-medium text-primary transition-opacity hover:opacity-80">
-            ← Voltar para a vitrine
-          </Link>
-          <p className="mt-4 inline-flex rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-            Prévia funcional sem token real
-          </p>
-          <h1 className="mt-4 font-heading text-2xl font-bold text-foreground">
+          <h1 className="font-heading text-2xl font-bold text-foreground">
             Você foi convidado(a) para a Clínica Materna Exemplo
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Esta versão da vitrine mostra a experiência do cadastro sem depender de convite verdadeiro no backend.
+            Preencha seus dados para acessar o sistema.
           </p>
         </div>
 
@@ -543,7 +537,7 @@ export function PreviewCadastroConvitePage() {
             </div>
 
             <Button type="submit" className="w-full">
-              Criar conta na prévia
+              Criar minha conta
             </Button>
           </form>
         </div>
