@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   BarChart3, Download, Loader2, Users, AlertTriangle,
-  FileText, Activity, Baby
+  FileText, Activity, Baby, Clock, Stethoscope, CheckCircle, XCircle, HeartPulse
 } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend
+  ResponsiveContainer, PieChart, Pie, Cell, Legend, LabelList
 } from 'recharts';
 
 interface Paciente {
@@ -33,13 +33,34 @@ interface Consulta {
   created_at: string;
 }
 
-const COLORS = {
+interface ExameGlicemia {
+  id: string;
+  paciente_id: string;
+  ig_semanas_na_data: number | null;
+  consulta_id: string;
+}
+
+// Brand palette — NO semantic colors (orange/green/red) on this dashboard
+const BRAND = {
   lilas: '#9b87f5',
-  laranja: '#F59E0B',
-  verde: '#22C55E',
-  vermelho: '#EF4444',
-  roxo: '#7E69AB',
-  azul: '#3B82F6',
+  verdaAgua: '#5EEAD4',
+  lilasClaro: '#D6BCFA',
+  roxoEscuro: '#7E69AB',
+  // Card backgrounds
+  bgBranco: '#FFFFFF',
+  bgLavanda: '#F1F0FB',
+  bgLavandaDef: '#E5DEFF',
+  bgVerdeSuave: '#D1FAE5',
+  bgRosaSuave: '#FFF0F6',
+  // Card borders
+  borderCinza: '#E2E8F0',
+  borderLilas: '#D6BCFA',
+  borderLilasPrimario: '#9b87f5',
+  borderVerdeAgua: '#5EEAD4',
+  borderRosa: '#FBCFE8',
+  // Text
+  textNumero: '#2D2B55',
+  textLabel: '#64748B',
 };
 
 export default function DashboardMetricasPage() {
@@ -49,6 +70,7 @@ export default function DashboardMetricasPage() {
 
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [consultas, setConsultas] = useState<Consulta[]>([]);
+  const [exames, setExames] = useState<ExameGlicemia[]>([]);
   const [loading, setLoading] = useState(true);
 
   const defaultEnd = new Date();
@@ -60,6 +82,7 @@ export default function DashboardMetricasPage() {
     if (isPreview) {
       setPacientes(generatePreviewData());
       setConsultas(generatePreviewConsultas());
+      setExames(generatePreviewExames());
       setLoading(false);
       return;
     }
@@ -85,17 +108,29 @@ export default function DashboardMetricasPage() {
       conQuery = conQuery.eq('profissional_id', profissionalData.id);
     }
 
-    const [pacRes, conRes] = await Promise.all([pacQuery, conQuery]);
+    let exQuery = supabase.from('exames_glicemia').select('id, paciente_id, ig_semanas_na_data, consulta_id');
+    if (!isInstitucional) {
+      exQuery = exQuery.eq('profissional_id', profissionalData.id);
+    }
 
-    setPacientes((pacRes.data as Paciente[]) || []);
+    const [pacRes, conRes, exRes] = await Promise.all([pacQuery, conQuery, exQuery]);
 
-    // For institutional, filter consultas to only include unit patients
+    const pacs = (pacRes.data as Paciente[]) || [];
+    setPacientes(pacs);
+
     let filteredConsultas = (conRes.data as Consulta[]) || [];
     if (isInstitucional && pacRes.data) {
       const patientIds = new Set(pacRes.data.map((p: any) => p.id));
       filteredConsultas = filteredConsultas.filter(c => patientIds.has(c.paciente_id));
     }
     setConsultas(filteredConsultas);
+
+    let filteredExames = (exRes.data as ExameGlicemia[]) || [];
+    if (isInstitucional && pacRes.data) {
+      const patientIds = new Set(pacRes.data.map((p: any) => p.id));
+      filteredExames = filteredExames.filter(e => patientIds.has(e.paciente_id));
+    }
+    setExames(filteredExames);
     setLoading(false);
   };
 
@@ -112,24 +147,114 @@ export default function DashboardMetricasPage() {
 
   const allPacientesCount = filteredPacientes.length;
 
-  // DMG confirmed = dmg_confirmado or encaminhada_endocrino
+  // --- SECTION 1: Visão Geral (8 cards by status) ---
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      aguardando_gj: 0,
+      aguardando_gtt: 0,
+      dmg_confirmado: 0,
+      dmg_afastado: 0,
+      resultado_parto: 0,
+      encaminhada_endocrino: 0,
+    };
+    filteredPacientes.forEach(p => {
+      if (counts[p.status_ficha] !== undefined) counts[p.status_ficha]++;
+      else if (p.status_ficha === 'dmg_confirmado' || p.status_ficha === 'encaminhada_endocrino') {
+        counts[p.status_ficha]++;
+      }
+    });
+    // DMG confirmado includes encaminhada_endocrino for the status card? No, they're separate cards.
+    return counts;
+  }, [filteredPacientes]);
+
+  const pct = (n: number) => allPacientesCount > 0 ? Math.round((n / allPacientesCount) * 100) : 0;
+
+  // Retornos vencidos (all pacientes, not filtered by date)
+  const retornosVencidos = pacientes.filter(p => {
+    if (!p.data_proximo_retorno) return false;
+    return differenceInDays(new Date(), new Date(p.data_proximo_retorno)) > 0;
+  }).length;
+
+  const laudosGerados = isPreview ? 7 : (profissionalData?.laudos_usados ?? 0);
+
+  // --- SECTION 2: Diagnóstico ---
   const dmgConfirmados = filteredPacientes.filter(p =>
     p.status_ficha === 'dmg_confirmado' || p.status_ficha === 'encaminhada_endocrino'
   );
   const dmgCount = dmgConfirmados.length;
-  const dmgPercent = allPacientesCount > 0 ? Math.round((dmgCount / allPacientesCount) * 100) : 0;
 
-  // Retornos vencidos
-  const retornosVencidos = pacientes.filter(p => {
-    if (p.status_ficha !== 'dmg_confirmado') return false;
-    if (!p.data_proximo_retorno) return false;
-    return differenceInDays(new Date(p.data_proximo_retorno), new Date()) < 0;
+  const filteredConsultas = useMemo(() => {
+    const patientIds = new Set(filteredPacientes.map(p => p.id));
+    return consultas.filter(c => patientIds.has(c.paciente_id));
+  }, [consultas, filteredPacientes]);
+
+  // DMG na GJ: cenario_1 or cenario_8 on retorno_1
+  const dmgByGJ = filteredConsultas.filter(c =>
+    c.cenario_clinico === 'cenario_1' || (c.cenario_clinico === 'cenario_8' && c.tipo === 'retorno_1')
+  ).length;
+
+  // DMG no GTT: cenario_6 or cenario_6b or cenario_8 on retorno_2/consulta with GTT
+  const dmgByGTT = filteredConsultas.filter(c =>
+    c.cenario_clinico === 'cenario_6' || c.cenario_clinico === 'cenario_6b' ||
+    (c.cenario_clinico === 'cenario_8' && c.tipo !== 'retorno_1')
+  ).length;
+
+  const dmgAfastado = filteredPacientes.filter(p => p.status_ficha === 'dmg_afastado').length;
+  const dmgAfastadoPercent = pct(dmgAfastado);
+  const dmgByGJPercent = pct(dmgByGJ);
+  const dmgByGTTPercent = pct(dmgByGTT);
+
+  // Pie chart — diagnosis moment (use exames ig_semanas for GTT normal vs tardio)
+  const filteredExames = useMemo(() => {
+    const patientIds = new Set(filteredPacientes.map(p => p.id));
+    return exames.filter(e => patientIds.has(e.paciente_id));
+  }, [exames, filteredPacientes]);
+
+  // GTT consultations split by IG
+  const gttConsultaIds = new Set(
+    filteredConsultas
+      .filter(c => c.cenario_clinico === 'cenario_6' || c.cenario_clinico === 'cenario_6b')
+      .map(c => c.id)
+  );
+
+  const gttNormal = filteredConsultas.filter(c => {
+    if (c.cenario_clinico !== 'cenario_6' && c.cenario_clinico !== 'cenario_6b') return false;
+    const ex = filteredExames.find(e => e.consulta_id === c.id);
+    return !ex || !ex.ig_semanas_na_data || ex.ig_semanas_na_data <= 28;
   }).length;
 
-  // Laudos
-  const laudosGerados = isPreview ? 7 : (profissionalData?.laudos_usados ?? 0);
+  const gttTardio = filteredConsultas.filter(c => {
+    if (c.cenario_clinico !== 'cenario_6' && c.cenario_clinico !== 'cenario_6b') return false;
+    const ex = filteredExames.find(e => e.consulta_id === c.id);
+    return ex && ex.ig_semanas_na_data && ex.ig_semanas_na_data > 28;
+  }).length;
 
-  // Monthly evolution
+  const diagPieData = [
+    { name: 'Diagnóstico na GJ', value: dmgByGJ, color: BRAND.lilas },
+    { name: 'Diagnóstico no GTT (24 a 28 semanas)', value: gttNormal, color: BRAND.verdaAgua },
+    { name: 'Diagnóstico no GTT tardio (acima de 29 semanas)', value: gttTardio, color: BRAND.lilasClaro },
+  ].filter(d => d.value > 0);
+
+  // --- SECTION 3: Tratamento (keep logic) ---
+  const withInsulin = filteredConsultas.filter(c => c.cenario_clinico === 'cenario_3').length;
+  const withInsulinPercent = dmgCount > 0 ? Math.round((withInsulin / dmgCount) * 100) : 0;
+
+  const endocrino = filteredPacientes.filter(p => p.status_ficha === 'encaminhada_endocrino').length;
+  const endocrinoPercent = dmgCount > 0 ? Math.round((endocrino / dmgCount) * 100) : 0;
+
+  const patientsWithInsulin = new Set(
+    filteredConsultas
+      .filter(c => c.cenario_clinico === 'cenario_3' || c.cenario_clinico === 'cenario_7')
+      .map(c => c.paciente_id)
+  );
+  const dietOnly = dmgConfirmados.filter(p => !patientsWithInsulin.has(p.id)).length;
+  const dietOnlyPercent = dmgCount > 0 ? Math.round((dietOnly / dmgCount) * 100) : 0;
+
+  // --- SECTION 4: Desfechos ---
+  const partoPacientes = filteredPacientes.filter(p => p.status_ficha === 'resultado_parto');
+  const hasPartos = partoPacientes.length > 0;
+
+  // --- SECTION 5: Evolução Mensal (stacked bars, LAST section) ---
   const startDate = new Date(dateStart);
   const endDate = new Date(dateEnd);
   const months = eachMonthOfInterval({ start: startDate, end: endDate });
@@ -148,57 +273,14 @@ export default function DashboardMetricasPage() {
         return isWithinInterval(d, { start: mStart, end: mEnd }) &&
           (p.status_ficha === 'dmg_confirmado' || p.status_ficha === 'encaminhada_endocrino');
       }).length;
+      // For stacked: base = total - dmg, stacked = dmg
       return {
         name: format(m, 'MMM/yy', { locale: ptBR }),
-        total,
+        novas: total - dmg,
         dmg,
       };
     });
   }, [pacientes, months]);
-
-  // Diagnosis metrics
-  const dmgAfastado = filteredPacientes.filter(p => p.status_ficha === 'dmg_afastado').length;
-  const dmgAfastadoPercent = allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0;
-
-  // Overt from consultas
-  const filteredConsultas = useMemo(() => {
-    const patientIds = new Set(filteredPacientes.map(p => p.id));
-    return consultas.filter(c => patientIds.has(c.paciente_id));
-  }, [consultas, filteredPacientes]);
-
-  const overt = filteredConsultas.filter(c => c.cenario_clinico === 'cenario_8').length;
-  const overtPercent = dmgCount > 0 ? Math.round((overt / dmgCount) * 100) : 0;
-
-  // DMG by diagnosis moment
-  const dmgByGJ = filteredConsultas.filter(c => c.cenario_clinico === 'cenario_1').length;
-  const dmgByGTT = filteredConsultas.filter(c => c.cenario_clinico === 'cenario_6').length;
-  const dmgByGTTTardio = filteredConsultas.filter(c => c.cenario_clinico === 'cenario_6b').length;
-  const diagPieData = [
-    { name: 'GJ (Cenário 1)', value: dmgByGJ, color: COLORS.lilas },
-    { name: 'GTT (Cenário 6)', value: dmgByGTT, color: COLORS.laranja },
-    { name: 'GTT Tardio (Cenário 6B)', value: dmgByGTTTardio, color: COLORS.verde },
-  ].filter(d => d.value > 0);
-
-  // Treatment metrics
-  const withInsulin = filteredConsultas.filter(c => c.cenario_clinico === 'cenario_3').length;
-  const withInsulinPercent = dmgCount > 0 ? Math.round((withInsulin / dmgCount) * 100) : 0;
-
-  const endocrino = filteredPacientes.filter(p => p.status_ficha === 'encaminhada_endocrino').length;
-  const endocrinoPercent = dmgCount > 0 ? Math.round((endocrino / dmgCount) * 100) : 0;
-
-  // Diet-only control: DMG patients without cenario_3 or cenario_7
-  const _dmgPatientIds = new Set(dmgConfirmados.map(p => p.id));
-  const patientsWithInsulin = new Set(
-    filteredConsultas
-      .filter(c => c.cenario_clinico === 'cenario_3' || c.cenario_clinico === 'cenario_7')
-      .map(c => c.paciente_id)
-  );
-  const dietOnly = dmgConfirmados.filter(p => !patientsWithInsulin.has(p.id)).length;
-  const dietOnlyPercent = dmgCount > 0 ? Math.round((dietOnly / dmgCount) * 100) : 0;
-
-  // Outcome metrics (parto)
-  const partoPacientes = filteredPacientes.filter(p => p.status_ficha === 'resultado_parto');
-  const hasPartos = partoPacientes.length > 0;
 
   // PDF export
   const handleExportPDF = async () => {
@@ -214,7 +296,6 @@ export default function DashboardMetricasPage() {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pdfW = pdf.internal.pageSize.getWidth();
 
-    // Header
     pdf.setFontSize(16);
     pdf.text(`Dashboard Clínico — Dr(a). ${isPreview ? 'Mari' : profissionalData?.nome || ''}`, 14, 20);
     pdf.setFontSize(10);
@@ -225,7 +306,6 @@ export default function DashboardMetricasPage() {
     const imgH = (canvas.height * imgW) / canvas.width;
     pdf.addImage(imgData, 'PNG', 14, 42, imgW, imgH);
 
-    // Footer
     const pageH = pdf.internal.pageSize.getHeight();
     pdf.setFontSize(8);
     pdf.text(`Gerado por Dra. Mari DMG Diagnóstica — ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, pageH - 10);
@@ -241,42 +321,41 @@ export default function DashboardMetricasPage() {
     );
   }
 
-  // Empty state
   if (!loading && pacientes.length === 0 && !isPreview) {
     return (
-      <div className="rounded-xl border p-12 text-center" style={{ backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }}>
+      <div className="rounded-xl border p-12 text-center" style={{ backgroundColor: '#F8FAFC', borderColor: BRAND.borderCinza }}>
         <BarChart3 className="mx-auto h-14 w-14" style={{ color: '#94A3B8' }} />
-        <p className="mt-4 text-lg font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: '#2D2B55' }}>
+        <p className="mt-4 text-lg font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
           Seu dashboard aparecerá aqui
         </p>
-        <p className="mt-1 text-sm" style={{ color: '#64748B' }}>
+        <p className="mt-1 text-sm" style={{ color: BRAND.textLabel }}>
           Cadastre pacientes e registre consultas para visualizar suas métricas clínicas.
         </p>
       </div>
     );
   }
 
+  const renderLabel = (props: any) => {
+    const { x, y, width, height, value } = props;
+    if (!value || value === 0) return null;
+    return (
+      <text x={x + width / 2} y={y + height / 2} fill="#FFFFFF" textAnchor="middle" dominantBaseline="middle" fontSize={12} fontWeight="bold">
+        {value}
+      </text>
+    );
+  };
+
   return (
     <div>
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: '#2D2B55' }}>
+        <h1 className="text-xl font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
           Meu Dashboard
         </h1>
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            type="date"
-            value={dateStart}
-            onChange={e => setDateStart(e.target.value)}
-            className="w-[150px] text-sm"
-          />
+          <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="w-[150px] text-sm" />
           <span className="text-sm text-muted-foreground">a</span>
-          <Input
-            type="date"
-            value={dateEnd}
-            onChange={e => setDateEnd(e.target.value)}
-            className="w-[150px] text-sm"
-          />
+          <Input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} className="w-[150px] text-sm" />
           <Button variant="outline" size="sm" onClick={handleExportPDF}>
             <Download className="h-4 w-4 mr-1" /> Exportar PDF
           </Button>
@@ -284,82 +363,103 @@ export default function DashboardMetricasPage() {
       </div>
 
       <div id="dashboard-metricas-content">
-        {/* Summary cards */}
+        {/* SECTION 1: Visão Geral — 8 cards */}
+        <SectionTitle>Visão Geral</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <MetricCard
-            icon={<Users className="h-5 w-5" style={{ color: COLORS.lilas }} />}
-            label="Total de pacientes"
-            value={allPacientesCount}
+          <StatusCard
+            icon={<Clock className="h-4 w-4" style={{ color: BRAND.textLabel }} />}
+            label="Aguardando GJ"
+            value={statusCounts.aguardando_gj}
+            detail={`${pct(statusCounts.aguardando_gj)}% do total`}
+            bg={BRAND.bgBranco} border={BRAND.borderCinza}
           />
-          <MetricCard
-            icon={<Activity className="h-5 w-5" style={{ color: COLORS.laranja }} />}
-            label="Pacientes com DMG"
-            value={dmgCount}
-            detail={`${dmgPercent}% do total`}
+          <StatusCard
+            icon={<Clock className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
+            label="Aguardando GTT"
+            value={statusCounts.aguardando_gtt}
+            detail={`${pct(statusCounts.aguardando_gtt)}% do total`}
+            bg={BRAND.bgLavanda} border={BRAND.borderLilas}
           />
-          <MetricCard
-            icon={<AlertTriangle className="h-5 w-5" style={{ color: COLORS.vermelho }} />}
+          <StatusCard
+            icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
+            label="DMG confirmado"
+            value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino}
+            detail={`${pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino)}% do total`}
+            bg={BRAND.bgLavandaDef} border={BRAND.borderLilasPrimario}
+          />
+          <StatusCard
+            icon={<CheckCircle className="h-4 w-4" style={{ color: BRAND.verdaAgua }} />}
+            label="DMG afastado"
+            value={statusCounts.dmg_afastado}
+            detail={`${pct(statusCounts.dmg_afastado)}% do total`}
+            bg={BRAND.bgVerdeSuave} border={BRAND.borderVerdeAgua}
+          />
+          <StatusCard
+            icon={<Baby className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
+            label="Resultado do parto"
+            value={statusCounts.resultado_parto}
+            detail={`${pct(statusCounts.resultado_parto)}% do total`}
+            bg={BRAND.bgLavanda} border={BRAND.borderLilas}
+          />
+          <StatusCard
+            icon={<Stethoscope className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
+            label="Associar endocrino"
+            value={statusCounts.encaminhada_endocrino}
+            detail={`${pct(statusCounts.encaminhada_endocrino)}% do total`}
+            bg={BRAND.bgRosaSuave} border={BRAND.borderRosa}
+          />
+          <StatusCard
+            icon={<AlertTriangle className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
             label="Retornos vencidos"
             value={retornosVencidos}
-            alert={retornosVencidos > 0}
+            bg={BRAND.bgRosaSuave} border={BRAND.borderRosa}
+            isAlert
           />
-          <MetricCard
-            icon={<FileText className="h-5 w-5" style={{ color: COLORS.roxo }} />}
+          <StatusCard
+            icon={<FileText className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
             label="Laudos gerados"
             value={laudosGerados}
+            bg={BRAND.bgBranco} border={BRAND.borderCinza}
           />
         </div>
 
-        {/* Monthly evolution chart */}
-        {showChart && (
-          <div className="mb-8 rounded-xl border bg-card p-4" style={{ borderColor: '#E2E8F0' }}>
-            <h2 className="mb-4 text-base font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: '#2D2B55' }}>
-              Evolução mensal
-            </h2>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={monthlyData} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748B' }} />
-                <YAxis tick={{ fontSize: 12, fill: '#64748B' }} allowDecimals={false} />
-                <RechartsTooltip />
-                <Bar dataKey="total" name="Total" fill={COLORS.lilas} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="dmg" name="DMG" fill={COLORS.laranja} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {/* Diagnosis section */}
+        {/* SECTION 2: Diagnóstico */}
         <SectionTitle>Diagnóstico</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          <MetricCard
-            icon={<Activity className="h-5 w-5" style={{ color: COLORS.laranja }} />}
-            label="DMG confirmado"
-            value={dmgCount}
-            detail={`${dmgPercent}% do total`}
-            borderColor={COLORS.laranja}
+          <StatusCard
+            icon={<Users className="h-4 w-4" style={{ color: BRAND.textLabel }} />}
+            label="Total de pacientes"
+            value={allPacientesCount}
+            bg={BRAND.bgBranco} border={BRAND.borderCinza}
           />
-          <MetricCard
-            icon={<AlertTriangle className="h-5 w-5" style={{ color: COLORS.vermelho }} />}
-            label="Overt Diabetes"
-            value={overt}
-            detail={`${overtPercent}% dos diagnósticos`}
-            borderColor={COLORS.vermelho}
+          <StatusCard
+            icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
+            label="DMG confirmado na GJ"
+            value={dmgByGJ}
+            detail={`${dmgByGJPercent}% do total`}
+            bg={BRAND.bgLavandaDef} border={BRAND.borderLilasPrimario}
           />
-          <MetricCard
-            icon={<Activity className="h-5 w-5" style={{ color: COLORS.verde }} />}
-            label="DMG afastado"
+          <StatusCard
+            icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
+            label="DMG confirmado no GTT"
+            value={dmgByGTT}
+            detail={`${dmgByGTTPercent}% do total`}
+            bg={BRAND.bgLavanda} border={BRAND.borderLilasPrimario}
+          />
+          <StatusCard
+            icon={<CheckCircle className="h-4 w-4" style={{ color: BRAND.verdaAgua }} />}
+            label="DMG afastado no GTT"
             value={dmgAfastado}
             detail={`${dmgAfastadoPercent}% do total`}
-            borderColor={COLORS.verde}
+            bg={BRAND.bgVerdeSuave} border={BRAND.borderVerdeAgua}
           />
         </div>
 
-        {/* Pie chart: diagnosis moment */}
+        {/* Pie: Momento do diagnóstico */}
         {diagPieData.length > 0 && (
-          <div className="mb-8 rounded-xl border bg-card p-4" style={{ borderColor: '#E2E8F0' }}>
-            <h3 className="mb-3 text-sm font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: '#2D2B55' }}>
-              DMG por momento do diagnóstico
+          <div className="mb-8 rounded-xl border bg-card p-4" style={{ borderColor: BRAND.borderCinza }}>
+            <h3 className="mb-3 text-sm font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
+              Momento do diagnóstico
             </h3>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
@@ -375,48 +475,78 @@ export default function DashboardMetricasPage() {
           </div>
         )}
 
-        {/* Treatment section */}
+        {/* SECTION 3: Tratamento (keep) */}
         <SectionTitle>Tratamento</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          <MetricCard
-            icon={<Activity className="h-5 w-5" style={{ color: COLORS.verde }} />}
+          <StatusCard
+            icon={<CheckCircle className="h-4 w-4" style={{ color: BRAND.verdaAgua }} />}
             label="Controle só com dieta"
             value={dietOnly}
             detail={`${dietOnlyPercent}% dos DMG`}
-            borderColor={COLORS.verde}
+            bg={BRAND.bgVerdeSuave} border={BRAND.borderVerdeAgua}
           />
-          <MetricCard
-            icon={<Activity className="h-5 w-5" style={{ color: COLORS.lilas }} />}
+          <StatusCard
+            icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
             label="Pacientes com insulina"
             value={withInsulin}
             detail={`${withInsulinPercent}% dos DMG`}
-            borderColor={COLORS.lilas}
+            bg={BRAND.bgLavanda} border={BRAND.borderLilasPrimario}
           />
-          <MetricCard
-            icon={<AlertTriangle className="h-5 w-5" style={{ color: COLORS.vermelho }} />}
+          <StatusCard
+            icon={<Stethoscope className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
             label="Associadas ao endocrino"
             value={endocrino}
             detail={`${endocrinoPercent}% dos DMG`}
-            borderColor={COLORS.vermelho}
+            bg={BRAND.bgRosaSuave} border={BRAND.borderRosa}
           />
         </div>
 
-        {/* Outcomes section */}
+        {/* SECTION 4: Desfechos (keep) */}
         <SectionTitle>Desfechos</SectionTitle>
         {!hasPartos ? (
-          <div className="rounded-xl border bg-card p-8 text-center mb-8" style={{ borderColor: '#E2E8F0' }}>
+          <div className="rounded-xl border bg-card p-8 text-center mb-8" style={{ borderColor: BRAND.borderCinza }}>
             <Baby className="mx-auto h-10 w-10" style={{ color: '#94A3B8' }} />
-            <p className="mt-2 text-sm" style={{ color: '#64748B' }}>
+            <p className="mt-2 text-sm" style={{ color: BRAND.textLabel }}>
               Nenhum registro de parto no período selecionado.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            <MetricCard
-              icon={<Baby className="h-5 w-5" style={{ color: COLORS.roxo }} />}
+            <StatusCard
+              icon={<Baby className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
               label="Partos registrados"
               value={partoPacientes.length}
+              bg={BRAND.bgLavanda} border={BRAND.borderLilas}
             />
+          </div>
+        )}
+
+        {/* SECTION 5: Evolução Mensal (LAST, stacked bars) */}
+        {showChart && (
+          <div className="mb-8 rounded-xl border bg-card p-4" style={{ borderColor: BRAND.borderCinza }}>
+            <h2 className="mb-4 text-base font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
+              Evolução mensal
+            </h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: BRAND.textLabel }} />
+                <YAxis tick={{ fontSize: 12, fill: BRAND.textLabel }} allowDecimals={false} />
+                <RechartsTooltip />
+                <Legend
+                  payload={[
+                    { value: 'Novas pacientes', type: 'square', color: BRAND.lilas },
+                    { value: 'DMG confirmado', type: 'square', color: BRAND.roxoEscuro },
+                  ]}
+                />
+                <Bar dataKey="novas" name="Novas pacientes" stackId="a" fill={BRAND.lilas} radius={[0, 0, 0, 0]}>
+                  <LabelList dataKey="novas" content={renderLabel} />
+                </Bar>
+                <Bar dataKey="dmg" name="DMG confirmado" stackId="a" fill={BRAND.roxoEscuro} radius={[4, 4, 0, 0]}>
+                  <LabelList dataKey="dmg" content={renderLabel} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         )}
       </div>
@@ -424,41 +554,40 @@ export default function DashboardMetricasPage() {
   );
 }
 
-function MetricCard({ icon, label, value, detail, alert, borderColor }: {
+// --- StatusCard component ---
+function StatusCard({ icon, label, value, detail, bg, border, isAlert }: {
   icon: React.ReactNode;
   label: string;
   value: number;
   detail?: string;
-  alert?: boolean;
-  borderColor?: string;
+  bg: string;
+  border: string;
+  isAlert?: boolean;
 }) {
   return (
     <div
-      className="rounded-xl border bg-card p-4 shadow-sm"
-      style={{
-        borderColor: alert ? COLORS.vermelho : borderColor || '#E2E8F0',
-        borderLeftWidth: borderColor ? '4px' : undefined,
-      }}
+      className="rounded-xl border p-4"
+      style={{ backgroundColor: bg, borderColor: border }}
     >
       <div className="flex items-center gap-2 mb-2">
         {icon}
-        <span className="text-sm" style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{label}</span>
+        <span className="text-sm" style={{ color: BRAND.textLabel, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{label}</span>
       </div>
-      <p className="text-[28px] font-bold" style={{ color: '#2D2B55' }}>{value}</p>
-      {detail && <p className="text-xs mt-1" style={{ color: '#64748B' }}>{detail}</p>}
+      <p className="text-[28px] font-bold" style={{ color: BRAND.textNumero }}>{value}</p>
+      {detail && <p className="text-sm mt-1" style={{ color: BRAND.textLabel }}>{detail}</p>}
     </div>
   );
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-4 text-base font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: '#2D2B55' }}>
+    <h2 className="mb-4 text-base font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
       {children}
     </h2>
   );
 }
 
-// Preview data generators
+// --- Preview data generators ---
 function generatePreviewData(): Paciente[] {
   const statuses = ['aguardando_gj', 'aguardando_gtt', 'dmg_afastado', 'dmg_confirmado', 'resultado_parto', 'encaminhada_endocrino'];
   const now = new Date();
@@ -480,7 +609,17 @@ function generatePreviewConsultas(): Consulta[] {
     id: `con-${i}`,
     paciente_id: `preview-${i % 15}`,
     cenario_clinico: cenarios[i % cenarios.length],
-    tipo: 'consulta_1',
+    tipo: i % 2 === 0 ? 'retorno_1' : 'retorno_2',
     created_at: subDays(now, i * 3).toISOString(),
+  }));
+}
+
+function generatePreviewExames(): ExameGlicemia[] {
+  const now = new Date();
+  return Array.from({ length: 10 }, (_, i) => ({
+    id: `ex-${i}`,
+    paciente_id: `preview-${i % 15}`,
+    ig_semanas_na_data: i % 3 === 0 ? 30 : 26,
+    consulta_id: `con-${i}`,
   }));
 }
