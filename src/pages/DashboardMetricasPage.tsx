@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   BarChart3, Download, Loader2, Users, AlertTriangle,
-  FileText, Activity, Baby, Clock, Stethoscope, CheckCircle, XCircle, HeartPulse
+  FileText, Activity, Baby, Clock, Stethoscope, CheckCircle
 } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -533,12 +533,7 @@ export default function DashboardMetricasPage() {
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: BRAND.textLabel }} />
                 <YAxis tick={{ fontSize: 12, fill: BRAND.textLabel }} allowDecimals={false} />
                 <RechartsTooltip />
-                <Legend
-                  payload={[
-                    { value: 'Novas pacientes', type: 'square', color: BRAND.lilas },
-                    { value: 'DMG confirmado', type: 'square', color: BRAND.roxoEscuro },
-                  ]}
-                />
+                <Legend />
                 <Bar dataKey="novas" name="Novas pacientes" stackId="a" fill={BRAND.lilas} radius={[0, 0, 0, 0]}>
                   <LabelList dataKey="novas" content={renderLabel} />
                 </Bar>
