@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Users, UserPlus, CreditCard, UserCog, LogOut, Menu, X,
-  ChevronRight, User
+  ChevronRight, User, BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -16,9 +16,13 @@ const DUMMY = {
   plano: 'teste',
 };
 
-const navItems = [
+const navItemsClinical = [
   { label: 'Pacientes', icon: Users, path: '/vitrine/dashboard' },
   { label: 'Nova Paciente', icon: UserPlus, path: '/vitrine/paciente/nova' },
+  { label: 'Meu Dashboard', icon: BarChart3, path: '/vitrine/dashboard/metricas' },
+];
+
+const navItemsAdmin = [
   { label: 'Meu Plano', icon: CreditCard, path: '/vitrine/planos' },
   { label: 'Meu Perfil', icon: UserCog, path: '/vitrine/perfil' },
 ];
@@ -30,6 +34,7 @@ function usePreviewBreadcrumb() {
   if (path.startsWith('/vitrine/paciente/')) return { parent: { label: 'Pacientes', path: '/vitrine/dashboard' }, current: 'Ficha da paciente' };
   if (path === '/vitrine/planos') return { parent: null, current: 'Meu Plano' };
   if (path === '/vitrine/perfil') return { parent: null, current: 'Meu Perfil' };
+  if (path === '/vitrine/dashboard/metricas') return { parent: null, current: 'Meu Dashboard' };
   return null;
 }
 
