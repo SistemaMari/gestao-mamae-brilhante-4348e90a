@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,7 +53,7 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
   });
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [citySearch, setCitySearch] = useState('');
+  
 
   const isOutro = form.pais === 'Outro';
 
@@ -61,11 +61,8 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
   const stateData = useMemo(() => countryData?.states.find(s => s.value === form.estado), [countryData, form.estado]);
   const filteredCities = useMemo(() => {
     if (isOutro) return [];
-    const cities = stateData?.cities || [];
-    if (!citySearch) return cities;
-    const search = citySearch.toLowerCase();
-    return cities.filter(c => c.toLowerCase().includes(search));
-  }, [stateData, citySearch, isOutro]);
+    return stateData?.cities || [];
+  }, [stateData, isOutro]);
 
   const required: (keyof ProfileFormData)[] = ['nome', 'crm', 'especialidade', 'pais', 'estado', 'cidade', 'idioma'];
 
@@ -85,11 +82,9 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       if (field === 'pais') {
         next.estado = '';
         next.cidade = '';
-        setCitySearch('');
       }
       if (field === 'estado') {
         next.cidade = '';
-        setCitySearch('');
       }
       return next;
     });
@@ -230,31 +225,23 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
             placeholder="Digite a cidade"
           />
         ) : (
-          <div className="space-y-1">
-            <Input
-              placeholder="Buscar cidade..."
-              value={citySearch}
-              onChange={e => setCitySearch(e.target.value)}
-              className="mb-1"
-            />
-            <Select
-              value={form.cidade}
-              onValueChange={v => { handleChange('cidade', v); setCitySearch(''); }}
-              disabled={!form.estado}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={form.estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'} />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredCities.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-                {filteredCities.length === 0 && form.estado && (
-                  <div className="px-2 py-1.5 text-xs text-muted-foreground">Nenhuma cidade encontrada</div>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select
+            value={form.cidade}
+            onValueChange={v => handleChange('cidade', v)}
+            disabled={!form.estado}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={form.estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'} />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredCities.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+              {filteredCities.length === 0 && form.estado && (
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">Nenhuma cidade encontrada</div>
+              )}
+            </SelectContent>
+          </Select>
         )}
         {showError('cidade') && <p className="text-xs text-destructive">{errors.cidade}</p>}
       </div>
