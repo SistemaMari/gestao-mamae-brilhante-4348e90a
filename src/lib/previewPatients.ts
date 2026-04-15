@@ -19,6 +19,8 @@ export interface PreviewConsulta {
   data_proximo_retorno_formatted?: string | null;
   grid_valores?: Record<string, string>[] | null;
   decisao?: string | null;
+  data_inicio?: string | null;
+  data_fim?: string | null;
 }
 
 export interface PreviewPaciente {

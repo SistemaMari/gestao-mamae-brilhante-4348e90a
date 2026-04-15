@@ -300,6 +300,8 @@ export default function FichaBDForm({
         data_proximo_retorno_formatted: dataProximoRetorno,
         grid_valores: grid,
         decisao,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
       };
 
       const updatedConsultas = [...consultas, newConsulta];
