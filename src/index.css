@@ -128,4 +128,37 @@
   .print\:overflow-visible {
     overflow: visible !important;
   }
+
+  /* Force all content visible for print */
+  body, #root {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    min-height: auto !important;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+
+  .flex-1 {
+    flex: none !important;
+  }
+
+  /* Preserve clinical semantic colors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove decorative shadows */
+  .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl {
+    box-shadow: none !important;
+  }
 }

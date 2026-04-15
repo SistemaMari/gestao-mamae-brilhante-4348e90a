@@ -202,7 +202,7 @@ export default function AppShellClinico() {
       {/* Banner slot for future payment banners (Prompts 20/21) */}
       {/* <div id="payment-banner-slot" className="print:hidden" /> */}
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden print:block print:overflow-visible print:h-auto">
         {/* Desktop sidebar */}
         <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-card print:hidden">
           <SidebarContent />
