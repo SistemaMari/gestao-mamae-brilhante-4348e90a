@@ -710,7 +710,7 @@ export default function FichaPacientePage() {
             className="space-y-2"
           >
             {consultasHistorico.map((c) => {
-              // Determine display name for ficha_a/ficha_c based on whether it's the first one
+              // Determine display name based on type and history
               let displayName = CONSULTA_NAMES[c.tipo] || c.tipo;
               if (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') {
                 const allFichasAC = consultas.filter(cx => ['ficha_a', 'ficha_c'].includes(cx.tipo));
@@ -718,6 +718,14 @@ export default function FichaPacientePage() {
                 if (isFirstFichaAC) {
                   displayName = CONSULTA_NAMES['retorno_2'];
                 }
+              }
+              if (c.tipo === 'ficha_b' || c.tipo === 'ficha_d') {
+                const allFichasBD = consultas.filter(cx => ['ficha_b', 'ficha_d'].includes(cx.tipo));
+                const isFirstFichaBD = allFichasBD.length > 0 && allFichasBD[0].id === c.id;
+                if (isFirstFichaBD) {
+                  displayName = CONSULTA_NAMES['retorno_3'];
+                }
+              }
               }
 
               return (
