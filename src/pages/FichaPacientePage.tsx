@@ -726,7 +726,6 @@ export default function FichaPacientePage() {
                   displayName = CONSULTA_NAMES['retorno_3'];
                 }
               }
-              }
 
               return (
               <AccordionItem key={c.id} value={c.id} className="rounded-lg border border-border px-3 py-0">
