@@ -203,28 +203,55 @@ export default function GttForm({
           observacoes.trim() ? `| ${observacoes.trim()}` : null,
         ].filter(Boolean).join(', ');
 
-        const newConsulta: PreviewConsulta = {
-          id: crypto.randomUUID(),
-          tipo: 'retorno_gtt',
-          numero_sequencial: (current.consultas?.length || 1) + 1,
-          data: dataConsulta,
-          ig_semanas: igFinal?.semanas ?? null,
-          ig_dias: igFinal?.dias ?? null,
-          observacoes: obsText,
-          status_gerado: diag.statusFicha,
-          gtt_jejum: jejumNum,
-          gtt_1h: recursoLimitado ? null : h1Num,
-          gtt_2h: recursoLimitado ? null : h2Num,
-          gtt_recurso_limitado: recursoLimitado,
-          gtt_data_exame: dataExame,
-          cenario_clinico: diag.cenario,
-        };
+        if (editingConsulta) {
+          // Update existing consultation
+          const updatedConsultas = (current.consultas || []).map(c =>
+            c.id === editingConsulta.id
+              ? {
+                  ...c,
+                  data: dataConsulta,
+                  ig_semanas: igFinal?.semanas ?? null,
+                  ig_dias: igFinal?.dias ?? null,
+                  observacoes: obsText,
+                  status_gerado: diag.statusFicha,
+                  gtt_jejum: jejumNum,
+                  gtt_1h: recursoLimitado ? null : h1Num,
+                  gtt_2h: recursoLimitado ? null : h2Num,
+                  gtt_recurso_limitado: recursoLimitado,
+                  gtt_data_exame: dataExame,
+                  cenario_clinico: diag.cenario,
+                }
+              : c
+          );
+          updatePreviewPaciente(paciente.id, {
+            status_ficha: diag.statusFicha,
+            data_ultima_consulta: dataConsulta,
+            consultas: updatedConsultas,
+          });
+        } else {
+          const newConsulta: PreviewConsulta = {
+            id: crypto.randomUUID(),
+            tipo: 'retorno_gtt',
+            numero_sequencial: (current.consultas?.length || 1) + 1,
+            data: dataConsulta,
+            ig_semanas: igFinal?.semanas ?? null,
+            ig_dias: igFinal?.dias ?? null,
+            observacoes: obsText,
+            status_gerado: diag.statusFicha,
+            gtt_jejum: jejumNum,
+            gtt_1h: recursoLimitado ? null : h1Num,
+            gtt_2h: recursoLimitado ? null : h2Num,
+            gtt_recurso_limitado: recursoLimitado,
+            gtt_data_exame: dataExame,
+            cenario_clinico: diag.cenario,
+          };
 
-        updatePreviewPaciente(paciente.id, {
-          status_ficha: diag.statusFicha,
-          data_ultima_consulta: dataConsulta,
-          consultas: [...(current.consultas || []), newConsulta],
-        });
+          updatePreviewPaciente(paciente.id, {
+            status_ficha: diag.statusFicha,
+            data_ultima_consulta: dataConsulta,
+            consultas: [...(current.consultas || []), newConsulta],
+          });
+        }
         window.dispatchEvent(new Event('preview-pacientes-updated'));
       }
 
