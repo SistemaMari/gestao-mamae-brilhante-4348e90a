@@ -1,23 +1,39 @@
 
 
-# Plano: Alinhar cores dos cards de Visão Geral com as tags de Pacientes
+# Plano: Exibir laudo completo (Blocos 1, 2 e 3) após salvar Ficha A/C
 
-## O que muda
+## Problema
+Após salvar a Ficha A/C e fechar o popup de impacto, o formulário desmonta e o card de resultado no histórico recebe dados zerados (`percentual={0}`, `totalPreenchidos={0}`). O laudo com os 3 blocos nunca aparece.
 
-Mapear as cores de fundo/borda/ícone dos 6 cards da seção "Visão Geral" do Dashboard de Métricas para corresponder exatamente às cores das tags usadas na tabela de Pacientes:
+## Causa raiz
+1. `PreviewConsulta` não armazena os dados do perfil glicêmico (percentual, totalPreenchidos, dentroMeta, peso, dose).
+2. Na `FichaPacientePage`, o `FichaACResultCard` dentro do accordion usa valores hardcoded `0`.
+3. Não existe lógica para mostrar o resultado standalone após fechar o popup (como existe para Retorno 1).
 
-| Card | Tag atual (Pacientes) | Card atual (Métricas) | Nova cor do card |
-|---|---|---|---|
-| Aguardando GJ | `bg-gray-500` | Branco/cinza | Fundo cinza claro `#F1F5F9`, borda `#CBD5E1`, ícone cinza |
-| Aguardando GTT | `bg-blue-500` | Lavanda | Fundo azul claro `#EFF6FF`, borda `#93C5FD`, ícone azul |
-| DMG confirmado | `bg-orange-500` | Lavanda forte | Fundo laranja claro `#FFF7ED`, borda `#FDBA74`, ícone laranja |
-| DMG afastado | `bg-emerald-500` | Verde-água | Fundo verde claro `#ECFDF5`, borda `#6EE7B7`, ícone emerald |
-| Resultado do parto | `bg-purple-500` | Lavanda | Fundo roxo claro `#F5F3FF`, borda `#C4B5FD`, ícone roxo |
-| Associar endocrino | `bg-red-500` | Rosa suave | Fundo vermelho claro `#FEF2F2`, borda `#FCA5A5`, ícone vermelho |
+## Solução
 
-## Arquivo modificado
-- `src/pages/DashboardMetricasPage.tsx` — Atualizar as props `bg`, `border` e `style.color` dos ícones nos 6 `StatusCard` da seção Visão Geral (linhas ~386-427) para usar tons claros derivados das cores das tags.
+### 1. Expandir `PreviewConsulta` com campos opcionais do perfil
+**Arquivo:** `src/lib/previewPatients.ts`
+- Adicionar campos opcionais: `percentual_meta`, `total_preenchidos`, `dentro_meta`, `peso_kg`, `dose_total`, `dose_manha`, `dose_noite`, `retorno_dias`, `data_proximo_retorno`.
+
+### 2. Salvar esses dados na consulta preview
+**Arquivo:** `src/components/FichaACForm.tsx`
+- No bloco `isPreview`, incluir os campos novos no objeto `newConsulta`.
+
+### 3. Passar dados reais ao FichaACResultCard no histórico
+**Arquivo:** `src/pages/FichaPacientePage.tsx`
+- No accordion, ao renderizar `FichaACResultCard` para `ficha_a`/`ficha_c`, usar `c.percentual_meta`, `c.total_preenchidos`, `c.dentro_meta`, etc. em vez de zeros.
+
+### 4. Mostrar resultado standalone após fechar popup
+**Arquivo:** `src/pages/FichaPacientePage.tsx`
+- Usar `fichaACCompleted` + `fichaACResult` (estado local com os dados do resultado) para renderizar um `FichaACResultCard` completo quando o form é desmontado — mesma lógica usada para Retorno 1.
+
+### 5. Garantir que o `FichaACResultCard` já existente mostra os 3 blocos
+**Arquivo:** `src/components/FichaACResultCard.tsx`
+- Bloco 1: Resultado e conduta (já existe).
+- Blocos 2 e 3: Placeholder com borda tracejada (já existe — confirmar que aparece).
+- Notas técnicas e instrução Ctrl+P (já existem).
 
 ## Resultado
-O usuário verá consistência visual imediata entre a cor da tag na lista de pacientes e o card correspondente no dashboard de métricas.
+Após salvar e fechar o popup, o laudo completo aparece na ficha da paciente com: resultado colorido (verde/laranja), conduta, placeholder dos blocos 2/3, notas técnicas e instrução de impressão.
 
