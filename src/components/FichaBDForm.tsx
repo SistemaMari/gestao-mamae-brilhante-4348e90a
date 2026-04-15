@@ -80,21 +80,27 @@ interface FichaBDFormProps {
   isPreview: boolean;
   onSaved: () => void;
   onCancel: () => void;
+  editingConsulta?: PreviewConsulta | null;
 }
 
 export default function FichaBDForm({
-  paciente, consultas, isPreview, onSaved, onCancel,
+  paciente, consultas, isPreview, onSaved, onCancel, editingConsulta,
 }: FichaBDFormProps) {
   const { profissionalData } = useProfissionalData();
 
-  const [grid, setGrid] = useState<Record<string, string>[]>(
-    DAYS.map(() => Object.fromEntries(POINTS_6.map(p => [p, ''])))
-  );
+  const [grid, setGrid] = useState<Record<string, string>[]>(() => {
+    if (editingConsulta?.grid_valores && editingConsulta.grid_valores.length > 0) {
+      const existing = editingConsulta.grid_valores.map(row => ({ ...row }));
+      while (existing.length < 15) existing.push(Object.fromEntries(POINTS_6.map(p => [p, ''])));
+      return existing;
+    }
+    return DAYS.map(() => Object.fromEntries(POINTS_6.map(p => [p, ''])));
+  });
 
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
-  const [dataConsulta, setDataConsulta] = useState(new Date().toISOString().slice(0, 10));
-  const [observacoes, setObservacoes] = useState('');
+  const [dataInicio, setDataInicio] = useState(editingConsulta?.data_inicio ?? '');
+  const [dataFim, setDataFim] = useState(editingConsulta?.data_fim ?? '');
+  const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? new Date().toISOString().slice(0, 10));
+  const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
   const [saving, setSaving] = useState(false);
 
   const igAtual = useMemo(() => {
@@ -104,15 +110,15 @@ export default function FichaBDForm({
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente.dum, dataConsulta]);
 
-  const [igSemanas, setIgSemanas] = useState('');
-  const [igDias, setIgDias] = useState('');
+  const [igSemanas, setIgSemanas] = useState(editingConsulta?.ig_semanas != null ? String(editingConsulta.ig_semanas) : '');
+  const [igDias, setIgDias] = useState(editingConsulta?.ig_dias != null ? String(editingConsulta.ig_dias) : '');
 
   useEffect(() => {
-    if (igAtual) {
+    if (igAtual && !editingConsulta) {
       setIgSemanas(String(igAtual.semanas));
       setIgDias(String(igAtual.dias));
     }
-  }, [igAtual]);
+  }, [igAtual, editingConsulta]);
 
   const igSemNum = parseInt(igSemanas) || 0;
 

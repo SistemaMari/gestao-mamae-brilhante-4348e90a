@@ -55,24 +55,31 @@ interface FichaACFormProps {
   isPreview: boolean;
   onSaved: () => void;
   onCancel: () => void;
+  editingConsulta?: PreviewConsulta | null;
 }
 
 export default function FichaACForm({
-  paciente, consultas, isPreview, onSaved, onCancel,
+  paciente, consultas, isPreview, onSaved, onCancel, editingConsulta,
 }: FichaACFormProps) {
   const { profissionalData } = useProfissionalData();
 
   // Grid state: grid[day-1][point] = string value
-  const [grid, setGrid] = useState<Record<string, string>[]>(
-    DAYS.map(() => Object.fromEntries(POINTS.map(p => [p, ''])))
-  );
+  const [grid, setGrid] = useState<Record<string, string>[]>(() => {
+    if (editingConsulta?.grid_valores && editingConsulta.grid_valores.length > 0) {
+      // Pad to 15 days if needed
+      const existing = editingConsulta.grid_valores.map(row => ({ ...row }));
+      while (existing.length < 15) existing.push(Object.fromEntries(POINTS.map(p => [p, ''])));
+      return existing;
+    }
+    return DAYS.map(() => Object.fromEntries(POINTS.map(p => [p, ''])));
+  });
 
   // Form fields
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
-  const [dataConsulta, setDataConsulta] = useState(new Date().toISOString().slice(0, 10));
-  const [observacoes, setObservacoes] = useState('');
-  const [peso, setPeso] = useState('');
+  const [dataInicio, setDataInicio] = useState(editingConsulta?.data_inicio ?? '');
+  const [dataFim, setDataFim] = useState(editingConsulta?.data_fim ?? '');
+  const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? new Date().toISOString().slice(0, 10));
+  const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
+  const [peso, setPeso] = useState(editingConsulta?.peso_kg != null ? String(editingConsulta.peso_kg) : '');
   const [saving, setSaving] = useState(false);
 
   // IG auto-calculated
@@ -83,15 +90,15 @@ export default function FichaACForm({
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente.dum, dataConsulta]);
 
-  const [igSemanas, setIgSemanas] = useState('');
-  const [igDias, setIgDias] = useState('');
+  const [igSemanas, setIgSemanas] = useState(editingConsulta?.ig_semanas != null ? String(editingConsulta.ig_semanas) : '');
+  const [igDias, setIgDias] = useState(editingConsulta?.ig_dias != null ? String(editingConsulta.ig_dias) : '');
 
   useEffect(() => {
-    if (igAtual) {
+    if (igAtual && !editingConsulta) {
       setIgSemanas(String(igAtual.semanas));
       setIgDias(String(igAtual.dias));
     }
-  }, [igAtual]);
+  }, [igAtual, editingConsulta]);
 
   const igSemNum = parseInt(igSemanas) || 0;
 
