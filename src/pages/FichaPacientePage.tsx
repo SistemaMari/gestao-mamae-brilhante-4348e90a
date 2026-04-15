@@ -64,8 +64,8 @@ function getNextStepInfo(
 ): { label: string; formType: string } | null {
   const _hasRetorno1 = consultas.some(c => c.tipo === 'retorno_1');
   const _hasRetornoGtt = consultas.some(c => c.tipo === 'retorno_gtt');
-  const hasRetorno2 = consultas.some(c => c.tipo === 'retorno_2');
-  const hasRetorno3 = consultas.some(c => c.tipo === 'retorno_3');
+  const _hasRetorno2 = consultas.some(c => c.tipo === 'retorno_2');
+  const _hasRetorno3 = consultas.some(c => c.tipo === 'retorno_3');
 
   switch (statusFicha) {
     case 'aguardando_gj':
@@ -85,7 +85,7 @@ function getNextStepInfo(
       // Check if any ficha_a/ficha_c already exists
       const hasFichaAC = consultas.some(c => ['ficha_a', 'ficha_c'].includes(c.tipo));
       // Check last ficha result to determine if insulin was started
-      const lastFicha = [...consultas].reverse().find(c => ['ficha_a', 'ficha_c', 'ficha_b', 'ficha_d'].includes(c.tipo));
+      const _lastFicha = [...consultas].reverse().find(c => ['ficha_a', 'ficha_c', 'ficha_b', 'ficha_d'].includes(c.tipo));
 
       if (!hasFichaAC) {
         // First time: Retorno 2 = Ficha A (perfil 4 pontos)
