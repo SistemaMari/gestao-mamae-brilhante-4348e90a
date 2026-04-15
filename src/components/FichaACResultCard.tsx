@@ -80,9 +80,13 @@ export default function FichaACResultCard({
         )}
 
         {/* Placeholder Blocos 2 e 3 */}
-        <div className="rounded-lg border border-dashed border-[#D6BCFA] bg-[#F1F0FB] p-4">
-          <p className="text-xs font-medium text-[#7E69AB] text-center">
-            📄 Laudo Completo — Blocos 2 e 3 (justificativa científica + conduta orientativa) serão gerados aqui via IA.
+        <div className="rounded-lg border-2 border-dashed border-[#CBD5E1] bg-[#F1F5F9] p-5 text-center space-y-2">
+          <p className="text-sm font-semibold text-foreground flex items-center justify-center gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            Justificativa científica e conduta personalizada
+          </p>
+          <p className="text-xs text-muted-foreground italic">
+            Estes blocos serão gerados automaticamente pelo sistema de inteligência artificial em breve.
           </p>
         </div>
       </div>

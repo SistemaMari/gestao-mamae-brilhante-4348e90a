@@ -524,9 +524,17 @@ export default function FichaACForm({
             <p className="text-sm text-muted-foreground mt-1">
               Controle: {percentual.toFixed(1)}% das glicemias dentro da meta ({dentroMeta} de {totalPreenchidos} valores)
             </p>
+            <p className={`text-xs mt-1 italic ${percentual >= 70 ? 'text-[#16A34A]' : 'text-[#64748B]'}`}>
+              Meta: ≥ 70% das glicemias dentro do alvo
+            </p>
           </>
         ) : (
-          <p className="text-2xl font-bold text-muted-foreground">—</p>
+          <>
+            <p className="text-2xl font-bold text-muted-foreground">—</p>
+            <p className="text-xs mt-1 italic text-[#64748B]">
+              Meta: ≥ 70% das glicemias dentro do alvo
+            </p>
+          </>
         )}
       </div>
 
@@ -602,7 +610,19 @@ export default function FichaACForm({
 
       {/* Weight field — conditional */}
       {(pesoRequired || peso) && (
-        <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+        <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+          {/* Explanatory card when control < 70% */}
+          {isInadequado && (
+            <div className="rounded-lg border border-[#F59E0B] bg-[#FEF3C7] p-3 space-y-1">
+              <p className="text-sm font-semibold text-amber-800 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-[#F59E0B]" />
+                Controle glicêmico abaixo da meta
+              </p>
+              <p className="text-xs text-amber-700">
+                O percentual de glicemias dentro do alvo ficou abaixo de 70%. A conduta indicada pelo protocolo é associar insulina NPH subcutânea. Informe o peso atual da paciente para que o sistema calcule a dose inicial.
+              </p>
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <label className="text-xs font-medium text-foreground">
               Peso atual (kg) {pesoRequired && <span className="text-red-500">*</span>}
