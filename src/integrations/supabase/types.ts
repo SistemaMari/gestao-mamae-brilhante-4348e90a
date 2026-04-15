@@ -359,6 +359,73 @@ export type Database = {
           },
         ]
       }
+      perfis_glicemicos: {
+        Row: {
+          consulta_id: string
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          decisao: string | null
+          dose_insulina_calculada: number | null
+          id: string
+          paciente_id: string
+          percentual_meta: number
+          peso_paciente_kg: number | null
+          profissional_id: string
+          tipo_perfil: string
+        }
+        Insert: {
+          consulta_id: string
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          decisao?: string | null
+          dose_insulina_calculada?: number | null
+          id?: string
+          paciente_id: string
+          percentual_meta?: number
+          peso_paciente_kg?: number | null
+          profissional_id: string
+          tipo_perfil?: string
+        }
+        Update: {
+          consulta_id?: string
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          decisao?: string | null
+          dose_insulina_calculada?: number | null
+          id?: string
+          paciente_id?: string
+          percentual_meta?: number
+          peso_paciente_kg?: number | null
+          profissional_id?: string
+          tipo_perfil?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_glicemicos_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "consultas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_glicemicos_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_glicemicos_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profissionais: {
         Row: {
           cidade: string | null
@@ -477,6 +544,41 @@ export type Database = {
           tipo?: string | null
         }
         Relationships: []
+      }
+      valores_perfil: {
+        Row: {
+          created_at: string
+          dia: number
+          id: string
+          perfil_id: string
+          ponto: string
+          valor_mgdl: number
+        }
+        Insert: {
+          created_at?: string
+          dia: number
+          id?: string
+          perfil_id: string
+          ponto: string
+          valor_mgdl: number
+        }
+        Update: {
+          created_at?: string
+          dia?: number
+          id?: string
+          perfil_id?: string
+          ponto?: string
+          valor_mgdl?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valores_perfil_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_glicemicos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
