@@ -751,70 +751,161 @@ export default function FichaPacientePage() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-3">
-                  {c.tipo === 'consulta_1' && (
-                    <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
-                  )}
-                  {c.tipo === 'retorno_1' && (
-                    <Retorno1ResultCard consulta={c} janelaGTT={janelaGTT} igHoje={igAtual} />
-                  )}
-                  {(c.tipo === 'ficha_a' || c.tipo === 'ficha_c') && (
-                    <>
-                      {c.grid_valores && c.grid_valores.length > 0 && (
-                        <FichaACReadOnlyGrid gridValores={c.grid_valores} />
-                      )}
-                      <FichaACResultCard
-                        percentual={c.percentual_meta ?? 0}
-                        adequado={(c.percentual_meta ?? 0) >= 70}
-                        totalPreenchidos={c.total_preenchidos ?? 0}
-                        dentroMeta={c.dentro_meta ?? 0}
-                        doseTotal={c.dose_total}
-                        doseManha={c.dose_manha}
-                        doseNoite={c.dose_noite}
-                        peso={c.peso_kg}
-                        retornoDias={c.retorno_dias ?? ((c.ig_semanas ?? 0) > 30 ? 7 : 15)}
-                        dataProximoRetorno={c.data_proximo_retorno_formatted}
-                        fichaType={c.tipo}
-                      />
-                    </>
-                  )}
-                  {(c.tipo === 'ficha_b' || c.tipo === 'ficha_d') && (
-                    <>
-                      {c.grid_valores && c.grid_valores.length > 0 && (
-                        <FichaBDReadOnlyGrid gridValores={c.grid_valores} />
-                      )}
-                      <FichaBDResultCard
-                        percentual={c.percentual_meta ?? 0}
-                        adequado={(c.percentual_meta ?? 0) >= 70}
-                        totalPreenchidos={c.total_preenchidos ?? 0}
-                        dentroMeta={c.dentro_meta ?? 0}
-                        retornoDias={c.retorno_dias ?? ((c.ig_semanas ?? 0) > 30 ? 7 : 15)}
-                        dataProximoRetorno={c.data_proximo_retorno_formatted}
-                        fichaType={c.tipo}
-                      />
-                    </>
-                  )}
-                  {c.tipo === 'retorno_gtt' && (
-                    <GttResultCard consulta={c} igHoje={igAtual} />
-                  )}
-                  {!['consulta_1', 'retorno_1', 'retorno_gtt', 'ficha_a', 'ficha_c', 'ficha_b', 'ficha_d'].includes(c.tipo) && (
-                    <div className="space-y-2">
-                      {c.ig_semanas != null && (
-                        <p className="text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">IG:</span> {c.ig_semanas}s {c.ig_dias || 0}d
-                        </p>
-                      )}
-                      {c.status_gerado && STATUS_CONFIG[c.status_gerado] && (
-                        <Badge className={`${STATUS_CONFIG[c.status_gerado].color} text-white border-0 text-[10px]`}>
-                          {STATUS_CONFIG[c.status_gerado].label}
-                        </Badge>
-                      )}
-                      {c.observacoes ? (
-                        <p className="text-xs text-muted-foreground italic">{c.observacoes}</p>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">Sem observações.</p>
-                      )}
-                    </div>
-                  )}
+                  {(() => {
+                    const isLastConsulta = c.id === consultasHistorico[0]?.id;
+                    const isEditing = editingConsultaId === c.id;
+                    const noFormOpen = !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt;
+                    const canEdit = isLastConsulta && noFormOpen && c.tipo !== 'consulta_1';
+
+                    // Handle edit save — reload data and close editing
+                    const handleEditSaved = () => {
+                      setEditingConsultaId(null);
+                      if (isPreview && id) {
+                        const p = getPreviewPacienteById(id);
+                        if (p) {
+                          setPaciente(p);
+                          setConsultas(p.consultas || []);
+                        }
+                      }
+                    };
+
+                    // If editing this consultation, show the form inline
+                    if (isEditing) {
+                      if (c.tipo === 'retorno_1') {
+                        return (
+                          <Retorno1Form
+                            paciente={paciente}
+                            primeiraConsulta={primeiraConsulta!}
+                            isPreview={isPreview}
+                            onSaved={handleEditSaved}
+                            onCancel={() => setEditingConsultaId(null)}
+                            editingConsulta={c}
+                          />
+                        );
+                      }
+                      if (c.tipo === 'retorno_gtt') {
+                        return (
+                          <GttForm
+                            paciente={paciente}
+                            consultas={consultas}
+                            isPreview={isPreview}
+                            onSaved={handleEditSaved}
+                            onCancel={() => setEditingConsultaId(null)}
+                            editingConsulta={c}
+                          />
+                        );
+                      }
+                      if (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') {
+                        return (
+                          <FichaACForm
+                            paciente={paciente}
+                            consultas={consultas}
+                            isPreview={isPreview}
+                            onSaved={handleEditSaved}
+                            onCancel={() => setEditingConsultaId(null)}
+                            editingConsulta={c}
+                          />
+                        );
+                      }
+                      if (c.tipo === 'ficha_b' || c.tipo === 'ficha_d') {
+                        return (
+                          <FichaBDForm
+                            paciente={paciente}
+                            consultas={consultas}
+                            isPreview={isPreview}
+                            onSaved={handleEditSaved}
+                            onCancel={() => setEditingConsultaId(null)}
+                            editingConsulta={c}
+                          />
+                        );
+                      }
+                    }
+
+                    // Normal read-only view with edit button
+                    return (
+                      <>
+                        {/* Edit button — only for last consultation */}
+                        {canEdit && (
+                          <div className="flex justify-end mb-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingConsultaId(c.id)}
+                              className="text-[#9b87f5] hover:text-[#7E69AB] hover:bg-[#E8E0FF] gap-1.5"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              <span className="text-xs">Editar valores</span>
+                            </Button>
+                          </div>
+                        )}
+
+                        {c.tipo === 'consulta_1' && (
+                          <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
+                        )}
+                        {c.tipo === 'retorno_1' && (
+                          <Retorno1ResultCard consulta={c} janelaGTT={janelaGTT} igHoje={igAtual} />
+                        )}
+                        {(c.tipo === 'ficha_a' || c.tipo === 'ficha_c') && (
+                          <>
+                            {c.grid_valores && c.grid_valores.length > 0 && (
+                              <FichaACReadOnlyGrid gridValores={c.grid_valores} />
+                            )}
+                            <FichaACResultCard
+                              percentual={c.percentual_meta ?? 0}
+                              adequado={(c.percentual_meta ?? 0) >= 70}
+                              totalPreenchidos={c.total_preenchidos ?? 0}
+                              dentroMeta={c.dentro_meta ?? 0}
+                              doseTotal={c.dose_total}
+                              doseManha={c.dose_manha}
+                              doseNoite={c.dose_noite}
+                              peso={c.peso_kg}
+                              retornoDias={c.retorno_dias ?? ((c.ig_semanas ?? 0) > 30 ? 7 : 15)}
+                              dataProximoRetorno={c.data_proximo_retorno_formatted}
+                              fichaType={c.tipo}
+                            />
+                          </>
+                        )}
+                        {(c.tipo === 'ficha_b' || c.tipo === 'ficha_d') && (
+                          <>
+                            {c.grid_valores && c.grid_valores.length > 0 && (
+                              <FichaBDReadOnlyGrid gridValores={c.grid_valores} />
+                            )}
+                            <FichaBDResultCard
+                              percentual={c.percentual_meta ?? 0}
+                              adequado={(c.percentual_meta ?? 0) >= 70}
+                              totalPreenchidos={c.total_preenchidos ?? 0}
+                              dentroMeta={c.dentro_meta ?? 0}
+                              retornoDias={c.retorno_dias ?? ((c.ig_semanas ?? 0) > 30 ? 7 : 15)}
+                              dataProximoRetorno={c.data_proximo_retorno_formatted}
+                              fichaType={c.tipo}
+                            />
+                          </>
+                        )}
+                        {c.tipo === 'retorno_gtt' && (
+                          <GttResultCard consulta={c} igHoje={igAtual} />
+                        )}
+                        {!['consulta_1', 'retorno_1', 'retorno_gtt', 'ficha_a', 'ficha_c', 'ficha_b', 'ficha_d'].includes(c.tipo) && (
+                          <div className="space-y-2">
+                            {c.ig_semanas != null && (
+                              <p className="text-xs text-muted-foreground">
+                                <span className="font-medium text-foreground">IG:</span> {c.ig_semanas}s {c.ig_dias || 0}d
+                              </p>
+                            )}
+                            {c.status_gerado && STATUS_CONFIG[c.status_gerado] && (
+                              <Badge className={`${STATUS_CONFIG[c.status_gerado].color} text-white border-0 text-[10px]`}>
+                                {STATUS_CONFIG[c.status_gerado].label}
+                              </Badge>
+                            )}
+                            {c.observacoes ? (
+                              <p className="text-xs text-muted-foreground italic">{c.observacoes}</p>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">Sem observações.</p>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </AccordionContent>
               </AccordionItem>
               );
