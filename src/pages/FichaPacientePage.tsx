@@ -17,9 +17,6 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   AlertTriangle, Calendar, Clock, FileText, Pencil, Plus, User, Loader2,
 } from 'lucide-react';
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog';
 import Retorno1Form from '@/components/Retorno1Form';
 import Consulta1ResultCard from '@/components/Consulta1ResultCard';
 import Retorno1ResultCard from '@/components/Retorno1ResultCard';
@@ -189,10 +186,8 @@ export default function FichaPacientePage() {
   const [showGtt, setShowGtt] = useState(false);
   const [gttCompleted, setGttCompleted] = useState(false);
 
-  // Editing state for last consultation
+  // Editing state for last consultation — tracks which consultation is being edited inline
   const [editingConsultaId, setEditingConsultaId] = useState<string | null>(null);
-  const [showEditConfirm, setShowEditConfirm] = useState(false);
-  const [pendingEditId, setPendingEditId] = useState<string | null>(null);
 
   // Edit mode state
   const [editing, setEditing] = useState(false);
