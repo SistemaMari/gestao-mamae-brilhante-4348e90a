@@ -17,6 +17,8 @@ export interface PreviewConsulta {
   dose_noite?: number | null;
   retorno_dias?: number | null;
   data_proximo_retorno_formatted?: string | null;
+  grid_valores?: Record<string, string>[] | null;
+  decisao?: string | null;
 }
 
 export interface PreviewPaciente {
