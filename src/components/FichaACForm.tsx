@@ -273,10 +273,10 @@ export default function FichaACForm({
     if (isPreview) {
       // Preview mode — save to localStorage
       const nextSeq = (consultas.length || 0) + 1;
-      const newConsulta: PreviewConsulta = {
-        id: crypto.randomUUID(),
+      const consultaData: PreviewConsulta = {
+        id: editingConsulta?.id ?? crypto.randomUUID(),
         tipo: fichaType,
-        numero_sequencial: nextSeq,
+        numero_sequencial: editingConsulta?.numero_sequencial ?? nextSeq,
         data: dataConsulta,
         ig_semanas: igS,
         ig_dias: igD,
@@ -297,7 +297,13 @@ export default function FichaACForm({
         data_fim: dataFim,
       };
 
-      const updatedConsultas = [...consultas, newConsulta];
+      let updatedConsultas: PreviewConsulta[];
+      if (editingConsulta) {
+        updatedConsultas = consultas.map(c => c.id === editingConsulta.id ? consultaData : c);
+      } else {
+        updatedConsultas = [...consultas, consultaData];
+      }
+
       updatePreviewPaciente(paciente.id, {
         consultas: updatedConsultas,
         status_ficha: newStatus,
