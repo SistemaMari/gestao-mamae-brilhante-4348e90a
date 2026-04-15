@@ -23,6 +23,9 @@ import Retorno1ResultCard from '@/components/Retorno1ResultCard';
 import FichaACForm from '@/components/FichaACForm';
 import FichaACResultCard from '@/components/FichaACResultCard';
 import FichaACReadOnlyGrid from '@/components/FichaACReadOnlyGrid';
+import FichaBDForm from '@/components/FichaBDForm';
+import FichaBDResultCard from '@/components/FichaBDResultCard';
+import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
