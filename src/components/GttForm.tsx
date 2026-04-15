@@ -107,6 +107,7 @@ interface GttFormProps {
   isPreview: boolean;
   onSaved: () => void;
   onCancel: () => void;
+  editingConsulta?: PreviewConsulta | null;
 }
 
 export default function GttForm({
@@ -115,18 +116,19 @@ export default function GttForm({
   isPreview,
   onSaved,
   onCancel,
+  editingConsulta,
 }: GttFormProps) {
   const { user } = useAuth();
   const { profissionalData } = useProfissionalData();
 
-  const [recursoLimitado, setRecursoLimitado] = useState(false);
-  const [valorJejum, setValorJejum] = useState('');
-  const [valor1h, setValor1h] = useState('');
-  const [valor2h, setValor2h] = useState('');
-  const [dataExame, setDataExame] = useState(todayISO());
-  const [dataConsulta, setDataConsulta] = useState(todayISO());
-  const [igSemanas, setIgSemanas] = useState('');
-  const [igDias, setIgDias] = useState('');
+  const [recursoLimitado, setRecursoLimitado] = useState(editingConsulta?.gtt_recurso_limitado ?? false);
+  const [valorJejum, setValorJejum] = useState(editingConsulta?.gtt_jejum != null ? String(editingConsulta.gtt_jejum) : '');
+  const [valor1h, setValor1h] = useState(editingConsulta?.gtt_1h != null ? String(editingConsulta.gtt_1h) : '');
+  const [valor2h, setValor2h] = useState(editingConsulta?.gtt_2h != null ? String(editingConsulta.gtt_2h) : '');
+  const [dataExame, setDataExame] = useState(editingConsulta?.gtt_data_exame ?? todayISO());
+  const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? todayISO());
+  const [igSemanas, setIgSemanas] = useState(editingConsulta?.ig_semanas != null ? String(editingConsulta.ig_semanas) : '');
+  const [igDias, setIgDias] = useState(editingConsulta?.ig_dias != null ? String(editingConsulta.ig_dias) : '');
   const [observacoes, setObservacoes] = useState('');
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
@@ -142,11 +144,11 @@ export default function GttForm({
   }, [paciente.dum, dataExame]);
 
   useEffect(() => {
-    if (igCalculada) {
+    if (igCalculada && !editingConsulta) {
       setIgSemanas(String(igCalculada.semanas));
       setIgDias(String(igCalculada.dias));
     }
-  }, [igCalculada]);
+  }, [igCalculada, editingConsulta]);
 
   const igHoje = useMemo(() => {
     if (!paciente.dum) return null;
