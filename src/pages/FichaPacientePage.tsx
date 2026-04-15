@@ -18,6 +18,8 @@ import {
   AlertTriangle, Calendar, Clock, FileText, Pencil, Plus, User, Loader2,
 } from 'lucide-react';
 import Retorno1Form from '@/components/Retorno1Form';
+import Consulta1ResultCard from '@/components/Consulta1ResultCard';
+import Retorno1ResultCard from '@/components/Retorno1ResultCard';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
@@ -209,21 +211,17 @@ export default function FichaPacientePage() {
   const primeiraConsulta = consultas.find((c) => c.tipo === 'consulta_1');
   const ultimaConsulta = consultas.length > 0 ? consultas[consultas.length - 1] : null;
 
-  // P5/P6: History shows ALL previous consultations (everything except the active/current one)
-  // When retorno1 is completed and showing result, history = all consultations except last
+  // History: show all consultations when 2+ exist, most recent first
   const consultasHistorico = useMemo(() => {
-    if (retorno1Completed && consultas.length > 1) {
-      // Show all but the last (which is the retorno_1 being displayed as result card)
-      return consultas.slice(0, -1).reverse();
-    }
-    if (consultas.length > 1) {
-      return consultas.slice(0, -1).reverse();
+    if (consultas.length >= 2) {
+      return [...consultas].reverse();
     }
     return [];
-  }, [consultas, retorno1Completed]);
+  }, [consultas]);
 
   const _canShowRetorno1 = paciente?.status_ficha === 'aguardando_gj' && !!primeiraConsulta && !showRetorno1 && !retorno1Completed;
-  const canShowRetorno1Form = (showRetorno1 || retorno1Completed) && !!primeiraConsulta;
+  // Only show form while actively filling — not after completion
+  const canShowRetorno1Form = showRetorno1 && !!primeiraConsulta;
 
   // P3: Reload patient data without hiding the retorno form
   const reloadPaciente = () => {
@@ -440,7 +438,7 @@ export default function FichaPacientePage() {
                 variant="outline"
                 size="sm"
                 onClick={startEditing}
-                className="border-[#9b87f5] text-[#9b87f5] hover:bg-[#E8E0FF] gap-1.5"
+                className="border-[#9b87f5] text-[#9b87f5] hover:bg-[#E8E0FF] gap-1.5 print:hidden"
               >
                 <Pencil className="h-4 w-4" />
                 Editar
@@ -647,61 +645,25 @@ export default function FichaPacientePage() {
         );
       })()}
 
-      {/* Confirmation card — green — only when status is still aguardando_gj and no retorno form active */}
-      {paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && !retorno1Completed && (
-        <>
-          <div className="rounded-xl border border-emerald-200 bg-[#DCFCE7] p-5 space-y-4">
-            <h2 className="text-sm font-bold text-emerald-800 flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Pedido de exame — Consulta 1
-            </h2>
-
-            <div className="rounded-lg bg-white/70 p-3">
-              <p className="text-sm font-semibold text-emerald-900">Orientação do exame</p>
-              <p className="mt-1 text-xs text-emerald-800">
-                Consulta 1 registrada com sucesso. Solicitar glicemia plasmática de jejum. Jejum de 8 a 12 horas. Coleta venosa processada em laboratório — glicemia capilar em ponta de dedo não é válida para fins diagnósticos.
-              </p>
-            </div>
-
-            {janelaGTT && (
-              <div className="rounded-lg bg-white/70 p-3">
-                <p className="text-sm font-semibold text-emerald-900">Janela para GTT 75g</p>
-                <p className="mt-1 text-xs text-emerald-800">
-                  {igMaior24 ? (
-                    'O GTT 75g já está na janela — solicitar o mais breve possível.'
-                  ) : (
-                    <>
-                      O GTT 75g deverá ser realizado o mais próximo possível da 24ª semana (entre{' '}
-                      <strong>{format(janelaGTT.inicio, 'dd/MM/yyyy')}</strong> e{' '}
-                      <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>
-                      ). Oriente a paciente desde já.
-                    </>
-                  )}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-xl border border-border bg-[#F1F5F9] p-5">
-            <p className="text-sm font-semibold text-foreground mb-2">Notas técnicas</p>
-            <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1.5">
-              <li>Não repetir glicemia de jejum para fins diagnósticos — em nenhum cenário, seja resultado positivo ou negativo.</li>
-              <li>Glicemia plasmática é OBRIGATÓRIA para diagnóstico — glicemia capilar em ponta de dedo não é válida para este fim.</li>
-              <li>Glicemia capilar de jejum e pós-prandiais são utilizadas exclusivamente para acompanhamento do perfil glicêmico — nunca para diagnóstico.</li>
-            </ul>
-          </div>
-        </>
+      {/* Standalone green card — only when 1 consultation (aguardando_gj), no retorno form */}
+      {consultas.length === 1 && paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && (
+        <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
       )}
 
       {/* Histórico de consultas */}
       {consultasHistorico.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm print:shadow-none">
           <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Histórico de consultas
           </h2>
 
-          <Accordion type="multiple" className="space-y-2">
+          <Accordion
+            type="multiple"
+            defaultValue={[consultasHistorico[0]?.id].filter(Boolean)}
+            key={`hist-${consultas.length}`}
+            className="space-y-2"
+          >
             {consultasHistorico.map((c) => (
               <AccordionItem key={c.id} value={c.id} className="rounded-lg border border-border px-3 py-0">
                 <AccordionTrigger className="py-3 hover:no-underline">
@@ -714,54 +676,31 @@ export default function FichaPacientePage() {
                     </span>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="pb-3 space-y-2">
+                <AccordionContent className="pb-3">
                   {c.tipo === 'consulta_1' && (
-                    <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
-                        <div>
-                          <span className="font-medium text-foreground">Data:</span>{' '}
-                          {format(new Date(c.data), 'dd/MM/yyyy')}
-                        </div>
-                        {igNaConsulta1 && (
-                          <div>
-                            <span className="font-medium text-foreground">IG na consulta:</span>{' '}
-                            {igNaConsulta1.semanas}s {igNaConsulta1.dias}d
-                          </div>
-                        )}
-                        <div>
-                          <span className="font-medium text-foreground">Exame solicitado:</span>{' '}
-                          Glicemia plasmática de jejum
-                        </div>
-                        {janelaGTT && (
-                          <div>
-                            <span className="font-medium text-foreground">GTT 75g entre:</span>{' '}
-                            {format(janelaGTT.inicio, 'dd/MM/yyyy')} e {format(janelaGTT.fim, 'dd/MM/yyyy')}
-                          </div>
-                        )}
-                        <div>
-                          <span className="font-medium text-foreground">DMG anterior:</span>{' '}
-                          {paciente.dmg_gestacao_anterior ? 'Sim' : 'Não'}
-                        </div>
-                      </div>
-                    </>
+                    <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
                   )}
-
-                  {c.tipo !== 'consulta_1' && c.ig_semanas != null && (
-                    <p className="text-xs text-muted-foreground">
-                      <span className="font-medium text-foreground">IG:</span> {c.ig_semanas}s {c.ig_dias || 0}d
-                    </p>
+                  {c.tipo === 'retorno_1' && (
+                    <Retorno1ResultCard consulta={c} janelaGTT={janelaGTT} igHoje={igAtual} />
                   )}
-
-                  {c.status_gerado && STATUS_CONFIG[c.status_gerado] && (
-                    <Badge className={`${STATUS_CONFIG[c.status_gerado].color} text-white border-0 text-[10px]`}>
-                      {STATUS_CONFIG[c.status_gerado].label}
-                    </Badge>
-                  )}
-
-                  {c.observacoes ? (
-                    <p className="text-xs text-muted-foreground italic">{c.observacoes}</p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Sem observações.</p>
+                  {!['consulta_1', 'retorno_1'].includes(c.tipo) && (
+                    <div className="space-y-2">
+                      {c.ig_semanas != null && (
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">IG:</span> {c.ig_semanas}s {c.ig_dias || 0}d
+                        </p>
+                      )}
+                      {c.status_gerado && STATUS_CONFIG[c.status_gerado] && (
+                        <Badge className={`${STATUS_CONFIG[c.status_gerado].color} text-white border-0 text-[10px]`}>
+                          {STATUS_CONFIG[c.status_gerado].label}
+                        </Badge>
+                      )}
+                      {c.observacoes ? (
+                        <p className="text-xs text-muted-foreground italic">{c.observacoes}</p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Sem observações.</p>
+                      )}
+                    </div>
                   )}
                 </AccordionContent>
               </AccordionItem>
@@ -770,9 +709,9 @@ export default function FichaPacientePage() {
         </div>
       )}
 
-      {/* Retorno 1 form / result card — stays mounted after saving */}
+      {/* Retorno 1 form — only while actively filling (unmounts after save + popup close) */}
       {canShowRetorno1Form && primeiraConsulta && paciente && (
-        <div>
+        <div className="print:hidden">
           <Retorno1Form
             paciente={paciente}
             primeiraConsulta={primeiraConsulta}
@@ -784,51 +723,48 @@ export default function FichaPacientePage() {
         </div>
       )}
 
-      {/* CORREÇÃO 1+2: Next step button — dynamic based on status + history + IG */}
-      {(() => {
-        // Don't show button if retorno1 form is active
-        if (showRetorno1) return null;
-        // Don't show if status has no next step
-        if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
+      {/* Next step button — hidden in print */}
+      <div className="print:hidden">
+        {(() => {
+          if (showRetorno1) return null;
+          if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
 
-        const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
-        if (!nextStep) return null;
+          const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
+          if (!nextStep) return null;
 
-        const isRetorno1Button = nextStep.formType === 'retorno_1';
+          const isRetorno1Button = nextStep.formType === 'retorno_1';
+          if (isRetorno1Button && retorno1Completed) return null;
+          if (isRetorno1Button && canShowRetorno1Form) return null;
 
-        // If retorno1 is completed, don't show retorno1 button again
-        if (isRetorno1Button && retorno1Completed) return null;
-        // If showing retorno1 form, don't show
-        if (isRetorno1Button && canShowRetorno1Form) return null;
+          return (
+            <Button
+              variant="outline"
+              className="w-full text-left"
+              onClick={() => {
+                if (isRetorno1Button) {
+                  setShowRetorno1(true);
+                } else {
+                  toast('Próximo retorno ainda não implementado.');
+                }
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4 shrink-0" />
+              <span className="truncate">{nextStep.label}</span>
+            </Button>
+          );
+        })()}
 
-        return (
-          <Button
-            variant="outline"
-            className="w-full text-left"
-            onClick={() => {
-              if (isRetorno1Button) {
-                setShowRetorno1(true);
-              } else {
-                toast('Próximo retorno ainda não implementado.');
-              }
-            }}
+        {/* Botão secundário — Registro do Parto */}
+        {canShowRegistroParto(paciente.status_ficha) && (
+          <button
+            type="button"
+            className="w-full text-center text-sm font-medium text-[#7C3AED] hover:text-[#6D28D9] transition-colors py-2"
+            onClick={() => toast('Registro do parto ainda não implementado.')}
           >
-            <Plus className="mr-2 h-4 w-4 shrink-0" />
-            <span className="truncate">{nextStep.label}</span>
-          </Button>
-        );
-      })()}
-
-      {/* CORREÇÃO 2: Botão secundário — Registro do Parto */}
-      {canShowRegistroParto(paciente.status_ficha) && (
-        <button
-          type="button"
-          className="w-full text-center text-sm font-medium text-[#7C3AED] hover:text-[#6D28D9] transition-colors py-2"
-          onClick={() => toast('Registro do parto ainda não implementado.')}
-        >
-          + FICHA DE REGISTRO DO PARTO
-        </button>
-      )}
+            + FICHA DE REGISTRO DO PARTO
+          </button>
+        )}
+      </div>
     </div>
   );
 }
