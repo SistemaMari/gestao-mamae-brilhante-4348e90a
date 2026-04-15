@@ -723,51 +723,48 @@ export default function FichaPacientePage() {
         </div>
       )}
 
-      {/* CORREÇÃO 1+2: Next step button — dynamic based on status + history + IG */}
-      {(() => {
-        // Don't show button if retorno1 form is active
-        if (showRetorno1) return null;
-        // Don't show if status has no next step
-        if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
+      {/* Next step button — hidden in print */}
+      <div className="print:hidden">
+        {(() => {
+          if (showRetorno1) return null;
+          if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
 
-        const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
-        if (!nextStep) return null;
+          const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
+          if (!nextStep) return null;
 
-        const isRetorno1Button = nextStep.formType === 'retorno_1';
+          const isRetorno1Button = nextStep.formType === 'retorno_1';
+          if (isRetorno1Button && retorno1Completed) return null;
+          if (isRetorno1Button && canShowRetorno1Form) return null;
 
-        // If retorno1 is completed, don't show retorno1 button again
-        if (isRetorno1Button && retorno1Completed) return null;
-        // If showing retorno1 form, don't show
-        if (isRetorno1Button && canShowRetorno1Form) return null;
+          return (
+            <Button
+              variant="outline"
+              className="w-full text-left"
+              onClick={() => {
+                if (isRetorno1Button) {
+                  setShowRetorno1(true);
+                } else {
+                  toast('Próximo retorno ainda não implementado.');
+                }
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4 shrink-0" />
+              <span className="truncate">{nextStep.label}</span>
+            </Button>
+          );
+        })()}
 
-        return (
-          <Button
-            variant="outline"
-            className="w-full text-left"
-            onClick={() => {
-              if (isRetorno1Button) {
-                setShowRetorno1(true);
-              } else {
-                toast('Próximo retorno ainda não implementado.');
-              }
-            }}
+        {/* Botão secundário — Registro do Parto */}
+        {canShowRegistroParto(paciente.status_ficha) && (
+          <button
+            type="button"
+            className="w-full text-center text-sm font-medium text-[#7C3AED] hover:text-[#6D28D9] transition-colors py-2"
+            onClick={() => toast('Registro do parto ainda não implementado.')}
           >
-            <Plus className="mr-2 h-4 w-4 shrink-0" />
-            <span className="truncate">{nextStep.label}</span>
-          </Button>
-        );
-      })()}
-
-      {/* CORREÇÃO 2: Botão secundário — Registro do Parto */}
-      {canShowRegistroParto(paciente.status_ficha) && (
-        <button
-          type="button"
-          className="w-full text-center text-sm font-medium text-[#7C3AED] hover:text-[#6D28D9] transition-colors py-2"
-          onClick={() => toast('Registro do parto ainda não implementado.')}
-        >
-          + FICHA DE REGISTRO DO PARTO
-        </button>
-      )}
+            + FICHA DE REGISTRO DO PARTO
+          </button>
+        )}
+      </div>
     </div>
   );
 }
