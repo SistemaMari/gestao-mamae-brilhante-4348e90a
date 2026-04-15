@@ -934,21 +934,24 @@ export default function FichaPacientePage() {
           if (isRetorno1Button && canShowRetorno1Form) return null;
 
           const isFichaACButton = nextStep.formType === 'ficha_a' || nextStep.formType === 'ficha_c';
-          if (isFichaACButton && fichaACCompleted) return null;
+          if (isFichaACButton && fichaACCompleted && paciente.status_ficha === 'encaminhada_endocrino') return null;
 
           const isFichaBDButton = nextStep.formType === 'ficha_b' || nextStep.formType === 'ficha_d';
-          if (isFichaBDButton && fichaBDCompleted) return null;
+          if (isFichaBDButton && fichaBDCompleted && paciente.status_ficha === 'encaminhada_endocrino') return null;
 
           return (
             <Button
-              variant="outline"
-              className="w-full text-left"
+              className="w-full text-left bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
               onClick={() => {
                 if (isRetorno1Button) {
                   setShowRetorno1(true);
                 } else if (isFichaACButton) {
+                  setFichaACCompleted(false);
+                  setFichaACResult(null);
                   setShowFichaAC(true);
                 } else if (isFichaBDButton) {
+                  setFichaBDCompleted(false);
+                  setFichaBDResult(null);
                   setShowFichaBD(true);
                 } else {
                   toast('Próximo retorno ainda não implementado.');
@@ -963,13 +966,14 @@ export default function FichaPacientePage() {
 
         {/* Botão secundário — Registro do Parto */}
         {canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && (
-          <button
-            type="button"
-            className="w-full text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors py-2 mt-1"
+          <Button
+            variant="outline"
+            className="w-full mt-2 border-[#9b87f5] text-[#9b87f5] hover:bg-[#E8E0FF] hover:text-[#7E69AB]"
             onClick={() => toast('Registro do parto ainda não implementado.')}
           >
+            <FileText className="mr-2 h-4 w-4 shrink-0" />
             + Registrar parto
-          </button>
+          </Button>
         )}
       </div>
     </div>
