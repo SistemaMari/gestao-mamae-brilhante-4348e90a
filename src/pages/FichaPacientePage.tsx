@@ -20,6 +20,8 @@ import {
 import Retorno1Form from '@/components/Retorno1Form';
 import Consulta1ResultCard from '@/components/Consulta1ResultCard';
 import Retorno1ResultCard from '@/components/Retorno1ResultCard';
+import GttForm from '@/components/GttForm';
+import GttResultCard from '@/components/GttResultCard';
 import FichaACForm from '@/components/FichaACForm';
 import FichaACResultCard from '@/components/FichaACResultCard';
 import FichaACReadOnlyGrid from '@/components/FichaACReadOnlyGrid';
