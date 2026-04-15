@@ -852,6 +852,34 @@ export default function FichaPacientePage() {
           />
         </div>
       )}
+      {/* Ficha B/D form */}
+      {showFichaBD && paciente && (
+        <div className="print:hidden">
+          <FichaBDForm
+            paciente={paciente}
+            consultas={consultas}
+            isPreview={isPreview}
+            onSaved={() => {
+              setShowFichaBD(false);
+              if (isPreview && id) {
+                const p = getPreviewPacienteById(id);
+                if (p) {
+                  setPaciente(p);
+                  setConsultas(p.consultas || []);
+                  const lastFicha = [...(p.consultas || [])].reverse().find(c => ['ficha_b', 'ficha_d'].includes(c.tipo));
+                  if (lastFicha) {
+                    setFichaBDResult(lastFicha);
+                    setFichaBDCompleted(true);
+                  }
+                }
+              } else {
+                setFichaBDCompleted(true);
+              }
+            }}
+            onCancel={() => setShowFichaBD(false)}
+          />
+        </div>
+      )}
 
       {/* Standalone Ficha A/C result — shown after form closes */}
       {fichaACCompleted && fichaACResult && !showFichaAC && (
@@ -875,10 +903,28 @@ export default function FichaPacientePage() {
         </>
       )}
 
+      {/* Standalone Ficha B/D result — shown after form closes */}
+      {fichaBDCompleted && fichaBDResult && !showFichaBD && (
+        <>
+          {fichaBDResult.grid_valores && fichaBDResult.grid_valores.length > 0 && (
+            <FichaBDReadOnlyGrid gridValores={fichaBDResult.grid_valores} />
+          )}
+          <FichaBDResultCard
+            percentual={fichaBDResult.percentual_meta ?? 0}
+            adequado={(fichaBDResult.percentual_meta ?? 0) >= 70}
+            totalPreenchidos={fichaBDResult.total_preenchidos ?? 0}
+            dentroMeta={fichaBDResult.dentro_meta ?? 0}
+            retornoDias={fichaBDResult.retorno_dias ?? 15}
+            dataProximoRetorno={fichaBDResult.data_proximo_retorno_formatted}
+            fichaType={fichaBDResult.tipo}
+          />
+        </>
+      )}
+
       {/* Next step button — hidden in print */}
       <div className="print:hidden">
         {(() => {
-          if (showRetorno1 || showFichaAC) return null;
+          if (showRetorno1 || showFichaAC || showFichaBD) return null;
           if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
 
           const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
@@ -891,6 +937,9 @@ export default function FichaPacientePage() {
           const isFichaACButton = nextStep.formType === 'ficha_a' || nextStep.formType === 'ficha_c';
           if (isFichaACButton && fichaACCompleted) return null;
 
+          const isFichaBDButton = nextStep.formType === 'ficha_b' || nextStep.formType === 'ficha_d';
+          if (isFichaBDButton && fichaBDCompleted) return null;
+
           return (
             <Button
               variant="outline"
@@ -900,6 +949,8 @@ export default function FichaPacientePage() {
                   setShowRetorno1(true);
                 } else if (isFichaACButton) {
                   setShowFichaAC(true);
+                } else if (isFichaBDButton) {
+                  setShowFichaBD(true);
                 } else {
                   toast('Próximo retorno ainda não implementado.');
                 }
@@ -912,7 +963,7 @@ export default function FichaPacientePage() {
         })()}
 
         {/* Botão secundário — Registro do Parto */}
-        {canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && (
+        {canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && (
           <button
             type="button"
             className="w-full text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors py-2 mt-1"
