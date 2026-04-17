@@ -276,6 +276,29 @@ export default function DashboardPage() {
           </Button>
         </div>
 
+        {/* Toggle: mostrar fichas encerradas */}
+        <div className="mb-4 flex items-center justify-end gap-2">
+          <Switch
+            id="show-encerradas"
+            checked={showEncerradas}
+            onCheckedChange={(v) => { setShowEncerradas(v); setPage(1); }}
+          />
+          <label
+            htmlFor="show-encerradas"
+            className="text-xs text-muted-foreground cursor-pointer select-none"
+          >
+            Mostrar fichas encerradas
+          </label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-3.5 w-3.5 text-muted-foreground/70" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              Inclui pacientes com status "Resultado do parto", "DMG afastado" e "Associar endocrino".
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
         {/* Patient list */}
         {loadingPacientes ? (
           <div className="flex items-center justify-center py-20">
