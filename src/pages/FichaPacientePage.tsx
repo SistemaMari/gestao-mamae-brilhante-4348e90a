@@ -29,6 +29,8 @@ import FichaBDForm from '@/components/FichaBDForm';
 import FichaBDResultCard from '@/components/FichaBDResultCard';
 import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
 import EncerramentoPartoCard from '@/components/EncerramentoPartoCard';
+import RegistroPartoForm from '@/components/RegistroPartoForm';
+import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
@@ -45,6 +47,10 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 
 // Dynamic display name based on chronological index
 function getDisplayName(c: PreviewConsulta, index: number, allConsultas: PreviewConsulta[]): string {
+  // Registro do parto NÃO é numerado como RETORNO N — é evento final
+  if (c.tipo === 'registro_parto') {
+    return 'REGISTRO DO PARTO';
+  }
   const prefix = index === 0 ? 'CONSULTA 1' : `RETORNO ${index}`;
 
   switch (c.tipo) {
@@ -186,6 +192,7 @@ export default function FichaPacientePage() {
   const [_fichaBDResult, setFichaBDResult] = useState<PreviewConsulta | null>(null);
   const [showGtt, setShowGtt] = useState(false);
   const [gttCompleted, setGttCompleted] = useState(false);
+  const [showRegistroParto, setShowRegistroParto] = useState(false);
 
   // Editing state for last consultation — tracks which consultation is being edited inline
   const [editingConsultaId, setEditingConsultaId] = useState<string | null>(null);
@@ -885,7 +892,10 @@ export default function FichaPacientePage() {
                         {c.tipo === 'retorno_gtt' && (
                           <GttResultCard consulta={c} igHoje={igAtual} />
                         )}
-                        {!['consulta_1', 'retorno_1', 'retorno_gtt', 'ficha_a', 'ficha_c', 'ficha_b', 'ficha_d'].includes(c.tipo) && (
+                        {c.tipo === 'registro_parto' && (
+                          <RegistroPartoReadOnlyCard consulta={c} />
+                        )}
+                        {!['consulta_1', 'retorno_1', 'retorno_gtt', 'ficha_a', 'ficha_c', 'ficha_b', 'ficha_d', 'registro_parto'].includes(c.tipo) && (
                           <div className="space-y-2">
                             {c.ig_semanas != null && (
                               <p className="text-xs text-muted-foreground">
@@ -1009,17 +1019,39 @@ export default function FichaPacientePage() {
         </div>
       )}
 
+      {/* Registro do parto form */}
+      {showRegistroParto && paciente && (
+        <div className="print:hidden">
+          <RegistroPartoForm
+            paciente={paciente}
+            consultas={consultas}
+            isPreview={isPreview}
+            onSaved={() => {
+              setShowRegistroParto(false);
+              if (isPreview && id) {
+                const p = getPreviewPacienteById(id);
+                if (p) {
+                  setPaciente(p);
+                  setConsultas(p.consultas || []);
+                }
+              }
+            }}
+            onCancel={() => setShowRegistroParto(false)}
+          />
+        </div>
+      )}
+
       {/* Standalone results removed — results appear only inside history accordion */}
 
       {/* Card permanente de encerramento por parto realizado */}
-      {paciente.status_ficha === 'resultado_parto' && (
+      {paciente.status_ficha === 'resultado_parto' && !showRegistroParto && (
         <EncerramentoPartoCard />
       )}
 
       {/* Next step button — hidden in print */}
       <div className="print:hidden">
         {(() => {
-          if (showRetorno1 || showFichaAC || showFichaBD || showGtt) return null;
+          if (showRetorno1 || showFichaAC || showFichaBD || showGtt || showRegistroParto) return null;
           if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
 
           const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
@@ -1066,11 +1098,11 @@ export default function FichaPacientePage() {
         })()}
 
         {/* Botão secundário — Registro do Parto */}
-        {canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt && (
+        {canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt && !showRegistroParto && (
           <Button
             variant="outline"
             className="w-full mt-2 border-[#9b87f5] text-[#9b87f5] hover:bg-[#E8E0FF] hover:text-[#7E69AB]"
-            onClick={() => toast('Registro do parto ainda não implementado.')}
+            onClick={() => setShowRegistroParto(true)}
           >
             <FileText className="mr-2 h-4 w-4 shrink-0" />
             + Registrar parto
