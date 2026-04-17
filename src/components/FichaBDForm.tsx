@@ -485,6 +485,14 @@ export default function FichaBDForm({
 
         <div className="space-y-1">
           <div className="flex items-center gap-1">
+            <label className="text-xs font-medium text-foreground">Data da consulta</label>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Data do retorno. Default: hoje.</p></TooltipContent></Tooltip></TooltipProvider>
+          </div>
+          <Input type="date" value={dataConsulta} onChange={e => setDataConsulta(e.target.value)} />
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex items-center gap-1">
             <label className="text-xs font-medium text-foreground">Idade gestacional atual</label>
             <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">IG atual em semanas + dias. Usada para definir o intervalo do próximo retorno.</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
@@ -494,14 +502,6 @@ export default function FichaBDForm({
             <Input type="number" min={0} max={6} value={igDias} onChange={e => setIgDias(e.target.value)} placeholder="dias" className="w-20" />
             <span className="text-xs text-muted-foreground">dias</span>
           </div>
-        </div>
-
-        <div className="space-y-1">
-          <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data da consulta</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Data do retorno. Default: hoje.</p></TooltipContent></Tooltip></TooltipProvider>
-          </div>
-          <Input type="date" value={dataConsulta} onChange={e => setDataConsulta(e.target.value)} />
         </div>
       </div>
 
@@ -662,7 +662,7 @@ export default function FichaBDForm({
               ) : (
                 <div className="space-y-2">
                   <p className="text-sm">
-                    A dose de insulina precisa ser ajustada — isso requer acompanhamento conjunto com endocrinologista.
+                    A dose de insulina precisa ser ajustada. O(a) obstetra conduz esse ajuste — sozinho ou em associação com endocrinologista — mantendo sempre as metas glicêmicas obstétricas.
                   </p>
                 </div>
               )}

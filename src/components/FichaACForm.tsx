@@ -490,6 +490,23 @@ export default function FichaACForm({
 
         <div className="space-y-1">
           <div className="flex items-center gap-1">
+            <label className="text-xs font-medium text-foreground">Data da consulta</label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">Data do retorno. Default: hoje. Editável.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <Input type="date" value={dataConsulta} onChange={e => setDataConsulta(e.target.value)} />
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex items-center gap-1">
             <label className="text-xs font-medium text-foreground">Idade gestacional atual</label>
             <TooltipProvider>
               <Tooltip>
@@ -524,23 +541,6 @@ export default function FichaACForm({
             />
             <span className="text-xs text-muted-foreground">dias</span>
           </div>
-        </div>
-
-        <div className="space-y-1">
-          <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data da consulta</label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="text-xs">Data do retorno. Default: hoje. Editável.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <Input type="date" value={dataConsulta} onChange={e => setDataConsulta(e.target.value)} />
         </div>
       </div>
 
