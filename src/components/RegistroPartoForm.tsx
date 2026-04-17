@@ -542,7 +542,18 @@ export default function RegistroPartoForm({
               <SelectItem value="sim">Sim</SelectItem>
               <SelectItem value="nao">Não</SelectItem>
             </SelectContent>
-...
+          </Select>
+        </div>
+
+        {/* Intercorrências neonatais */}
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+            Intercorrências neonatais <span className="text-destructive">*</span>
+            <HelpIcon text="Houve intercorrências neonatais? Ex: necessidade de reanimação, hipoglicemia, internação em UTI." />
+          </label>
+          <Select value={intercorrNeo} onValueChange={(v) => setIntercorrNeo(v as SimNao)}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>
               <SelectItem value="sim">Sim</SelectItem>
               <SelectItem value="nao">Não</SelectItem>
             </SelectContent>
