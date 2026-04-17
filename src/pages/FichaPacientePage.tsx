@@ -31,6 +31,8 @@ import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
 import EncerramentoPartoCard from '@/components/EncerramentoPartoCard';
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
+import LaudoCompleto from '@/components/laudo/LaudoCompleto';
+import { mapearCenario } from '@/lib/laudoMapping';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
@@ -700,8 +702,20 @@ export default function FichaPacientePage() {
       })()}
 
       {/* Standalone green card — only when 1 consultation (aguardando_gj), no retorno form */}
-      {consultas.length === 1 && paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && (
-        <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
+      {consultas.length === 1 && paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && primeiraConsulta && (
+        <LaudoCompleto
+          paciente={{ nome: paciente.nome }}
+          igSemanas={igNaConsulta1?.semanas ?? 0}
+          igDias={igNaConsulta1?.dias ?? 0}
+          dataLaudo={new Date(primeiraConsulta.data)}
+          cenario={mapearCenario({ tipo: 'consulta_1', status_gerado: paciente.status_ficha })}
+          bloco2={null}
+          bloco3={null}
+          statusIA="pendente"
+          proximaFichaTexto={janelaGTT ? `GTT 75g entre ${format(janelaGTT.inicio, 'dd/MM/yyyy')} e ${format(janelaGTT.fim, 'dd/MM/yyyy')}.` : null}
+        >
+          <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
+        </LaudoCompleto>
       )}
 
       {/* Histórico de consultas */}
@@ -830,30 +844,24 @@ export default function FichaPacientePage() {
                     }
 
                     // Normal read-only view with edit button
-                    return (
-                      <>
-                        {/* Edit button — only for last consultation */}
-                        {canEdit && (
-                          <div className="flex justify-end mb-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingConsultaId(c.id)}
-                              className="text-[#9b87f5] hover:text-[#7E69AB] hover:bg-[#E8E0FF] gap-1.5"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                              <span className="text-xs">Editar valores</span>
-                            </Button>
-                          </div>
-                        )}
+                    const igLaudo = igDisplay ?? igAtual ?? { semanas: 0, dias: 0 };
+                    const dataLaudo = new Date(c.data);
+                    const cenario = mapearCenario({
+                      tipo: c.tipo,
+                      status_gerado: c.status_gerado,
+                      decisao: c.decisao,
+                      percentual_meta: c.percentual_meta,
+                    });
 
-                        {c.tipo === 'consulta_1' && (
-                          <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
-                        )}
-                        {c.tipo === 'retorno_1' && (
-                          <Retorno1ResultCard consulta={c} janelaGTT={janelaGTT} igHoje={igAtual} />
-                        )}
-                        {(c.tipo === 'ficha_a' || c.tipo === 'ficha_c') && (
+                    const renderCardBloco1 = () => {
+                      if (c.tipo === 'consulta_1') {
+                        return <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />;
+                      }
+                      if (c.tipo === 'retorno_1') {
+                        return <Retorno1ResultCard consulta={c} janelaGTT={janelaGTT} igHoje={igAtual} />;
+                      }
+                      if (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') {
+                        return (
                           <>
                             {c.grid_valores && c.grid_valores.length > 0 && (
                               <FichaACReadOnlyGrid gridValores={c.grid_valores} />
@@ -872,8 +880,10 @@ export default function FichaPacientePage() {
                               fichaType={c.tipo}
                             />
                           </>
-                        )}
-                        {(c.tipo === 'ficha_b' || c.tipo === 'ficha_d') && (
+                        );
+                      }
+                      if (c.tipo === 'ficha_b' || c.tipo === 'ficha_d') {
+                        return (
                           <>
                             {c.grid_valores && c.grid_valores.length > 0 && (
                               <FichaBDReadOnlyGrid gridValores={c.grid_valores} />
@@ -888,32 +898,64 @@ export default function FichaPacientePage() {
                               fichaType={c.tipo}
                             />
                           </>
-                        )}
-                        {c.tipo === 'retorno_gtt' && (
-                          <GttResultCard consulta={c} igHoje={igAtual} />
-                        )}
-                        {c.tipo === 'registro_parto' && (
-                          <RegistroPartoReadOnlyCard consulta={c} />
-                        )}
-                        {!['consulta_1', 'retorno_1', 'retorno_gtt', 'ficha_a', 'ficha_c', 'ficha_b', 'ficha_d', 'registro_parto'].includes(c.tipo) && (
-                          <div className="space-y-2">
-                            {c.ig_semanas != null && (
-                              <p className="text-xs text-muted-foreground">
-                                <span className="font-medium text-foreground">IG:</span> {c.ig_semanas}s {c.ig_dias || 0}d
-                              </p>
-                            )}
-                            {c.status_gerado && STATUS_CONFIG[c.status_gerado] && (
-                              <Badge className={`${STATUS_CONFIG[c.status_gerado].color} text-white border-0 text-[10px]`}>
-                                {STATUS_CONFIG[c.status_gerado].label}
-                              </Badge>
-                            )}
-                            {c.observacoes ? (
-                              <p className="text-xs text-muted-foreground italic">{c.observacoes}</p>
-                            ) : (
-                              <p className="text-xs text-muted-foreground">Sem observações.</p>
-                            )}
+                        );
+                      }
+                      if (c.tipo === 'retorno_gtt') {
+                        return <GttResultCard consulta={c} igHoje={igAtual} />;
+                      }
+                      if (c.tipo === 'registro_parto') {
+                        return <RegistroPartoReadOnlyCard consulta={c} />;
+                      }
+                      return (
+                        <div className="space-y-2">
+                          {c.ig_semanas != null && (
+                            <p className="text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground">IG:</span> {c.ig_semanas}s {c.ig_dias || 0}d
+                            </p>
+                          )}
+                          {c.status_gerado && STATUS_CONFIG[c.status_gerado] && (
+                            <Badge className={`${STATUS_CONFIG[c.status_gerado].color} text-white border-0 text-[10px]`}>
+                              {STATUS_CONFIG[c.status_gerado].label}
+                            </Badge>
+                          )}
+                          {c.observacoes ? (
+                            <p className="text-xs text-muted-foreground italic">{c.observacoes}</p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Sem observações.</p>
+                          )}
+                        </div>
+                      );
+                    };
+
+                    return (
+                      <>
+                        {/* Edit button — only for last consultation */}
+                        {canEdit && (
+                          <div className="no-print flex justify-end mb-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingConsultaId(c.id)}
+                              className="text-[#9b87f5] hover:text-[#7E69AB] hover:bg-[#E8E0FF] gap-1.5"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              <span className="text-xs">Editar valores</span>
+                            </Button>
                           </div>
                         )}
+
+                        <LaudoCompleto
+                          paciente={{ nome: paciente.nome }}
+                          igSemanas={igLaudo.semanas}
+                          igDias={igLaudo.dias}
+                          dataLaudo={dataLaudo}
+                          cenario={cenario}
+                          bloco2={null}
+                          bloco3={null}
+                          statusIA="pendente"
+                        >
+                          {renderCardBloco1()}
+                        </LaudoCompleto>
                       </>
                     );
                   })()}
@@ -1045,7 +1087,18 @@ export default function FichaPacientePage() {
 
       {/* Card permanente de encerramento por parto realizado */}
       {paciente.status_ficha === 'resultado_parto' && !showRegistroParto && (
-        <EncerramentoPartoCard />
+        <LaudoCompleto
+          paciente={{ nome: paciente.nome }}
+          igSemanas={igAtual?.semanas ?? 0}
+          igDias={igAtual?.dias ?? 0}
+          dataLaudo={new Date()}
+          cenario={5}
+          bloco2={null}
+          bloco3={null}
+          statusIA="pendente"
+        >
+          <EncerramentoPartoCard />
+        </LaudoCompleto>
       )}
 
       {/* Next step button — hidden in print */}

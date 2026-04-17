@@ -1,0 +1,78 @@
+/* ============================================================
+ * Print engine — Laudo Dra. Mari DMG Diagnóstica
+ * Prompt 15 — Design System do Laudo
+ * ============================================================ */
+
+@media print {
+  @page {
+    margin: 15mm;
+  }
+
+  /* Hide UI chrome */
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Preserve exact colors (cards lavanda, menta, lilás, etc.) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Avoid splitting cards across pages */
+  .laudo-card,
+  .laudo-bloco,
+  .laudo-cabecalho,
+  .laudo-grade,
+  .laudo-proxima,
+  .laudo-notas {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Force page break between consecutive laudos */
+  .laudo-completo + .laudo-completo {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  /* Remove decorative shadows for print */
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: none !important;
+  }
+}
+
+/* Hide print-only by default in screen */
+.print-only {
+  display: none;
+}
+
+/* Shimmer animation for "gerando" state */
+@keyframes laudoShimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.laudo-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 800px 100%;
+  animation: laudoShimmer 1.6s infinite linear;
+}
