@@ -405,8 +405,7 @@ export default function Consulta1Form() {
               Salvar consulta
             </Button>
           </div>
-        </form>
-      </div>
+      </form>
     </div>
   );
 }
