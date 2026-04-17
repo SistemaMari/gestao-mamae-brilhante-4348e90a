@@ -89,13 +89,12 @@ export default function FichaBDResultCard({
     );
   }
 
-  // Inadequado — Cenário 7
+  // Inadequado — encerramento (acompanhamento conduzido pelo GO + endocrino associado)
   return (
     <div className="space-y-4">
       <div className="rounded-xl border-2 p-5 space-y-4" style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' }}>
-        <h2 className="text-sm font-bold flex items-center gap-2" style={{ color: '#991B1B' }}>
-          <FileText className="h-4 w-4" />
-          CONTROLE INADEQUADO COM INSULINA — {percentual.toFixed(1)}% das glicemias dentro da meta
+        <h2 className="text-base font-bold" style={{ color: '#991B1B' }}>
+          Acompanhamento da Dra. Mari encerrado para esta paciente
         </h2>
 
         <div className="rounded-lg bg-white/70 p-3">
@@ -106,22 +105,34 @@ export default function FichaBDResultCard({
         </div>
 
         <div className="rounded-lg bg-white/70 p-3 space-y-2">
-          <p className="text-sm font-semibold" style={{ color: '#991B1B' }}>
-            A Dra. Mari Diagnóstica se encerra aqui para esta paciente.
+          <p className="text-xs leading-relaxed" style={{ color: '#B91C1C' }}>
+            A Dra. Mari Diagnóstica se encerra aqui porque a dose de insulina precisa ser ajustada,
+            e esse ajuste não pode ser padronizado — cada paciente exige conduta individualizada
+            conforme sua realidade clínica.
           </p>
-          <p className="text-xs" style={{ color: '#B91C1C' }}>
-            A dose de insulina precisa ser ajustada, o que requer acompanhamento conjunto com endocrinologista.
+          <p className="text-xs leading-relaxed" style={{ color: '#B91C1C' }}>
+            A partir deste momento, o(a) obstetra conduz o acompanhamento da insulinoterapia
+            diretamente. Se necessário, pode associar um endocrinologista — mas nunca delegar o
+            tratamento. As metas de controle glicêmico são sempre obstétricas (jejum {'<'} 90 mg/dL,
+            1h pós-prandial {'<'} 140 mg/dL) e o GO é o protagonista do acompanhamento, porque é
+            ele quem cuida da paciente e do bebê.
+          </p>
+          <p className="text-xs leading-relaxed" style={{ color: '#B91C1C' }}>
+            O endocrinologista, quando associado, contribui com o manejo da insulina — mas não
+            conduz o caso sozinho e não define metas fora do contexto obstétrico.
+          </p>
+          <p className="text-xs leading-relaxed" style={{ color: '#B91C1C' }}>
+            Toda a história clínica, laudos e perfis glicêmicos permanecem disponíveis para
+            consulta nesta ficha.
           </p>
         </div>
 
-        <div className="rounded-lg bg-white/70 p-3 space-y-2">
-          <p className="text-sm font-semibold" style={{ color: '#991B1B' }}>Orientação ao profissional</p>
-          <ul className="list-disc pl-4 text-xs space-y-1" style={{ color: '#B91C1C' }}>
-            <li>Associar endocrinologista para gestão da insulinoterapia.</li>
-            <li>O obstetra MANTÉM a condução do pré-natal — nunca delegar inteiramente ao endocrinologista.</li>
-            <li>As metas de controle glicêmico devem ser as obstétricas (jejum {'<'} 90, 1h {'<'} 140) — não as metas de DM fora da gravidez.</li>
-            <li>O endocrinologista não conduz o caso sozinho. É uma associação GO + endocrinologista para cuidar da paciente e do bebê.</li>
-          </ul>
+        <div className="rounded-lg bg-white/70 p-3 space-y-1">
+          <p className="text-sm font-semibold" style={{ color: '#991B1B' }}>Orientação pós-parto</p>
+          <p className="text-xs" style={{ color: '#B91C1C' }}>
+            Lembrete: realizar reteste puerperal (TTG 75g — jejum + 2h) entre 6 e 8 semanas após
+            o parto para rastreio de diabete tipo 2.
+          </p>
         </div>
 
         {/* Placeholder Blocos 2 e 3 */}

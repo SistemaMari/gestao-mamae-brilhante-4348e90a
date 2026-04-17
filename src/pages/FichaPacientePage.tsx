@@ -28,6 +28,7 @@ import FichaACReadOnlyGrid from '@/components/FichaACReadOnlyGrid';
 import FichaBDForm from '@/components/FichaBDForm';
 import FichaBDResultCard from '@/components/FichaBDResultCard';
 import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
+import EncerramentoPartoCard from '@/components/EncerramentoPartoCard';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
@@ -1009,6 +1010,11 @@ export default function FichaPacientePage() {
       )}
 
       {/* Standalone results removed — results appear only inside history accordion */}
+
+      {/* Card permanente de encerramento por parto realizado */}
+      {paciente.status_ficha === 'resultado_parto' && (
+        <EncerramentoPartoCard />
+      )}
 
       {/* Next step button — hidden in print */}
       <div className="print:hidden">

@@ -7,6 +7,7 @@ import BlockingModal from '@/components/BlockingModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { getPreviewPacientes, type PreviewPaciente } from '@/lib/previewPatients';
 import {
@@ -108,6 +109,7 @@ export default function DashboardPage() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [loadingPacientes, setLoadingPacientes] = useState(true);
   const [search, setSearch] = useState('');
+  const [showEncerradas, setShowEncerradas] = useState(true);
   const [showBlockingModal, setShowBlockingModal] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -155,11 +157,17 @@ export default function DashboardPage() {
     setLoadingPacientes(false);
   };
 
+  const ENCERRADAS_STATUS = ['resultado_parto', 'dmg_afastado', 'encaminhada_endocrino'];
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return pacientes;
+    let list = pacientes;
+    if (!showEncerradas) {
+      list = list.filter((p) => !ENCERRADAS_STATUS.includes(p.status_ficha));
+    }
+    if (!search.trim()) return list;
     const q = search.toLowerCase();
-    return pacientes.filter((p) => p.nome.toLowerCase().includes(q));
-  }, [pacientes, search]);
+    return list.filter((p) => p.nome.toLowerCase().includes(q));
+  }, [pacientes, search, showEncerradas]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -266,6 +274,29 @@ export default function DashboardPage() {
             <Plus className="h-4 w-4" />
             Nova Paciente
           </Button>
+        </div>
+
+        {/* Toggle: mostrar fichas encerradas */}
+        <div className="mb-4 flex items-center justify-end gap-2">
+          <Switch
+            id="show-encerradas"
+            checked={showEncerradas}
+            onCheckedChange={(v) => { setShowEncerradas(v); setPage(1); }}
+          />
+          <label
+            htmlFor="show-encerradas"
+            className="text-xs text-muted-foreground cursor-pointer select-none"
+          >
+            Mostrar fichas encerradas
+          </label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-3.5 w-3.5 text-muted-foreground/70" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              Inclui pacientes com status "Resultado do parto", "DMG afastado" e "Associar endocrino".
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Patient list */}

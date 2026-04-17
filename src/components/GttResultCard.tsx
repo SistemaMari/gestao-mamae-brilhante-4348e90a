@@ -151,8 +151,27 @@ export default function GttResultCard({ consulta, igHoje }: GttResultCardProps) 
             <AlertTriangle className={`h-6 w-6 shrink-0 ${resultado.iconColor}`} />
           )}
           <div>
-            <h2 className={`text-base font-bold ${resultado.cor}`}>{resultado.label}</h2>
-            <p className={`mt-1 text-sm ${resultado.cor}`}>{resultado.texto}</p>
+            <h2 className={`text-base font-bold ${resultado.cor}`}>
+              {resultado.tipo === 'negativo'
+                ? 'Investigação diagnóstica concluída — DMG afastado'
+                : resultado.label}
+            </h2>
+            {resultado.tipo === 'negativo' ? (
+              <div className={`mt-2 space-y-2 text-sm ${resultado.cor}`}>
+                <p>
+                  O teste de tolerância à glicose (GTT 75g) apresentou todos os valores dentro
+                  dos parâmetros normais. O diagnóstico de Diabete Mellitus Gestacional está
+                  AFASTADO para esta paciente.
+                </p>
+                <p>Não é necessário repetir nenhum exame para DMG. Seguir pré-natal normal.</p>
+                <p>
+                  Toda a história clínica e resultados de exames permanecem disponíveis para
+                  consulta nesta ficha.
+                </p>
+              </div>
+            ) : (
+              <p className={`mt-1 text-sm ${resultado.cor}`}>{resultado.texto}</p>
+            )}
           </div>
         </div>
 
@@ -164,23 +183,18 @@ export default function GttResultCard({ consulta, igHoje }: GttResultCardProps) 
           </div>
         )}
 
-        {/* Conduta */}
-        <div className="rounded-lg bg-white/70 p-4 space-y-2">
-          <p className={`text-sm font-semibold ${resultado.cor}`}>Conduta</p>
-          {resultado.tipo === 'negativo' ? (
-            <ul className={`list-disc pl-4 text-xs ${resultado.cor} space-y-1.5`}>
-              <li>DMG afastado. Seguir pré-natal normal.</li>
-              <li>Não há necessidade de repetir o exame.</li>
-            </ul>
-          ) : (
+        {/* Conduta — exibida apenas para resultado positivo/overt (negativo já encerra) */}
+        {resultado.tipo !== 'negativo' && (
+          <div className="rounded-lg bg-white/70 p-4 space-y-2">
+            <p className={`text-sm font-semibold ${resultado.cor}`}>Conduta</p>
             <ul className={`list-disc pl-4 text-xs ${resultado.cor} space-y-1.5`}>
               <li>Iniciar tratamento imediato — dieta + atividade física.</li>
               <li>Solicitar perfil glicêmico de 4 pontos diários por 7 a 10 dias (jejum + 1h pós café + 1h pós almoço + 1h pós jantar).</li>
               <li>Retorno em 7 a 10 dias com o perfil glicêmico preenchido.</li>
               <li>Solicitar ultrassom obstétrico{igHoje && igHoje.semanas < 20 ? ' para datar a gestação.' : ' para referência de crescimento fetal.'}</li>
             </ul>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Placeholder Blocos 2 e 3 */}
         <div className="rounded-lg border border-dashed border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-2">
