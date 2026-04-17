@@ -36,6 +36,7 @@ type ClassRN = '' | 'AIG' | 'GIG' | 'PIG';
 type SimNao = '' | 'sim' | 'nao';
 type SexoRNState = '' | 'M' | 'F';
 type ClassificacaoOrigem = 'auto' | 'manual' | 'fora-cobertura' | 'pendente';
+type IgOrigem = 'auto' | 'manual';
 
 /** Tooltip helper — ícone ⓘ ao lado do label */
 function HelpIcon({ text }: { text: string }) {
@@ -69,12 +70,9 @@ export default function RegistroPartoForm({
   // ── Estado dos campos ──
   const [viaParto, setViaParto] = useState<ViaParto>('');
   const [motivoCesarea, setMotivoCesarea] = useState('');
-  const [igPartoSemanas, setIgPartoSemanas] = useState<string>(
-    igAtual ? String(igAtual.semanas) : ''
-  );
-  const [igPartoDias, setIgPartoDias] = useState<string>(
-    igAtual ? String(igAtual.dias) : ''
-  );
+  const [igPartoSemanas, setIgPartoSemanas] = useState<string>('');
+  const [igPartoDias, setIgPartoDias] = useState<string>('');
+  const [igOrigem, setIgOrigem] = useState<IgOrigem>('auto');
   const [dataParto, setDataParto] = useState<string>(
     format(new Date(), 'yyyy-MM-dd')
   );
@@ -93,6 +91,16 @@ export default function RegistroPartoForm({
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // ── Auto-cálculo da IG no parto a partir da DUM e da data do parto ──
+  useEffect(() => {
+    if (igOrigem === 'manual') return;
+    if (!paciente.dum || !dataParto) return;
+    const dias = differenceInDays(new Date(dataParto), new Date(paciente.dum));
+    if (dias < 0) return;
+    setIgPartoSemanas(String(Math.floor(dias / 7)));
+    setIgPartoDias(String(dias % 7));
+  }, [dataParto, paciente.dum, igOrigem]);
 
   // ── Auto-cálculo Intergrowth-21st (PIG/AIG/GIG) ──
   useEffect(() => {
@@ -397,13 +405,13 @@ export default function RegistroPartoForm({
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
               IG no parto <span className="text-destructive">*</span>
-              <HelpIcon text="Idade gestacional em semanas + dias no momento do parto. Ex: 38 semanas e 4 dias. Este campo é editável e independente do badge IG do cabeçalho." />
+              <HelpIcon text="Idade gestacional em semanas + dias no momento do parto. Calculada automaticamente a partir da DUM e da data do parto. Editável." />
             </label>
             <div className="flex items-center gap-2">
               <Input
                 type="number" min={20} max={42}
                 value={igPartoSemanas}
-                onChange={(e) => setIgPartoSemanas(e.target.value)}
+                onChange={(e) => { setIgPartoSemanas(e.target.value); setIgOrigem('manual'); }}
                 placeholder="Sem"
                 className="w-20"
               />
@@ -411,12 +419,17 @@ export default function RegistroPartoForm({
               <Input
                 type="number" min={0} max={6}
                 value={igPartoDias}
-                onChange={(e) => setIgPartoDias(e.target.value)}
+                onChange={(e) => { setIgPartoDias(e.target.value); setIgOrigem('manual'); }}
                 placeholder="Dias"
                 className="w-20"
               />
               <span className="text-xs text-muted-foreground">dias</span>
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              {igOrigem === 'auto'
+                ? 'IG calculada automaticamente a partir da DUM e da data do parto. Edite se necessário.'
+                : 'IG ajustada manualmente.'}
+            </p>
           </div>
         </div>
 
