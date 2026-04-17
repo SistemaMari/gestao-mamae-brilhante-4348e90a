@@ -181,14 +181,18 @@ export default function Consulta1Form() {
     ) : null;
 
   return (
-    <div className="mx-auto max-w-lg">
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
-        <h1 className="font-heading text-xl font-bold text-foreground">Consulta 1 — Dados da Paciente</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <div className="mx-auto max-w-lg space-y-5">
+      <div className="rounded-xl border border-[#9b87f5] bg-[#F1F0FB] p-4 space-y-1">
+        <h1 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          CONSULTA 1 — Dados da Paciente
+        </h1>
+        <p className="text-xs text-[#6D28D9]">
           Preencha os dados iniciais e abra a ficha clínica com pedido de exame.
         </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5">
           {/* Nome completo */}
           <div className="space-y-2">
             <FieldLabel htmlFor="nome" required tooltip="Nome completo para identificação na ficha e no laudo.">
