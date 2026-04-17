@@ -1,5 +1,4 @@
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
-import { Printer } from 'lucide-react';
 import type { PreviewConsulta } from '@/lib/previewPatients';
 
 type GttDiagResult = {
@@ -20,7 +19,6 @@ function calcularGttDiagnostico(
   recursoLimitado: boolean,
   igSemanas: number | null,
 ): GttDiagResult {
-  // Check overt first
   if (jejum >= 126 || (h2 != null && h2 >= 200)) {
     return {
       tipo: 'overt',
@@ -44,7 +42,7 @@ function calcularGttDiagnostico(
       tipo: 'positivo',
       label: 'GTT ALTERADO — Diagnóstico de DMG confirmado',
       texto: recursoLimitado
-        ? `Diagnóstico realizado em cenário de recurso limitado (sem GTT 75g completo). Este método alcança aproximadamente 66% dos diagnósticos — cerca de 34% dos casos podem não ser detectados.`
+        ? `Diagnóstico realizado em cenário de recurso limitado (sem GTT 75g completo).`
         : `Qualquer valor alterado no GTT 75g já confirma o diagnóstico de Diabete Mellitus Gestacional.`,
       cor: 'text-orange-800',
       bgColor: 'bg-[#FEF3C7]',
@@ -58,8 +56,8 @@ function calcularGttDiagnostico(
     tipo: 'negativo',
     label: 'GTT NORMAL — DMG afastado',
     texto: recursoLimitado
-      ? 'Glicemia de jejum dentro dos parâmetros normais. O diagnóstico de DMG está afastado neste exame. Nota: sem o GTT completo, cerca de 34% dos casos podem não ser detectados.'
-      : 'Todos os valores do GTT 75g estão dentro dos parâmetros normais. O diagnóstico de Diabete Mellitus Gestacional está AFASTADO. Seguir pré-natal normal.',
+      ? 'Glicemia de jejum dentro dos parâmetros normais. O diagnóstico de DMG está afastado neste exame.'
+      : 'Todos os valores do GTT 75g estão dentro dos parâmetros normais. O diagnóstico de Diabete Mellitus Gestacional está AFASTADO.',
     cor: 'text-emerald-800',
     bgColor: 'bg-[#DCFCE7]',
     borderColor: 'border-emerald-200',
@@ -73,7 +71,7 @@ interface GttResultCardProps {
   igHoje: { semanas: number; dias: number } | null;
 }
 
-export default function GttResultCard({ consulta, igHoje }: GttResultCardProps) {
+export default function GttResultCard({ consulta }: GttResultCardProps) {
   const jejum = consulta.gtt_jejum;
   if (jejum == null) {
     return (
@@ -91,7 +89,6 @@ export default function GttResultCard({ consulta, igHoje }: GttResultCardProps) 
   const resultado = calcularGttDiagnostico(jejum, h1, h2, recurso, igSem);
   const isTardio = resultado.cenario === '6B';
 
-  // Build values table
   const valores: { label: string; valor: number; meta: string; alterado: boolean }[] = [
     { label: 'Glicemia de jejum', valor: jejum, meta: '< 92 mg/dL', alterado: jejum >= 92 },
   ];
@@ -137,13 +134,13 @@ export default function GttResultCard({ consulta, igHoje }: GttResultCardProps) 
       {recurso && (
         <div className="rounded-lg border border-amber-200 bg-[#FEF3C7] p-3">
           <p className="text-xs text-amber-800">
-            <strong>Recurso limitado:</strong> diagnóstico baseado apenas na glicemia de jejum, que alcança ~66% dos diagnósticos. ~34% dos casos podem não ser detectados.
+            <strong>Recurso limitado:</strong> diagnóstico baseado apenas na glicemia de jejum.
           </p>
         </div>
       )}
 
       {/* Result card */}
-      <div className={`rounded-xl border ${resultado.borderColor} ${resultado.bgColor} p-5 space-y-4`}>
+      <div className={`rounded-xl border ${resultado.borderColor} ${resultado.bgColor} p-5 space-y-3`}>
         <div className="flex items-start gap-3">
           {resultado.tipo === 'negativo' ? (
             <CheckCircle2 className={`h-6 w-6 shrink-0 ${resultado.iconColor}`} />
@@ -156,22 +153,7 @@ export default function GttResultCard({ consulta, igHoje }: GttResultCardProps) 
                 ? 'Investigação diagnóstica concluída — DMG afastado'
                 : resultado.label}
             </h2>
-            {resultado.tipo === 'negativo' ? (
-              <div className={`mt-2 space-y-2 text-sm ${resultado.cor}`}>
-                <p>
-                  O teste de tolerância à glicose (GTT 75g) apresentou todos os valores dentro
-                  dos parâmetros normais. O diagnóstico de Diabete Mellitus Gestacional está
-                  AFASTADO para esta paciente.
-                </p>
-                <p>Não é necessário repetir nenhum exame para DMG. Seguir pré-natal normal.</p>
-                <p>
-                  Toda a história clínica e resultados de exames permanecem disponíveis para
-                  consulta nesta ficha.
-                </p>
-              </div>
-            ) : (
-              <p className={`mt-1 text-sm ${resultado.cor}`}>{resultado.texto}</p>
-            )}
+            <p className={`mt-1 text-sm ${resultado.cor}`}>{resultado.texto}</p>
           </div>
         </div>
 
@@ -182,47 +164,6 @@ export default function GttResultCard({ consulta, igHoje }: GttResultCardProps) 
             </p>
           </div>
         )}
-
-        {/* Conduta — exibida apenas para resultado positivo/overt (negativo já encerra) */}
-        {resultado.tipo !== 'negativo' && (
-          <div className="rounded-lg bg-white/70 p-4 space-y-2">
-            <p className={`text-sm font-semibold ${resultado.cor}`}>Conduta</p>
-            <ul className={`list-disc pl-4 text-xs ${resultado.cor} space-y-1.5`}>
-              <li>Iniciar tratamento imediato — dieta + atividade física.</li>
-              <li>Solicitar perfil glicêmico de 4 pontos diários por 7 a 10 dias (jejum + 1h pós café + 1h pós almoço + 1h pós jantar).</li>
-              <li>Retorno em 7 a 10 dias com o perfil glicêmico preenchido.</li>
-              <li>Solicitar ultrassom obstétrico{igHoje && igHoje.semanas < 20 ? ' para datar a gestação.' : ' para referência de crescimento fetal.'}</li>
-            </ul>
-          </div>
-        )}
-
-        {/* Placeholder Blocos 2 e 3 */}
-        <div className="rounded-lg border border-dashed border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-2">
-          <p className="text-sm font-bold text-foreground">Laudo Completo</p>
-          <p className="text-xs italic text-[#94A3B8]">
-            Bloco 2 — Justificativa Científica: será gerada em breve.
-          </p>
-          <p className="text-xs italic text-[#94A3B8]">
-            Bloco 3 — Conduta Orientativa Personalizada: será gerada em breve.
-          </p>
-        </div>
-      </div>
-
-      {/* Notas técnicas */}
-      <div className="rounded-xl border border-border bg-[#F1F5F9] p-5">
-        <p className="text-sm font-semibold text-foreground mb-2">Notas técnicas</p>
-        <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1.5">
-          <li>Não repetir glicemia de jejum para fins diagnósticos — em nenhum cenário, seja resultado positivo ou negativo.</li>
-          <li>Glicemia plasmática é OBRIGATÓRIA para diagnóstico — glicemia capilar em ponta de dedo não é válida para este fim.</li>
-          <li>Glicemia capilar de jejum e pós-prandiais são utilizadas exclusivamente para acompanhamento do perfil glicêmico — nunca para diagnóstico.</li>
-          <li>Se diagnóstico confirmado: iniciar tratamento imediato. O diagnóstico oportuno e correto salva vidas. Não espere, não repita — trate.</li>
-        </ul>
-      </div>
-
-      {/* Ctrl+P instruction */}
-      <div className="flex items-center gap-2 text-xs text-[#94A3B8]">
-        <Printer className="h-3.5 w-3.5" />
-        <span>Para salvar ou imprimir este laudo em PDF: pressione Ctrl+P (Windows) ou Cmd+P (Mac) e escolha "Salvar como PDF".</span>
       </div>
     </div>
   );
