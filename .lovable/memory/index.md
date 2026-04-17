@@ -1,3 +1,6 @@
+# Memory: index.md
+Updated: now
+
 # Project Memory
 
 ## Core
@@ -15,5 +18,4 @@ Rosa é OPCIONAL e sutil. Branco domina a interface.
 - [Clinical scenarios](mem://features/scenarios) — 9 scenarios with module routing for Block 3
 - [User profiles](mem://features/profiles) — 5 user profiles with routes and permissions
 - [System architecture](mem://features/architecture) — 4 clinical forms (A/B/C/D), report blocks, rules
-- [Planos](mem://features/planos) — 4 subscription plans (free/teste/iniciante/profissional), limits, Stripe placeholder
-- [Convite institucional](mem://features/convite-institucional) — Edge functions, convites table, gestor equipe page, public invite page
+- [Laudo Completo](mem://features/laudo-completo) — Design system do laudo (Prompt 15): wrapper LaudoCompleto, 8 elementos, contrato, estados IA, print
