@@ -514,7 +514,7 @@ export default function GttForm({
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Idade gestacional em semanas + dias na data do exame. O GTT deve ser realizado o mais próximo possível de 24 semanas, impreterivelmente antes de 28 semanas.
+                Idade gestacional em semanas + dias na data do exame. O GTT deve ser realizado o mais próximo possível de 24 semanas, impreterivelmente antes de 28 semanas. Caso não seja realizado nesse período, deve ser feito o mais breve possível — nunca abandonado.
               </TooltipContent>
             </Tooltip>
           </div>

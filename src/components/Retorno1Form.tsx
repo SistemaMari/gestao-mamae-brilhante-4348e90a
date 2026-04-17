@@ -450,7 +450,7 @@ export default function Retorno1Form({
                 {resultado.tipo === 'negativo' ? (
                   <span className="flex items-center justify-center gap-2 text-[#9b87f5]">
                     <AlertTriangle className="h-5 w-5" />
-                    Atenção
+                    DMG negativo — próximo passo: GTT 75g
                   </span>
                 ) : (
                   <span className={`flex items-center justify-center gap-2 ${resultado.tipo === 'positivo' ? 'text-orange-600' : 'text-red-600'}`}>
@@ -459,10 +459,35 @@ export default function Retorno1Form({
                   </span>
                 )}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-center text-base font-medium text-foreground">
-                {resultado.tipo === 'negativo'
-                  ? 'Entregue o pedido do GTT agora. Não espere. Agende o mais próximo possível de 24 semanas.'
-                  : 'Diagnóstico confirmado. Não repetir o exame. É hora de tratar. Comece agora.'}
+              <AlertDialogDescription asChild>
+                <div className="text-left text-sm text-foreground space-y-2">
+                  {resultado.tipo === 'negativo' ? (
+                    <>
+                      <p>
+                        <strong>Resultado: DMG NEGATIVO nesta etapa da gestação.</strong> O próximo ponto de controle é o GTT 75g, que deve ser realizado entre <strong>24 e 28 semanas</strong>.
+                      </p>
+                      {janelaGTT && !igMaior24 ? (
+                        <p>
+                          <strong>
+                            Janela para realizar o GTT: {format(janelaGTT.inicio, 'dd/MM/yyyy')} a {format(janelaGTT.fim, 'dd/MM/yyyy')}.
+                          </strong>{' '}
+                          Oriente a paciente a agendar o exame desde já para não perder a janela de tempo.
+                        </p>
+                      ) : (
+                        <p>
+                          <strong>O GTT 75g já está na janela — solicitar o mais breve possível.</strong>
+                        </p>
+                      )}
+                      <p className="font-medium">
+                        Caso não seja realizado nesse período, realizar o mais breve possível.
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-center font-medium">
+                      Diagnóstico confirmado. Não repetir o exame. É hora de tratar. Comece agora.
+                    </p>
+                  )}
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="sm:justify-center">
