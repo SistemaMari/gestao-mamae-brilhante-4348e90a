@@ -28,7 +28,7 @@ import FichaACReadOnlyGrid from '@/components/FichaACReadOnlyGrid';
 import FichaBDForm from '@/components/FichaBDForm';
 import FichaBDResultCard from '@/components/FichaBDResultCard';
 import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
-import EncerramentoPartoCard from '@/components/EncerramentoPartoCard';
+
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
