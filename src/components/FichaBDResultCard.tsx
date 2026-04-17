@@ -94,7 +94,7 @@ export default function FichaBDResultCard({
     <div className="space-y-4">
       <div className="rounded-xl border-2 p-5 space-y-4" style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' }}>
         <h2 className="text-base font-bold" style={{ color: '#991B1B' }}>
-          Acompanhamento da Dra. Mari encerrado para esta paciente
+          Acompanhamento da MARI encerrado para esta paciente
         </h2>
 
         <div className="rounded-lg bg-white/70 p-3">
@@ -106,7 +106,7 @@ export default function FichaBDResultCard({
 
         <div className="rounded-lg bg-white/70 p-3 space-y-2">
           <p className="text-xs leading-relaxed" style={{ color: '#B91C1C' }}>
-            A Dra. Mari Diagnóstica se encerra aqui porque a dose de insulina precisa ser ajustada,
+            A MARI Diagnóstica se encerra aqui porque a dose de insulina precisa ser ajustada,
             e esse ajuste não pode ser padronizado — cada paciente exige conduta individualizada
             conforme sua realidade clínica.
           </p>
@@ -153,7 +153,7 @@ export default function FichaBDResultCard({
         <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1.5">
           <li>O percentual de controle considera apenas os campos preenchidos — dias sem medição não penalizam o resultado.</li>
           <li>Metas: jejum {'<'} 90 mg/dL; pós-prandiais (1h) {'<'} 140 mg/dL; pré-prandiais 70-100 mg/dL.</li>
-          <li>Controle inadequado com insulina: a Dra. Mari se encerra. Acompanhamento GO + endocrinologista.</li>
+          <li>Controle inadequado com insulina: a MARI se encerra. Acompanhamento GO + endocrinologista.</li>
           <li>Valores pré-prandiais abaixo de 70 mg/dL indicam hipoglicemia — avaliar com endocrinologista.</li>
         </ul>
       </div>

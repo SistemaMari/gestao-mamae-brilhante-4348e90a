@@ -290,7 +290,7 @@ export default function DashboardMetricasPage() {
 
     const pageH = pdf.internal.pageSize.getHeight();
     pdf.setFontSize(8);
-    pdf.text(`Gerado por Dra. Mari DMG Diagnóstica — ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, pageH - 10);
+    pdf.text(`Gerado por MARI DMG Diagnóstica — ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, pageH - 10);
 
     pdf.save(`dashboard-clinico-${format(new Date(), 'yyyyMMdd')}.pdf`);
   };

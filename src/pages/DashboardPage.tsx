@@ -47,7 +47,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; meaning: str
   encaminhada_endocrino: {
     label: 'Associar endocrino',
     color: 'bg-red-500',
-    meaning: 'Cenário 7: controle inadequado com insulina. Dra. Mari encerrada. Acompanhamento compartilhado GO + endocrinologista.',
+    meaning: 'Cenário 7: controle inadequado com insulina. MARI encerrada. Acompanhamento compartilhado GO + endocrinologista.',
   },
 };
 

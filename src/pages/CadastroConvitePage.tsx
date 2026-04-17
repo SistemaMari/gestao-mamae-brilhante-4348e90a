@@ -210,7 +210,7 @@ export default function CadastroConvitePage() {
         <div className="w-full max-w-[500px] rounded-xl border border-border bg-card p-8 shadow-sm text-center">
           <AlertTriangle className="mx-auto h-12 w-12 text-amber-500" />
           <h2 className="mt-4 font-heading text-xl font-bold text-foreground">
-            Você já tem uma conta Dra. Mari
+            Você já tem uma conta MARI
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Deseja vincular-se a <strong>{convite?.unidade_nome}</strong>?

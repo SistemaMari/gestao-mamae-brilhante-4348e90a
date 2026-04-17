@@ -110,7 +110,7 @@ export default function PreviewAppShell() {
             <span className="font-heading text-xs font-bold text-primary">DM</span>
           </div>
           <span className="hidden sm:inline font-heading text-base font-semibold" style={{ color: '#2D2B55' }}>
-            Dra. Mari DMG Diagnóstica
+            MARI DMG Diagnóstica
           </span>
         </Link>
 

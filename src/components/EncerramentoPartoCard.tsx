@@ -2,7 +2,7 @@ import { CheckCircle2, Printer } from 'lucide-react';
 
 /**
  * Card permanente exibido na ficha quando o parto foi registrado
- * (status = resultado_parto). Encerra o acompanhamento da Dra. Mari.
+ * (status = resultado_parto). Encerra o acompanhamento da MARI.
  */
 export default function EncerramentoPartoCard() {
   return (
@@ -12,10 +12,10 @@ export default function EncerramentoPartoCard() {
           <CheckCircle2 className="h-6 w-6 shrink-0" style={{ color: '#7C3AED' }} />
           <div>
             <h2 className="text-base font-bold" style={{ color: '#5B21B6' }}>
-              Acompanhamento da Dra. Mari encerrado
+              Acompanhamento da MARI encerrado
             </h2>
             <p className="mt-2 text-sm" style={{ color: '#6D28D9' }}>
-              O acompanhamento desta paciente pela Dra. Mari Diagnóstica foi concluído com o
+              O acompanhamento desta paciente pela MARI Diagnóstica foi concluído com o
               registro do parto. Toda a história clínica, laudos e perfis glicêmicos permanecem
               disponíveis para consulta nesta ficha.
             </p>

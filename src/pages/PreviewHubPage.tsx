@@ -180,7 +180,7 @@ export function PreviewCompletarPerfilPage() {
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <ProfileForm
             initialData={{
-              nome: 'Dra. Mari Exemplo',
+              nome: 'MARI Exemplo',
               email: 'teste@dramari.com',
               pais: 'Brasil',
               idioma: 'pt-BR',

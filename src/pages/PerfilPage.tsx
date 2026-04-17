@@ -13,7 +13,7 @@ interface PerfilData {
 }
 
 const DUMMY_PROFILE: PerfilData = {
-  nome: 'Dra. Mari Exemplo',
+  nome: 'MARI Exemplo',
   crm: 'CRM 12345/SP',
   especialidade: 'Obstetrícia',
   estado: 'São Paulo',

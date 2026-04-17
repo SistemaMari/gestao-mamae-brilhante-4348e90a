@@ -75,7 +75,7 @@ export default function AppSidebar() {
         </div>
         {!collapsed && (
           <div className="min-w-0">
-            <p className="truncate font-heading text-sm font-semibold text-foreground">Dra. Mari</p>
+            <p className="truncate font-heading text-sm font-semibold text-foreground">MARI</p>
             <p className="truncate text-xs text-muted-foreground">{profileLabels[profile || ''] || ''}</p>
           </div>
         )}

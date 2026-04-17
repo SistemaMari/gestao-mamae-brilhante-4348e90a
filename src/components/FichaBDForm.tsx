@@ -648,7 +648,7 @@ export default function FichaBDForm({
               {savedResult?.adequado ? (
                 <span className="text-[#16A34A]">CONTROLE ADEQUADO COM INSULINA</span>
               ) : (
-                <span className="text-[#DC2626]">ENCERRAMENTO DA DRA. MARI</span>
+                <span className="text-[#DC2626]">ENCERRAMENTO DA MARI</span>
               )}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3">

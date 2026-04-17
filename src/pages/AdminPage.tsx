@@ -35,7 +35,7 @@ export default function AdminPage() {
             </div>
             <div>
               <h1 className="font-heading text-2xl font-bold text-foreground">Painel Administrativo</h1>
-              <p className="text-sm text-muted-foreground">Visão geral do sistema Dra. Mari DMG Diagnóstica</p>
+              <p className="text-sm text-muted-foreground">Visão geral do sistema MARI DMG Diagnóstica</p>
             </div>
             <Badge className="ml-auto bg-primary/10 text-primary border-primary/20">Admin</Badge>
           </div>

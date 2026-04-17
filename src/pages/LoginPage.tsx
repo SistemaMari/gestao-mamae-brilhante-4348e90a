@@ -70,7 +70,7 @@ export default function LoginPage() {
             <span className="font-heading text-2xl font-bold text-primary">DM</span>
           </div>
           <h1 className="font-heading text-xl font-semibold text-foreground">
-            Dra. Mari DMG Diagnóstica
+            MARI DMG Diagnóstica
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Sistema de apoio à decisão clínica
