@@ -892,7 +892,10 @@ export default function FichaPacientePage() {
                         {c.tipo === 'retorno_gtt' && (
                           <GttResultCard consulta={c} igHoje={igAtual} />
                         )}
-                        {!['consulta_1', 'retorno_1', 'retorno_gtt', 'ficha_a', 'ficha_c', 'ficha_b', 'ficha_d'].includes(c.tipo) && (
+                        {c.tipo === 'registro_parto' && (
+                          <RegistroPartoReadOnlyCard consulta={c} />
+                        )}
+                        {!['consulta_1', 'retorno_1', 'retorno_gtt', 'ficha_a', 'ficha_c', 'ficha_b', 'ficha_d', 'registro_parto'].includes(c.tipo) && (
                           <div className="space-y-2">
                             {c.ig_semanas != null && (
                               <p className="text-xs text-muted-foreground">
