@@ -7,6 +7,7 @@ import BlockingModal from '@/components/BlockingModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { getPreviewPacientes, type PreviewPaciente } from '@/lib/previewPatients';
 import {
