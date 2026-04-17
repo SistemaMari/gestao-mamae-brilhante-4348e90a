@@ -380,8 +380,20 @@ export default function RegistroPartoForm({
           </div>
         )}
 
-        {/* IG no parto + Data do parto lado a lado */}
+        {/* Data do parto + IG no parto lado a lado */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+              Data do parto <span className="text-destructive">*</span>
+              <HelpIcon text="Data em que o parto ocorreu. Default: hoje. Editável." />
+            </label>
+            <Input
+              type="date"
+              value={dataParto}
+              onChange={(e) => setDataParto(e.target.value)}
+            />
+          </div>
+
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
               IG no parto <span className="text-destructive">*</span>
@@ -406,21 +418,9 @@ export default function RegistroPartoForm({
               <span className="text-xs text-muted-foreground">dias</span>
             </div>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Data do parto <span className="text-destructive">*</span>
-              <HelpIcon text="Data em que o parto ocorreu. Default: hoje. Editável." />
-            </label>
-            <Input
-              type="date"
-              value={dataParto}
-              onChange={(e) => setDataParto(e.target.value)}
-            />
-          </div>
         </div>
 
-        {/* Peso + classificação */}
+        {/* Peso do RN + Sexo do RN lado a lado */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
@@ -436,10 +436,33 @@ export default function RegistroPartoForm({
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Classificação do RN <span className="text-destructive">*</span>
-              <HelpIcon text="Classificação conforme peso e idade gestacional: AIG (adequado), GIG (grande), PIG (pequeno)." />
+              Sexo do RN <span className="text-destructive">*</span>
+              <HelpIcon text="Sexo do recém-nascido. Necessário para o cálculo automático da classificação (PIG/AIG/GIG)." />
             </label>
-            <Select value={classRn} onValueChange={(v) => setClassRn(v as ClassRN)}>
+            <Select value={sexoRn} onValueChange={(v) => setSexoRn(v as SexoRNState)}>
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="M">Masculino</SelectItem>
+                <SelectItem value="F">Feminino</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Classificação do RN (auto-calculada) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+              Classificação do RN <span className="text-destructive">*</span>
+              <HelpIcon text="Classificação conforme curva Intergrowth-21st (referência adotada pelo Ministério da Saúde). Calculada automaticamente a partir de peso, IG e sexo do RN. Editável." />
+            </label>
+            <Select
+              value={classRn}
+              onValueChange={(v) => {
+                setClassRn(v as ClassRN);
+                setClassOrigem('manual');
+              }}
+            >
               <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="AIG">AIG — adequado</SelectItem>
@@ -447,7 +470,23 @@ export default function RegistroPartoForm({
                 <SelectItem value="PIG">PIG — pequeno</SelectItem>
               </SelectContent>
             </Select>
+            {classOrigem === 'auto' && (
+              <p className="text-[12px] text-[#94A3B8]">
+                Calculado automaticamente (Intergrowth-21st / Ministério da Saúde). Edite se necessário.
+              </p>
+            )}
+            {classOrigem === 'manual' && (
+              <p className="text-[12px] text-[#94A3B8]">
+                Classificação ajustada manualmente.
+              </p>
+            )}
+            {classOrigem === 'fora-cobertura' && (
+              <p className="text-[12px] text-[#94A3B8]">
+                IG fora da cobertura da curva Intergrowth-21st. Preencha manualmente.
+              </p>
+            )}
           </div>
+          <div />
         </div>
 
         {/* Apgar 1' + 5' lado a lado */}
