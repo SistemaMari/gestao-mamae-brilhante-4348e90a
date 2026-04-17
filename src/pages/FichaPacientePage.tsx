@@ -1019,17 +1019,39 @@ export default function FichaPacientePage() {
         </div>
       )}
 
+      {/* Registro do parto form */}
+      {showRegistroParto && paciente && (
+        <div className="print:hidden">
+          <RegistroPartoForm
+            paciente={paciente}
+            consultas={consultas}
+            isPreview={isPreview}
+            onSaved={() => {
+              setShowRegistroParto(false);
+              if (isPreview && id) {
+                const p = getPreviewPacienteById(id);
+                if (p) {
+                  setPaciente(p);
+                  setConsultas(p.consultas || []);
+                }
+              }
+            }}
+            onCancel={() => setShowRegistroParto(false)}
+          />
+        </div>
+      )}
+
       {/* Standalone results removed — results appear only inside history accordion */}
 
       {/* Card permanente de encerramento por parto realizado */}
-      {paciente.status_ficha === 'resultado_parto' && (
+      {paciente.status_ficha === 'resultado_parto' && !showRegistroParto && (
         <EncerramentoPartoCard />
       )}
 
       {/* Next step button — hidden in print */}
       <div className="print:hidden">
         {(() => {
-          if (showRetorno1 || showFichaAC || showFichaBD || showGtt) return null;
+          if (showRetorno1 || showFichaAC || showFichaBD || showGtt || showRegistroParto) return null;
           if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
 
           const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
@@ -1076,11 +1098,11 @@ export default function FichaPacientePage() {
         })()}
 
         {/* Botão secundário — Registro do Parto */}
-        {canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt && (
+        {canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt && !showRegistroParto && (
           <Button
             variant="outline"
             className="w-full mt-2 border-[#9b87f5] text-[#9b87f5] hover:bg-[#E8E0FF] hover:text-[#7E69AB]"
-            onClick={() => toast('Registro do parto ainda não implementado.')}
+            onClick={() => setShowRegistroParto(true)}
           >
             <FileText className="mr-2 h-4 w-4 shrink-0" />
             + Registrar parto
