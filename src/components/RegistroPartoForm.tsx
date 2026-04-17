@@ -79,7 +79,9 @@ export default function RegistroPartoForm({
     format(new Date(), 'yyyy-MM-dd')
   );
   const [pesoRn, setPesoRn] = useState('');
+  const [sexoRn, setSexoRn] = useState<SexoRNState>('');
   const [classRn, setClassRn] = useState<ClassRN>('');
+  const [classOrigem, setClassOrigem] = useState<ClassificacaoOrigem>('pendente');
   const [apgar1, setApgar1] = useState('');
   const [apgar5, setApgar5] = useState('');
   const [intercorrMat, setIntercorrMat] = useState<SimNao>('');
@@ -91,6 +93,47 @@ export default function RegistroPartoForm({
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // ── Auto-cálculo Intergrowth-21st (PIG/AIG/GIG) ──
+  useEffect(() => {
+    const sem = Number(igPartoSemanas);
+    const dd = Number(igPartoDias);
+    const peso = Number(pesoRn);
+
+    const igOk =
+      igPartoSemanas !== '' &&
+      igPartoDias !== '' &&
+      !Number.isNaN(sem) &&
+      !Number.isNaN(dd) &&
+      sem >= 0 && dd >= 0 && dd <= 6;
+    const pesoOk = pesoRn !== '' && !Number.isNaN(peso) && peso > 0;
+    const sexoOk = sexoRn === 'M' || sexoRn === 'F';
+
+    if (!igOk || !pesoOk || !sexoOk) {
+      // Faltam dados — não mexe na classificação manual já digitada
+      if (classOrigem === 'auto') {
+        setClassRn('');
+        setClassOrigem('pendente');
+      } else if (classOrigem !== 'manual') {
+        setClassOrigem('pendente');
+      }
+      return;
+    }
+
+    const resultado = classificarRN(sem, dd, peso, sexoRn);
+    if (resultado === null) {
+      // IG fora da cobertura → não auto-preenche, libera modo manual
+      if (classOrigem === 'auto') setClassRn('');
+      setClassOrigem('fora-cobertura');
+      return;
+    }
+
+    // Só auto-preenche se ainda não houve override manual
+    if (classOrigem !== 'manual') {
+      setClassRn(resultado);
+      setClassOrigem('auto');
+    }
+  }, [igPartoSemanas, igPartoDias, pesoRn, sexoRn]);
 
   // ── Validação ──
   const errors = useMemo(() => {
