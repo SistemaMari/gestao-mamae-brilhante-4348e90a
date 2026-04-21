@@ -297,18 +297,26 @@ export default function Consulta1Form() {
                   placeholder="Cidade"
                 />
               ) : (
-                <Select value={cidade} onValueChange={setCidade}>
+                <Select value={cidade} onValueChange={setCidade} disabled={!estado || loadingCidades}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Cidade" />
+                    <SelectValue placeholder={loadingCidades ? 'Carregando...' : 'Cidade'} />
                   </SelectTrigger>
                   <SelectContent>
                     {cityList.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
+                    {!loadingCidades && estado && cityList.length === 0 && (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">Nenhuma cidade encontrada</div>
+                    )}
                   </SelectContent>
                 </Select>
               )}
             </div>
+            {erroCidades === 'offline' && estado && pais === 'Brasil' && (
+              <p className="text-xs text-muted-foreground">
+                Lista parcial (sem conexão com o IBGE).
+              </p>
+            )}
           </div>
 
           {/* DUM */}
