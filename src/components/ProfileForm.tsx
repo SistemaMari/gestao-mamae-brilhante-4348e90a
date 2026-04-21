@@ -59,11 +59,11 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
   const isOutro = form.pais === 'Outro';
 
   const countryData = useMemo(() => countries.find(c => c.value === form.pais), [form.pais]);
-  const stateData = useMemo(() => countryData?.states.find(s => s.value === form.estado), [countryData, form.estado]);
+  const { cidades: cidadesIBGE, loading: loadingCidades, erro: erroCidades } = useCidadesIBGE(form.pais, form.estado);
   const filteredCities = useMemo(() => {
     if (isOutro) return [];
-    return stateData?.cities || [];
-  }, [stateData, isOutro]);
+    return cidadesIBGE;
+  }, [cidadesIBGE, isOutro]);
 
   const required: (keyof ProfileFormData)[] = ['nome', 'crm', 'especialidade', 'pais', 'estado', 'cidade', 'idioma'];
 
