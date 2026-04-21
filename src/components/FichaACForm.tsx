@@ -346,12 +346,12 @@ export default function FichaACForm({
           paciente_id: paciente.id,
           profissional_id: profId,
           tipo_perfil: '4_pontos',
-          peso_paciente_kg: pesoNum > 0 ? pesoNum : null,
+          peso_paciente_kg: editingConsulta?.peso_kg ?? null,
           data_inicio: dataInicio,
           data_fim: dataFim,
           percentual_meta: percentual ?? 0,
           decisao,
-          dose_insulina_calculada: isInadequado && doseTotal ? doseTotal : null,
+          dose_insulina_calculada: editingConsulta?.dose_total ?? null,
         })
         .select('id')
         .single();
@@ -394,9 +394,6 @@ export default function FichaACForm({
       setSavedResult({
         percentual: percentual!,
         adequado: isAdequado,
-        doseTotal: isInadequado ? doseTotal : null,
-        doseManha: isInadequado ? doseManha : null,
-        doseNoite: isInadequado ? doseNoite : null,
       });
 
       setSaving(false);
