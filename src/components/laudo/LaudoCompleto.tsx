@@ -3,10 +3,9 @@ import LaudoCabecalho from './LaudoCabecalho';
 import Bloco2Justificativa, { type StatusIA } from './Bloco2Justificativa';
 import Bloco3Conduta from './Bloco3Conduta';
 import GradeGlicemicaCompacta, { type GradeGlicemicaProps } from './GradeGlicemicaCompacta';
-import ProximaFichaCard from './ProximaFichaCard';
 import NotasTecnicasCard from './NotasTecnicasCard';
 import InstrucaoCtrlP from './InstrucaoCtrlP';
-import { semProximaFicha, type Cenario } from '@/lib/laudoMapping';
+import { type Cenario } from '@/lib/laudoMapping';
 
 export interface LaudoCompletoProps {
   paciente: { nome: string };
@@ -40,12 +39,10 @@ export default function LaudoCompleto({
   statusIA,
   erroIA,
   gradeGlicemica,
-  proximaFichaTexto,
+  proximaFichaTexto: _proximaFichaTexto,
   notasTecnicas,
   onTentarNovamente,
 }: LaudoCompletoProps) {
-  const mostrarProxima = !semProximaFicha(cenario) && !!proximaFichaTexto;
-
   return (
     <article className="laudo-completo overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       <LaudoCabecalho
@@ -78,9 +75,6 @@ export default function LaudoCompleto({
           erro={erroIA}
           onTentarNovamente={onTentarNovamente}
         />
-
-        {/* Próxima ficha (oculto em cenários 5/7/negativo) */}
-        {mostrarProxima && <ProximaFichaCard texto={proximaFichaTexto!} />}
 
         {/* Notas técnicas */}
         <NotasTecnicasCard notas={notasTecnicas} />
