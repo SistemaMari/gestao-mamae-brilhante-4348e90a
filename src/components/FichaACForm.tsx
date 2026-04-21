@@ -79,7 +79,6 @@ export default function FichaACForm({
   const [dataFim, setDataFim] = useState(editingConsulta?.data_fim ?? '');
   const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? new Date().toISOString().slice(0, 10));
   const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
-  const [peso, setPeso] = useState(editingConsulta?.peso_kg != null ? String(editingConsulta.peso_kg) : '');
   const [saving, setSaving] = useState(false);
 
   // IG auto-calculated
