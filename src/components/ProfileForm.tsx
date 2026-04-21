@@ -229,22 +229,29 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
           <Select
             value={form.cidade}
             onValueChange={v => handleChange('cidade', v)}
-            disabled={!form.estado}
+            disabled={!form.estado || loadingCidades}
           >
             <SelectTrigger>
-              <SelectValue placeholder={form.estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'} />
+              <SelectValue placeholder={
+                loadingCidades
+                  ? 'Carregando cidades...'
+                  : form.estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'
+              } />
             </SelectTrigger>
             <SelectContent>
               {filteredCities.map(c => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
-              {filteredCities.length === 0 && form.estado && (
+              {!loadingCidades && filteredCities.length === 0 && form.estado && (
                 <div className="px-2 py-1.5 text-xs text-muted-foreground">Nenhuma cidade encontrada</div>
               )}
             </SelectContent>
           </Select>
         )}
         {showError('cidade') && <p className="text-xs text-destructive">{errors.cidade}</p>}
+        {erroCidades === 'offline' && form.estado && form.pais === 'Brasil' && (
+          <p className="text-xs text-muted-foreground">Lista parcial (sem conexão com o IBGE).</p>
+        )}
       </div>
 
       {/* Idioma */}
