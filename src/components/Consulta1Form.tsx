@@ -51,9 +51,8 @@ export default function Consulta1Form() {
   // Location cascading logic
   const selectedCountry = useMemo(() => countries.find((c) => c.value === pais), [pais]);
   const stateList = selectedCountry?.states || [];
-  const selectedState = useMemo(() => stateList.find((s) => s.value === estado), [stateList, estado]);
-  const cityList = selectedState?.cities || [];
   const isOutro = pais === 'Outro';
+  const { cidades: cityList, loading: loadingCidades, erro: erroCidades } = useCidadesIBGE(pais, estado);
 
   const isValid = nome.trim() && dataNascimento && dum && dataConsulta && dmgAnterior !== null;
 
