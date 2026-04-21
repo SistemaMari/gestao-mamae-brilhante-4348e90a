@@ -22,9 +22,9 @@ export default function Consulta1ResultCard({ janelaGTT, igMaior24 }: Consulta1R
       </div>
 
       {janelaGTT && (
-        <div className="rounded-lg bg-white/70 p-3">
-          <p className="text-sm font-semibold text-emerald-900">Janela para GTT 75g</p>
-          <p className="mt-1 text-xs text-emerald-800">
+        <div className="rounded-lg border border-[#F59E0B] bg-[#FEF3C7] p-3">
+          <p className="text-sm font-semibold text-[#92400E]">Janela para GTT 75g</p>
+          <p className="mt-1 text-xs text-[#92400E]">
             {igMaior24 ? (
               'O GTT 75g já está na janela — solicitar o mais breve possível.'
             ) : (
@@ -35,6 +35,9 @@ export default function Consulta1ResultCard({ janelaGTT, igMaior24 }: Consulta1R
                 ). Oriente a paciente desde já.
               </>
             )}
+          </p>
+          <p className="mt-2 text-xs italic text-[#92400E]/80">
+            Esta orientação aparece desde agora para que a paciente tenha tempo de agendar o exame, que frequentemente tem fila nas unidades de saúde. Caso não consiga realizar dentro da janela, o exame deve ser feito o mais breve possível — mesmo após 28 semanas.
           </p>
         </div>
       )}
