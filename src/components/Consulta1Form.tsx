@@ -5,6 +5,7 @@ import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
 import { addPreviewPaciente } from '@/lib/previewPatients';
 import { countries } from '@/data/locationData';
+import { useCidadesIBGE } from '@/hooks/useCidadesIBGE';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
