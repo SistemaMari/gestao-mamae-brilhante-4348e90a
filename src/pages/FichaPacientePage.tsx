@@ -878,6 +878,18 @@ export default function FichaPacientePage() {
                               retornoDias={c.retorno_dias ?? ((c.ig_semanas ?? 0) > 30 ? 7 : 15)}
                               dataProximoRetorno={c.data_proximo_retorno_formatted}
                               fichaType={c.tipo}
+                              pacienteId={paciente.id}
+                              consultaId={c.id}
+                              isPreview={isPreview}
+                              onWeightSaved={() => {
+                                if (isPreview) {
+                                  const p = getPreviewPacienteById(paciente.id);
+                                  if (p) {
+                                    setPaciente(p);
+                                    setConsultas(p.consultas || []);
+                                  }
+                                }
+                              }}
                             />
                           </>
                         );
