@@ -63,8 +63,8 @@ export default function Bloco2Justificativa({ status, conteudo, erro, onTentarNo
   }
 
   return (
-    <section className="laudo-bloco rounded-xl border-2 border-[#D6BCFA] bg-[#F1F0FB] p-4">
-      <h3 className="font-display text-base font-normal text-[#7E69AB]">
+    <section className="laudo-bloco rounded-xl border border-[#D6BCFA] bg-white p-4 shadow-sm">
+      <h3 className="font-display text-lg font-normal text-[#7E69AB]">
         Justificativa clínica
       </h3>
       <div className="mt-2">

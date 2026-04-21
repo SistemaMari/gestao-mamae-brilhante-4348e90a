@@ -62,8 +62,8 @@ export default function Bloco3Conduta({ status, conteudo, erro, onTentarNovament
   }
 
   return (
-    <section className="laudo-bloco rounded-xl border-2 border-[#5EEAD4] bg-[#D1FAE5] p-4">
-      <h3 className="font-heading text-sm font-semibold text-[#0D7364]">
+    <section className="laudo-bloco rounded-xl border border-[#5EEAD4] bg-white p-4 shadow-sm">
+      <h3 className="font-display text-lg font-normal text-[#0D7364]">
         Conduta sugerida
       </h3>
       <div className="mt-2">
