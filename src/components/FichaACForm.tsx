@@ -620,60 +620,7 @@ export default function FichaACForm({
         </table>
       </div>
 
-      {/* Weight field — conditional */}
-      {(pesoRequired || peso) && (
-        <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          {/* Explanatory card when control < 70% */}
-          {isInadequado && (
-            <div className="rounded-lg border border-[#F59E0B] bg-[#FEF3C7] p-3 space-y-1">
-              <p className="text-sm font-semibold text-amber-800 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-[#F59E0B]" />
-                Controle glicêmico abaixo da meta
-              </p>
-              <p className="text-xs text-amber-700">
-                O percentual de glicemias dentro do alvo ficou abaixo de 70%. A conduta indicada pelo protocolo é associar insulina NPH subcutânea. Informe o peso atual da paciente para que o sistema calcule a dose inicial.
-              </p>
-            </div>
-          )}
-          <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">
-              Peso atual (kg) {pesoRequired && <span className="text-red-500">*</span>}
-            </label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="text-xs">O peso é necessário para calcular a dose inicial padrão de insulina: 0,5 UI/kg/dia. Essa dose é padronizada mundialmente para início de insulinoterapia em DMG. Ex: paciente de 70 kg → 35 UI/dia em 2-3 tomadas.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <Input
-            type="number"
-            min={30}
-            max={300}
-            step={0.1}
-            value={peso}
-            onChange={e => setPeso(e.target.value)}
-            placeholder="Ex: 70"
-            className="w-32"
-          />
-
-          {/* Insulin dose calculation */}
-          {isInadequado && doseTotal && pesoNum > 0 && (
-            <div className="rounded-lg bg-[#FEF3C7] border border-[#F59E0B] p-3 mt-2">
-              <p className="text-xs font-semibold text-amber-800">
-                Dose inicial de insulina NPH: {doseTotal} UI/dia (0,5 UI/kg/dia × {pesoNum} kg)
-              </p>
-              <p className="text-xs text-amber-700 mt-1">
-                Distribuição: {doseManha} UI pela manhã (ao acordar) e {doseNoite} UI às 22h.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Peso e dose foram movidos para o LAUDO (FichaACResultCard) — capturados após o Bloco 1 */}
 
       {/* Observations */}
       <div className="space-y-1">
