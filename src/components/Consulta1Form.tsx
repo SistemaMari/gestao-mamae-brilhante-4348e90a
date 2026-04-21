@@ -5,6 +5,7 @@ import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
 import { addPreviewPaciente } from '@/lib/previewPatients';
 import { countries } from '@/data/locationData';
+import { useCidadesIBGE } from '@/hooks/useCidadesIBGE';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,9 +51,8 @@ export default function Consulta1Form() {
   // Location cascading logic
   const selectedCountry = useMemo(() => countries.find((c) => c.value === pais), [pais]);
   const stateList = selectedCountry?.states || [];
-  const selectedState = useMemo(() => stateList.find((s) => s.value === estado), [stateList, estado]);
-  const cityList = selectedState?.cities || [];
   const isOutro = pais === 'Outro';
+  const { cidades: cityList, loading: loadingCidades, erro: erroCidades } = useCidadesIBGE(pais, estado);
 
   const isValid = nome.trim() && dataNascimento && dum && dataConsulta && dmgAnterior !== null;
 
@@ -297,18 +297,26 @@ export default function Consulta1Form() {
                   placeholder="Cidade"
                 />
               ) : (
-                <Select value={cidade} onValueChange={setCidade}>
+                <Select value={cidade} onValueChange={setCidade} disabled={!estado || loadingCidades}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Cidade" />
+                    <SelectValue placeholder={loadingCidades ? 'Carregando...' : 'Cidade'} />
                   </SelectTrigger>
                   <SelectContent>
                     {cityList.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
+                    {!loadingCidades && estado && cityList.length === 0 && (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">Nenhuma cidade encontrada</div>
+                    )}
                   </SelectContent>
                 </Select>
               )}
             </div>
+            {erroCidades === 'offline' && estado && pais === 'Brasil' && (
+              <p className="text-xs text-muted-foreground">
+                Lista parcial (sem conexão com o IBGE).
+              </p>
+            )}
           </div>
 
           {/* DUM */}
