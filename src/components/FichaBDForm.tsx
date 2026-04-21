@@ -36,12 +36,12 @@ const POINT_LABELS_6: Record<Point6, string> = {
 };
 
 const POINT_TOOLTIPS_6: Record<Point6, string> = {
-  jejum: 'Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL.',
-  pos_cafe: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL.',
-  pre_almoco: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores abaixo de 70 mg/dL indicam hipoglicemia — avaliar imediatamente. Registre e informe ao especialista.',
-  pos_almoco: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL.',
-  pre_jantar: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores abaixo de 70 mg/dL indicam hipoglicemia — avaliar imediatamente. Registre e informe ao especialista.',
-  pos_jantar: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL.',
+  jejum: 'Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
+  pos_cafe: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
+  pre_almoco: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
+  pos_almoco: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
+  pre_jantar: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
+  pos_jantar: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
 };
 
 const POINT_META_LABELS: Record<Point6, string> = {
@@ -63,13 +63,16 @@ const IS_PRE_PRANDIAL: Record<Point6, boolean> = {
 };
 
 function isWithinMeta(point: Point6, value: number): boolean {
+  // Hypoglycemia (< 70) is always out of meta — applies to all 6 points (paciente em insulina)
+  if (value < 70) return false;
   if (point === 'jejum') return value < 95;
   if (point === 'pre_almoco' || point === 'pre_jantar') return value >= 70 && value <= 100;
   return value < 140; // pos_cafe, pos_almoco, pos_jantar
 }
 
-function isHypoglycemia(point: Point6, value: number): boolean {
-  return (point === 'pre_almoco' || point === 'pre_jantar') && value > 0 && value < 70;
+function isHypoglycemia(_point: Point6, value: number): boolean {
+  // Em Fichas B/D (paciente em insulina), hipoglicemia (< 70 mg/dL) é relevante em QUALQUER ponto.
+  return value > 0 && value < 70;
 }
 
 const DAYS = Array.from({ length: 15 }, (_, i) => i + 1);

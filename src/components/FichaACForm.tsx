@@ -79,7 +79,6 @@ export default function FichaACForm({
   const [dataFim, setDataFim] = useState(editingConsulta?.data_fim ?? '');
   const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? new Date().toISOString().slice(0, 10));
   const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
-  const [peso, setPeso] = useState(editingConsulta?.peso_kg != null ? String(editingConsulta.peso_kg) : '');
   const [saving, setSaving] = useState(false);
 
   // IG auto-calculated
@@ -149,14 +148,7 @@ export default function FichaACForm({
   const isAdequado = percentual !== null && percentual >= 70;
   const isInadequado = percentual !== null && percentual < 70;
 
-  // Weight becomes required when < 70%
-  const pesoRequired = isInadequado;
-  const pesoNum = parseFloat(peso) || 0;
-
-  // Insulin dose calculation
-  const doseTotal = pesoNum > 0 ? Math.round(0.5 * pesoNum * 10) / 10 : null;
-  const doseManha = doseTotal ? Math.round((doseTotal * 2 / 3) * 10) / 10 : null;
-  const doseNoite = doseTotal ? Math.round((doseTotal * 1 / 3) * 10) / 10 : null;
+  // Insulin dose calculation moved to laudo (FichaACResultCard) — captured AFTER doctor sees Bloco 1.
 
   // Next return interval
   const retornoDias = igSemNum > 30 ? 7 : 15;
@@ -169,9 +161,6 @@ export default function FichaACForm({
   const [savedResult, setSavedResult] = useState<{
     percentual: number;
     adequado: boolean;
-    doseTotal: number | null;
-    doseManha: number | null;
-    doseNoite: number | null;
   } | null>(null);
 
   // Cell value change
@@ -242,15 +231,14 @@ export default function FichaACForm({
     }));
   }, [grid]);
 
-  // Validation
+  // Validation — peso não é mais obrigatório aqui (capturado no laudo, após o Bloco 1)
   const canSave = useMemo(() => {
     if (!dataInicio || !dataFim || !dataConsulta) return false;
     if (!igSemanas) return false;
     if (totalPreenchidos === 0) return false;
     if (hasNegativeValues) return false;
-    if (pesoRequired && (!peso || pesoNum <= 0)) return false;
     return true;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, pesoRequired, peso, pesoNum]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
 
   // Confirm high values
   const [showHighValueConfirm, setShowHighValueConfirm] = useState(false);
@@ -285,10 +273,10 @@ export default function FichaACForm({
         percentual_meta: percentual,
         total_preenchidos: totalPreenchidos,
         dentro_meta: dentroMeta,
-        peso_kg: pesoNum > 0 ? pesoNum : null,
-        dose_total: isInadequado ? doseTotal : null,
-        dose_manha: isInadequado ? doseManha : null,
-        dose_noite: isInadequado ? doseNoite : null,
+        peso_kg: editingConsulta?.peso_kg ?? null,
+        dose_total: editingConsulta?.dose_total ?? null,
+        dose_manha: editingConsulta?.dose_manha ?? null,
+        dose_noite: editingConsulta?.dose_noite ?? null,
         retorno_dias: retornoDias,
         data_proximo_retorno_formatted: dataProximoRetorno,
         grid_valores: grid,
@@ -316,9 +304,6 @@ export default function FichaACForm({
       setSavedResult({
         percentual: percentual!,
         adequado: isAdequado,
-        doseTotal: isInadequado ? doseTotal : null,
-        doseManha: isInadequado ? doseManha : null,
-        doseNoite: isInadequado ? doseNoite : null,
       });
 
       setSaving(false);
@@ -361,12 +346,12 @@ export default function FichaACForm({
           paciente_id: paciente.id,
           profissional_id: profId,
           tipo_perfil: '4_pontos',
-          peso_paciente_kg: pesoNum > 0 ? pesoNum : null,
+          peso_paciente_kg: editingConsulta?.peso_kg ?? null,
           data_inicio: dataInicio,
           data_fim: dataFim,
           percentual_meta: percentual ?? 0,
           decisao,
-          dose_insulina_calculada: isInadequado && doseTotal ? doseTotal : null,
+          dose_insulina_calculada: editingConsulta?.dose_total ?? null,
         })
         .select('id')
         .single();
@@ -409,9 +394,6 @@ export default function FichaACForm({
       setSavedResult({
         percentual: percentual!,
         adequado: isAdequado,
-        doseTotal: isInadequado ? doseTotal : null,
-        doseManha: isInadequado ? doseManha : null,
-        doseNoite: isInadequado ? doseNoite : null,
       });
 
       setSaving(false);
@@ -638,60 +620,7 @@ export default function FichaACForm({
         </table>
       </div>
 
-      {/* Weight field — conditional */}
-      {(pesoRequired || peso) && (
-        <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          {/* Explanatory card when control < 70% */}
-          {isInadequado && (
-            <div className="rounded-lg border border-[#F59E0B] bg-[#FEF3C7] p-3 space-y-1">
-              <p className="text-sm font-semibold text-amber-800 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-[#F59E0B]" />
-                Controle glicêmico abaixo da meta
-              </p>
-              <p className="text-xs text-amber-700">
-                O percentual de glicemias dentro do alvo ficou abaixo de 70%. A conduta indicada pelo protocolo é associar insulina NPH subcutânea. Informe o peso atual da paciente para que o sistema calcule a dose inicial.
-              </p>
-            </div>
-          )}
-          <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">
-              Peso atual (kg) {pesoRequired && <span className="text-red-500">*</span>}
-            </label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="text-xs">O peso é necessário para calcular a dose inicial padrão de insulina: 0,5 UI/kg/dia. Essa dose é padronizada mundialmente para início de insulinoterapia em DMG. Ex: paciente de 70 kg → 35 UI/dia em 2-3 tomadas.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <Input
-            type="number"
-            min={30}
-            max={300}
-            step={0.1}
-            value={peso}
-            onChange={e => setPeso(e.target.value)}
-            placeholder="Ex: 70"
-            className="w-32"
-          />
-
-          {/* Insulin dose calculation */}
-          {isInadequado && doseTotal && pesoNum > 0 && (
-            <div className="rounded-lg bg-[#FEF3C7] border border-[#F59E0B] p-3 mt-2">
-              <p className="text-xs font-semibold text-amber-800">
-                Dose inicial de insulina NPH: {doseTotal} UI/dia (0,5 UI/kg/dia × {pesoNum} kg)
-              </p>
-              <p className="text-xs text-amber-700 mt-1">
-                Distribuição: {doseManha} UI pela manhã (ao acordar) e {doseNoite} UI às 22h.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Peso e dose foram movidos para o LAUDO (FichaACResultCard) — capturados após o Bloco 1 */}
 
       {/* Observations */}
       <div className="space-y-1">
