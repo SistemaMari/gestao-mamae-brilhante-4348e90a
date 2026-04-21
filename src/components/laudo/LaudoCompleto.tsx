@@ -5,6 +5,7 @@ import Bloco3Conduta from './Bloco3Conduta';
 import GradeGlicemicaCompacta, { type GradeGlicemicaProps } from './GradeGlicemicaCompacta';
 import NotasTecnicasCard from './NotasTecnicasCard';
 import InstrucaoCtrlP from './InstrucaoCtrlP';
+import JanelaGttCard from './JanelaGttCard';
 import { type Cenario } from '@/lib/laudoMapping';
 
 export interface LaudoCompletoProps {
@@ -24,6 +25,9 @@ export interface LaudoCompletoProps {
   gradeGlicemica?: GradeGlicemicaProps | null;
   proximaFichaTexto?: string | null;
   notasTecnicas?: string[];
+  /** Janela do GTT — só renderizada quando cenario === 'negativo' */
+  janelaGTT?: { inicio: Date; fim: Date } | null;
+  igMaior24?: boolean;
   onTentarNovamente?: () => void;
 }
 
@@ -41,6 +45,8 @@ export default function LaudoCompleto({
   gradeGlicemica,
   proximaFichaTexto: _proximaFichaTexto,
   notasTecnicas,
+  janelaGTT,
+  igMaior24,
   onTentarNovamente,
 }: LaudoCompletoProps) {
   return (
@@ -56,6 +62,11 @@ export default function LaudoCompleto({
       <div className="space-y-3 p-4">
         {/* Bloco 1 — conteúdo clínico atual */}
         <div className="laudo-card">{children}</div>
+
+        {/* Card "Janela para GTT 75g" — somente no Retorno 1 com resultado NEGATIVO */}
+        {cenario === 'negativo' && janelaGTT && (
+          <JanelaGttCard janelaGTT={janelaGTT} igMaior24={!!igMaior24} />
+        )}
 
         {/* Grade compacta (Fichas A/B/C/D) */}
         {gradeGlicemica && <GradeGlicemicaCompacta {...gradeGlicemica} />}

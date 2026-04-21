@@ -965,6 +965,8 @@ export default function FichaPacientePage() {
                           bloco2={null}
                           bloco3={null}
                           statusIA="pendente"
+                          janelaGTT={c.tipo === 'retorno_1' ? janelaGTT : null}
+                          igMaior24={igMaior24}
                         >
                           {renderCardBloco1()}
                         </LaudoCompleto>
