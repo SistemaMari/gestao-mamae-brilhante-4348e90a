@@ -5,6 +5,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+/**
+ * Public endpoint (no JWT required — invitee has no account yet).
+ * Validates the invite token, creates the auth user and the profissional row.
+ */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -14,37 +24,40 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { token, nome, senha, crm_coren, especialidade, idioma_preferido } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const token = typeof body?.token === "string" ? body.token : "";
+    const nome = typeof body?.nome === "string" ? body.nome.trim() : "";
+    const senha = typeof body?.senha === "string" ? body.senha : "";
+    const crm_coren = typeof body?.crm_coren === "string" ? body.crm_coren.trim() : "";
+    const especialidade = typeof body?.especialidade === "string" ? body.especialidade.trim() : "";
+    const idioma_preferido =
+      typeof body?.idioma_preferido === "string" ? body.idioma_preferido : "pt-BR";
 
     if (!token || !nome || !senha || !crm_coren || !especialidade) {
-      return new Response(JSON.stringify({ status: "erro", mensagem: "Campos obrigatórios faltando." }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ status: "erro", mensagem: "Campos obrigatórios faltando." }, 400);
+    }
+    if (senha.length < 6 || senha.length > 200) {
+      return json({ status: "erro", mensagem: "Senha inválida." }, 400);
+    }
+    if (nome.length > 200 || crm_coren.length > 50 || especialidade.length > 100) {
+      return json({ status: "erro", mensagem: "Campos excedem o tamanho máximo." }, 400);
     }
 
     // 1. Validate token
-    const { data: convite, error: conviteError } = await supabaseAdmin
+    const { data: convite } = await supabaseAdmin
       .from("convites")
       .select("*")
       .eq("token", token)
       .maybeSingle();
 
-    if (!convite || conviteError) {
-      return new Response(JSON.stringify({ status: "token_invalido" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!convite) {
+      return json({ status: "token_invalido" });
     }
-
     if (convite.status !== "pendente") {
-      return new Response(JSON.stringify({ status: "token_usado" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ status: "token_usado" });
     }
-
     if (new Date(convite.expires_at) < new Date()) {
-      return new Response(JSON.stringify({ status: "token_expirado" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ status: "token_expirado" });
     }
 
     // 2. Check if email already exists in Auth
@@ -54,9 +67,7 @@ Deno.serve(async (req) => {
     );
 
     if (existingUser) {
-      return new Response(JSON.stringify({ status: "email_existente", user_id: existingUser.id }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ status: "email_existente" });
     }
 
     // 3. Create user in Auth
@@ -67,9 +78,8 @@ Deno.serve(async (req) => {
     });
 
     if (authError || !newUser.user) {
-      return new Response(JSON.stringify({ status: "erro", mensagem: authError?.message || "Erro ao criar conta." }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error("[aceitar-convite] auth create error:", authError);
+      return json({ status: "erro", mensagem: "Erro ao criar conta." }, 500);
     }
 
     // 4. Insert into profissionais
@@ -78,7 +88,7 @@ Deno.serve(async (req) => {
       nome,
       crm: crm_coren,
       especialidade,
-      idioma: idioma_preferido || "pt-BR",
+      idioma: idioma_preferido,
       unidade_id: convite.unidade_id,
       perfil_institucional: "profissional",
       plano: "institucional",
@@ -86,20 +96,16 @@ Deno.serve(async (req) => {
     });
 
     if (profError) {
-      return new Response(JSON.stringify({ status: "erro", mensagem: profError.message }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error("[aceitar-convite] profissional insert error:", profError);
+      return json({ status: "erro", mensagem: "Erro ao criar perfil profissional." }, 500);
     }
 
     // 5. Update invite status
     await supabaseAdmin.from("convites").update({ status: "aceito" }).eq("id", convite.id);
 
-    return new Response(JSON.stringify({ status: "sucesso" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ status: "sucesso" });
   } catch (err) {
-    return new Response(JSON.stringify({ status: "erro", mensagem: String(err) }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.error("[aceitar-convite] unexpected error:", err);
+    return json({ status: "erro", mensagem: "Erro interno. Tente novamente." }, 500);
   }
 });
