@@ -1,70 +1,79 @@
 
 
-# Corrigir login real e gestão de usuários
+# Substituir API do IBGE por lista estática vinda do PDF
 
-## Problema atual
+## Decisão
 
-Os dois usuários já existem em `auth.users` (Lovable Cloud → Users), mas **não estão vinculados a nenhum perfil** nas tabelas `admins`, `gestores_gerais` ou `profissionais`. Por isso o login chega até autenticar, mas cai em "Perfil não encontrado". Não existe nenhuma tela hoje para promover um usuário a admin nem para escolher tipo de conta no primeiro acesso.
+A lista de cidades passa a vir **100% de um arquivo estático** dentro do projeto, gerado a partir do(s) PDF(s) que você vai enviar. Sem dependência de API externa, sem fallback parcial, sem aviso de "modo offline".
 
-## O que vai ser feito
+## O que vai mudar
 
-### 1. Promover os dois usuários existentes a admin (imediato)
+### 1. Novo arquivo de dados: `src/data/cidadesIBGE.ts`
 
-Inserir registros na tabela `admins` para:
-- `strategyaisolucoes@gmail.com` (user_id `5a881ae0-1ea6-4365-8a8f-d5e94f613b64`)
-- `moadecarvalho@gmail.com` (user_id `6ba34fda-311d-4ca0-9246-b78b00ec7b92`)
+Arquivo gerado a partir do PDF, no formato:
 
-Resultado: ambos passam a logar normalmente e cair em `/admin`.
+```ts
+export const CIDADES_POR_UF: Record<string, string[]> = {
+  AC: ["Acrelândia", "Assis Brasil", ...],
+  AL: ["Água Branca", "Anadia", ...],
+  // ... 27 UFs
+};
+```
 
-### 2. Tela de onboarding para contas sem perfil
+Cada UF com a lista **completa e oficial** do IBGE, ordenada alfabeticamente em pt-BR.
 
-Nova rota `/onboarding` (protegida, só exige login):
+### 2. Substituir o hook `useCidadesIBGE`
 
-- Aparece automaticamente sempre que um usuário autenticado não tem registro em `admins`, `gestores_gerais` nem `profissionais`.
-- Apresenta duas opções:
-  - **"Sou profissional autônomo (consultório)"** → cria registro em `profissionais` com `unidade_id = null` e redireciona para `/completar-perfil`.
-  - **"Vou usar via instituição"** → mostra mensagem explicando que precisa receber um convite do gestor da unidade e oferece botão "Sair".
-- O `AuthContext` redireciona automaticamente para `/onboarding` quando `profile === null`, em vez de mostrar a tela bloqueada atual.
+O hook deixa de fazer `fetch` para `servicodados.ibge.gov.br` e passa a ler direto de `CIDADES_POR_UF[uf]`. Mantém a mesma assinatura `{ cidades, loading, erro }` para não quebrar o `ProfileForm`, mas:
+- `loading` sempre `false` (resposta síncrona)
+- `erro` sempre `null`
+- Remove cache em memória, `inflight`, e toda a lógica de fallback
 
-### 3. Painel admin: gestão de usuários e promoção
+### 3. Limpar `ProfileForm.tsx`
 
-Nova seção em `/admin` chamada **"Gestão de usuários"** com:
+- Remove a mensagem "Lista parcial (sem conexão com o IBGE)" — não faz mais sentido.
+- Mantém o disabled do select de cidade enquanto não houver UF selecionada.
 
-- **Lista de todos os profissionais** (nome, e-mail, perfil atual, unidade, data de cadastro).
-- **Lista de admins e gestores gerais** atuais.
-- Ações por usuário:
-  - **Promover a admin** → insere em `admins`.
-  - **Promover a gestor geral** → insere em `gestores_gerais`.
-  - **Remover privilégio admin/gestor geral** → remove o registro correspondente.
-  - **Vincular a uma unidade como gestor** (cria/atualiza `profissionais.unidade_id` + `perfil_institucional='gestor'`).
-- **Criar nova unidade** (formulário simples: nome + tipo).
+### 4. Limpar `locationData.ts`
 
-Tudo isso protegido por uma edge function `admin-gerenciar-usuarios` que valida via JWT que o solicitante é admin (usando `is_admin(auth.uid())`).
+- Remove o array `cities` de cada UF brasileira (vira fallback morto).
+- Mantém `countries`, `states` (label/value) e os outros países (USA, Espanha etc.) intactos — eles continuam usando o modelo antigo porque o PDF só cobre Brasil.
 
-### 4. Garantir que admins consigam logar mesmo se já tiverem conta
+## Como vamos montar a lista completa
 
-Hoje o `LoginPage` faz polling sequencial (`admins` → `gestores_gerais` → `profissionais`). Isso funciona, mas falha silenciosamente se houver delay no `AuthContext`. Vou simplificar: depois do `signIn` bem-sucedido, redireciona para `/` e deixa o `AuthContext` + roteamento decidir o destino com base no perfil determinado.
+O PDF que você enviou foi parseado, mas o parser só processa **as primeiras 50 páginas** — o documento parou em Minas Gerais (letra T). Faltam:
+
+- Minas Gerais (de "T" em diante)
+- Espírito Santo (parcial)
+- Pará, Paraíba, Paraná, Pernambuco, Piauí
+- Rio de Janeiro, Rio Grande do Norte, Rio Grande do Sul
+- Rondônia, Roraima, Santa Catarina
+- São Paulo, Sergipe, Tocantins
+
+**Próximo passo (você):** reenviar o PDF dividido em partes de até 50 páginas cada. Sugestão de divisão:
+- Parte 1: páginas 1-50 (já recebida, cobre AC → MG-T)
+- Parte 2: páginas 51-100
+- Parte 3: páginas 101-150 (se houver)
+
+Conforme cada parte chegar, eu extraio o JSON e vou montando `cidadesIBGE.ts` incrementalmente.
 
 ## Detalhes técnicos
 
-**Banco (migration + insert):**
-- INSERT em `admins` para os dois user_ids existentes (com `nome` extraído do e-mail).
-- Adicionar policy `INSERT/DELETE` em `admins` e `gestores_gerais` restrita a `is_admin(auth.uid())` para permitir o painel admin gerenciar.
-- Adicionar policy `INSERT/UPDATE` em `unidades` restrita a admins.
+**Arquivos editados:**
+- `src/hooks/useCidadesIBGE.ts` — reescrito para ler do dataset estático
+- `src/components/ProfileForm.tsx` — remover aviso de offline
+- `src/data/locationData.ts` — esvaziar `cities` das UFs brasileiras
+- `src/data/cidadesIBGE.ts` — novo arquivo (gerado)
 
-**Edge function nova:** `admin-gerenciar-usuarios` (com JWT) — recebe `{ acao, alvo_user_id, payload }` e executa promoção/rebaixamento usando service role após validar que quem chamou é admin.
+**Não tocados:** `useProfissionalData`, `OnboardingPage`, `CompletarPerfilPage`, fluxo de auth/admin (escopo desta tarefa é só a lista de cidades).
 
-**Frontend:**
-- `src/contexts/AuthContext.tsx`: quando `profile === null` e usuário autenticado, expor flag `needsOnboarding`.
-- `src/components/ProtectedRoute.tsx`: redirecionar para `/onboarding` quando `needsOnboarding` (em vez da tela bloqueada).
-- `src/pages/OnboardingPage.tsx` (novo): duas opções de tipo de conta.
-- `src/pages/AdminPage.tsx`: substituir os três placeholders ("Profissionais recentes", "Unidades cadastradas", "Log do sistema") por uma seção real de gestão de usuários com tabela, busca e botões de ação.
-- `src/pages/LoginPage.tsx`: simplificar polling após signIn.
-- `src/App.tsx`: registrar `/onboarding`.
+**Tamanho:** ~5.570 municípios brasileiros, ~150KB no bundle. É um custo aceitável e elimina latência + falhas de rede no formulário.
 
-## Resultado esperado
+## O que você verá depois
 
-1. Você consegue logar **agora** com `strategyaisolucoes@gmail.com` e `moadecarvalho@gmail.com` e cai direto em `/admin`.
-2. Quando você criar um terceiro usuário pelo painel do Lovable Cloud (ou ele se cadastrar via convite futuro), ele cai na tela de onboarding e escolhe o tipo de conta — sem ficar travado.
-3. A partir de `/admin` você consegue promover qualquer profissional cadastrado a admin ou gestor geral, sem precisar mexer no banco.
+- Dropdown de cidade abre instantaneamente assim que você seleciona o estado (sem "Carregando cidades...").
+- Lista completa e idêntica à oficial do IBGE, mesmo offline.
+- Sumiço do aviso "Lista parcial (sem conexão com o IBGE)".
+
+Me reenvie o PDF a partir da página 51 e eu sigo com a implementação.
 
