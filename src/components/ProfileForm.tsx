@@ -59,7 +59,7 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
   const isOutro = form.pais === 'Outro';
 
   const countryData = useMemo(() => countries.find(c => c.value === form.pais), [form.pais]);
-  const { cidades: cidadesIBGE, loading: loadingCidades, erro: erroCidades } = useCidadesIBGE(form.pais, form.estado);
+  const { cidades: cidadesIBGE } = useCidadesIBGE(form.pais, form.estado);
   const filteredCities = useMemo(() => {
     if (isOutro) return [];
     return cidadesIBGE;
@@ -229,20 +229,18 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
           <Select
             value={form.cidade}
             onValueChange={v => handleChange('cidade', v)}
-            disabled={!form.estado || loadingCidades}
+            disabled={!form.estado}
           >
             <SelectTrigger>
               <SelectValue placeholder={
-                loadingCidades
-                  ? 'Carregando cidades...'
-                  : form.estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'
+                form.estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'
               } />
             </SelectTrigger>
             <SelectContent>
               {filteredCities.map(c => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
-              {!loadingCidades && filteredCities.length === 0 && form.estado && (
+              {filteredCities.length === 0 && form.estado && (
                 <div className="px-2 py-1.5 text-xs text-muted-foreground">Nenhuma cidade encontrada</div>
               )}
             </SelectContent>
