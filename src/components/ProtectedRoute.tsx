@@ -3,7 +3,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { Loader2 } from 'lucide-react';
 
-export default function ProtectedRoute({ children, skipProfileCheck = false }: { children: React.ReactNode; skipProfileCheck?: boolean }) {
+type AllowedProfile = 'consultorio' | 'institucional' | 'gestor' | 'gestor_geral' | 'admin';
+
+export default function ProtectedRoute({
+  children,
+  skipProfileCheck = false,
+  allowedProfiles,
+}: {
+  children: React.ReactNode;
+  skipProfileCheck?: boolean;
+  allowedProfiles?: AllowedProfile[];
+}) {
   const { user, loading, profile } = useAuth();
   const { profissionalData, loading: loadingProf, perfilIncompleto } = useProfissionalData();
 

@@ -54,42 +54,35 @@ export default function CadastroConvitePage() {
   }, [countdown, navigate]);
 
   const validateToken = async () => {
-    const { data: conviteData, error } = await supabase
-      .from('convites')
-      .select('id, email_convidado, unidade_id, token, status, expires_at')
-      .eq('token', token!)
-      .maybeSingle();
+    try {
+      const res = await supabase.functions.invoke('validar-convite', {
+        body: { token },
+      });
+      const data = res.data as
+        | { status: 'valido'; email_convidado: string; unidade_nome: string }
+        | { status: 'invalido' | 'expirado' | 'usado' | 'erro' }
+        | null;
 
-    if (!conviteData || error) {
+      if (!data || data.status === 'erro' || data.status === 'invalido') {
+        setStatus('invalido');
+        return;
+      }
+      if (data.status === 'expirado' || data.status === 'usado') {
+        setStatus(data.status);
+        return;
+      }
+
+      setConvite({
+        id: '',
+        email_convidado: data.email_convidado,
+        unidade_id: '',
+        token: token!,
+        unidade_nome: data.unidade_nome,
+      });
+      setStatus('valido');
+    } catch {
       setStatus('invalido');
-      return;
     }
-
-    if (conviteData.status === 'aceito') {
-      setStatus('usado');
-      return;
-    }
-
-    if (new Date(conviteData.expires_at) < new Date()) {
-      setStatus('expirado');
-      return;
-    }
-
-    // Get unit name
-    const { data: unidade } = await supabase
-      .from('unidades')
-      .select('nome')
-      .eq('id', conviteData.unidade_id)
-      .single();
-
-    setConvite({
-      id: conviteData.id,
-      email_convidado: conviteData.email_convidado,
-      unidade_id: conviteData.unidade_id,
-      token: conviteData.token,
-      unidade_nome: unidade?.nome || 'Unidade',
-    });
-    setStatus('valido');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,7 +123,9 @@ export default function CadastroConvitePage() {
         toast.success('Conta criada com sucesso!');
         setCountdown(3);
       } else if (data?.status === 'email_existente') {
-        setExistingUserId(data.user_id);
+        // The user already has an account — they need to log in first, then
+        // the vincular-profissional function will use their JWT to link them.
+        setExistingUserId('existing'); // sentinel, no longer used as id
         setStatus('email_existente');
       } else {
         toast.error(data?.mensagem || 'Erro ao criar conta.');
@@ -143,13 +138,20 @@ export default function CadastroConvitePage() {
   };
 
   const handleVincular = async () => {
-    if (!existingUserId || !convite) return;
-    setVinculando(true);
+    if (!convite) return;
 
+    // The user must be logged in for the edge function to identify them via JWT.
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      toast.info('Faça login para vincular sua conta a esta unidade.');
+      navigate(`/login?next=/convite/${convite.token}`);
+      return;
+    }
+
+    setVinculando(true);
     try {
-      // Need to get the profissional_id from the existing user
       const res = await supabase.functions.invoke('vincular-profissional', {
-        body: { token: convite.token, profissional_id: existingUserId },
+        body: { token: convite.token },
       });
 
       if (res.data?.status === 'sucesso') {
