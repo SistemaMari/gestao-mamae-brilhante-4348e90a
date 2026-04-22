@@ -249,9 +249,6 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
           </Select>
         )}
         {showError('cidade') && <p className="text-xs text-destructive">{errors.cidade}</p>}
-        {erroCidades === 'offline' && form.estado && form.pais === 'Brasil' && (
-          <p className="text-xs text-muted-foreground">Lista parcial (sem conexão com o IBGE).</p>
-        )}
       </div>
 
       {/* Idioma */}
