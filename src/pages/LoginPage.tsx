@@ -32,10 +32,10 @@ export default function LoginPage() {
       return;
     }
 
-    // Aguardar o AuthContext determinar o perfil e redirecionar
-    const maxAttempts = 20;
+    // Resolver perfil rapidamente para redirecionar; se não houver perfil, vai para onboarding
+    const maxAttempts = 15;
     for (let i = 0; i < maxAttempts; i++) {
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 200));
       const { data } = await supabase.auth.getUser();
       if (!data.user) continue;
 
@@ -47,8 +47,7 @@ export default function LoginPage() {
 
       const { data: prof } = await supabase.from('profissionais').select('unidade_id, perfil_institucional').eq('user_id', data.user.id).maybeSingle();
       if (!prof) {
-        setIsLoading(false);
-        setError('Conta não vinculada a nenhum perfil. Entre em contato com o suporte.');
+        navigate('/onboarding', { replace: true });
         return;
       }
 

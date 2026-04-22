@@ -20,6 +20,7 @@ import CompletarPerfilPage from "./pages/CompletarPerfilPage";
 import GestaoEquipePage from "./pages/GestaoEquipePage";
 import CadastroConvitePage from "./pages/CadastroConvitePage";
 import BaseConhecimentoPage from "./pages/BaseConhecimentoPage";
+import OnboardingPage from "./pages/OnboardingPage";
 import PreviewHubPage, {
   PreviewCompletarPerfilPage,
   PreviewGestaoEquipePage,
@@ -87,6 +88,16 @@ const App = () => (
               <Route path="/planos" element={<PlanosPage />} />
               <Route path="/perfil" element={<PerfilPage />} />
             </Route>
+
+            {/* Onboarding (autenticado, sem perfil ainda) */}
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute skipProfileCheck skipOnboardingRedirect>
+                  <OnboardingPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Completar perfil (dentro do shell mas skip profile check) */}
             <Route element={<ProtectedRoute skipProfileCheck><AppShellClinico /></ProtectedRoute>}>
