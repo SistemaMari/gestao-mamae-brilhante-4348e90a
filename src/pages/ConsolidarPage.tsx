@@ -569,52 +569,79 @@ export default function ConsolidarPage() {
                 <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Carregando relatórios…
                 </div>
-              ) : relatorios.length === 0 ? (
+              ) : relatoriosFiltrados.length === 0 ? (
                 <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-                  Nenhum relatório disponível para o período selecionado. Os relatórios ficam disponíveis automaticamente
-                  quando os gestores de unidade exportam seus dashboards.
+                  {relatorios.length === 0
+                    ? 'Nenhum relatório disponível para o período selecionado. Os relatórios ficam disponíveis automaticamente quando os gestores de unidade exportam seus dashboards.'
+                    : 'Nenhum relatório corresponde ao filtro de origem selecionado.'}
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-[#F8FAFC]">
-                      <TableHead className="w-[44px]">
-                        <Checkbox
-                          checked={todosRelatoriosSelecionados ? true : algunsRelatoriosSelecionados ? 'indeterminate' : false}
-                          onCheckedChange={toggleTodosRelatorios}
-                          aria-label="Selecionar todos"
-                        />
-                      </TableHead>
-                      <TableHead>Unidade</TableHead>
-                      <TableHead>Período</TableHead>
-                      <TableHead>Gerado em</TableHead>
-                      <TableHead className="text-right">Gestantes</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {relatorios.map((r, idx) => (
-                      <TableRow key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8FAFC]'}>
-                        <TableCell>
+                <TooltipProvider delayDuration={150}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-[#F8FAFC]">
+                        <TableHead className="w-[44px]">
                           <Checkbox
-                            checked={selecionadosRel.has(r.id)}
-                            onCheckedChange={() => toggleRelatorio(r.id)}
-                            aria-label={`Selecionar ${r.unidade_nome}`}
+                            checked={todosRelatoriosSelecionados ? true : algunsRelatoriosSelecionados ? 'indeterminate' : false}
+                            onCheckedChange={toggleTodosRelatorios}
+                            aria-label="Selecionar todos"
                           />
-                        </TableCell>
-                        <TableCell className="font-medium">{r.unidade_nome}</TableCell>
-                        <TableCell>{fmtPeriodo(r.periodo_inicio, r.periodo_fim)}</TableCell>
-                        <TableCell>{fmtData(r.created_at)}</TableCell>
-                        <TableCell className="text-right">{r.total_gestantes ?? '—'}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" onClick={() => baixarRelatorioIndividual(r)}>
-                            <Download className="mr-1 h-3.5 w-3.5" /> Baixar PDF
-                          </Button>
-                        </TableCell>
+                        </TableHead>
+                        <TableHead>Unidade</TableHead>
+                        <TableHead>Período</TableHead>
+                        <TableHead>Gerado em</TableHead>
+                        <TableHead>Origem</TableHead>
+                        <TableHead className="text-right">Gestantes</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {relatoriosFiltrados.map((r, idx) => {
+                        const isAuto = r.origem === 'automatico';
+                        const badgeStyle = isAuto
+                          ? { background: '#EDE9FE', color: '#6D28D9' }
+                          : { background: '#F1F5F9', color: '#475569' };
+                        const tooltipText = isAuto
+                          ? 'Gerado automaticamente pelo sistema no dia 1 do mês.'
+                          : `Exportado pelo gestor de unidade em ${fmtData(r.created_at)}.`;
+                        return (
+                          <TableRow key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F8FAFC]'}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selecionadosRel.has(r.id)}
+                                onCheckedChange={() => toggleRelatorio(r.id)}
+                                aria-label={`Selecionar ${r.unidade_nome}`}
+                              />
+                            </TableCell>
+                            <TableCell className="font-medium">{r.unidade_nome}</TableCell>
+                            <TableCell>{fmtPeriodo(r.periodo_inicio, r.periodo_fim)}</TableCell>
+                            <TableCell>{fmtData(r.created_at)}</TableCell>
+                            <TableCell>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span
+                                    className="inline-flex items-center gap-1 rounded-full text-xs font-medium"
+                                    style={{ ...badgeStyle, padding: '3px 10px' }}
+                                  >
+                                    {isAuto ? <Sparkles className="h-3 w-3" /> : <User className="h-3 w-3" />}
+                                    {isAuto ? 'Automático' : 'Manual'}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>{tooltipText}</TooltipContent>
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell className="text-right">{r.total_gestantes ?? '—'}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" onClick={() => baixarRelatorioIndividual(r)}>
+                                <Download className="mr-1 h-3.5 w-3.5" /> Baixar PDF
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TooltipProvider>
               )}
             </div>
           </section>
