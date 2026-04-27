@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import AppSidebar from '@/components/AppSidebar';
 import StatCard from '@/components/StatCard';
-import { Users, FileText, UserPlus, ArrowRight, Building2, Clock, Download, Filter, Activity, Syringe, HeartPulse, FileDown } from 'lucide-react';
+import { Users, FileText, UserPlus, ArrowRight, Building2, Clock, Download, Filter, Activity, Syringe, HeartPulse, FileDown, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -227,6 +228,64 @@ export default function GestaoPage() {
     toast.success('JSON exportado!');
   };
 
+  const exportXLSX = () => {
+    const inicioStr = periodoInicio ? format(periodoInicio, 'dd/MM/yyyy') : '—';
+    const fimStr = periodoFim ? format(periodoFim, 'dd/MM/yyyy') : '—';
+
+    // Aba 1 — Resumo
+    const resumoRows = [
+      ['Relatório de Gestão — Unidade'],
+      ['Unidade', unidadeNome],
+      ['Período', `${inicioStr} até ${fimStr}`],
+      ['Gerado em', new Date().toLocaleString('pt-BR')],
+      [],
+      ['Indicador', 'Valor'],
+      ['Profissionais ativos', totalProfissionais],
+      ['Convites pendentes', convitesPendentes],
+      ['Fichas no período', totalFichas],
+      ['Fichas ativas', fichasAtivas],
+      ['DMG em gestação anterior', fichasComDmg],
+      ['Pacientes em insulina', pacientesEmInsulina],
+      ['Laudos gerados', totalLaudos],
+      ['Taxa DMG (%)', totalFichas > 0 ? Number(((fichasComDmg / totalFichas) * 100).toFixed(1)) : 0],
+    ];
+    const wsResumo = XLSX.utils.aoa_to_sheet(resumoRows);
+    wsResumo['!cols'] = [{ wch: 32 }, { wch: 28 }];
+
+    // Aba 2 — Fichas (respeita filtro de status)
+    const fichasHeader = ['Paciente', 'Status', 'Profissional', 'Última consulta', 'Criada em', 'DMG anterior'];
+    const fichasRows = fichasFiltradas.map(f => [
+      f.nome,
+      traduzirStatus(f.status_ficha),
+      f.profissional_nome,
+      f.data_ultima_consulta ? new Date(f.data_ultima_consulta).toLocaleDateString('pt-BR') : '—',
+      new Date(f.created_at).toLocaleDateString('pt-BR'),
+      f.dmg_gestacao_anterior ? 'Sim' : 'Não',
+    ]);
+    const wsFichas = XLSX.utils.aoa_to_sheet([fichasHeader, ...fichasRows]);
+    wsFichas['!cols'] = [{ wch: 32 }, { wch: 22 }, { wch: 28 }, { wch: 16 }, { wch: 14 }, { wch: 14 }];
+
+    // Aba 3 — Atividade recente
+    const atvHeader = ['Tipo', 'Descrição', 'Profissional', 'Data'];
+    const atvRows = atividades.map(a => [
+      a.tipo,
+      a.descricao,
+      a.profissional_nome,
+      new Date(a.data).toLocaleDateString('pt-BR'),
+    ]);
+    const wsAtv = XLSX.utils.aoa_to_sheet([atvHeader, ...atvRows]);
+    wsAtv['!cols'] = [{ wch: 12 }, { wch: 36 }, { wch: 28 }, { wch: 14 }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+    XLSX.utils.book_append_sheet(wb, wsFichas, 'Fichas');
+    XLSX.utils.book_append_sheet(wb, wsAtv, 'Atividade');
+
+    const filename = `relatorio-${(unidadeNome || 'unidade').replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    toast.success('Excel exportado!');
+  };
+
   const exportPDF = async () => {
     if (!user || !unidadeId) return;
     setExportandoPdf(true);
@@ -437,6 +496,10 @@ export default function GestaoPage() {
                   <Button variant="outline" size="sm" onClick={exportCSV} disabled={fichasFiltradas.length === 0}>
                     <Download className="h-3.5 w-3.5" />
                     CSV
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={exportXLSX} disabled={fichasFiltradas.length === 0}>
+                    <FileSpreadsheet className="h-3.5 w-3.5" />
+                    Excel
                   </Button>
                   <Button variant="outline" size="sm" onClick={exportJSON} disabled={fichasFiltradas.length === 0}>
                     <Download className="h-3.5 w-3.5" />
