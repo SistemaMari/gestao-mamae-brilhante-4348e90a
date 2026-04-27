@@ -32,7 +32,13 @@ function calcularMesAnterior(): { inicio: string; fim: string; rotuloMes: string
   const hoje = new Date();
   const inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
   const fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  // Formatação LOCAL — evita -1 dia por timezone (alinhado ao item 2 do prompt)
+  const fmt = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
   const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   const rotuloMes = `${meses[inicio.getMonth()]}/${inicio.getFullYear()}`;
   return { inicio: fmt(inicio), fim: fmt(fim), rotuloMes };
