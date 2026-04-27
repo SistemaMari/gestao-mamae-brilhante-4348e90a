@@ -97,7 +97,10 @@ export default function RegistroPartoForm({
   useEffect(() => {
     if (igOrigem === 'manual') return;
     if (!paciente.dum || !dataParto) return;
-    const dias = differenceInDays(new Date(dataParto), new Date(paciente.dum));
+    const parto = parseDateLocal(dataParto);
+    const dum = parseDateLocal(paciente.dum);
+    if (!parto || !dum) return;
+    const dias = differenceInDays(parto, dum);
     if (dias < 0) return;
     setIgPartoSemanas(String(Math.floor(dias / 7)));
     setIgPartoDias(String(dias % 7));
