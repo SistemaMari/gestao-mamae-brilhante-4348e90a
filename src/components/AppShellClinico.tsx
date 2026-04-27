@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
+import { useSyncLanguageWithProfile } from '@/hooks/useSyncLanguageWithProfile';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Users, UserPlus, CreditCard, UserCog, LogOut, Menu, X,
@@ -15,22 +17,12 @@ import {
 import BlockingModal from '@/components/BlockingModal';
 import BannerUsoLaudos from '@/components/BannerUsoLaudos';
 import BannerStatusPlano from '@/components/BannerStatusPlano';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { avaliarPlanoStatus } from '@/lib/planoStatus';
 import { toast } from '@/hooks/use-toast';
 
-const navItemsClinical = [
-  { label: 'Pacientes', icon: Users, path: '/dashboard' },
-  { label: 'Nova Paciente', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
-  { label: 'Histórico de Laudos', icon: FileText, path: '/laudos' },
-  { label: 'Meu Dashboard', icon: BarChart3, path: '/dashboard/metricas' },
-];
-
-const navItemsAdmin = [
-  { label: 'Meu Plano', icon: CreditCard, path: '/planos' },
-  { label: 'Meu Perfil', icon: UserCog, path: '/perfil' },
-];
-
 function useBreadcrumb() {
+  const { t } = useTranslation();
   const location = useLocation();
   const [pacienteNome, setPacienteNome] = useState<string | null>(null);
   const path = location.pathname;
@@ -50,19 +42,41 @@ function useBreadcrumb() {
   }, [path]);
 
   if (path === '/dashboard') return null;
-  if (path === '/paciente/nova') return { parent: { label: 'Pacientes', path: '/dashboard' }, current: 'Nova paciente' };
-  if (path.startsWith('/paciente/')) return { parent: { label: 'Pacientes', path: '/dashboard' }, current: pacienteNome || '...' };
-  if (path === '/planos') return { parent: null, current: 'Meu Plano' };
-  if (path === '/perfil') return { parent: null, current: 'Meu Perfil' };
-  if (path === '/completar-perfil') return { parent: null, current: 'Completar Perfil' };
-  if (path === '/dashboard/metricas') return { parent: null, current: 'Meu Dashboard' };
-  if (path === '/laudos') return { parent: null, current: 'Histórico de Laudos' };
+  const patientsParent = { label: t('nav.patients'), path: '/dashboard' };
+  if (path === '/paciente/nova') return { parent: patientsParent, current: t('nav.newPatient') };
+  if (path.startsWith('/paciente/')) return { parent: patientsParent, current: pacienteNome || '...' };
+  if (path === '/planos') return { parent: null, current: t('nav.plans') };
+  if (path === '/perfil') return { parent: null, current: t('nav.profile') };
+  if (path === '/completar-perfil') return { parent: null, current: t('profile.title') };
+  if (path === '/dashboard/metricas') return { parent: null, current: t('nav.metrics') };
+  if (path === '/laudos') return { parent: null, current: t('nav.history') };
   return null;
 }
 
+interface NavItem {
+  labelKey: string;
+  icon: typeof Users;
+  path: string;
+  checkLimit?: boolean;
+}
+
+const navItemsClinical: NavItem[] = [
+  { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
+  { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
+  { labelKey: 'nav.history', icon: FileText, path: '/laudos' },
+  { labelKey: 'nav.metrics', icon: BarChart3, path: '/dashboard/metricas' },
+];
+
+const navItemsAdmin: NavItem[] = [
+  { labelKey: 'nav.plans', icon: CreditCard, path: '/planos' },
+  { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
+];
+
 export default function AppShellClinico() {
+  const { t } = useTranslation();
   const { user, signOut, profile, loading: authLoading } = useAuth();
   const { profissionalData, loading: profLoading } = useProfissionalData();
+  useSyncLanguageWithProfile();
   const navigate = useNavigate();
   const location = useLocation();
   const breadcrumb = useBreadcrumb();
@@ -85,10 +99,10 @@ export default function AppShellClinico() {
     : user?.email?.split('@')[0] || '';
 
   const planoLabel = profissionalData
-    ? `Plano ${profissionalData.plano.charAt(0).toUpperCase() + profissionalData.plano.slice(1)} — ${profissionalData.laudos_usados}/${profissionalData.laudos_limite} laudos`
+    ? `${t('nav.plans')} ${profissionalData.plano.charAt(0).toUpperCase() + profissionalData.plano.slice(1)} — ${profissionalData.laudos_usados}/${profissionalData.laudos_limite} ${t('nav.reports').toLowerCase()}`
     : '';
 
-  const handleNavClick = async (item: typeof navItemsClinical[0]) => {
+  const handleNavClick = async (item: NavItem) => {
     if (item.checkLimit && profissionalData) {
       const planoInfo = avaliarPlanoStatus(profissionalData.plano_status, profissionalData.plano_expira_em);
       if (planoInfo.bloqueado) {
@@ -116,9 +130,9 @@ export default function AppShellClinico() {
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/');
   };
 
-  const renderNavButton = (item: typeof navItemsClinical[0]) => (
+  const renderNavButton = (item: NavItem) => (
     <button
-      key={item.label}
+      key={item.path}
       onClick={() => handleNavClick(item)}
       className={cn(
         'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
@@ -128,7 +142,7 @@ export default function AppShellClinico() {
       )}
     >
       <item.icon className="h-5 w-5 shrink-0" />
-      <span>{item.label}</span>
+      <span>{t(item.labelKey)}</span>
       {item.path === '/planos' && profissionalData && (
         <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
           {profissionalData.plano}
@@ -151,7 +165,7 @@ export default function AppShellClinico() {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
         >
           <LogOut className="h-5 w-5 shrink-0" />
-          <span>Sair</span>
+          <span>{t('common.logout')}</span>
         </button>
       </div>
     </>
@@ -193,9 +207,12 @@ export default function AppShellClinico() {
         )}
 
         {/* Greeting */}
-        <span className="hidden md:inline text-sm mr-4" style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-          Olá, Dr(a). {firstName}
+        <span className="hidden md:inline text-sm mr-3" style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+          {t('dashboard.welcome', { name: `Dr(a). ${firstName}` })}
         </span>
+
+        {/* Language switcher */}
+        <LanguageSwitcher variant="compact" />
 
         {/* Profile dropdown */}
         <DropdownMenu>
@@ -206,10 +223,10 @@ export default function AppShellClinico() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => navigate('/perfil')}>
-              <UserCog className="h-4 w-4 mr-2" /> Meu perfil
+              <UserCog className="h-4 w-4 mr-2" /> {t('nav.profile')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={signOut} className="text-destructive">
-              <LogOut className="h-4 w-4 mr-2" /> Sair
+              <LogOut className="h-4 w-4 mr-2" /> {t('common.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
