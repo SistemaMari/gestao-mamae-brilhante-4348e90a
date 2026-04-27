@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import AppSidebar from '@/components/AppSidebar';
 import StatCard from '@/components/StatCard';
@@ -58,10 +58,16 @@ export default function AdminPage() {
   const [vincularUnidadeId, setVincularUnidadeId] = useState<string>('');
   const [vincularPerfil, setVincularPerfil] = useState<string>('profissional');
 
+  // Filtros da seção de profissionais
+  const [busca, setBusca] = useState('');
+  const [filtroUnidade, setFiltroUnidade] = useState<string>('all');
+  const [filtroPlano, setFiltroPlano] = useState<string>('all');
+  const [filtroPerfil, setFiltroPerfil] = useState<string>('all');
+
   const carregar = useCallback(async () => {
     setLoading(true);
     const [profsRes, unitsRes, convitesRes, adminsRes, gestoresRes] = await Promise.all([
-      supabase.from('profissionais').select('id, user_id, nome, crm, especialidade, unidade_id, perfil_institucional, created_at').order('created_at', { ascending: false }),
+      supabase.from('profissionais').select('id, user_id, nome, crm, especialidade, unidade_id, perfil_institucional, plano, plano_status, created_at').order('created_at', { ascending: false }),
       supabase.from('unidades').select('id, nome, tipo, created_at').order('created_at', { ascending: false }),
       supabase.from('convites').select('id').eq('status', 'pendente'),
       supabase.from('admins').select('id, user_id, nome, created_at').order('created_at', { ascending: false }),
