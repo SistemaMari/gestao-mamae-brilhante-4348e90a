@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function OnboardingPage() {
+  const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -24,11 +26,10 @@ export default function OnboardingPage() {
     });
     setLoading(false);
     if (error) {
-      toast({ title: 'Erro', description: 'Não foi possível criar seu perfil. Tente novamente.', variant: 'destructive' });
+      toast({ title: t('onboarding.errorTitle'), description: t('onboarding.errorDesc'), variant: 'destructive' });
       return;
     }
-    toast({ title: 'Perfil criado', description: 'Complete seus dados profissionais agora.' });
-    // Force reload para o AuthContext re-determinar o perfil
+    toast({ title: t('onboarding.profileCreatedTitle'), description: t('onboarding.profileCreatedDesc') });
     window.location.href = '/completar-perfil';
   };
 
@@ -44,9 +45,9 @@ export default function OnboardingPage() {
       </div>
       <div className="w-full max-w-2xl animate-fade-in">
         <div className="mb-8 text-center">
-          <h1 className="font-heading text-2xl font-bold text-foreground">Bem-vinda(o) à MARI DMG</h1>
+          <h1 className="font-heading text-2xl font-bold text-foreground">{t('onboarding.welcome')}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Como você vai usar a plataforma?
+            {t('onboarding.question')}
           </p>
         </div>
 
@@ -60,9 +61,9 @@ export default function OnboardingPage() {
             <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
               <Briefcase className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="mb-2 font-heading font-semibold text-foreground">Profissional autônomo</h3>
+            <h3 className="mb-2 font-heading font-semibold text-foreground">{t('onboarding.autonomousTitle')}</h3>
             <p className="text-sm text-muted-foreground">
-              Sou médico(a) em consultório próprio, atendendo de forma individual.
+              {t('onboarding.autonomousDesc')}
             </p>
           </Card>
 
@@ -75,9 +76,9 @@ export default function OnboardingPage() {
             <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
               <Building2 className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="mb-2 font-heading font-semibold text-foreground">Vou usar via instituição</h3>
+            <h3 className="mb-2 font-heading font-semibold text-foreground">{t('onboarding.institutionalTitle')}</h3>
             <p className="text-sm text-muted-foreground">
-              Trabalho em uma clínica, hospital ou serviço público com equipe.
+              {t('onboarding.institutionalDesc')}
             </p>
           </Card>
         </div>
@@ -85,22 +86,22 @@ export default function OnboardingPage() {
         {escolha === 'consultorio' && (
           <div className="mt-6 rounded-xl border border-border bg-card p-5">
             <p className="mb-4 text-sm text-muted-foreground">
-              Vamos criar seu perfil de consultório. Em seguida, você completa CRM, especialidade e dados de contato.
+              {t('onboarding.autonomousIntro')}
             </p>
             <Button onClick={criarConsultorio} disabled={loading} className="w-full sm:w-auto">
-              {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando perfil...</> : 'Criar meu perfil de consultório'}
+              {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('onboarding.creatingProfile')}</> : t('onboarding.createProfile')}
             </Button>
           </div>
         )}
 
         {escolha === 'institucional' && (
           <div className="mt-6 rounded-xl border border-border bg-card p-5">
-            <p className="mb-2 text-sm font-medium text-foreground">Você precisa receber um convite</p>
+            <p className="mb-2 text-sm font-medium text-foreground">{t('onboarding.needInviteTitle')}</p>
             <p className="mb-4 text-sm text-muted-foreground">
-              O gestor da sua unidade deve enviar um convite por e-mail para vincular sua conta. Quando receber, basta acessar o link do convite.
+              {t('onboarding.needInviteDesc')}
             </p>
             <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" /> Sair
+              <LogOut className="mr-2 h-4 w-4" /> {t('onboarding.signOut')}
             </Button>
           </div>
         )}
@@ -110,10 +111,11 @@ export default function OnboardingPage() {
             onClick={handleSignOut}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            Sair da conta
+            {t('onboarding.signOutAccount')}
           </button>
         </div>
       </div>
     </div>
   );
 }
+
