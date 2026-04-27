@@ -94,7 +94,7 @@ export default function DashboardMetricasPage() {
 
     const isInstitucional = !!profissionalData.unidade_id;
 
-    let pacQuery = supabase.from('pacientes').select('id, nome, status_ficha, created_at, data_proximo_retorno, profissional_id, unidade_id');
+    let pacQuery = supabase.from('pacientes').select('id, nome, status_ficha, created_at, data_proximo_retorno, profissional_id, unidade_id').eq('is_rascunho', false);
     if (isInstitucional) {
       pacQuery = pacQuery.eq('unidade_id', profissionalData.unidade_id!);
     } else {
