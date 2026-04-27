@@ -1,0 +1,2 @@
+INSERT INTO public.profissionais (user_id, nome, unidade_id, perfil_institucional, especialidade, plano, idioma)
+VALUES ('6ba34fda-311d-4ca0-9246-b78b00ec7b92', 'Moa de Carvalho', 'f6df8ad6-4011-45e0-a223-252c66d7d9c3', 'gestor', 'Ginecologia e Obstetrícia', 'free', 'pt-BR');
