@@ -261,8 +261,8 @@ export default function ConsolidarPage() {
     });
   }
   function toggleTodosRelatorios() {
-    if (selecionadosRel.size === relatorios.length) setSelecionadosRel(new Set());
-    else setSelecionadosRel(new Set(relatorios.map((r) => r.id)));
+    if (selecionadosRel.size === relatoriosFiltrados.length) setSelecionadosRel(new Set());
+    else setSelecionadosRel(new Set(relatoriosFiltrados.map((r) => r.id)));
   }
 
   // ----- Download individual -----
