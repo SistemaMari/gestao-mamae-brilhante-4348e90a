@@ -73,8 +73,10 @@ const navItemsAdmin: NavItem[] = [
 ];
 
 export default function AppShellClinico() {
+  const { t } = useTranslation();
   const { user, signOut, profile, loading: authLoading } = useAuth();
   const { profissionalData, loading: profLoading } = useProfissionalData();
+  useSyncLanguageWithProfile();
   const navigate = useNavigate();
   const location = useLocation();
   const breadcrumb = useBreadcrumb();
@@ -97,10 +99,10 @@ export default function AppShellClinico() {
     : user?.email?.split('@')[0] || '';
 
   const planoLabel = profissionalData
-    ? `Plano ${profissionalData.plano.charAt(0).toUpperCase() + profissionalData.plano.slice(1)} — ${profissionalData.laudos_usados}/${profissionalData.laudos_limite} laudos`
+    ? `${t('nav.plans')} ${profissionalData.plano.charAt(0).toUpperCase() + profissionalData.plano.slice(1)} — ${profissionalData.laudos_usados}/${profissionalData.laudos_limite} ${t('nav.reports').toLowerCase()}`
     : '';
 
-  const handleNavClick = async (item: typeof navItemsClinical[0]) => {
+  const handleNavClick = async (item: NavItem) => {
     if (item.checkLimit && profissionalData) {
       const planoInfo = avaliarPlanoStatus(profissionalData.plano_status, profissionalData.plano_expira_em);
       if (planoInfo.bloqueado) {
@@ -128,9 +130,9 @@ export default function AppShellClinico() {
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/');
   };
 
-  const renderNavButton = (item: typeof navItemsClinical[0]) => (
+  const renderNavButton = (item: NavItem) => (
     <button
-      key={item.label}
+      key={item.path}
       onClick={() => handleNavClick(item)}
       className={cn(
         'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
@@ -140,7 +142,7 @@ export default function AppShellClinico() {
       )}
     >
       <item.icon className="h-5 w-5 shrink-0" />
-      <span>{item.label}</span>
+      <span>{t(item.labelKey)}</span>
       {item.path === '/planos' && profissionalData && (
         <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
           {profissionalData.plano}
@@ -163,7 +165,7 @@ export default function AppShellClinico() {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
         >
           <LogOut className="h-5 w-5 shrink-0" />
-          <span>Sair</span>
+          <span>{t('common.logout')}</span>
         </button>
       </div>
     </>
