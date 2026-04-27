@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Briefcase, Building2, Loader2, LogOut } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function OnboardingPage() {
   const { user, signOut } = useAuth();
@@ -37,7 +38,10 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <div className="absolute right-4 top-4">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-2xl animate-fade-in">
         <div className="mb-8 text-center">
           <h1 className="font-heading text-2xl font-bold text-foreground">Bem-vinda(o) à MARI DMG</h1>
