@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { differenceInDays, addDays, format } from 'date-fns';
+import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import {
@@ -102,13 +103,16 @@ export default function FichaBDForm({
 
   const [dataInicio, setDataInicio] = useState(editingConsulta?.data_inicio ?? '');
   const [dataFim, setDataFim] = useState(editingConsulta?.data_fim ?? '');
-  const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? new Date().toISOString().slice(0, 10));
+  const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? todayLocalISO());
   const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
   const [saving, setSaving] = useState(false);
 
   const igAtual = useMemo(() => {
     if (!paciente.dum) return null;
-    const dias = differenceInDays(new Date(dataConsulta), new Date(paciente.dum));
+    const consulta = parseDateLocal(dataConsulta);
+    const dum = parseDateLocal(paciente.dum);
+    if (!consulta || !dum) return null;
+    const dias = differenceInDays(consulta, dum);
     if (dias < 0) return null;
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente.dum, dataConsulta]);
@@ -190,8 +194,9 @@ export default function FichaBDForm({
     return alerts;
   }, [grid]);
 
-  const dataProximoRetorno = dataConsulta
-    ? format(addDays(new Date(dataConsulta), retornoDias), 'dd/MM/yyyy')
+  const dataConsultaLocal = parseDateLocal(dataConsulta);
+  const dataProximoRetorno = dataConsultaLocal
+    ? format(addDays(dataConsultaLocal, retornoDias), 'dd/MM/yyyy')
     : null;
 
   const [showImpact, setShowImpact] = useState(false);
@@ -324,8 +329,8 @@ export default function FichaBDForm({
         consultas: updatedConsultas,
         status_ficha: newStatus,
         data_ultima_consulta: dataConsulta,
-        data_proximo_retorno: isAdequado
-          ? format(addDays(new Date(dataConsulta), retornoDias), 'yyyy-MM-dd')
+        data_proximo_retorno: isAdequado && dataConsultaLocal
+          ? format(addDays(dataConsultaLocal, retornoDias), 'yyyy-MM-dd')
           : null,
       });
 
@@ -409,8 +414,8 @@ export default function FichaBDForm({
         .update({
           status_ficha: newStatus,
           data_ultima_consulta: dataConsulta,
-          data_proximo_retorno: isAdequado
-            ? format(addDays(new Date(dataConsulta), retornoDias), 'yyyy-MM-dd')
+          data_proximo_retorno: isAdequado && dataConsultaLocal
+            ? format(addDays(dataConsultaLocal, retornoDias), 'yyyy-MM-dd')
             : null,
         })
         .eq('id', paciente.id);

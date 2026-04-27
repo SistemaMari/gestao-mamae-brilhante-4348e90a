@@ -37,6 +37,7 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
 import { differenceInYears, differenceInDays, addDays, format } from 'date-fns';
+import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   aguardando_gj: { label: 'Aguardando GJ', color: 'bg-gray-500' },
@@ -261,7 +262,8 @@ export default function FichaPacientePage() {
 
   const idade = useMemo(() => {
     if (!paciente?.data_nascimento) return null;
-    return differenceInYears(new Date(), new Date(paciente.data_nascimento));
+    const nasc = parseDateLocal(paciente.data_nascimento);
+    return nasc ? differenceInYears(new Date(), nasc) : null;
   }, [paciente?.data_nascimento]);
 
   const primeiraConsulta = consultas.find((c) => c.tipo === 'consulta_1');
@@ -297,21 +299,26 @@ export default function FichaPacientePage() {
   // IG calculated from DUM
   const igNaConsulta1 = useMemo(() => {
     if (!paciente?.dum || !primeiraConsulta) return null;
-    const dias = differenceInDays(new Date(primeiraConsulta.data), new Date(paciente.dum));
+    const consulta = parseDateLocal(primeiraConsulta.data);
+    const dum = parseDateLocal(paciente.dum);
+    if (!consulta || !dum) return null;
+    const dias = differenceInDays(consulta, dum);
     if (dias < 0) return null;
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente?.dum, primeiraConsulta]);
 
   const igAtual = useMemo(() => {
     if (!paciente?.dum) return null;
-    const dias = differenceInDays(new Date(), new Date(paciente.dum));
+    const dum = parseDateLocal(paciente.dum);
+    if (!dum) return null;
+    const dias = differenceInDays(new Date(), dum);
     if (dias < 0) return null;
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente?.dum]);
 
   const dumDate = useMemo(() => {
     if (!paciente?.dum) return null;
-    return new Date(paciente.dum);
+    return parseDateLocal(paciente.dum);
   }, [paciente?.dum]);
 
   // GTT window: 24-28 weeks from DUM
@@ -422,7 +429,8 @@ export default function FichaPacientePage() {
 
   const editIdade = useMemo(() => {
     if (!editDataNascimento) return null;
-    return differenceInYears(new Date(), new Date(editDataNascimento));
+    const nasc = parseDateLocal(editDataNascimento);
+    return nasc ? differenceInYears(new Date(), nasc) : null;
   }, [editDataNascimento]);
 
   if (loading) {
@@ -596,7 +604,7 @@ export default function FichaPacientePage() {
                 <User className="h-3.5 w-3.5 shrink-0" />
                 <span>
                   <span className="font-medium text-foreground">Nascimento:</span>{' '}
-                  {paciente.data_nascimento ? format(new Date(paciente.data_nascimento), 'dd/MM/yyyy') : '—'}
+                  {paciente.data_nascimento ? formatDateBR(paciente.data_nascimento) : '—'}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -628,14 +636,14 @@ export default function FichaPacientePage() {
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
                   <span className="font-medium text-foreground">Data da consulta 1:</span>{' '}
-                  {primeiraConsulta ? format(new Date(primeiraConsulta.data), 'dd/MM/yyyy') : '—'}
+                  {primeiraConsulta ? formatDateBR(primeiraConsulta.data) : '—'}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
                   <span className="font-medium text-foreground">DUM:</span>{' '}
-                  {paciente.dum ? format(new Date(paciente.dum), 'dd/MM/yyyy') : '—'}
+                  {paciente.dum ? formatDateBR(paciente.dum) : '—'}
                 </span>
               </div>
             </div>
@@ -707,7 +715,7 @@ export default function FichaPacientePage() {
           paciente={{ nome: paciente.nome }}
           igSemanas={igNaConsulta1?.semanas ?? 0}
           igDias={igNaConsulta1?.dias ?? 0}
-          dataLaudo={new Date(primeiraConsulta.data)}
+          dataLaudo={parseDateLocal(primeiraConsulta.data) ?? new Date()}
           cenario={mapearCenario({ tipo: 'consulta_1', status_gerado: paciente.status_ficha })}
           bloco2={null}
           bloco3={null}
@@ -742,7 +750,9 @@ export default function FichaPacientePage() {
               if (c.ig_semanas != null) {
                 igDisplay = { semanas: c.ig_semanas, dias: c.ig_dias || 0 };
               } else if (paciente?.dum) {
-                const diasFromDum = differenceInDays(new Date(c.data), new Date(paciente.dum));
+                const cData = parseDateLocal(c.data);
+                const cDum = parseDateLocal(paciente.dum);
+                const diasFromDum = (cData && cDum) ? differenceInDays(cData, cDum) : -1;
                 if (diasFromDum >= 0) {
                   igDisplay = { semanas: Math.floor(diasFromDum / 7), dias: diasFromDum % 7 };
                 }
@@ -757,7 +767,7 @@ export default function FichaPacientePage() {
                         {displayName}
                       </span>
                       <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                        {format(new Date(c.data), 'dd/MM/yyyy')}
+                        {formatDateBR(c.data)}
                       </span>
                     </div>
                     {igDisplay && (
@@ -767,7 +777,7 @@ export default function FichaPacientePage() {
                     )}
                     {(c.data_inicio && c.data_fim) && (
                       <span className="text-[10px] text-[#64748B] self-start">
-                        Período do perfil: {format(new Date(c.data_inicio), 'dd/MM/yyyy')} a {format(new Date(c.data_fim), 'dd/MM/yyyy')}
+                        Período do perfil: {formatDateBR(c.data_inicio)} a {formatDateBR(c.data_fim)}
                       </span>
                     )}
                   </div>
@@ -845,7 +855,7 @@ export default function FichaPacientePage() {
 
                     // Normal read-only view with edit button
                     const igLaudo = igDisplay ?? igAtual ?? { semanas: 0, dias: 0 };
-                    const dataLaudo = new Date(c.data);
+                    const dataLaudo = parseDateLocal(c.data) ?? new Date();
                     const cenario = mapearCenario({
                       tipo: c.tipo,
                       status_gerado: c.status_gerado,

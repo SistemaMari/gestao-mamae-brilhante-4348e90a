@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { classificarRN } from '@/lib/intergrowth';
 
 import { differenceInDays, format } from 'date-fns';
+import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { FileText, Info, Loader2, Baby } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -62,7 +63,9 @@ export default function RegistroPartoForm({
   // ── IG atual calculada a partir da DUM (badge no cabeçalho) ──
   const igAtual = useMemo(() => {
     if (!paciente.dum) return null;
-    const dias = differenceInDays(new Date(), new Date(paciente.dum));
+    const dum = parseDateLocal(paciente.dum);
+    if (!dum) return null;
+    const dias = differenceInDays(new Date(), dum);
     if (dias < 0) return null;
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente.dum]);
@@ -73,9 +76,7 @@ export default function RegistroPartoForm({
   const [igPartoSemanas, setIgPartoSemanas] = useState<string>('');
   const [igPartoDias, setIgPartoDias] = useState<string>('');
   const [igOrigem, setIgOrigem] = useState<IgOrigem>('auto');
-  const [dataParto, setDataParto] = useState<string>(
-    format(new Date(), 'yyyy-MM-dd')
-  );
+  const [dataParto, setDataParto] = useState<string>(todayLocalISO());
   const [pesoRn, setPesoRn] = useState('');
   const [sexoRn, setSexoRn] = useState<SexoRNState>('');
   const [classRn, setClassRn] = useState<ClassRN>('');
@@ -96,7 +97,10 @@ export default function RegistroPartoForm({
   useEffect(() => {
     if (igOrigem === 'manual') return;
     if (!paciente.dum || !dataParto) return;
-    const dias = differenceInDays(new Date(dataParto), new Date(paciente.dum));
+    const parto = parseDateLocal(dataParto);
+    const dum = parseDateLocal(paciente.dum);
+    if (!parto || !dum) return;
+    const dias = differenceInDays(parto, dum);
     if (dias < 0) return;
     setIgPartoSemanas(String(Math.floor(dias / 7)));
     setIgPartoDias(String(dias % 7));

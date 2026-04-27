@@ -15,6 +15,7 @@ import {
   User, Info, Loader2
 } from 'lucide-react';
 import { differenceInDays, format, addDays } from 'date-fns';
+import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 
 interface Paciente extends PreviewPaciente {}
 
@@ -55,11 +56,13 @@ function calcIdadeGestacional(paciente: Paciente): string {
   let refDate: Date | null = null;
 
   if (paciente.usg_data && paciente.usg_ig_semanas != null) {
-    const usgDate = new Date(paciente.usg_data);
-    const diasNaUsg = (paciente.usg_ig_semanas * 7) + (paciente.usg_ig_dias || 0);
-    refDate = addDays(usgDate, -diasNaUsg); // DUM corrigida
+    const usgDate = parseDateLocal(paciente.usg_data);
+    if (usgDate) {
+      const diasNaUsg = (paciente.usg_ig_semanas * 7) + (paciente.usg_ig_dias || 0);
+      refDate = addDays(usgDate, -diasNaUsg); // DUM corrigida
+    }
   } else if (paciente.dum) {
-    refDate = new Date(paciente.dum);
+    refDate = parseDateLocal(paciente.dum);
   }
 
   if (!refDate) return '—';
@@ -77,7 +80,8 @@ function getReturnBadge(paciente: Paciente): { type: 'proximo' | 'vencido'; tool
   if (paciente.status_ficha !== 'dmg_confirmado') return null;
   if (!paciente.data_proximo_retorno) return null;
 
-  const retornoDate = new Date(paciente.data_proximo_retorno);
+  const retornoDate = parseDateLocal(paciente.data_proximo_retorno);
+  if (!retornoDate) return null;
   const today = new Date();
   const diff = differenceInDays(retornoDate, today);
 
@@ -372,7 +376,7 @@ export default function DashboardPage() {
                         <td className="px-4 py-3 text-muted-foreground">{calcIdadeGestacional(pac)}</td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {pac.data_ultima_consulta
-                            ? format(new Date(pac.data_ultima_consulta), 'dd/MM/yyyy')
+                            ? formatDateBR(pac.data_ultima_consulta)
                             : '—'}
                         </td>
                         <td className="px-4 py-3">
@@ -446,7 +450,7 @@ export default function DashboardPage() {
                       <span>IG: {calcIdadeGestacional(pac)}</span>
                       <span>
                         Última: {pac.data_ultima_consulta
-                          ? format(new Date(pac.data_ultima_consulta), 'dd/MM/yyyy')
+                          ? formatDateBR(pac.data_ultima_consulta)
                           : '—'}
                       </span>
                     </div>

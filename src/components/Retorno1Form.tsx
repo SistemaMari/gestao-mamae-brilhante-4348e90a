@@ -40,9 +40,10 @@ import {
 } from '@/components/ui/dialog';
 import { Info, Loader2, AlertTriangle, CheckCircle2, XCircle, Printer, Pencil, FileText } from 'lucide-react';
 import { differenceInDays, addDays, format } from 'date-fns';
+import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  return todayLocalISO();
 }
 
 type DiagnosticoResult = {
@@ -142,7 +143,10 @@ export default function Retorno1Form({
   // Calculate IG at exam date based on DUM
   const igCalculada = useMemo(() => {
     if (!paciente.dum || !dataExame) return null;
-    const dias = differenceInDays(new Date(dataExame), new Date(paciente.dum));
+    const exam = parseDateLocal(dataExame);
+    const dum = parseDateLocal(paciente.dum);
+    if (!exam || !dum) return null;
+    const dias = differenceInDays(exam, dum);
     if (dias < 0) return null;
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente.dum, dataExame]);
@@ -158,7 +162,8 @@ export default function Retorno1Form({
   // DUM-based GTT window calc for negative result
   const janelaGTT = useMemo(() => {
     if (!paciente.dum) return null;
-    const dumDate = new Date(paciente.dum);
+    const dumDate = parseDateLocal(paciente.dum);
+    if (!dumDate) return null;
     const inicio = addDays(dumDate, 24 * 7);
     const fim = addDays(dumDate, 28 * 7);
     return { inicio, fim };
@@ -166,7 +171,9 @@ export default function Retorno1Form({
 
   const igHoje = useMemo(() => {
     if (!paciente.dum) return null;
-    const dias = differenceInDays(new Date(), new Date(paciente.dum));
+    const dum = parseDateLocal(paciente.dum);
+    if (!dum) return null;
+    const dias = differenceInDays(new Date(), dum);
     if (dias < 0) return null;
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente.dum]);

@@ -26,9 +26,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Info, Loader2, AlertTriangle, CheckCircle2, XCircle, Printer } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
+import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  return todayLocalISO();
 }
 
 type GttDiagResult = {
@@ -138,7 +139,10 @@ export default function GttForm({
   // Calculate IG at exam date
   const igCalculada = useMemo(() => {
     if (!paciente.dum || !dataExame) return null;
-    const dias = differenceInDays(new Date(dataExame), new Date(paciente.dum));
+    const exam = parseDateLocal(dataExame);
+    const dum = parseDateLocal(paciente.dum);
+    if (!exam || !dum) return null;
+    const dias = differenceInDays(exam, dum);
     if (dias < 0) return null;
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente.dum, dataExame]);
@@ -152,7 +156,9 @@ export default function GttForm({
 
   const igHoje = useMemo(() => {
     if (!paciente.dum) return null;
-    const dias = differenceInDays(new Date(), new Date(paciente.dum));
+    const dum = parseDateLocal(paciente.dum);
+    if (!dum) return null;
+    const dias = differenceInDays(new Date(), dum);
     if (dias < 0) return null;
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente.dum]);
