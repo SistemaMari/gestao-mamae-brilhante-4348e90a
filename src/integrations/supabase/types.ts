@@ -834,6 +834,10 @@ export type Database = {
         Args: { _unidade_id: string; _user_id: string }
         Returns: boolean
       }
+      gestor_da_unidade: {
+        Args: { _unidade_id: string; _user_id: string }
+        Returns: boolean
+      }
       gestor_geral_tem_unidade: {
         Args: { _unidade_id: string; _user_id: string }
         Returns: boolean
