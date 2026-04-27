@@ -855,7 +855,7 @@ export default function FichaPacientePage() {
 
                     // Normal read-only view with edit button
                     const igLaudo = igDisplay ?? igAtual ?? { semanas: 0, dias: 0 };
-                    const dataLaudo = new Date(c.data);
+                    const dataLaudo = parseDateLocal(c.data) ?? new Date();
                     const cenario = mapearCenario({
                       tipo: c.tipo,
                       status_gerado: c.status_gerado,
