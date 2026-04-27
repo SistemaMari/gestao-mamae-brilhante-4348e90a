@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, ChevronsUpDown, Search } from 'lucide-react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -61,13 +61,7 @@ export default function CidadeCombobox({
         align="start"
       >
         <Command>
-          <div className="flex items-center border-b px-3">
-            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-            <CommandInput
-              placeholder="Digite para buscar..."
-              className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
-            />
-          </div>
+          <CommandInput placeholder="Digite para buscar..." />
           <CommandList className="max-h-[280px]">
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
