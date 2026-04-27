@@ -64,6 +64,25 @@
     "units": "Units",
     "admins": "Administrators"
   },
+  "onboarding": {
+    "welcome": "Welcome to MARI DMG",
+    "question": "How will you use the platform?",
+    "autonomousTitle": "Independent professional",
+    "autonomousDesc": "I'm a physician in my own practice, seeing patients individually.",
+    "institutionalTitle": "I'll use it via an institution",
+    "institutionalDesc": "I work at a clinic, hospital or public service with a team.",
+    "autonomousIntro": "Let's create your practice profile. Next, you'll complete your medical license, specialty and contact details.",
+    "createProfile": "Create my practice profile",
+    "creatingProfile": "Creating profile...",
+    "needInviteTitle": "You need to receive an invitation",
+    "needInviteDesc": "Your unit manager must send an email invitation to link your account. Once received, just access the invitation link.",
+    "signOut": "Sign out",
+    "signOutAccount": "Sign out of account",
+    "errorTitle": "Error",
+    "errorDesc": "We couldn't create your profile. Please try again.",
+    "profileCreatedTitle": "Profile created",
+    "profileCreatedDesc": "Complete your professional details now."
+  },
   "auth": {
     "appName": "MARI DMG Diagnostics",
     "appTagline": "Clinical decision support system",

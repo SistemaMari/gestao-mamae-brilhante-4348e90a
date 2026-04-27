@@ -64,6 +64,25 @@
     "units": "Unidades",
     "admins": "Administradores"
   },
+  "onboarding": {
+    "welcome": "Bem-vinda(o) à MARI DMG",
+    "question": "Como você vai usar a plataforma?",
+    "autonomousTitle": "Profissional autônomo",
+    "autonomousDesc": "Sou médico(a) em consultório próprio, atendendo de forma individual.",
+    "institutionalTitle": "Vou usar via instituição",
+    "institutionalDesc": "Trabalho em uma clínica, hospital ou serviço público com equipe.",
+    "autonomousIntro": "Vamos criar seu perfil de consultório. Em seguida, você completa CRM, especialidade e dados de contato.",
+    "createProfile": "Criar meu perfil de consultório",
+    "creatingProfile": "Criando perfil...",
+    "needInviteTitle": "Você precisa receber um convite",
+    "needInviteDesc": "O gestor da sua unidade deve enviar um convite por e-mail para vincular sua conta. Quando receber, basta acessar o link do convite.",
+    "signOut": "Sair",
+    "signOutAccount": "Sair da conta",
+    "errorTitle": "Erro",
+    "errorDesc": "Não foi possível criar seu perfil. Tente novamente.",
+    "profileCreatedTitle": "Perfil criado",
+    "profileCreatedDesc": "Complete seus dados profissionais agora."
+  },
   "auth": {
     "appName": "MARI DMG Diagnóstica",
     "appTagline": "Sistema de apoio à decisão clínica",
