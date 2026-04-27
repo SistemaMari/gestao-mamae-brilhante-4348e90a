@@ -147,6 +147,21 @@ Deno.serve(async (req) => {
     const igAtual = calcularIG(paciente.dum, paciente.usg_data, paciente.usg_ig_semanas, paciente.usg_ig_dias);
     const proximaConsulta = calcularProximaConsulta(cenarioId, igAtual?.semanas ?? null);
 
+    // Roteamento de módulos: baixa do bucket os PDFs pertinentes ANTES de criar o laudo
+    const arquivosAlvo = modulosParaCenario(cenarioId);
+    const arquivosBaixados = (await Promise.all(arquivosAlvo.map((p) => bucketFileToDataUrl(supabaseAdmin, p))))
+      .filter(Boolean) as Array<{ name: string; dataUrl: string }>;
+    const arquivosFaltantes = arquivosAlvo.filter((p) => !arquivosBaixados.find((a) => a.name === p));
+
+    // Bloqueia se PROTOCOLO ausente (Bloco 2 é impossível sem ele)
+    if (!arquivosBaixados.find((a) => a.name === "PROTOCOLO_DMG_Brasil_2016.pdf")) {
+      return jsonResp({
+        error: "Base de Conhecimento incompleta",
+        details: "O PROTOCOLO_DMG_Brasil_2016.pdf é obrigatório para gerar qualquer laudo. Peça ao admin para fazer o upload em /admin/base-conhecimento.",
+        arquivos_faltantes: arquivosFaltantes,
+      }, 412);
+    }
+
     // Cria laudo "processando"
     const { data: laudo, error: laudoErr } = await supabaseAdmin
       .from("laudos")
@@ -156,17 +171,12 @@ Deno.serve(async (req) => {
         profissional_id: profissional.id,
         cenario_clinico: cenarioId,
         status: "processando",
-        metadata: { ficha_tipo: fichaTipo, ig_atual: igAtual, proxima_consulta: proximaConsulta },
+        metadata: { ficha_tipo: fichaTipo, ig_atual: igAtual, proxima_consulta: proximaConsulta, arquivos_faltantes: arquivosFaltantes },
       })
       .select()
       .single();
 
     if (laudoErr || !laudo) return jsonResp({ error: "Erro ao criar laudo", details: laudoErr?.message }, 500);
-
-    // Roteamento de módulos: tenta baixar do bucket os PDFs pertinentes
-    const arquivosAlvo = modulosParaCenario(cenarioId);
-    const arquivosBaixados = (await Promise.all(arquivosAlvo.map((p) => bucketFileToDataUrl(supabaseAdmin, p))))
-      .filter(Boolean) as Array<{ name: string; dataUrl: string }>;
 
     // Payload de dados clínicos enviado como user message
     const dadosClinicosPayload = {
