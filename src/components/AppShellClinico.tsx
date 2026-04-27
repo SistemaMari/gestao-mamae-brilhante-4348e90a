@@ -14,6 +14,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import BlockingModal from '@/components/BlockingModal';
 import BannerUsoLaudos from '@/components/BannerUsoLaudos';
+import BannerStatusPlano from '@/components/BannerStatusPlano';
+import { avaliarPlanoStatus } from '@/lib/planoStatus';
+import { toast } from '@/hooks/use-toast';
 
 const navItemsClinical = [
   { label: 'Pacientes', icon: Users, path: '/dashboard' },
@@ -87,6 +90,16 @@ export default function AppShellClinico() {
 
   const handleNavClick = async (item: typeof navItemsClinical[0]) => {
     if (item.checkLimit && profissionalData) {
+      const planoInfo = avaliarPlanoStatus(profissionalData.plano_status, profissionalData.plano_expira_em);
+      if (planoInfo.bloqueado) {
+        toast({
+          title: planoInfo.titulo,
+          description: planoInfo.descricao,
+          variant: 'destructive',
+        });
+        navigate('/planos');
+        return;
+      }
       const { data } = await supabase.rpc('pode_criar_ficha', { p_profissional_id: profissionalData.id });
       if (data !== true) {
         setShowBlockingModal(true);
