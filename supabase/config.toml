@@ -5,3 +5,5 @@ verify_jwt = false
 
 [functions.smoke-test-consolidacao]
 verify_jwt = false
+
+
