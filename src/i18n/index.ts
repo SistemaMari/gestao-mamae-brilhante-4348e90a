@@ -33,7 +33,7 @@ i18n
       caches: ['localStorage'],
     },
     interpolation: { escapeValue: false },
-    initImmediate: false,
+    initAsync: false,
     returnNull: false,
     react: { useSuspense: false },
   });
