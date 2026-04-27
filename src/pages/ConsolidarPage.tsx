@@ -5,7 +5,7 @@ import { ptBR } from 'date-fns/locale';
 import type { DateRange } from 'react-day-picker';
 import {
   BarChart3, Building2, Calendar as CalendarIcon, CheckCircle2, Download,
-  FileText, Filter, History, Loader2, RefreshCw, XCircle,
+  FileText, Filter, History, Loader2, RefreshCw, Sparkles, User, XCircle,
 } from 'lucide-react';
 
 import { supabase } from '@/integrations/supabase/client';
@@ -16,10 +16,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+
+type OrigemRelatorio = 'manual' | 'automatico';
+type FiltroOrigem = 'todas' | 'manual' | 'automatico';
 
 interface GestorGeral {
   id: string;
