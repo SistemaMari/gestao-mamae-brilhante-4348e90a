@@ -1,5 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 
+const SYSTEM_USER_UUID = '00000000-0000-0000-0000-000000000001';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -31,20 +33,6 @@ Deno.serve(async (req) => {
     const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
     const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    // Cliente do usuário (para validar identidade)
-    const userClient = createClient(SUPABASE_URL, ANON, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) {
-      return jsonResponse({ status: 'erro', mensagem: 'Sessão inválida.' }, 401);
-    }
-    const callerId = userData.user.id;
-
-    // Cliente service role para validações e mutações
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-
     // Parse multipart/form-data
     let form: FormData;
     try {
@@ -55,54 +43,89 @@ Deno.serve(async (req) => {
 
     const pdfFile = form.get('pdf_file');
     const unidadeId = (form.get('unidade_id') as string | null)?.trim() ?? null;
-    const gestorId = (form.get('gestor_id') as string | null)?.trim() ?? null;
+    const gestorIdRaw = (form.get('gestor_id') as string | null)?.trim() ?? null;
     const periodoInicio = (form.get('periodo_inicio') as string | null)?.trim() ?? null;
     const periodoFim = (form.get('periodo_fim') as string | null)?.trim() ?? null;
     const metricasResumoRaw = form.get('metricas_resumo') as string | null;
+    const origem = ((form.get('origem') as string | null)?.trim() ?? 'manual') as 'manual' | 'automatico';
 
     if (!pdfFile || !(pdfFile instanceof File)) {
       return jsonResponse({ status: 'erro', mensagem: 'PDF não recebido.' }, 400);
     }
-    if (!unidadeId || !gestorId || !periodoInicio || !periodoFim) {
+    if (!unidadeId || !periodoInicio || !periodoFim) {
       return jsonResponse(
-        { status: 'erro', mensagem: 'Parâmetros obrigatórios ausentes (unidade_id, gestor_id, periodo_inicio, periodo_fim).' },
+        { status: 'erro', mensagem: 'Parâmetros obrigatórios ausentes (unidade_id, periodo_inicio, periodo_fim).' },
         400,
       );
     }
-
-    // Segurança extra: o gestor que está chamando precisa ser o gestor_id informado
-    if (gestorId !== callerId) {
-      return jsonResponse({ status: 'erro', mensagem: 'gestor_id não corresponde ao usuário autenticado.' }, 403);
+    if (origem !== 'manual' && origem !== 'automatico') {
+      return jsonResponse({ status: 'erro', mensagem: 'origem deve ser "manual" ou "automatico".' }, 400);
     }
 
-    // Validar que o gestor pertence à unidade e tem perfil 'gestor'
-    const { data: prof, error: profErr } = await admin
-      .from('profissionais')
-      .select('id, unidade_id, perfil_institucional')
-      .eq('user_id', gestorId)
-      .maybeSingle();
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const isAutomatico = origem === 'automatico' && gestorIdRaw === SYSTEM_USER_UUID;
 
-    if (profErr) {
-      console.error('Erro ao buscar profissional:', profErr);
-      return jsonResponse({ status: 'erro', mensagem: 'Falha ao validar gestor.' }, 500);
+    let gestorId: string | null = gestorIdRaw;
+
+    if (!isAutomatico) {
+      // Fluxo MANUAL: valida sessão do gestor humano
+      if (!gestorIdRaw) {
+        return jsonResponse({ status: 'erro', mensagem: 'gestor_id obrigatório para origem manual.' }, 400);
+      }
+
+      const userClient = createClient(SUPABASE_URL, ANON, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      const { data: userData, error: userErr } = await userClient.auth.getUser();
+      if (userErr || !userData.user) {
+        return jsonResponse({ status: 'erro', mensagem: 'Sessão inválida.' }, 401);
+      }
+      const callerId = userData.user.id;
+
+      if (gestorIdRaw !== callerId) {
+        return jsonResponse({ status: 'erro', mensagem: 'gestor_id não corresponde ao usuário autenticado.' }, 403);
+      }
+
+      const { data: prof, error: profErr } = await admin
+        .from('profissionais')
+        .select('id, unidade_id, perfil_institucional')
+        .eq('user_id', gestorIdRaw)
+        .maybeSingle();
+
+      if (profErr) {
+        console.error('Erro ao buscar profissional:', profErr);
+        return jsonResponse({ status: 'erro', mensagem: 'Falha ao validar gestor.' }, 500);
+      }
+
+      if (!prof || prof.unidade_id !== unidadeId || prof.perfil_institucional !== 'gestor') {
+        return jsonResponse({ status: 'erro', mensagem: 'Gestor não pertence a esta unidade.' }, 403);
+      }
+    } else {
+      // Fluxo AUTOMATICO: o cron chama com service_role; gestor_id vai como NULL no banco
+      // (preferência por NULL em vez do UUID do sistema, para deixar claro que não há gestor humano)
+      gestorId = null;
+
+      // Sanity check: a unidade existe?
+      const { data: uni, error: uniErr } = await admin
+        .from('unidades')
+        .select('id')
+        .eq('id', unidadeId)
+        .maybeSingle();
+      if (uniErr || !uni) {
+        return jsonResponse({ status: 'erro', mensagem: 'Unidade não encontrada.' }, 404);
+      }
     }
 
-    if (!prof || prof.unidade_id !== unidadeId || prof.perfil_institucional !== 'gestor') {
-      return jsonResponse({ status: 'erro', mensagem: 'Gestor não pertence a esta unidade.' }, 403);
-    }
-
-    // Path do arquivo: {unidade_id}/{ano-mes}/{timestamp}.pdf  (bucket = relatorios)
+    // Path: {unidade_id}/{ano-mes}/{automatico_|manual_}{timestamp}.pdf
     const timestamp = Date.now();
-    const anoMes = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
-    const path = `${unidadeId}/${anoMes}/${timestamp}.pdf`;
+    const anoMes = new Date().toISOString().slice(0, 7);
+    const prefix = isAutomatico ? 'automatico_' : 'manual_';
+    const path = `${unidadeId}/${anoMes}/${prefix}${timestamp}.pdf`;
 
-    // Upload
     const { error: uploadErr } = await admin.storage
       .from('relatorios')
-      .upload(path, pdfFile, {
-        contentType: 'application/pdf',
-        upsert: false,
-      });
+      .upload(path, pdfFile, { contentType: 'application/pdf', upsert: false });
 
     if (uploadErr) {
       console.error('Erro upload storage:', uploadErr);
@@ -111,7 +134,6 @@ Deno.serve(async (req) => {
 
     const tamanho = pdfFile.size;
 
-    // Parse das métricas — se inválido, salva como NULL
     let metricas: Record<string, unknown> | null = null;
     if (metricasResumoRaw) {
       try {
@@ -124,7 +146,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Inserir registro
     const { data: inserted, error: dbErr } = await admin
       .from('relatorios_unidade')
       .insert({
@@ -136,13 +157,13 @@ Deno.serve(async (req) => {
         arquivo_path: path,
         arquivo_tamanho_bytes: tamanho,
         metricas_resumo: metricas,
+        origem,
       })
       .select('id')
       .single();
 
     if (dbErr) {
       console.error('Erro insert relatorios_unidade:', dbErr);
-      // Limpeza: tenta deletar o arquivo do storage
       await admin.storage.from('relatorios').remove([path]).catch(() => {});
       return jsonResponse({ status: 'erro', mensagem: 'Falha ao registrar relatório.' }, 500);
     }
@@ -152,6 +173,7 @@ Deno.serve(async (req) => {
         status: 'salvo',
         relatorio_id: inserted.id,
         arquivo_path: path,
+        origem,
       },
       200,
     );

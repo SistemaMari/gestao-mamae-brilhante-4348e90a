@@ -1,1 +1,4 @@
 project_id = "ywldvotfgbxufcyjdvnq"
+
+[functions.gerar-relatorios-mensais]
+verify_jwt = false

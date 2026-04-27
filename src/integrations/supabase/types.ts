@@ -197,6 +197,51 @@ export type Database = {
           },
         ]
       }
+      execucoes_cron: {
+        Row: {
+          detalhe_falhas: Json | null
+          finalizado_em: string | null
+          id: string
+          iniciado_em: string
+          job_nome: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          status: string
+          total_falha: number | null
+          total_sucesso: number | null
+          total_unidades: number | null
+          total_vazias: number | null
+        }
+        Insert: {
+          detalhe_falhas?: Json | null
+          finalizado_em?: string | null
+          id?: string
+          iniciado_em?: string
+          job_nome: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          status?: string
+          total_falha?: number | null
+          total_sucesso?: number | null
+          total_unidades?: number | null
+          total_vazias?: number | null
+        }
+        Update: {
+          detalhe_falhas?: Json | null
+          finalizado_em?: string | null
+          id?: string
+          iniciado_em?: string
+          job_nome?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          status?: string
+          total_falha?: number | null
+          total_sucesso?: number | null
+          total_unidades?: number | null
+          total_vazias?: number | null
+        }
+        Relationships: []
+      }
       gestores_gerais: {
         Row: {
           created_at: string
@@ -577,9 +622,10 @@ export type Database = {
           arquivo_path: string
           arquivo_tamanho_bytes: number | null
           created_at: string
-          gestor_id: string
+          gestor_id: string | null
           id: string
           metricas_resumo: Json | null
+          origem: string
           periodo_fim: string
           periodo_inicio: string
           tipo: string
@@ -589,9 +635,10 @@ export type Database = {
           arquivo_path: string
           arquivo_tamanho_bytes?: number | null
           created_at?: string
-          gestor_id: string
+          gestor_id?: string | null
           id?: string
           metricas_resumo?: Json | null
+          origem?: string
           periodo_fim: string
           periodo_inicio: string
           tipo?: string
@@ -601,9 +648,10 @@ export type Database = {
           arquivo_path?: string
           arquivo_tamanho_bytes?: number | null
           created_at?: string
-          gestor_id?: string
+          gestor_id?: string | null
           id?: string
           metricas_resumo?: Json | null
+          origem?: string
           periodo_fim?: string
           periodo_inicio?: string
           tipo?: string
@@ -613,6 +661,7 @@ export type Database = {
       }
       unidades: {
         Row: {
+          ativa: boolean
           created_at: string
           id: string
           nome: string
@@ -623,6 +672,7 @@ export type Database = {
           tipo: string | null
         }
         Insert: {
+          ativa?: boolean
           created_at?: string
           id?: string
           nome: string
@@ -633,6 +683,7 @@ export type Database = {
           tipo?: string | null
         }
         Update: {
+          ativa?: boolean
           created_at?: string
           id?: string
           nome?: string
