@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { differenceInDays, addDays, format } from 'date-fns';
+import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import {
