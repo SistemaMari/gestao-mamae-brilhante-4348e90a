@@ -76,9 +76,7 @@ export default function RegistroPartoForm({
   const [igPartoSemanas, setIgPartoSemanas] = useState<string>('');
   const [igPartoDias, setIgPartoDias] = useState<string>('');
   const [igOrigem, setIgOrigem] = useState<IgOrigem>('auto');
-  const [dataParto, setDataParto] = useState<string>(
-    format(new Date(), 'yyyy-MM-dd')
-  );
+  const [dataParto, setDataParto] = useState<string>(todayLocalISO());
   const [pesoRn, setPesoRn] = useState('');
   const [sexoRn, setSexoRn] = useState<SexoRNState>('');
   const [classRn, setClassRn] = useState<ClassRN>('');
