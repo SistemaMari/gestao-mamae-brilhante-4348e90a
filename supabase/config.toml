@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.smoke-test-consolidacao]
 verify_jwt = false
+
+[functions.setup-test-users]
+verify_jwt = false
