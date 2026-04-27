@@ -24,7 +24,7 @@ interface ExpectedFile {
 
 const ARQUIVOS_ESPERADOS: ExpectedFile[] = [
   { name: 'PROTOCOLO_DMG_Brasil_2016.pdf', rotulo: 'Protocolo Brasileiro DMG 2016', obrigatorio: true, cenarios: ['1','2','3','4','5','6','6B','7','8'], descricao: 'Fonte exclusiva do Bloco 2 (Justificativa Científica). Sem ele NENHUM laudo é gerado.' },
-  { name: 'M2.pdf',  rotulo: 'Módulo 2 — Magnitude e riscos',          obrigatorio: true, cenarios: ['1','6','6B','8'],          descricao: 'Epidemiologia, complicações imediatas, riscos a longo prazo.' },
+  { name: 'M2.pdf',  rotulo: 'Módulo 2 — Magnitude e riscos',          obrigatorio: true, cenarios: ['1','5','6','6B','8'],      descricao: 'Epidemiologia, complicações imediatas, riscos a longo prazo.' },
   { name: 'M3.pdf',  rotulo: 'Módulo 3 — Fisiopatologia',              obrigatorio: true, cenarios: ['1','3','6','6B','8'],      descricao: 'Hiperinsulinismo fetal, cascata neonatal, perfis Lancet.' },
   { name: 'M4.pdf',  rotulo: 'Módulo 4 — Classificação',               obrigatorio: true, cenarios: ['1','6','6B','8'],          descricao: 'Critérios diagnósticos e classificação clínica.' },
   { name: 'M6.pdf',  rotulo: 'Módulo 6 — Tratamento (Aula 2)',         obrigatorio: true, cenarios: ['1','2','3','4','6','6B','8'], descricao: 'Aula 2: dieta detalhada, atividade física, perfil glicêmico. CRÍTICO para profundidade.' },
