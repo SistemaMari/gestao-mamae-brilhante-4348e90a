@@ -359,6 +359,66 @@ export type Database = {
           },
         ]
       }
+      partos: {
+        Row: {
+          classificacao_rn: string | null
+          created_at: string
+          data_parto: string
+          descricao_intercorrencia_materna: string | null
+          descricao_intercorrencia_neonatal: string | null
+          id: string
+          ig_parto_dias: number | null
+          ig_parto_semanas: number | null
+          intercorrencia_materna: boolean
+          intercorrencia_neonatal: boolean
+          observacoes: string | null
+          paciente_id: string
+          peso_rn_g: number | null
+          profissional_id: string
+          unidade_id: string | null
+          updated_at: string
+          via_parto: string
+        }
+        Insert: {
+          classificacao_rn?: string | null
+          created_at?: string
+          data_parto: string
+          descricao_intercorrencia_materna?: string | null
+          descricao_intercorrencia_neonatal?: string | null
+          id?: string
+          ig_parto_dias?: number | null
+          ig_parto_semanas?: number | null
+          intercorrencia_materna?: boolean
+          intercorrencia_neonatal?: boolean
+          observacoes?: string | null
+          paciente_id: string
+          peso_rn_g?: number | null
+          profissional_id: string
+          unidade_id?: string | null
+          updated_at?: string
+          via_parto: string
+        }
+        Update: {
+          classificacao_rn?: string | null
+          created_at?: string
+          data_parto?: string
+          descricao_intercorrencia_materna?: string | null
+          descricao_intercorrencia_neonatal?: string | null
+          id?: string
+          ig_parto_dias?: number | null
+          ig_parto_semanas?: number | null
+          intercorrencia_materna?: boolean
+          intercorrencia_neonatal?: boolean
+          observacoes?: string | null
+          paciente_id?: string
+          peso_rn_g?: number | null
+          profissional_id?: string
+          unidade_id?: string | null
+          updated_at?: string
+          via_parto?: string
+        }
+        Relationships: []
+      }
       perfis_glicemicos: {
         Row: {
           consulta_id: string
