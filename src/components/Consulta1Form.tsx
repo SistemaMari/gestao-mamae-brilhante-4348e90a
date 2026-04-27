@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
@@ -19,6 +19,8 @@ import {
 import { Info, Loader2, FileText } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
+import { useAutosave } from '@/hooks/useAutosave';
+import AutosaveIndicator from '@/components/AutosaveIndicator';
 
 function todayISO() {
   return todayLocalISO();
