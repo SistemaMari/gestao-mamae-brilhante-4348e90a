@@ -201,13 +201,27 @@ export default function HistoricoLaudosPage() {
                 <TableHead className="w-[140px]">Cenário</TableHead>
                 <TableHead className="w-[120px]">Status</TableHead>
                 <TableHead className="w-[200px]">Gerado em</TableHead>
+                <TableHead className="w-[180px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtrados.map((l) => {
                 const status = STATUS_LABEL[l.status] ?? { label: l.status, variant: 'outline' as const };
+                const pronto = l.status === 'pronto' && !!l.conteudo_laudo;
+                const handleDownload = () => {
+                  if (!l.conteudo_laudo) {
+                    toast.error('Este laudo ainda não tem conteúdo para baixar.');
+                    return;
+                  }
+                  downloadLaudoPdf({
+                    pacienteNome: l.paciente_nome,
+                    cenario: l.cenario_clinico,
+                    geradoEm: fmtData(l.created_at),
+                    conteudo: laudoConteudoToText(l.conteudo_laudo),
+                  });
+                };
                 return (
-                  <TableRow key={l.id} className="cursor-pointer hover:bg-muted/40">
+                  <TableRow key={l.id} className="hover:bg-muted/40">
                     <TableCell>
                       <Link to={`/paciente/${l.paciente_id}`} className="font-medium text-foreground hover:underline">
                         {l.paciente_nome}
@@ -221,6 +235,29 @@ export default function HistoricoLaudosPage() {
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {fmtData(l.created_at)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/laudo/${l.id}`)}
+                          title="Visualizar laudo"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span className="sr-only md:not-sr-only md:ml-2">Ver</span>
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={handleDownload}
+                          disabled={!pronto}
+                          title={pronto ? 'Baixar PDF' : 'Laudo ainda não está pronto'}
+                        >
+                          <Download className="h-4 w-4" />
+                          <span className="sr-only md:not-sr-only md:ml-2">PDF</span>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
