@@ -506,7 +506,7 @@ export default function FichaPacientePage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {status && (
+            {!isPreview && <RealtimeIndicator status={rtStatus} className="mr-1" />}
               <Badge className={`${status.color} text-white border-0 shrink-0`}>
                 {status.label}
               </Badge>
