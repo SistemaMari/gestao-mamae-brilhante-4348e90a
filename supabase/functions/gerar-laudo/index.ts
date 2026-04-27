@@ -1,56 +1,96 @@
+// Edge function: gerar-laudo
+// Gera Blocos 2 e 3 do laudo de DMG via Lovable AI Gateway (Gemini 2.5 Pro)
+// usando o System Prompt MARI v5.2 + arquivos da Base de Conhecimento como anexos.
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import {
+  SYSTEM_PROMPT_MARI_V52,
+  modulosParaCenario,
+  normalizarCenario,
+  derivarFichaTipo,
+  semProximaConsulta,
+  type CenarioId,
+} from "./prompt-v52.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const MODEL = "google/gemini-2.5-pro"; // contexto longo + raciocínio para laudo clínico
 
-  // Modo teste: envia payload de exemplo ao webhook sem autenticação
-  const isTest = req.headers.get("x-test-mode") === "true";
-  if (isTest) {
-    const webhookUrl = Deno.env.get("N8N_WEBHOOK_URL");
-    if (!webhookUrl) {
-      return new Response(JSON.stringify({ error: "N8N_WEBHOOK_URL não configurada" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const testPayload = {
-      timestamp: new Date().toISOString(),
-      tipo_requisicao: "gerar_laudo",
-      modo: "TESTE",
-      profissional: { id: "test-prof", nome: "Dra. Teste", crm: "CRM/SP 123456", especialidade: "Obstetrícia" },
-      paciente: { id: "test-pac", nome: "Maria Teste", dum: "2026-01-10", status_ficha: "dmg_confirmado", ig_atual: { semanas: 12, dias: 5 } },
-      consulta_atual: { id: "test-cons", tipo: "retorno_1", numero_sequencial: 2, data: "2026-04-09", cenario_clinico: "dmg_confirmado" },
-      exames_glicemia: [{ tipo_exame: "glicemia_jejum", valor_mgdl: 98 }, { tipo_exame: "ttog_75g_1h", valor_mgdl: 185 }],
-      cenario_clinico: "dmg_confirmado",
-    };
-    try {
-      const resp = await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(testPayload) });
-      const body = await resp.text();
-      return new Response(JSON.stringify({ test: true, webhook_status: resp.status, webhook_response: body }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    } catch (e) {
-      return new Response(JSON.stringify({ test: true, error: e.message }), {
-        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+// ── helpers ────────────────────────────────────────────────────────
+
+function jsonResp(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function calcularIG(dum: string | null, usgData: string | null, usgSemanas: number | null, usgDias: number | null) {
+  // Prioriza USG corrigida quando presente
+  const hoje = new Date();
+  if (usgData && (usgSemanas !== null || usgDias !== null)) {
+    const [y, m, d] = usgData.split("-").map(Number);
+    const dataUsg = new Date(y, m - 1, d);
+    const diff = Math.floor((hoje.getTime() - dataUsg.getTime()) / 86400000);
+    const totalDias = (usgSemanas ?? 0) * 7 + (usgDias ?? 0) + diff;
+    return { semanas: Math.floor(totalDias / 7), dias: totalDias % 7, total_dias: totalDias, fonte: "usg" };
   }
+  if (dum) {
+    const [y, m, d] = dum.split("-").map(Number);
+    const dataDum = new Date(y, m - 1, d);
+    const diff = Math.floor((hoje.getTime() - dataDum.getTime()) / 86400000);
+    return { semanas: Math.floor(diff / 7), dias: diff % 7, total_dias: diff, fonte: "dum" };
+  }
+  return null;
+}
+
+function calcularProximaConsulta(cenario: CenarioId, igSemanas: number | null) {
+  if (semProximaConsulta(cenario)) {
+    return { prazo_dias: null, data_formatada: null };
+  }
+  // Heurística: se IG ≥ 32 sem → 7 dias; se ≥ 28 → 14 dias; senão 21 dias.
+  let prazo = 21;
+  if (igSemanas !== null) {
+    if (igSemanas >= 32) prazo = 7;
+    else if (igSemanas >= 28) prazo = 14;
+  }
+  const data = new Date();
+  data.setDate(data.getDate() + prazo);
+  const dd = String(data.getDate()).padStart(2, "0");
+  const mm = String(data.getMonth() + 1).padStart(2, "0");
+  const yyyy = data.getFullYear();
+  return { prazo_dias: prazo, data_formatada: `${dd}/${mm}/${yyyy}` };
+}
+
+async function bucketFileToDataUrl(supabaseAdmin: any, path: string): Promise<{ name: string; dataUrl: string } | null> {
+  try {
+    const { data, error } = await supabaseAdmin.storage.from("base-conhecimento").download(path);
+    if (error || !data) return null;
+    const buf = new Uint8Array(await data.arrayBuffer());
+    // base64 encode
+    let bin = "";
+    for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+    const b64 = btoa(bin);
+    const mime = path.toLowerCase().endsWith(".pdf") ? "application/pdf" : "application/octet-stream";
+    return { name: path, dataUrl: `data:${mime};base64,${b64}` };
+  } catch {
+    return null;
+  }
+}
+
+// ── handler ────────────────────────────────────────────────────────
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    // Auth check
+    // Auth
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader?.startsWith("Bearer ")) return jsonResp({ error: "Unauthorized" }, 401);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -60,219 +100,166 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (claimsError || !claimsData?.claims) return jsonResp({ error: "Unauthorized" }, 401);
     const userId = claimsData.claims.sub;
 
-    // Parse body
-    const { paciente_id, consulta_id } = await req.json();
-    if (!paciente_id || !consulta_id) {
-      return new Response(JSON.stringify({ error: "paciente_id e consulta_id são obrigatórios" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) return jsonResp({ error: "LOVABLE_API_KEY não configurada" }, 500);
 
-    // Service role client for full data access
+    // Body
+    const { paciente_id, consulta_id } = await req.json();
+    if (!paciente_id || !consulta_id) return jsonResp({ error: "paciente_id e consulta_id obrigatórios" }, 400);
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // 1. Dados do profissional
-    const { data: profissional } = await supabaseAdmin
-      .from("profissionais")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
+    // Carrega dados
+    const [{ data: profissional }, { data: paciente }, { data: consultas }, { data: exames }, { data: laudosAnteriores }] = await Promise.all([
+      supabaseAdmin.from("profissionais").select("*").eq("user_id", userId).single(),
+      supabaseAdmin.from("pacientes").select("*").eq("id", paciente_id).single(),
+      supabaseAdmin.from("consultas").select("*").eq("paciente_id", paciente_id).order("numero_sequencial", { ascending: true }),
+      supabaseAdmin.from("exames_glicemia").select("*").eq("paciente_id", paciente_id).order("data_exame", { ascending: true }),
+      supabaseAdmin.from("laudos").select("id, cenario_clinico, conteudo_laudo, created_at").eq("paciente_id", paciente_id).neq("consulta_id", consulta_id).order("created_at"),
+    ]);
 
-    if (!profissional) {
-      return new Response(JSON.stringify({ error: "Profissional não encontrado" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!profissional) return jsonResp({ error: "Profissional não encontrado" }, 404);
+    if (!paciente) return jsonResp({ error: "Paciente não encontrado" }, 404);
 
-    // 2. Dados do paciente
-    const { data: paciente } = await supabaseAdmin
-      .from("pacientes")
-      .select("*")
-      .eq("id", paciente_id)
-      .single();
-
-    if (!paciente) {
-      return new Response(JSON.stringify({ error: "Paciente não encontrado" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // 3. Todas as consultas do paciente
-    const { data: consultas } = await supabaseAdmin
-      .from("consultas")
-      .select("*")
-      .eq("paciente_id", paciente_id)
-      .order("numero_sequencial", { ascending: true });
-
-    // 4. Consulta específica
     const consultaAtual = consultas?.find((c: any) => c.id === consulta_id);
+    if (!consultaAtual) return jsonResp({ error: "Consulta não encontrada" }, 404);
 
-    // 5. Exames de glicemia
-    const { data: exames } = await supabaseAdmin
-      .from("exames_glicemia")
-      .select("*")
-      .eq("paciente_id", paciente_id)
-      .order("data_exame", { ascending: true });
-
-    // 6. Arquivos da Base de Conhecimento (lista de nomes)
-    const { data: arquivos } = await supabaseAdmin.storage
-      .from("base-conhecimento")
-      .list("", { limit: 100 });
-
-    // 7. Calcular IG atual com base na DUM
-    let igAtual = null;
-    if (paciente.dum) {
-      const dum = new Date(paciente.dum);
-      const hoje = new Date();
-      const diffMs = hoje.getTime() - dum.getTime();
-      const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      igAtual = {
-        semanas: Math.floor(diffDias / 7),
-        dias: diffDias % 7,
-        total_dias: diffDias,
-      };
+    // Verifica e consome quota de laudos
+    const { data: quota, error: quotaErr } = await supabaseAdmin.rpc("pode_gerar_laudo", { p_profissional_id: profissional.id });
+    if (quotaErr) return jsonResp({ error: "Erro ao verificar quota", details: quotaErr.message }, 500);
+    if (quota && (quota as any).allowed === false) {
+      return jsonResp({ error: "Limite de laudos atingido", laudos_limite: (quota as any).laudos_limite }, 402);
     }
 
-    // 8. Laudos anteriores (se houver)
-    const { data: laudosAnteriores } = await supabaseAdmin
-      .from("laudos")
-      .select("*")
-      .eq("paciente_id", paciente_id)
-      .neq("consulta_id", consulta_id)
-      .order("created_at", { ascending: true });
+    // Normaliza cenário e ficha_tipo
+    const cenarioId = normalizarCenario(consultaAtual.cenario_clinico);
+    if (!cenarioId) return jsonResp({ error: "Cenário clínico inválido ou ausente", recebido: consultaAtual.cenario_clinico }, 400);
 
-    // Montar payload para o webhook
-    const payload = {
-      // Identificação da requisição
-      timestamp: new Date().toISOString(),
-      tipo_requisicao: "gerar_laudo",
+    const fichaTipo = derivarFichaTipo(consultaAtual.tipo);
 
-      // Profissional
-      profissional: {
-        id: profissional.id,
-        nome: profissional.nome,
-        crm: profissional.crm,
-        especialidade: profissional.especialidade,
-        unidade_id: profissional.unidade_id,
-      },
+    // IG atual
+    const igAtual = calcularIG(paciente.dum, paciente.usg_data, paciente.usg_ig_semanas, paciente.usg_ig_dias);
+    const proximaConsulta = calcularProximaConsulta(cenarioId, igAtual?.semanas ?? null);
 
-      // Paciente completo
-      paciente: {
-        ...paciente,
-        ig_atual: igAtual,
-      },
-
-      // Consulta atual
-      consulta_atual: consultaAtual,
-
-      // Histórico de consultas
-      historico_consultas: consultas,
-
-      // Exames
-      exames_glicemia: exames,
-
-      // Laudos anteriores
-      laudos_anteriores: laudosAnteriores,
-
-      // Arquivos disponíveis na base de conhecimento
-      arquivos_base_conhecimento: arquivos?.map((a: any) => ({
-        nome: a.name,
-        tamanho: a.metadata?.size,
-        tipo: a.metadata?.mimetype,
-      })),
-
-      // Cenário clínico identificado
-      cenario_clinico: consultaAtual?.cenario_clinico || paciente.status_ficha,
-    };
-
-    // Enviar ao webhook n8n
-    const webhookUrl = Deno.env.get("N8N_WEBHOOK_URL");
-    if (!webhookUrl) {
-      return new Response(JSON.stringify({ error: "Webhook URL não configurada" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Criar registro do laudo como "pendente"
-    const { data: laudo, error: laudoError } = await supabaseAdmin
+    // Cria laudo "processando"
+    const { data: laudo, error: laudoErr } = await supabaseAdmin
       .from("laudos")
       .insert({
         paciente_id,
         consulta_id,
         profissional_id: profissional.id,
-        cenario_clinico: payload.cenario_clinico,
+        cenario_clinico: cenarioId,
         status: "processando",
-        metadata: payload,
+        metadata: { ficha_tipo: fichaTipo, ig_atual: igAtual, proxima_consulta: proximaConsulta },
       })
       .select()
       .single();
 
-    if (laudoError) {
-      return new Response(JSON.stringify({ error: "Erro ao criar laudo", details: laudoError.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (laudoErr || !laudo) return jsonResp({ error: "Erro ao criar laudo", details: laudoErr?.message }, 500);
+
+    // Roteamento de módulos: tenta baixar do bucket os PDFs pertinentes
+    const arquivosAlvo = modulosParaCenario(cenarioId);
+    const arquivosBaixados = (await Promise.all(arquivosAlvo.map((p) => bucketFileToDataUrl(supabaseAdmin, p))))
+      .filter(Boolean) as Array<{ name: string; dataUrl: string }>;
+
+    // Payload de dados clínicos enviado como user message
+    const dadosClinicosPayload = {
+      cenario_clinico: cenarioId,
+      ficha_tipo: fichaTipo,
+      proxima_consulta: proximaConsulta,
+      dados_paciente: {
+        nome: paciente.nome,
+        data_nascimento: paciente.data_nascimento,
+        dum: paciente.dum,
+        usg: { data: paciente.usg_data, ig_semanas: paciente.usg_ig_semanas, ig_dias: paciente.usg_ig_dias },
+        ig_atual: igAtual,
+        dmg_gestacao_anterior: paciente.dmg_gestacao_anterior,
+        status_ficha: paciente.status_ficha,
+      },
+      consulta_atual: consultaAtual,
+      historico_consultas: consultas,
+      exames_glicemia: exames,
+      laudos_anteriores: laudosAnteriores,
+      profissional: { nome: profissional.nome, crm: profissional.crm, especialidade: profissional.especialidade },
+      arquivos_de_contexto: arquivosBaixados.map((a) => a.name),
+    };
+
+    // Monta mensagem multimodal: texto + PDFs como image_url (Gemini aceita PDF assim no gateway)
+    const userContent: any[] = [
+      { type: "text", text: `Gere os Blocos 2 e 3 do laudo conforme suas regras. Dados clínicos:\n\n\`\`\`json\n${JSON.stringify(dadosClinicosPayload, null, 2)}\n\`\`\`` },
+    ];
+    for (const arq of arquivosBaixados) {
+      userContent.push({ type: "image_url", image_url: { url: arq.dataUrl } });
     }
 
-    // Chamar webhook (síncrono — espera resposta)
-    const webhookResponse = await fetch(webhookUrl, {
+    // Chamada Lovable AI Gateway (não-streaming, queremos JSON completo)
+    const aiResp = await fetch(AI_GATEWAY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, laudo_id: laudo.id }),
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT_MARI_V52 },
+          { role: "user", content: userContent },
+        ],
+        response_format: { type: "json_object" },
+      }),
     });
 
-    if (!webhookResponse.ok) {
-      // Atualizar status para erro
-      await supabaseAdmin
-        .from("laudos")
-        .update({ status: "erro", metadata: { ...payload, erro: `Webhook retornou ${webhookResponse.status}` } })
-        .eq("id", laudo.id);
-
-      return new Response(JSON.stringify({ error: "Erro no webhook", status: webhookResponse.status }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!aiResp.ok) {
+      const errText = await aiResp.text();
+      await supabaseAdmin.from("laudos").update({ status: "erro", metadata: { ...laudo.metadata, erro: `AI ${aiResp.status}: ${errText.slice(0, 500)}` } }).eq("id", laudo.id);
+      if (aiResp.status === 429) return jsonResp({ error: "Limite de requisições à IA excedido. Tente novamente em instantes." }, 429);
+      if (aiResp.status === 402) return jsonResp({ error: "Créditos da IA esgotados. Adicione fundos em Settings → Workspace → Usage." }, 402);
+      return jsonResp({ error: "Erro na IA", status: aiResp.status, details: errText.slice(0, 500) }, 502);
     }
 
-    const resultado = await webhookResponse.json();
+    const aiJson = await aiResp.json();
+    const conteudoStr = aiJson.choices?.[0]?.message?.content ?? "";
 
-    // Atualizar laudo com o conteúdo retornado
-    await supabaseAdmin
-      .from("laudos")
-      .update({
-        conteudo_laudo: resultado.laudo || resultado.text || resultado.content || JSON.stringify(resultado),
-        status: "gerado",
-      })
-      .eq("id", laudo.id);
+    // Tenta parsear o JSON retornado
+    let parsed: any = null;
+    try { parsed = JSON.parse(conteudoStr); } catch {
+      // tenta extrair bloco JSON entre {} caso o modelo embrulhe em texto
+      const m = conteudoStr.match(/\{[\s\S]*\}/);
+      if (m) { try { parsed = JSON.parse(m[0]); } catch { /* ignore */ } }
+    }
 
-    return new Response(JSON.stringify({
+    if (!parsed?.bloco_2_justificativa || !parsed?.bloco_3_conduta) {
+      await supabaseAdmin.from("laudos").update({
+        status: "erro",
+        metadata: { ...laudo.metadata, erro: "JSON inválido retornado pela IA", raw: conteudoStr.slice(0, 2000) },
+      }).eq("id", laudo.id);
+      return jsonResp({ error: "Resposta da IA inválida", raw: conteudoStr.slice(0, 500) }, 502);
+    }
+
+    // Salva o laudo final (conteudo_laudo = JSON serializado para preservar estrutura)
+    await supabaseAdmin.from("laudos").update({
+      conteudo_laudo: JSON.stringify(parsed),
+      status: "gerado",
+      metadata: { ...laudo.metadata, modelo: MODEL, arquivos_enviados: arquivosBaixados.map((a) => a.name), referencias: parsed.referencias_citadas, metadados_do_laudo: parsed.metadados_do_laudo },
+    }).eq("id", laudo.id);
+
+    return jsonResp({
       success: true,
       laudo_id: laudo.id,
-      conteudo: resultado.laudo || resultado.text || resultado.content || resultado,
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      cenario: cenarioId,
+      ficha_tipo: fichaTipo,
+      proxima_consulta: proximaConsulta,
+      bloco_2: parsed.bloco_2_justificativa,
+      bloco_3: parsed.bloco_3_conduta,
+      referencias: parsed.referencias_citadas,
+      arquivos_usados: arquivosBaixados.map((a) => a.name),
+      arquivos_faltantes: arquivosAlvo.filter((p) => !arquivosBaixados.find((a) => a.name === p)),
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Erro interno", details: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResp({ error: "Erro interno", details: (error as Error).message }, 500);
   }
 });
