@@ -68,8 +68,8 @@ export default function MetricasPartoSection({ unidadeId, periodoInicio, periodo
           <Stat label="Total de partos" value={total.toString()} />
           <Stat label="Cesáreas" value={`${cesarea} (${pct(cesarea)})`} />
           <Stat label="Vaginais" value={`${vaginal} (${pct(vaginal)})`} />
-          <Stat label="Intercorrência materna" value={`${intMat} (${pct(intMat)})`} icon={<AlertTriangle className="h-4 w-4 text-warning" />} />
-          <Stat label="Intercorrência neonatal" value={`${intNeo} (${pct(intNeo)})`} icon={<Activity className="h-4 w-4 text-warning" />} />
+          <Stat label="Intercorrência materna" value={`${intMat} (${pct(intMat)})`} icon={<AlertTriangle className="h-4 w-4 text-clinical-warning-icon" />} />
+          <Stat label="Intercorrência neonatal" value={`${intNeo} (${pct(intNeo)})`} icon={<Activity className="h-4 w-4 text-clinical-warning-icon" />} />
           <Stat label="AIG" value={`${aig} (${pct(aig)})`} />
           <Stat label="GIG" value={`${gig} (${pct(gig)})`} />
           <Stat label="PIG" value={`${pig} (${pct(pig)})`} />
