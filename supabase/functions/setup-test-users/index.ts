@@ -46,28 +46,42 @@ Deno.serve(async (req) => {
     // 2. Criar/garantir usuários
     const credenciais: any[] = [];
     for (const u of USUARIOS) {
-      // Procurar usuário existente paginando até encontrar
       let user: any = null;
-      for (let page = 1; page <= 10; page++) {
-        const { data: list } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
-        user = list.users.find((x) => x.email?.toLowerCase() === u.email.toLowerCase());
-        if (user || list.users.length < 1000) break;
-      }
 
-      if (!user) {
-        const { data: novo, error: errUser } = await supabase.auth.admin.createUser({
-          email: u.email,
-          password: SENHA,
-          email_confirm: true,
-          user_metadata: { nome: u.nome },
-        });
-        if (errUser) throw new Error(`Falha criar ${u.email}: ${errUser.message}`);
+      // Tentar criar; se já existir, buscar via SQL no auth.users
+      const { data: novo, error: errUser } = await supabase.auth.admin.createUser({
+        email: u.email,
+        password: SENHA,
+        email_confirm: true,
+        user_metadata: { nome: u.nome },
+      });
+
+      if (errUser) {
+        if (errUser.message.toLowerCase().includes('already')) {
+          // Buscar via raw SQL no schema auth (service role tem permissão)
+          const { data: existing, error: errSql } = await supabase
+            .schema('auth' as any).from('users').select('id, email').eq('email', u.email).maybeSingle();
+          if (errSql || !existing) {
+            // Fallback: paginar listUsers
+            for (let page = 1; page <= 10; page++) {
+              const { data: list } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+              user = list.users.find((x) => x.email?.toLowerCase() === u.email.toLowerCase());
+              if (user) break;
+              if (list.users.length < 1000) break;
+            }
+            if (!user) throw new Error(`Usuário ${u.email} já existe mas não foi encontrado`);
+          } else {
+            user = { id: existing.id, email: existing.email };
+          }
+          // Resetar senha pra padrão
+          await supabase.auth.admin.updateUserById(user.id, { password: SENHA, email_confirm: true });
+          log.push({ step: 'user', email: u.email, acao: 'reutilizado', id: user.id });
+        } else {
+          throw new Error(`Falha criar ${u.email}: ${errUser.message}`);
+        }
+      } else {
         user = novo.user!;
         log.push({ step: 'user', email: u.email, acao: 'criado', id: user.id });
-      } else {
-        // Atualiza senha (caso queiramos resetar)
-        await supabase.auth.admin.updateUserById(user.id, { password: SENHA, email_confirm: true });
-        log.push({ step: 'user', email: u.email, acao: 'reutilizado', id: user.id });
       }
 
       // 3. Vincular ao perfil correto
