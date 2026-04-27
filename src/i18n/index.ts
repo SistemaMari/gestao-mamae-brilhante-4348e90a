@@ -26,11 +26,11 @@ i18n
     },
     fallbackLng: 'pt-BR',
     supportedLngs: SUPPORTED_LANGUAGES as unknown as string[],
-    nonExplicitSupportedLngs: true,
     detection: {
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: 'app.lang',
       caches: ['localStorage'],
+      convertDetectedLanguage: normalizeLang,
     },
     interpolation: { escapeValue: false },
     initAsync: false,
