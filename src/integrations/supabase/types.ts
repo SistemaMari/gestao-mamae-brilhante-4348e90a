@@ -90,6 +90,7 @@ export type Database = {
           id: string
           ig_dias: number | null
           ig_semanas: number | null
+          is_rascunho: boolean
           numero_sequencial: number
           observacoes: string | null
           paciente_id: string
@@ -104,6 +105,7 @@ export type Database = {
           id?: string
           ig_dias?: number | null
           ig_semanas?: number | null
+          is_rascunho?: boolean
           numero_sequencial?: number
           observacoes?: string | null
           paciente_id: string
@@ -118,6 +120,7 @@ export type Database = {
           id?: string
           ig_dias?: number | null
           ig_semanas?: number | null
+          is_rascunho?: boolean
           numero_sequencial?: number
           observacoes?: string | null
           paciente_id?: string
@@ -411,6 +414,7 @@ export type Database = {
           dum: string | null
           estado: string | null
           id: string
+          is_rascunho: boolean
           nome: string
           numero_identificacao: string | null
           pais: string | null
@@ -434,6 +438,7 @@ export type Database = {
           dum?: string | null
           estado?: string | null
           id?: string
+          is_rascunho?: boolean
           nome: string
           numero_identificacao?: string | null
           pais?: string | null
@@ -457,6 +462,7 @@ export type Database = {
           dum?: string | null
           estado?: string | null
           id?: string
+          is_rascunho?: boolean
           nome?: string
           numero_identificacao?: string | null
           pais?: string | null
@@ -499,6 +505,7 @@ export type Database = {
           ig_parto_semanas: number | null
           intercorrencia_materna: boolean
           intercorrencia_neonatal: boolean
+          is_rascunho: boolean
           observacoes: string | null
           paciente_id: string
           peso_rn_g: number | null
@@ -518,6 +525,7 @@ export type Database = {
           ig_parto_semanas?: number | null
           intercorrencia_materna?: boolean
           intercorrencia_neonatal?: boolean
+          is_rascunho?: boolean
           observacoes?: string | null
           paciente_id: string
           peso_rn_g?: number | null
@@ -537,6 +545,7 @@ export type Database = {
           ig_parto_semanas?: number | null
           intercorrencia_materna?: boolean
           intercorrencia_neonatal?: boolean
+          is_rascunho?: boolean
           observacoes?: string | null
           paciente_id?: string
           peso_rn_g?: number | null
