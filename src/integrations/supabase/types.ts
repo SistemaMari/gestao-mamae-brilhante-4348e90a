@@ -35,6 +35,53 @@ export type Database = {
         }
         Relationships: []
       }
+      consolidacoes: {
+        Row: {
+          created_at: string
+          csv_path: string | null
+          gestor_geral_id: string
+          id: string
+          notas: Json | null
+          pdf_path: string | null
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          relatorio_ids: string[]
+          unidades_incluidas: number
+        }
+        Insert: {
+          created_at?: string
+          csv_path?: string | null
+          gestor_geral_id: string
+          id?: string
+          notas?: Json | null
+          pdf_path?: string | null
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          relatorio_ids: string[]
+          unidades_incluidas?: number
+        }
+        Update: {
+          created_at?: string
+          csv_path?: string | null
+          gestor_geral_id?: string
+          id?: string
+          notas?: Json | null
+          pdf_path?: string | null
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          relatorio_ids?: string[]
+          unidades_incluidas?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consolidacoes_gestor_geral_id_fkey"
+            columns: ["gestor_geral_id"]
+            isOneToOne: false
+            referencedRelation: "gestores_gerais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultas: {
         Row: {
           cenario_clinico: string | null
@@ -262,6 +309,42 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      gestores_gerais_unidades: {
+        Row: {
+          created_at: string
+          gestor_geral_id: string
+          id: string
+          unidade_id: string
+        }
+        Insert: {
+          created_at?: string
+          gestor_geral_id: string
+          id?: string
+          unidade_id: string
+        }
+        Update: {
+          created_at?: string
+          gestor_geral_id?: string
+          id?: string
+          unidade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gestores_gerais_unidades_gestor_geral_id_fkey"
+            columns: ["gestor_geral_id"]
+            isOneToOne: false
+            referencedRelation: "gestores_gerais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gestores_gerais_unidades_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       laudos: {
         Row: {
@@ -736,6 +819,10 @@ export type Database = {
     }
     Functions: {
       belongs_to_unidade: {
+        Args: { _unidade_id: string; _user_id: string }
+        Returns: boolean
+      }
+      gestor_geral_tem_unidade: {
         Args: { _unidade_id: string; _user_id: string }
         Returns: boolean
       }

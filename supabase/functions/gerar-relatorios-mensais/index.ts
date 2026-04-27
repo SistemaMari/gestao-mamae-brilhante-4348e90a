@@ -39,34 +39,47 @@ function calcularMesAnterior(): { inicio: string; fim: string; rotuloMes: string
 }
 
 // ============================================================
-// Agregação de métricas por unidade
+// Agregação de métricas por unidade — schema 18A (21 chaves)
 // ============================================================
-interface MetricasUnidade {
+export interface MetricasUnidade {
+  // Identidade
   unidade_id: string;
   unidade_nome: string;
-  total_pacientes_periodo: number;
-  total_fichas_ativas: number;
-  total_dmg_positivo: number;
-  total_em_insulina: number;
-  total_partos: number;
-  partos_vaginais: number;
+  // Núcleo
+  total_gestantes: number;            // = total de pacientes ativos no período
+  total_dmg_confirmado: number;
+  taxa_dmg_percent: number;           // derivado: total_dmg_confirmado / total_gestantes * 100
+  total_overt: number;                // overt diabetes (cenário clínico)
+  // Diagnóstico por momento
+  dmg_retorno1: number;               // DMG diagnosticado a partir de Retorno 1
+  dmg_gtt: number;                    // DMG diagnosticado por GTT
+  // Controle glicêmico
+  controle_adequado_sem_insulina: number;
+  controle_com_insulina: number;
+  controle_adequado_com_insulina: number;
+  encaminhadas_especialista: number;
+  // Partos
+  partos_registrados: number;
+  partos_vaginal: number;
   partos_cesarea: number;
   rn_aig: number;
   rn_gig: number;
   rn_pig: number;
   intercorrencias_maternas: number;
   intercorrencias_neonatais: number;
-  total_profissionais: number;
+  // Operacional
+  profissionais_ativos: number;
+  total_laudos: number;
 }
 
-async function agregarMetricas(
+export async function agregarMetricas(
   admin: ReturnType<typeof createClient>,
   unidadeId: string,
   unidadeNome: string,
   periodoInicio: string,
   periodoFim: string,
 ): Promise<MetricasUnidade> {
-  // Pacientes da unidade no período
+  // ---------- Pacientes da unidade no período ----------
   const { data: pacientes } = await admin
     .from('pacientes')
     .select('id, status_ficha, dmg_gestacao_anterior, created_at')
@@ -75,43 +88,114 @@ async function agregarMetricas(
     .lte('created_at', `${periodoFim}T23:59:59Z`);
 
   const pacientesArr = pacientes ?? [];
-  const total_pacientes_periodo = pacientesArr.length;
-  const total_fichas_ativas = pacientesArr.filter(
-    (p) => p.status_ficha && !['encerrado', 'arquivado'].includes(p.status_ficha as string),
-  ).length;
-
-  // DMG positivo (status_ficha contém 'dmg' OU laudos com cenário positivo)
+  const total_gestantes = pacientesArr.length;
   const idsPacientes = pacientesArr.map((p) => p.id as string);
-  let total_dmg_positivo = 0;
-  let total_em_insulina = 0;
+
+  const encaminhadas_especialista = pacientesArr.filter((p) => {
+    const s = ((p.status_ficha as string | null) ?? '').toLowerCase();
+    return s.includes('encaminh') || s.includes('especialista');
+  }).length;
+
+  // ---------- Laudos do período ----------
+  let total_laudos = 0;
+  let total_dmg_confirmado = 0;
+  let total_overt = 0;
+  const dmgSet = new Set<string>();
+  const overtSet = new Set<string>();
 
   if (idsPacientes.length > 0) {
     const { data: laudos } = await admin
       .from('laudos')
-      .select('paciente_id, cenario_clinico')
-      .in('paciente_id', idsPacientes);
+      .select('paciente_id, cenario_clinico, created_at')
+      .in('paciente_id', idsPacientes)
+      .gte('created_at', `${periodoInicio}T00:00:00Z`)
+      .lte('created_at', `${periodoFim}T23:59:59Z`);
 
-    const dmgSet = new Set<string>();
-    (laudos ?? []).forEach((l) => {
-      const c = (l.cenario_clinico as string | null) ?? '';
-      if (c.toLowerCase().includes('dmg') && !c.toLowerCase().includes('sem dmg')) {
+    const laudosArr = laudos ?? [];
+    total_laudos = laudosArr.length;
+
+    laudosArr.forEach((l) => {
+      const c = ((l.cenario_clinico as string | null) ?? '').toLowerCase();
+      if (!c) return;
+      if (c.includes('overt')) {
+        overtSet.add(l.paciente_id as string);
+      }
+      // DMG confirmado: cenário menciona dmg e NÃO inclui "sem dmg"/"nao tem"
+      if (c.includes('dmg') && !c.includes('sem dmg') && !c.includes('não tem') && !c.includes('nao tem')) {
         dmgSet.add(l.paciente_id as string);
       }
     });
-    total_dmg_positivo = dmgSet.size;
-
-    // Em insulina: perfis_glicemicos.decisao = 'insulina'
-    const { data: perfis } = await admin
-      .from('perfis_glicemicos')
-      .select('paciente_id, decisao')
-      .in('paciente_id', idsPacientes)
-      .eq('decisao', 'insulina');
-    const insulinaSet = new Set<string>();
-    (perfis ?? []).forEach((p) => insulinaSet.add(p.paciente_id as string));
-    total_em_insulina = insulinaSet.size;
+    total_dmg_confirmado = dmgSet.size;
+    total_overt = overtSet.size;
   }
 
-  // Partos no período
+  const taxa_dmg_percent = total_gestantes > 0
+    ? Number(((total_dmg_confirmado / total_gestantes) * 100).toFixed(1))
+    : 0;
+
+  // ---------- Diagnóstico por consulta (retorno 1, gtt) ----------
+  let dmg_retorno1 = 0;
+  let dmg_gtt = 0;
+  if (dmgSet.size > 0) {
+    const dmgIds = Array.from(dmgSet);
+    const { data: consultas } = await admin
+      .from('consultas')
+      .select('paciente_id, tipo, status_gerado, cenario_clinico')
+      .in('paciente_id', dmgIds);
+
+    const consultasArr = consultas ?? [];
+    const retornoSet = new Set<string>();
+    const gttSet = new Set<string>();
+    consultasArr.forEach((c) => {
+      const cc = ((c.cenario_clinico as string | null) ?? '').toLowerCase();
+      const isDmg = cc.includes('dmg') && !cc.includes('sem dmg');
+      if (!isDmg) return;
+      if (c.tipo === 'retorno_1') retornoSet.add(c.paciente_id as string);
+      if (c.tipo === 'gtt') gttSet.add(c.paciente_id as string);
+    });
+    dmg_retorno1 = retornoSet.size;
+    dmg_gtt = gttSet.size;
+  }
+
+  // ---------- Controle glicêmico (perfis_glicemicos) ----------
+  let controle_adequado_sem_insulina = 0;
+  let controle_com_insulina = 0;
+  let controle_adequado_com_insulina = 0;
+
+  if (idsPacientes.length > 0) {
+    const { data: perfis } = await admin
+      .from('perfis_glicemicos')
+      .select('paciente_id, decisao, percentual_meta, data_fim')
+      .in('paciente_id', idsPacientes);
+
+    const perfisArr = perfis ?? [];
+    // Pega o perfil mais recente por paciente (data_fim DESC)
+    const ultimoPorPaciente = new Map<string, { decisao: string | null; percentual_meta: number }>();
+    perfisArr
+      .sort((a, b) => String(b.data_fim).localeCompare(String(a.data_fim)))
+      .forEach((p) => {
+        const pid = p.paciente_id as string;
+        if (!ultimoPorPaciente.has(pid)) {
+          ultimoPorPaciente.set(pid, {
+            decisao: (p.decisao as string | null),
+            percentual_meta: Number(p.percentual_meta) || 0,
+          });
+        }
+      });
+
+    ultimoPorPaciente.forEach((perfil) => {
+      const dec = (perfil.decisao ?? '').toLowerCase();
+      const adequado = perfil.percentual_meta >= 70;
+      if (dec === 'insulina') {
+        controle_com_insulina++;
+        if (adequado) controle_adequado_com_insulina++;
+      } else if (dec === 'manter_dieta' || dec === 'dieta' || adequado) {
+        controle_adequado_sem_insulina++;
+      }
+    });
+  }
+
+  // ---------- Partos no período ----------
   const { data: partos } = await admin
     .from('partos')
     .select('via_parto, classificacao_rn, intercorrencia_materna, intercorrencia_neonatal')
@@ -120,8 +204,8 @@ async function agregarMetricas(
     .lte('data_parto', periodoFim);
 
   const partosArr = partos ?? [];
-  const total_partos = partosArr.length;
-  const partos_vaginais = partosArr.filter((p) => p.via_parto === 'vaginal').length;
+  const partos_registrados = partosArr.length;
+  const partos_vaginal = partosArr.filter((p) => p.via_parto === 'vaginal').length;
   const partos_cesarea = partosArr.filter((p) => p.via_parto === 'cesarea').length;
   const rn_aig = partosArr.filter((p) => p.classificacao_rn === 'AIG').length;
   const rn_gig = partosArr.filter((p) => p.classificacao_rn === 'GIG').length;
@@ -129,8 +213,8 @@ async function agregarMetricas(
   const intercorrencias_maternas = partosArr.filter((p) => p.intercorrencia_materna).length;
   const intercorrencias_neonatais = partosArr.filter((p) => p.intercorrencia_neonatal).length;
 
-  // Profissionais ativos da unidade
-  const { count: total_profissionais } = await admin
+  // ---------- Profissionais ativos ----------
+  const { count: profissionais_ativos } = await admin
     .from('profissionais')
     .select('id', { count: 'exact', head: true })
     .eq('unidade_id', unidadeId)
@@ -139,19 +223,26 @@ async function agregarMetricas(
   return {
     unidade_id: unidadeId,
     unidade_nome: unidadeNome,
-    total_pacientes_periodo,
-    total_fichas_ativas,
-    total_dmg_positivo,
-    total_em_insulina,
-    total_partos,
-    partos_vaginais,
+    total_gestantes,
+    total_dmg_confirmado,
+    taxa_dmg_percent,
+    total_overt,
+    dmg_retorno1,
+    dmg_gtt,
+    controle_adequado_sem_insulina,
+    controle_com_insulina,
+    controle_adequado_com_insulina,
+    encaminhadas_especialista,
+    partos_registrados,
+    partos_vaginal,
     partos_cesarea,
     rn_aig,
     rn_gig,
     rn_pig,
     intercorrencias_maternas,
     intercorrencias_neonatais,
-    total_profissionais: total_profissionais ?? 0,
+    profissionais_ativos: profissionais_ativos ?? 0,
+    total_laudos,
   };
 }
 
@@ -205,20 +296,41 @@ async function gerarPdfRelatorio(params: {
   // KPIs gerais
   y = desenharSecao(page, helvBold, 'Visão Geral', y, cRoxo);
   const kpis: Array<[string, string | number]> = [
-    ['Fichas no período', metricas.total_pacientes_periodo],
-    ['Fichas ativas', metricas.total_fichas_ativas],
-    ['Histórico de DMG', metricas.total_dmg_positivo],
-    ['Em uso de insulina', metricas.total_em_insulina],
-    ['Profissionais', metricas.total_profissionais],
+    ['Gestantes no período', metricas.total_gestantes],
+    ['DMG confirmado', metricas.total_dmg_confirmado],
+    ['Taxa de DMG (%)', metricas.taxa_dmg_percent],
+    ['Overt diabetes', metricas.total_overt],
+    ['Profissionais', metricas.profissionais_ativos],
   ];
   y = desenharGridKpis(page, helv, helvBold, kpis, y, cBgCard, cTexto, cMuted);
+
+  // Diagnóstico por momento
+  y -= 20;
+  y = desenharSecao(page, helvBold, 'Diagnóstico de DMG', y, cRoxo);
+  const dxKpis: Array<[string, string | number]> = [
+    ['DMG via Retorno 1', metricas.dmg_retorno1],
+    ['DMG via GTT', metricas.dmg_gtt],
+    ['Total laudos', metricas.total_laudos],
+  ];
+  y = desenharGridKpis(page, helv, helvBold, dxKpis, y, cBgCard, cTexto, cMuted);
+
+  // Controle glicêmico
+  y -= 20;
+  y = desenharSecao(page, helvBold, 'Controle glicêmico', y, cRoxo);
+  const ctrlKpis: Array<[string, string | number]> = [
+    ['Adequado s/ insulina', metricas.controle_adequado_sem_insulina],
+    ['Em insulina', metricas.controle_com_insulina],
+    ['Adequado c/ insulina', metricas.controle_adequado_com_insulina],
+    ['Encaminhadas', metricas.encaminhadas_especialista],
+  ];
+  y = desenharGridKpis(page, helv, helvBold, ctrlKpis, y, cBgCard, cTexto, cMuted);
 
   // Partos
   y -= 20;
   y = desenharSecao(page, helvBold, 'Partos no período', y, cRoxo);
   const partosKpis: Array<[string, string | number]> = [
-    ['Total de partos', metricas.total_partos],
-    ['Vaginais', metricas.partos_vaginais],
+    ['Total de partos', metricas.partos_registrados],
+    ['Vaginais', metricas.partos_vaginal],
     ['Cesáreas', metricas.partos_cesarea],
   ];
   y = desenharGridKpis(page, helv, helvBold, partosKpis, y, cBgCard, cTexto, cMuted);
@@ -243,7 +355,7 @@ async function gerarPdfRelatorio(params: {
   y = desenharGridKpis(page, helv, helvBold, interKpis, y, cBgCard, cTexto, cMuted);
 
   // Aviso se vazio
-  if (metricas.total_pacientes_periodo === 0 && metricas.total_partos === 0) {
+  if (metricas.total_gestantes === 0 && metricas.partos_registrados === 0) {
     y -= 30;
     page.drawRectangle({
       x: 40, y: y - 5, width: width - 80, height: 30,
@@ -418,7 +530,7 @@ Deno.serve(async (req) => {
           admin, unidade.id as string, unidade.nome as string, periodoInicio, periodoFim,
         );
 
-        const ehVazia = metricas.total_pacientes_periodo === 0 && metricas.total_partos === 0;
+        const ehVazia = metricas.total_gestantes === 0 && metricas.partos_registrados === 0;
 
         const pdfBytes = await gerarPdfRelatorio({
           metricas, periodoInicio, periodoFim, rotuloMes,
@@ -476,7 +588,7 @@ Deno.serve(async (req) => {
           const metricas = await agregarMetricas(
             admin, uni.id as string, uni.nome as string, periodoInicio, periodoFim,
           );
-          const ehVazia = metricas.total_pacientes_periodo === 0 && metricas.total_partos === 0;
+          const ehVazia = metricas.total_gestantes === 0 && metricas.partos_registrados === 0;
           const pdfBytes = await gerarPdfRelatorio({ metricas, periodoInicio, periodoFim, rotuloMes });
 
           const fd = new FormData();
