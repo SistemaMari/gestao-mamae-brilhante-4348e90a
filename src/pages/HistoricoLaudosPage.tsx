@@ -1,24 +1,28 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FileText, Loader2, Search, Filter, History } from 'lucide-react';
+import { FileText, Loader2, Search, Filter, History, Eye, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import { downloadLaudoPdf, laudoConteudoToText } from '@/lib/laudoPdf';
 
 interface LaudoRow {
   id: string;
   paciente_id: string;
   paciente_nome: string;
   cenario_clinico: string | null;
+  conteudo_laudo: string | null;
   status: string;
   created_at: string;
 }
@@ -69,7 +73,7 @@ export default function HistoricoLaudosPage() {
 
       const { data, error } = await supabase
         .from('laudos')
-        .select('id, paciente_id, cenario_clinico, status, created_at, pacientes:paciente_id(nome)')
+        .select('id, paciente_id, cenario_clinico, status, conteudo_laudo, created_at, pacientes:paciente_id(nome)')
         .eq('profissional_id', prof.id)
         .order('created_at', { ascending: false })
         .limit(200);
@@ -87,6 +91,7 @@ export default function HistoricoLaudosPage() {
         paciente_id: l.paciente_id,
         paciente_nome: l.pacientes?.nome ?? '—',
         cenario_clinico: l.cenario_clinico,
+        conteudo_laudo: l.conteudo_laudo,
         status: l.status,
         created_at: l.created_at,
       }));
