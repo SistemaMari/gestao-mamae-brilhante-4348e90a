@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { classificarRN } from '@/lib/intergrowth';
 
 import { differenceInDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { FileText, Info, Loader2, Baby } from 'lucide-react';
+import { useAutosave } from '@/hooks/useAutosave';
+import AutosaveIndicator from '@/components/AutosaveIndicator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -92,6 +94,94 @@ export default function RegistroPartoForm({
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // ── Refs para autosave (rastreia consulta de rascunho) ──
+  const draftConsultaIdRef = useRef<string | null>(null);
+  const profissionalIdRef = useRef<string | null>(null);
+  const proxNumeroRef = useRef<number>((consultas?.length || 0) + 1);
+
+  // Carrega o profissional uma vez
+  useEffect(() => {
+    if (isPreview) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: prof } = await supabase
+        .from('profissionais')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (prof) profissionalIdRef.current = prof.id;
+    })();
+  }, [isPreview]);
+
+  // Dados do autosave: salva conforme o usuário preenche, mesmo sem todos os campos
+  const autosaveData = useMemo(() => ({
+    viaParto, motivoCesarea, igPartoSemanas, igPartoDias, dataParto,
+    pesoRn, sexoRn, classRn, apgar1, apgar5,
+    intercorrMat, descIntercorrMat, intercorrNeo, descIntercorrNeo,
+    aleitamento, observacoes,
+  }), [
+    viaParto, motivoCesarea, igPartoSemanas, igPartoDias, dataParto,
+    pesoRn, sexoRn, classRn, apgar1, apgar5,
+    intercorrMat, descIntercorrMat, intercorrNeo, descIntercorrNeo,
+    aleitamento, observacoes,
+  ]);
+
+  // Habilita autosave quando há ao menos via + data do parto
+  const canAutosave = !isPreview && !!viaParto && !!dataParto;
+
+  const { status: autosaveStatus } = useAutosave({
+    data: autosaveData,
+    enabled: canAutosave,
+    onSave: async (d) => {
+      if (!profissionalIdRef.current) return;
+
+      const dadosParto = {
+        via_parto: d.viaParto,
+        motivo_cesarea: d.viaParto === 'cesarea' ? d.motivoCesarea.trim() : null,
+        ig_semanas: d.igPartoSemanas !== '' ? Number(d.igPartoSemanas) : null,
+        ig_dias: d.igPartoDias !== '' ? Number(d.igPartoDias) : null,
+        data_parto: d.dataParto,
+        peso_rn_g: d.pesoRn !== '' ? Number(d.pesoRn) : null,
+        sexo_rn: d.sexoRn || null,
+        classificacao_rn: d.classRn || null,
+        apgar_1min: d.apgar1 !== '' ? Number(d.apgar1) : null,
+        apgar_5min: d.apgar5 !== '' ? Number(d.apgar5) : null,
+        intercorrencias_maternas: d.intercorrMat === 'sim',
+        desc_intercorrencias_maternas: d.intercorrMat === 'sim' ? d.descIntercorrMat.trim() : null,
+        intercorrencias_neonatais: d.intercorrNeo === 'sim',
+        desc_intercorrencias_neonatais: d.intercorrNeo === 'sim' ? d.descIntercorrNeo.trim() : null,
+        aleitamento_sala_parto: d.aleitamento === 'sim',
+        observacoes: d.observacoes.trim() || null,
+      };
+
+      const payload = {
+        paciente_id: paciente.id,
+        profissional_id: profissionalIdRef.current,
+        tipo: 'registro_parto',
+        numero_sequencial: proxNumeroRef.current,
+        data: d.dataParto,
+        ig_semanas: d.igPartoSemanas !== '' ? Number(d.igPartoSemanas) : null,
+        ig_dias: d.igPartoDias !== '' ? Number(d.igPartoDias) : null,
+        observacoes: JSON.stringify(dadosParto),
+        cenario_clinico: '5',
+        is_rascunho: true,
+      };
+
+      if (draftConsultaIdRef.current) {
+        await supabase.from('consultas').update(payload).eq('id', draftConsultaIdRef.current);
+      } else {
+        const { data: created, error } = await supabase
+          .from('consultas')
+          .insert(payload)
+          .select('id')
+          .single();
+        if (error) throw error;
+        if (created) draftConsultaIdRef.current = created.id;
+      }
+    },
+  });
 
   // ── Auto-cálculo da IG no parto a partir da DUM e da data do parto ──
   useEffect(() => {
@@ -271,9 +361,9 @@ export default function RegistroPartoForm({
       return;
     }
 
-    const proxNumero = (consultas?.length || 0) + 1;
+    const proxNumero = proxNumeroRef.current;
 
-    const { error: cErr } = await supabase.from('consultas').insert({
+    const consultaPayload = {
       paciente_id: paciente.id,
       profissional_id: prof.id,
       tipo: 'registro_parto',
@@ -284,7 +374,20 @@ export default function RegistroPartoForm({
       observacoes: JSON.stringify(dadosParto),
       cenario_clinico: '5',
       status_gerado: 'resultado_parto',
-    });
+      is_rascunho: false,
+    };
+
+    let cErr: any = null;
+    if (draftConsultaIdRef.current) {
+      const { error } = await supabase
+        .from('consultas')
+        .update(consultaPayload)
+        .eq('id', draftConsultaIdRef.current);
+      cErr = error;
+    } else {
+      const { error } = await supabase.from('consultas').insert(consultaPayload);
+      cErr = error;
+    }
 
     if (cErr) {
       console.error(cErr);
@@ -332,11 +435,14 @@ export default function RegistroPartoForm({
               Preencha os dados do parto. Após salvar, esta ficha será encerrada.
             </p>
           </div>
-          {igAtual && (
-            <span className="inline-flex shrink-0 rounded-md bg-[#E8E0FF] px-2 py-1 text-[11px] font-medium text-[#7E69AB]">
-              IG atual — {igAtual.semanas} sem + {igAtual.dias} dias
-            </span>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {!isPreview && <AutosaveIndicator status={autosaveStatus} />}
+            {igAtual && (
+              <span className="inline-flex rounded-md bg-[#E8E0FF] px-2 py-1 text-[11px] font-medium text-[#7E69AB]">
+                IG atual — {igAtual.semanas} sem + {igAtual.dias} dias
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Nota dentro do card */}
