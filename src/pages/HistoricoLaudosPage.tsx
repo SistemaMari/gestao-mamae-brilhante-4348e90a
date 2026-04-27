@@ -44,6 +44,7 @@ function fmtData(iso: string) {
 
 export default function HistoricoLaudosPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [laudos, setLaudos] = useState<LaudoRow[]>([]);
   const [busca, setBusca] = useState('');
