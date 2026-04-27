@@ -200,6 +200,87 @@ export default function AdminPage() {
             )}
           </div>
 
+          {/* Usuários do sistema (todos os auth users, mesmo sem profissional) */}
+          <div className="mb-6 rounded-xl border border-border bg-card p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-heading text-base font-semibold text-foreground flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" /> Usuários do sistema
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {usuariosSistema.length} {usuariosSistema.length === 1 ? 'usuário' : 'usuários'}
+              </span>
+            </div>
+            {loadingUsuarios ? (
+              <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
+            ) : usuariosSistema.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">Nenhum usuário encontrado</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Privilégios</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {usuariosSistema.map((u) => (
+                    <TableRow key={u.user_id}>
+                      <TableCell>
+                        <div className="font-medium">{u.email ?? '—'}</div>
+                        <div className="text-xs text-muted-foreground">criado em {new Date(u.created_at).toLocaleDateString('pt-BR')}</div>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {u.nome_profissional ?? <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {u.is_admin && <Badge className="bg-primary/10 text-primary border-primary/20">Admin</Badge>}
+                          {u.is_gestor_geral && <Badge variant="secondary">Gestor geral</Badge>}
+                          {u.is_profissional && <Badge variant="outline">Profissional</Badge>}
+                          {!u.is_admin && !u.is_gestor_geral && !u.is_profissional && (
+                            <span className="text-xs text-muted-foreground">sem perfil</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex flex-wrap justify-end gap-1">
+                          {!u.is_admin ? (
+                            <Button size="sm" variant="outline"
+                              onClick={() => chamarAcao('promover_admin', u.user_id, { nome: u.nome_profissional ?? u.email })}
+                              disabled={acaoLoading === 'promover_admin' + u.user_id}>
+                              <Shield className="mr-1 h-3 w-3" /> Promover admin
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="outline"
+                              onClick={() => chamarAcao('remover_admin', u.user_id)}
+                              disabled={acaoLoading === 'remover_admin' + u.user_id}>
+                              <ShieldOff className="mr-1 h-3 w-3" /> Remover admin
+                            </Button>
+                          )}
+                          {!u.is_gestor_geral ? (
+                            <Button size="sm" variant="outline"
+                              onClick={() => chamarAcao('promover_gestor_geral', u.user_id, { nome: u.nome_profissional ?? u.email })}
+                              disabled={acaoLoading === 'promover_gestor_geral' + u.user_id}>
+                              Gestor geral
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="outline"
+                              onClick={() => chamarAcao('remover_gestor_geral', u.user_id)}
+                              disabled={acaoLoading === 'remover_gestor_geral' + u.user_id}>
+                              <Trash2 className="mr-1 h-3 w-3" /> Tirar gestor geral
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
           {/* Profissionais */}
           <div className="mb-6 rounded-xl border border-border bg-card p-5">
             <h2 className="mb-4 font-heading text-base font-semibold text-foreground flex items-center gap-2">
