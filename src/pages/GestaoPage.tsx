@@ -497,6 +497,10 @@ export default function GestaoPage() {
                     <Download className="h-3.5 w-3.5" />
                     CSV
                   </Button>
+                  <Button variant="outline" size="sm" onClick={exportXLSX} disabled={fichasFiltradas.length === 0}>
+                    <FileSpreadsheet className="h-3.5 w-3.5" />
+                    Excel
+                  </Button>
                   <Button variant="outline" size="sm" onClick={exportJSON} disabled={fichasFiltradas.length === 0}>
                     <Download className="h-3.5 w-3.5" />
                     JSON
