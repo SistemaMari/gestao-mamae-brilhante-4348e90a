@@ -46,7 +46,8 @@ export default function Consulta1Form() {
 
   const idade = useMemo(() => {
     if (!dataNascimento) return null;
-    return differenceInYears(new Date(), new Date(dataNascimento));
+    const nasc = parseDateLocal(dataNascimento);
+    return nasc ? differenceInYears(new Date(), nasc) : null;
   }, [dataNascimento]);
 
   // Location cascading logic
