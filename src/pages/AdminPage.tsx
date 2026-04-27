@@ -77,7 +77,20 @@ export default function AdminPage() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  const carregarUsuarios = useCallback(async () => {
+    setLoadingUsuarios(true);
+    const { data, error } = await supabase.functions.invoke('admin-gerenciar-usuarios', {
+      body: { acao: 'listar_usuarios' },
+    });
+    setLoadingUsuarios(false);
+    if (error || (data && data.error)) {
+      toast({ title: 'Erro', description: (data?.error || error?.message) ?? 'Falha ao carregar usuários', variant: 'destructive' });
+      return;
+    }
+    setUsuariosSistema((data?.usuarios ?? []) as UsuarioSistema[]);
+  }, []);
+
+  useEffect(() => { carregar(); carregarUsuarios(); }, [carregar, carregarUsuarios]);
 
   const chamarAcao = async (acao: string, alvo_user_id?: string, payload?: Record<string, unknown>) => {
     setAcaoLoading(acao + (alvo_user_id ?? ''));
@@ -90,7 +103,7 @@ export default function AdminPage() {
       return false;
     }
     toast({ title: 'Sucesso', description: 'Ação executada.' });
-    await carregar();
+    await Promise.all([carregar(), carregarUsuarios()]);
     return true;
   };
 
