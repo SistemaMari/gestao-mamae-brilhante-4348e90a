@@ -136,8 +136,8 @@ export default function AdminUnidadesPage() {
       plano_expira_em: parsed.data.plano_expira_em || null,
     };
     const { error } = editing
-      ? await supabase.from('unidades').update(payload).eq('id', editing.id)
-      : await supabase.from('unidades').insert(payload);
+      ? await supabase.from('unidades').update(payload as any).eq('id', editing.id)
+      : await supabase.from('unidades').insert(payload as any);
     setSaving(false);
 
     if (error) {
