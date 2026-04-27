@@ -15,6 +15,7 @@ import {
   User, Info, Loader2
 } from 'lucide-react';
 import { differenceInDays, format, addDays } from 'date-fns';
+import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 
 interface Paciente extends PreviewPaciente {}
 
