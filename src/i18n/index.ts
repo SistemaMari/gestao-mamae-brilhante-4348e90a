@@ -15,6 +15,15 @@ export const LANGUAGE_META: Record<SupportedLanguage, { label: string; flag: str
   'es':    { label: 'Español',         flag: '🇪🇸', short: 'ES' },
 };
 
+// Declarado ANTES do init para estar disponível em convertDetectedLanguage
+export function normalizeLang(value: string | null | undefined): SupportedLanguage {
+  if (!value) return 'pt-BR';
+  const v = value.toLowerCase();
+  if (v.startsWith('en')) return 'en-US';
+  if (v.startsWith('es')) return 'es';
+  return 'pt-BR';
+}
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -37,14 +46,5 @@ i18n
     returnNull: false,
     react: { useSuspense: false },
   });
-
-// Helper para sincronizar idioma com Supabase profile
-export function normalizeLang(value: string | null | undefined): SupportedLanguage {
-  if (!value) return 'pt-BR';
-  const v = value.toLowerCase();
-  if (v.startsWith('en')) return 'en-US';
-  if (v.startsWith('es')) return 'es';
-  return 'pt-BR';
-}
 
 export default i18n;
