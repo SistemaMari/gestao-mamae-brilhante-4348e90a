@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
+import { useRealtimeRefresh } from '@/hooks/useRealtimeRefresh';
+import RealtimeIndicator from '@/components/RealtimeIndicator';
 import {
   getPreviewPacienteById,
   updatePreviewPaciente,
@@ -210,6 +212,44 @@ export default function FichaPacientePage() {
   const [editDataConsulta, setEditDataConsulta] = useState('');
   const [editObservacoes, setEditObservacoes] = useState('');
 
+  const fetchPaciente = useCallback(async () => {
+    if (!id || isPreview) return;
+
+    const { data: pac } = await supabase
+      .from('pacientes')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (pac) {
+      setPaciente({
+        ...pac,
+        data_nascimento: pac.data_nascimento || null,
+        consultas: [],
+      } as any);
+
+      const { data: cons } = await supabase
+        .from('consultas')
+        .select('*')
+        .eq('paciente_id', id)
+        .order('data', { ascending: true });
+
+      setConsultas(
+        (cons || []).map((c: any) => ({
+          id: c.id,
+          tipo: c.tipo,
+          numero_sequencial: c.numero_sequencial,
+          data: c.data,
+          ig_semanas: c.ig_semanas,
+          ig_dias: c.ig_dias,
+          observacoes: c.observacoes,
+          status_gerado: c.status_gerado,
+        }))
+      );
+    }
+    setLoading(false);
+  }, [id, isPreview]);
+
   useEffect(() => {
     if (!id) return;
 
@@ -223,42 +263,16 @@ export default function FichaPacientePage() {
       return;
     }
 
-    (async () => {
-      const { data: pac } = await supabase
-        .from('pacientes')
-        .select('*')
-        .eq('id', id)
-        .single();
+    fetchPaciente();
+  }, [id, isPreview, fetchPaciente]);
 
-      if (pac) {
-        setPaciente({
-          ...pac,
-          data_nascimento: pac.data_nascimento || null,
-          consultas: [],
-        } as any);
-
-        const { data: cons } = await supabase
-          .from('consultas')
-          .select('*')
-          .eq('paciente_id', id)
-          .order('data', { ascending: true });
-
-        setConsultas(
-          (cons || []).map((c: any) => ({
-            id: c.id,
-            tipo: c.tipo,
-            numero_sequencial: c.numero_sequencial,
-            data: c.data,
-            ig_semanas: c.ig_semanas,
-            ig_dias: c.ig_dias,
-            observacoes: c.observacoes,
-            status_gerado: c.status_gerado,
-          }))
-        );
-      }
-      setLoading(false);
-    })();
-  }, [id, isPreview]);
+  // Realtime: mudanças em consultas, exames, perfis e laudos desta paciente
+  const rtStatus = useRealtimeRefresh({
+    tables: ['pacientes', 'consultas', 'exames_glicemia', 'perfis_glicemicos', 'laudos'],
+    onChange: fetchPaciente,
+    enabled: !!id && !isPreview,
+    channelName: id ? `ficha-${id}` : undefined,
+  });
 
   const idade = useMemo(() => {
     if (!paciente?.data_nascimento) return null;
@@ -492,6 +506,7 @@ export default function FichaPacientePage() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {!isPreview && <RealtimeIndicator status={rtStatus} className="mr-1" />}
             {status && (
               <Badge className={`${status.color} text-white border-0 shrink-0`}>
                 {status.label}

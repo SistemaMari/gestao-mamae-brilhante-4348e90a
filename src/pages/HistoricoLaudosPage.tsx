@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -16,6 +16,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { downloadLaudoPdf, laudoConteudoToText } from '@/lib/laudoPdf';
+import { useRealtimeRefresh } from '@/hooks/useRealtimeRefresh';
+import RealtimeIndicator from '@/components/RealtimeIndicator';
 
 interface LaudoRow {
   id: string;
@@ -51,58 +53,59 @@ export default function HistoricoLaudosPage() {
   const [filtroStatus, setFiltroStatus] = useState<string>('todos');
   const [filtroCenario, setFiltroCenario] = useState<string>('todos');
 
-  useEffect(() => {
+  const fetchLaudos = useCallback(async () => {
     if (!user) return;
-    let cancelled = false;
 
-    (async () => {
-      setLoading(true);
+    const { data: prof } = await supabase
+      .from('profissionais')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-      const { data: prof } = await supabase
-        .from('profissionais')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!prof) {
-        if (!cancelled) {
-          setLaudos([]);
-          setLoading(false);
-        }
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('laudos')
-        .select('id, paciente_id, cenario_clinico, status, conteudo_laudo, created_at, pacientes:paciente_id(nome)')
-        .eq('profissional_id', prof.id)
-        .order('created_at', { ascending: false })
-        .limit(200);
-
-      if (cancelled) return;
-
-      if (error) {
-        setLaudos([]);
-        setLoading(false);
-        return;
-      }
-
-      const rows: LaudoRow[] = (data ?? []).map((l: any) => ({
-        id: l.id,
-        paciente_id: l.paciente_id,
-        paciente_nome: l.pacientes?.nome ?? '—',
-        cenario_clinico: l.cenario_clinico,
-        conteudo_laudo: l.conteudo_laudo,
-        status: l.status,
-        created_at: l.created_at,
-      }));
-
-      setLaudos(rows);
+    if (!prof) {
+      setLaudos([]);
       setLoading(false);
-    })();
+      return;
+    }
 
-    return () => { cancelled = true; };
+    const { data, error } = await supabase
+      .from('laudos')
+      .select('id, paciente_id, cenario_clinico, status, conteudo_laudo, created_at, pacientes:paciente_id(nome)')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error) {
+      setLaudos([]);
+      setLoading(false);
+      return;
+    }
+
+    const rows: LaudoRow[] = (data ?? []).map((l: any) => ({
+      id: l.id,
+      paciente_id: l.paciente_id,
+      paciente_nome: l.pacientes?.nome ?? '—',
+      cenario_clinico: l.cenario_clinico,
+      conteudo_laudo: l.conteudo_laudo,
+      status: l.status,
+      created_at: l.created_at,
+    }));
+
+    setLaudos(rows);
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchLaudos();
+  }, [fetchLaudos]);
+
+  // Realtime: laudos da unidade inteira (RLS já filtra o que cada usuário vê)
+  const rtStatus = useRealtimeRefresh({
+    tables: ['laudos', 'pacientes'],
+    onChange: fetchLaudos,
+    enabled: !!user,
+    channelName: 'historico-laudos',
+  });
 
   const cenariosDisponiveis = useMemo(() => {
     const set = new Set<string>();
@@ -127,12 +130,17 @@ export default function HistoricoLaudosPage() {
         <span>Histórico</span>
       </div>
 
-      <h1 className="font-heading text-2xl font-bold text-foreground">
-        Histórico de laudos
-      </h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Todos os laudos gerados, em ordem do mais recente para o mais antigo.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">
+            Histórico de laudos
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Todos os laudos gerados, em ordem do mais recente para o mais antigo.
+          </p>
+        </div>
+        <RealtimeIndicator status={rtStatus} />
+      </div>
 
       {/* Filtros */}
       <section className="mt-6 rounded-xl border border-border bg-card p-4">

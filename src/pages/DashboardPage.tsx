@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
 import UsageWarningBanner from '@/components/UsageWarningBanner';
+import { useRealtimeRefresh } from '@/hooks/useRealtimeRefresh';
+import RealtimeIndicator from '@/components/RealtimeIndicator';
 import BlockingModal from '@/components/BlockingModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -117,6 +119,18 @@ export default function DashboardPage() {
   const [showBlockingModal, setShowBlockingModal] = useState(false);
   const [page, setPage] = useState(1);
 
+  const fetchPacientes = useCallback(async () => {
+    if (!profissionalData || isPreview) return;
+
+    const { data } = await supabase
+      .from('pacientes')
+      .select('id, nome, numero_identificacao, dum, usg_data, usg_ig_semanas, usg_ig_dias, status_ficha, dmg_gestacao_anterior, data_ultima_consulta, data_proximo_retorno, tipo_retorno')
+      .order('data_ultima_consulta', { ascending: false, nullsFirst: false });
+
+    setPacientes((data as Paciente[]) || []);
+    setLoadingPacientes(false);
+  }, [profissionalData, isPreview]);
+
   useEffect(() => {
     if (isPreview) {
       setPacientes(getPreviewPacientes());
@@ -129,8 +143,9 @@ export default function DashboardPage() {
       return;
     }
 
+    setLoadingPacientes(true);
     fetchPacientes();
-  }, [isPreview, profissionalData]);
+  }, [isPreview, profissionalData, fetchPacientes]);
 
   useEffect(() => {
     if (!isPreview) return;
@@ -148,18 +163,13 @@ export default function DashboardPage() {
     };
   }, [isPreview]);
 
-  const fetchPacientes = async () => {
-    if (!profissionalData || isPreview) return;
-    setLoadingPacientes(true);
-
-    const { data } = await supabase
-      .from('pacientes')
-      .select('id, nome, numero_identificacao, dum, usg_data, usg_ig_semanas, usg_ig_dias, status_ficha, dmg_gestacao_anterior, data_ultima_consulta, data_proximo_retorno, tipo_retorno')
-      .order('data_ultima_consulta', { ascending: false, nullsFirst: false });
-
-    setPacientes((data as Paciente[]) || []);
-    setLoadingPacientes(false);
-  };
+  // Realtime: pacientes + consultas + laudos da unidade (RLS já filtra)
+  const rtStatus = useRealtimeRefresh({
+    tables: ['pacientes', 'consultas', 'laudos'],
+    onChange: fetchPacientes,
+    enabled: !isPreview && !!profissionalData,
+    channelName: 'dashboard-pacientes',
+  });
 
   const ENCERRADAS_STATUS = ['resultado_parto', 'dmg_afastado', 'encaminhada_endocrino'];
 
@@ -281,7 +291,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Toggle: mostrar fichas encerradas */}
-        <div className="mb-4 flex items-center justify-end gap-2">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          {!isPreview ? <RealtimeIndicator status={rtStatus} /> : <span />}
+          <div className="flex items-center gap-2">
           <Switch
             id="show-encerradas"
             checked={showEncerradas}
@@ -301,6 +313,7 @@ export default function DashboardPage() {
               Inclui pacientes com status "Resultado do parto", "DMG afastado" e "Associar endocrino".
             </TooltipContent>
           </Tooltip>
+          </div>
         </div>
 
         {/* Patient list */}
