@@ -14,6 +14,7 @@ import DashboardPage from "./pages/DashboardPage";
 import DashboardMetricasPage from "./pages/DashboardMetricasPage";
 import GestaoPage from "./pages/GestaoPage";
 import AdminPage from "./pages/AdminPage";
+import AdminUnidadesPage from "./pages/AdminUnidadesPage";
 import ConsolidarPage from "./pages/ConsolidarPage";
 import PlanosPage from "./pages/PlanosPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
