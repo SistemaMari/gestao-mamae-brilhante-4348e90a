@@ -715,7 +715,7 @@ export default function FichaPacientePage() {
           paciente={{ nome: paciente.nome }}
           igSemanas={igNaConsulta1?.semanas ?? 0}
           igDias={igNaConsulta1?.dias ?? 0}
-          dataLaudo={new Date(primeiraConsulta.data)}
+          dataLaudo={parseDateLocal(primeiraConsulta.data) ?? new Date()}
           cenario={mapearCenario({ tipo: 'consulta_1', status_gerado: paciente.status_ficha })}
           bloco2={null}
           bloco3={null}
