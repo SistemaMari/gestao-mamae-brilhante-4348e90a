@@ -34,6 +34,10 @@ A tendência padrão dos modelos é responder em termos genéricos. Isso é INAC
 
 REGRA ANTI-GENERALIDADES: termos-guarda-chuva como "dieta individualizada", "atividade física regular", "acompanhamento adequado" são PROIBIDOS como resposta completa. Sempre que usar um desses conceitos, descreva-o concretamente, extraindo detalhes específicos dos módulos — tipo, fracionamento, composição, duração, frequência, metas, exemplos, armadilhas, contraindicações, o que os módulos fornecerem.
 
+Exemplo do que NÃO fazer: "Oriente dieta individualizada e atividade física regular."
+
+Exemplo do que fazer (extraído da Aula 2 do M6): "Oriente dieta fracionada em 6 refeições ao longo do dia, com distribuição de 30% no almoço, 30% no jantar e 10% em cada uma das outras 4 refeições (café, lanches e ceia). A composição deve ser balanceada — 40-50% de carboidratos preferencialmente complexos (pela absorção lenta e maior riqueza nutricional), proteínas (animais ou vegetais, conforme preferência), lipídios e fibras. Carboidrato NÃO deve ser cortado — o que importa é a qualidade. Oriente sobre as 4 armadilhas alimentares mais comuns: (1) usar a contagem de carboidrato como passe livre para qualquer refeição; (2) substituir alimentos comuns por versões diet/light, que podem ser mais calóricas e levar a ganho de peso; (3) seguir modismos alimentares sem evidência (como a batata-doce, cujo índice glicêmico varia conforme a variedade e o preparo); (4) consumir sucos de fruta no lugar da fruta in natura — a ausência de fibra provoca pico glicêmico. Quanto à atividade física: 150 minutos por semana de intensidade moderada, distribuídos em pelo menos 3 a 4 vezes na semana. A caminhada é a mais acessível. Prescrição desde o primeiro trimestre — não há evidência de que exercício no 1º trimestre cause aborto."
+
 A profundidade NÃO é opcional — é a razão de existir deste sistema.
 
 # SOBRE ORIENTAÇÃO NUTRICIONAL
@@ -233,14 +237,14 @@ Retorne APENAS um JSON válido, sem texto antes/depois, sem markdown.
   ],
   "metadados_do_laudo": {
     "cenario_processado": "eco do cenario_clinico",
-    "usou_nota_diagnostico_tardio": true,
-    "usou_frase_motivacional_final": true,
-    "usou_regra_go_conduz_cenario_7": false,
-    "incluiu_argumentacao_paciente": true,
-    "incluiu_aporte_calorico_individualizado": true,
-    "incluiu_4_armadilhas_dieta": true,
-    "citou_recursos_oficiais_ms": true,
-    "usou_estrutura_4_subtitulos": true
+    "usou_nota_diagnostico_tardio": "true|false (true apenas no 6B)",
+    "usou_frase_motivacional_final": "true|false (false nos cenários 5 e 7)",
+    "usou_regra_go_conduz_cenario_7": "true|false (true apenas no 7)",
+    "incluiu_argumentacao_paciente": "true|false",
+    "incluiu_aporte_calorico_individualizado": "true|false",
+    "incluiu_4_armadilhas_dieta": "true|false",
+    "citou_recursos_oficiais_ms": "true|false",
+    "usou_estrutura_4_subtitulos": "true|false (true nos cenários 1, 3, 6, 6B, 8)"
   }
 }
 
@@ -291,7 +295,7 @@ const ROTEAMENTO: Record<CenarioId, string[]> = {
   '2':  [PROTOCOLO, 'M6.pdf', 'M9.pdf', 'M10.pdf', 'M13.pdf'],
   '3':  [PROTOCOLO, 'M3.pdf', 'M6.pdf', 'M7.pdf', 'M9.pdf', 'M10.pdf', 'M13.pdf'],
   '4':  [PROTOCOLO, 'M6.pdf', 'M7.pdf', 'M9.pdf', 'M10.pdf', 'M13.pdf'],
-  '5':  [PROTOCOLO, 'M12.pdf', 'M13.pdf'],
+  '5':  [PROTOCOLO, 'M2.pdf', 'M12.pdf', 'M13.pdf'],
   '6':  [PROTOCOLO, 'M2.pdf', 'M3.pdf', 'M4.pdf', 'M6.pdf', 'M9.pdf', 'M10.pdf', 'M13.pdf'],
   '6B': [PROTOCOLO, 'M2.pdf', 'M3.pdf', 'M4.pdf', 'M6.pdf', 'M9.pdf', 'M10.pdf', 'M13.pdf'],
   '7':  [PROTOCOLO, 'M7.pdf', 'M13.pdf'],
