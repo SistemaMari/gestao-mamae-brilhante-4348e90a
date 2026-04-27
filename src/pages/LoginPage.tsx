@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -28,11 +30,16 @@ export default function LoginPage() {
 
     if (error) {
       setIsLoading(false);
-      setError(error);
+      // Map common Supabase auth errors to translated messages
+      const msg = error.toLowerCase();
+      if (msg.includes('invalid') || msg.includes('credentials')) {
+        setError(t('auth.invalidCredentials'));
+      } else {
+        setError(error);
+      }
       return;
     }
 
-    // Resolver perfil rapidamente para redirecionar; se não houver perfil, vai para onboarding
     const maxAttempts = 15;
     for (let i = 0; i < maxAttempts; i++) {
       await new Promise(r => setTimeout(r, 200));
@@ -57,40 +64,38 @@ export default function LoginPage() {
       return;
     }
     setIsLoading(false);
-    setError('Tempo esgotado. Tente novamente.');
+    setError(t('auth.timeout'));
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-[400px] animate-fade-in">
-        {/* Logo */}
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
             <span className="font-heading text-2xl font-bold text-primary">DM</span>
           </div>
           <h1 className="font-heading text-xl font-semibold text-foreground">
-            MARI DMG Diagnóstica
+            {t('auth.appName')}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Sistema de apoio à decisão clínica
+            {t('auth.appTagline')}
           </p>
         </div>
 
-        {/* Card do formulário */}
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <h2 className="mb-6 font-heading text-lg font-semibold text-foreground">
-            Entrar
+            {t('auth.loginTitle')}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                E-mail
+                {t('auth.emailLabel')}
               </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="seu@email.com"
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -100,13 +105,13 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                Senha
+                {t('auth.passwordLabel')}
               </Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={t('auth.passwordPlaceholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
@@ -119,7 +124,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
-                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -140,10 +145,10 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Entrando...
+                  {t('auth.loggingIn')}
                 </>
               ) : (
-                'Entrar'
+                t('auth.loginButton')
               )}
             </Button>
 
@@ -152,7 +157,7 @@ export default function LoginPage() {
                 to="/recuperar-senha"
                 className="text-sm text-primary hover:underline transition-colors"
               >
-                Esqueci minha senha
+                {t('auth.forgotPassword')}
               </Link>
             </div>
           </form>
@@ -160,9 +165,9 @@ export default function LoginPage() {
 
         <div className="mt-4 text-center">
           <p className="text-sm text-muted-foreground">
-            Quer só visualizar o que já foi criado?{' '}
+            {t('auth.previewCta')}{' '}
             <Link to="/" className="font-medium text-primary transition-colors hover:opacity-80">
-              Abrir vitrine sem login
+              {t('auth.previewLink')}
             </Link>
           </p>
         </div>
