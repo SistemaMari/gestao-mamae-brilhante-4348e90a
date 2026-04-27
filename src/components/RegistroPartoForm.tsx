@@ -435,11 +435,14 @@ export default function RegistroPartoForm({
               Preencha os dados do parto. Após salvar, esta ficha será encerrada.
             </p>
           </div>
-          {igAtual && (
-            <span className="inline-flex shrink-0 rounded-md bg-[#E8E0FF] px-2 py-1 text-[11px] font-medium text-[#7E69AB]">
-              IG atual — {igAtual.semanas} sem + {igAtual.dias} dias
-            </span>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {!isPreview && <AutosaveIndicator status={autosaveStatus} />}
+            {igAtual && (
+              <span className="inline-flex rounded-md bg-[#E8E0FF] px-2 py-1 text-[11px] font-medium text-[#7E69AB]">
+                IG atual — {igAtual.semanas} sem + {igAtual.dias} dias
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Nota dentro do card */}
