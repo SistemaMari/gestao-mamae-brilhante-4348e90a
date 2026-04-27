@@ -296,20 +296,41 @@ async function gerarPdfRelatorio(params: {
   // KPIs gerais
   y = desenharSecao(page, helvBold, 'Visão Geral', y, cRoxo);
   const kpis: Array<[string, string | number]> = [
-    ['Fichas no período', metricas.total_pacientes_periodo],
-    ['Fichas ativas', metricas.total_fichas_ativas],
-    ['Histórico de DMG', metricas.total_dmg_positivo],
-    ['Em uso de insulina', metricas.total_em_insulina],
-    ['Profissionais', metricas.total_profissionais],
+    ['Gestantes no período', metricas.total_gestantes],
+    ['DMG confirmado', metricas.total_dmg_confirmado],
+    ['Taxa de DMG (%)', metricas.taxa_dmg_percent],
+    ['Overt diabetes', metricas.total_overt],
+    ['Profissionais', metricas.profissionais_ativos],
   ];
   y = desenharGridKpis(page, helv, helvBold, kpis, y, cBgCard, cTexto, cMuted);
+
+  // Diagnóstico por momento
+  y -= 20;
+  y = desenharSecao(page, helvBold, 'Diagnóstico de DMG', y, cRoxo);
+  const dxKpis: Array<[string, string | number]> = [
+    ['DMG via Retorno 1', metricas.dmg_retorno1],
+    ['DMG via GTT', metricas.dmg_gtt],
+    ['Total laudos', metricas.total_laudos],
+  ];
+  y = desenharGridKpis(page, helv, helvBold, dxKpis, y, cBgCard, cTexto, cMuted);
+
+  // Controle glicêmico
+  y -= 20;
+  y = desenharSecao(page, helvBold, 'Controle glicêmico', y, cRoxo);
+  const ctrlKpis: Array<[string, string | number]> = [
+    ['Adequado s/ insulina', metricas.controle_adequado_sem_insulina],
+    ['Em insulina', metricas.controle_com_insulina],
+    ['Adequado c/ insulina', metricas.controle_adequado_com_insulina],
+    ['Encaminhadas', metricas.encaminhadas_especialista],
+  ];
+  y = desenharGridKpis(page, helv, helvBold, ctrlKpis, y, cBgCard, cTexto, cMuted);
 
   // Partos
   y -= 20;
   y = desenharSecao(page, helvBold, 'Partos no período', y, cRoxo);
   const partosKpis: Array<[string, string | number]> = [
-    ['Total de partos', metricas.total_partos],
-    ['Vaginais', metricas.partos_vaginais],
+    ['Total de partos', metricas.partos_registrados],
+    ['Vaginais', metricas.partos_vaginal],
     ['Cesáreas', metricas.partos_cesarea],
   ];
   y = desenharGridKpis(page, helv, helvBold, partosKpis, y, cBgCard, cTexto, cMuted);
@@ -334,7 +355,7 @@ async function gerarPdfRelatorio(params: {
   y = desenharGridKpis(page, helv, helvBold, interKpis, y, cBgCard, cTexto, cMuted);
 
   // Aviso se vazio
-  if (metricas.total_pacientes_periodo === 0 && metricas.total_partos === 0) {
+  if (metricas.total_gestantes === 0 && metricas.partos_registrados === 0) {
     y -= 30;
     page.drawRectangle({
       x: 40, y: y - 5, width: width - 80, height: 30,
