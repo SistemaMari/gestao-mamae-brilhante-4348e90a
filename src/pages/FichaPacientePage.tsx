@@ -604,7 +604,7 @@ export default function FichaPacientePage() {
                 <User className="h-3.5 w-3.5 shrink-0" />
                 <span>
                   <span className="font-medium text-foreground">Nascimento:</span>{' '}
-                  {paciente.data_nascimento ? format(new Date(paciente.data_nascimento), 'dd/MM/yyyy') : '—'}
+                  {paciente.data_nascimento ? formatDateBR(paciente.data_nascimento) : '—'}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -636,14 +636,14 @@ export default function FichaPacientePage() {
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
                   <span className="font-medium text-foreground">Data da consulta 1:</span>{' '}
-                  {primeiraConsulta ? format(new Date(primeiraConsulta.data), 'dd/MM/yyyy') : '—'}
+                  {primeiraConsulta ? formatDateBR(primeiraConsulta.data) : '—'}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
                   <span className="font-medium text-foreground">DUM:</span>{' '}
-                  {paciente.dum ? format(new Date(paciente.dum), 'dd/MM/yyyy') : '—'}
+                  {paciente.dum ? formatDateBR(paciente.dum) : '—'}
                 </span>
               </div>
             </div>
@@ -765,7 +765,7 @@ export default function FichaPacientePage() {
                         {displayName}
                       </span>
                       <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                        {format(new Date(c.data), 'dd/MM/yyyy')}
+                        {formatDateBR(c.data)}
                       </span>
                     </div>
                     {igDisplay && (
@@ -775,7 +775,7 @@ export default function FichaPacientePage() {
                     )}
                     {(c.data_inicio && c.data_fim) && (
                       <span className="text-[10px] text-[#64748B] self-start">
-                        Período do perfil: {format(new Date(c.data_inicio), 'dd/MM/yyyy')} a {format(new Date(c.data_fim), 'dd/MM/yyyy')}
+                        Período do perfil: {formatDateBR(c.data_inicio)} a {formatDateBR(c.data_fim)}
                       </span>
                     )}
                   </div>
