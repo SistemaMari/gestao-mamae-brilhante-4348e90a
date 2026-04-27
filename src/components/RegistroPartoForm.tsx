@@ -95,6 +95,94 @@ export default function RegistroPartoForm({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // ── Refs para autosave (rastreia consulta de rascunho) ──
+  const draftConsultaIdRef = useRef<string | null>(null);
+  const profissionalIdRef = useRef<string | null>(null);
+  const proxNumeroRef = useRef<number>((consultas?.length || 0) + 1);
+
+  // Carrega o profissional uma vez
+  useEffect(() => {
+    if (isPreview) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: prof } = await supabase
+        .from('profissionais')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (prof) profissionalIdRef.current = prof.id;
+    })();
+  }, [isPreview]);
+
+  // Dados do autosave: salva conforme o usuário preenche, mesmo sem todos os campos
+  const autosaveData = useMemo(() => ({
+    viaParto, motivoCesarea, igPartoSemanas, igPartoDias, dataParto,
+    pesoRn, sexoRn, classRn, apgar1, apgar5,
+    intercorrMat, descIntercorrMat, intercorrNeo, descIntercorrNeo,
+    aleitamento, observacoes,
+  }), [
+    viaParto, motivoCesarea, igPartoSemanas, igPartoDias, dataParto,
+    pesoRn, sexoRn, classRn, apgar1, apgar5,
+    intercorrMat, descIntercorrMat, intercorrNeo, descIntercorrNeo,
+    aleitamento, observacoes,
+  ]);
+
+  // Habilita autosave quando há ao menos via + data do parto
+  const canAutosave = !isPreview && !!viaParto && !!dataParto;
+
+  const { status: autosaveStatus } = useAutosave({
+    data: autosaveData,
+    enabled: canAutosave,
+    onSave: async (d) => {
+      if (!profissionalIdRef.current) return;
+
+      const dadosParto = {
+        via_parto: d.viaParto,
+        motivo_cesarea: d.viaParto === 'cesarea' ? d.motivoCesarea.trim() : null,
+        ig_semanas: d.igPartoSemanas !== '' ? Number(d.igPartoSemanas) : null,
+        ig_dias: d.igPartoDias !== '' ? Number(d.igPartoDias) : null,
+        data_parto: d.dataParto,
+        peso_rn_g: d.pesoRn !== '' ? Number(d.pesoRn) : null,
+        sexo_rn: d.sexoRn || null,
+        classificacao_rn: d.classRn || null,
+        apgar_1min: d.apgar1 !== '' ? Number(d.apgar1) : null,
+        apgar_5min: d.apgar5 !== '' ? Number(d.apgar5) : null,
+        intercorrencias_maternas: d.intercorrMat === 'sim',
+        desc_intercorrencias_maternas: d.intercorrMat === 'sim' ? d.descIntercorrMat.trim() : null,
+        intercorrencias_neonatais: d.intercorrNeo === 'sim',
+        desc_intercorrencias_neonatais: d.intercorrNeo === 'sim' ? d.descIntercorrNeo.trim() : null,
+        aleitamento_sala_parto: d.aleitamento === 'sim',
+        observacoes: d.observacoes.trim() || null,
+      };
+
+      const payload = {
+        paciente_id: paciente.id,
+        profissional_id: profissionalIdRef.current,
+        tipo: 'registro_parto',
+        numero_sequencial: proxNumeroRef.current,
+        data: d.dataParto,
+        ig_semanas: d.igPartoSemanas !== '' ? Number(d.igPartoSemanas) : null,
+        ig_dias: d.igPartoDias !== '' ? Number(d.igPartoDias) : null,
+        observacoes: JSON.stringify(dadosParto),
+        cenario_clinico: '5',
+        is_rascunho: true,
+      };
+
+      if (draftConsultaIdRef.current) {
+        await supabase.from('consultas').update(payload).eq('id', draftConsultaIdRef.current);
+      } else {
+        const { data: created, error } = await supabase
+          .from('consultas')
+          .insert(payload)
+          .select('id')
+          .single();
+        if (error) throw error;
+        if (created) draftConsultaIdRef.current = created.id;
+      }
+    },
+  });
+
   // ── Auto-cálculo da IG no parto a partir da DUM e da data do parto ──
   useEffect(() => {
     if (igOrigem === 'manual') return;
