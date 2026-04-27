@@ -12,7 +12,8 @@ type Acao =
   | 'remover_gestor_geral'
   | 'vincular_unidade'
   | 'criar_unidade'
-  | 'listar_usuarios';
+  | 'listar_usuarios'
+  | 'promover_admin_por_email';
 
 interface Body {
   acao: Acao;
@@ -91,9 +92,35 @@ Deno.serve(async (req) => {
       case 'remover_admin': {
         if (!alvo_user_id) throw new Error('alvo_user_id obrigatório');
         if (alvo_user_id === callerId) throw new Error('Você não pode remover seu próprio acesso de admin');
+        // Salvaguarda: não deixar o sistema sem admins
+        const { count } = await admin.from('admins').select('*', { count: 'exact', head: true });
+        if ((count ?? 0) <= 1) throw new Error('Não é possível remover o último admin do sistema');
         const { error } = await admin.from('admins').delete().eq('user_id', alvo_user_id);
         if (error) throw error;
         return ok({ ok: true });
+      }
+      case 'promover_admin_por_email': {
+        const email = (payload?.email as string)?.trim().toLowerCase();
+        if (!email) throw new Error('email obrigatório');
+        // Buscar user_id por email via paginação
+        let foundId: string | null = null;
+        let foundName: string | null = null;
+        let page = 1;
+        const perPage = 200;
+        for (let i = 0; i < 20; i++) {
+          const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+          if (error) throw new Error(`Falha ao buscar usuário: ${error.message}`);
+          const u = data.users.find((x) => (x.email ?? '').toLowerCase() === email);
+          if (u) { foundId = u.id; break; }
+          if (data.users.length < perPage) break;
+          page++;
+        }
+        if (!foundId) throw new Error('Nenhum usuário com este e-mail. O usuário precisa ter conta no sistema antes.');
+        const { data: prof } = await admin.from('profissionais').select('nome').eq('user_id', foundId).maybeSingle();
+        foundName = prof?.nome ?? email;
+        const { error } = await admin.from('admins').insert({ user_id: foundId, nome: foundName });
+        if (error && !error.message.includes('duplicate')) throw error;
+        return ok({ ok: true, user_id: foundId });
       }
       case 'promover_gestor_geral': {
         if (!alvo_user_id) throw new Error('alvo_user_id obrigatório');

@@ -124,7 +124,12 @@ export default function AdminPage() {
               <h1 className="font-heading text-2xl font-bold text-foreground">Painel Administrativo</h1>
               <p className="text-sm text-muted-foreground">Visão geral do sistema MARI DMG Diagnóstica</p>
             </div>
-            <Badge className="ml-auto bg-primary/10 text-primary border-primary/20">Admin</Badge>
+            <div className="ml-auto flex items-center gap-2">
+              <Button asChild size="sm" variant="outline">
+                <a href="/admin/admins"><Shield className="mr-1 h-4 w-4" /> Gerenciar admins</a>
+              </Button>
+              <Badge className="bg-primary/10 text-primary border-primary/20">Admin</Badge>
+            </div>
           </div>
 
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
