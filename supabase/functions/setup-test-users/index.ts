@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
       } else if (u.tipo === 'institucional' || u.tipo === 'gestor') {
         const { data: profExistente } = await supabase
           .from('profissionais').select('id').eq('user_id', user.id).maybeSingle();
-        const perfilInst = u.tipo === 'gestor' ? 'gestor' : 'profissional';
+        const perfilInst = u.tipo === 'gestor' ? 'gestor' : 'institucional';
         if (!profExistente) {
           const { error: errProf } = await supabase.from('profissionais').insert({
             user_id: user.id,
