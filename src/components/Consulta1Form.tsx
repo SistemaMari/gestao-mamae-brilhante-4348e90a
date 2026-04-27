@@ -47,6 +47,10 @@ export default function Consulta1Form() {
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
 
+  // Autosave: rascunho de paciente + consulta no banco
+  const draftPacienteIdRef = useRef<string | null>(null);
+  const draftConsultaIdRef = useRef<string | null>(null);
+
   const idade = useMemo(() => {
     if (!dataNascimento) return null;
     const nasc = parseDateLocal(dataNascimento);
@@ -60,6 +64,85 @@ export default function Consulta1Form() {
   const { cidades: cityList } = useCidadesIBGE(pais, estado);
 
   const isValid = nome.trim() && dataNascimento && dum && dataConsulta && dmgAnterior !== null;
+
+  // Mínimo para começar a salvar rascunho: nome + DUM
+  const canAutosave =
+    !isPreview && !!profissionalData && !!user && !!nome.trim() && !!dum && !saving;
+
+  const autosaveData = useMemo(
+    () => ({
+      nome: nome.trim(),
+      dataNascimento,
+      tipoIdentificacao,
+      numeroId: numeroId.trim(),
+      dum,
+      dataConsulta,
+      observacoes: observacoes.trim(),
+      dmgAnterior,
+      pais,
+      estado,
+      cidade,
+    }),
+    [nome, dataNascimento, tipoIdentificacao, numeroId, dum, dataConsulta, observacoes, dmgAnterior, pais, estado, cidade],
+  );
+
+  const { status: autosaveStatus } = useAutosave({
+    data: autosaveData,
+    enabled: canAutosave,
+    onSave: async (d) => {
+      if (!profissionalData) return;
+      const payload: Record<string, unknown> = {
+        nome: d.nome,
+        profissional_id: profissionalData.id,
+        data_nascimento: d.dataNascimento || null,
+        numero_identificacao: d.numeroId || null,
+        tipo_identificacao: d.tipoIdentificacao,
+        dum: d.dum,
+        pais: d.pais,
+        estado: d.estado || null,
+        cidade: d.cidade || null,
+        dmg_gestacao_anterior: d.dmgAnterior === true,
+        data_ultima_consulta: d.dataConsulta,
+        status_ficha: 'aguardando_gj',
+        is_rascunho: true,
+      };
+      if ('unidade_id' in profissionalData) {
+        payload.unidade_id = (profissionalData as any).unidade_id || null;
+      }
+
+      if (!draftPacienteIdRef.current) {
+        const { data: pac, error } = await supabase
+          .from('pacientes').insert(payload as any).select('id').single();
+        if (error || !pac) throw error ?? new Error('Falha ao criar rascunho');
+        draftPacienteIdRef.current = pac.id;
+      } else {
+        const { error } = await supabase
+          .from('pacientes').update(payload as any).eq('id', draftPacienteIdRef.current);
+        if (error) throw error;
+      }
+
+      const consultaPayload = {
+        paciente_id: draftPacienteIdRef.current,
+        profissional_id: profissionalData.id,
+        tipo: 'consulta_1',
+        numero_sequencial: 1,
+        data: d.dataConsulta,
+        observacoes: d.observacoes || null,
+        status_gerado: 'aguardando_gj',
+        is_rascunho: true,
+      };
+      if (!draftConsultaIdRef.current) {
+        const { data: cons, error } = await supabase
+          .from('consultas').insert(consultaPayload as any).select('id').single();
+        if (error || !cons) throw error ?? new Error('Falha ao criar consulta rascunho');
+        draftConsultaIdRef.current = cons.id;
+      } else {
+        const { error } = await supabase
+          .from('consultas').update(consultaPayload as any).eq('id', draftConsultaIdRef.current);
+        if (error) throw error;
+      }
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
