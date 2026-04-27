@@ -745,9 +745,13 @@ export type Database = {
       unidades: {
         Row: {
           ativa: boolean
+          cidade: string | null
+          cnes: string | null
           created_at: string
+          estado: string | null
           id: string
           nome: string
+          pais: string | null
           plano_expira_em: string | null
           plano_status: string
           stripe_customer_id: string | null
@@ -756,9 +760,13 @@ export type Database = {
         }
         Insert: {
           ativa?: boolean
+          cidade?: string | null
+          cnes?: string | null
           created_at?: string
+          estado?: string | null
           id?: string
           nome: string
+          pais?: string | null
           plano_expira_em?: string | null
           plano_status?: string
           stripe_customer_id?: string | null
@@ -767,9 +775,13 @@ export type Database = {
         }
         Update: {
           ativa?: boolean
+          cidade?: string | null
+          cnes?: string | null
           created_at?: string
+          estado?: string | null
           id?: string
           nome?: string
+          pais?: string | null
           plano_expira_em?: string | null
           plano_status?: string
           stripe_customer_id?: string | null
