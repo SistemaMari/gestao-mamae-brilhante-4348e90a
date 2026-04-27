@@ -196,16 +196,6 @@ export default function Consulta1Form() {
 
     setSaving(true);
 
-    const { data: podeCriar } = await supabase.rpc('pode_criar_ficha', {
-      p_profissional_id: profissionalData.id,
-    });
-
-    if (!podeCriar) {
-      toast.error('Limite de fichas atingido para o plano atual.');
-      setSaving(false);
-      return;
-    }
-
     const pacientePayload: Record<string, unknown> = {
       nome: nome.trim(),
       profissional_id: profissionalData.id,
@@ -219,34 +209,73 @@ export default function Consulta1Form() {
       dmg_gestacao_anterior: dmgAnterior === true,
       data_ultima_consulta: dataConsulta,
       status_ficha: 'aguardando_gj',
+      is_rascunho: false,
     };
 
     if ('unidade_id' in profissionalData) {
       pacientePayload.unidade_id = (profissionalData as any).unidade_id || null;
     }
 
-    const { data: pacienteData, error: pacErr } = await supabase
-      .from('pacientes')
-      .insert(pacientePayload as any)
-      .select('id')
-      .single();
+    let pacienteId = draftPacienteIdRef.current;
 
-    if (pacErr || !pacienteData) {
-      toast.error('Erro ao criar paciente.');
-      console.error(pacErr);
-      setSaving(false);
-      return;
+    if (!pacienteId) {
+      const { data: podeCriar } = await supabase.rpc('pode_criar_ficha', {
+        p_profissional_id: profissionalData.id,
+      });
+      if (!podeCriar) {
+        toast.error('Limite de fichas atingido para o plano atual.');
+        setSaving(false);
+        return;
+      }
+
+      const { data: pacienteData, error: pacErr } = await supabase
+        .from('pacientes')
+        .insert(pacientePayload as any)
+        .select('id')
+        .single();
+
+      if (pacErr || !pacienteData) {
+        toast.error('Erro ao criar paciente.');
+        console.error(pacErr);
+        setSaving(false);
+        return;
+      }
+      pacienteId = pacienteData.id;
+    } else {
+      const { error: pacErr } = await supabase
+        .from('pacientes')
+        .update(pacientePayload as any)
+        .eq('id', pacienteId);
+      if (pacErr) {
+        toast.error('Erro ao salvar paciente.');
+        console.error(pacErr);
+        setSaving(false);
+        return;
+      }
     }
 
-    const { error: consErr } = await supabase.from('consultas').insert({
-      paciente_id: pacienteData.id,
+    const consultaPayload = {
+      paciente_id: pacienteId,
       profissional_id: profissionalData.id,
       tipo: 'consulta_1',
       numero_sequencial: 1,
       data: dataConsulta,
       observacoes: observacoes.trim() || null,
       status_gerado: 'aguardando_gj',
-    });
+      is_rascunho: false,
+    };
+
+    let consErr: unknown = null;
+    if (draftConsultaIdRef.current) {
+      const { error } = await supabase
+        .from('consultas')
+        .update(consultaPayload as any)
+        .eq('id', draftConsultaIdRef.current);
+      consErr = error;
+    } else {
+      const { error } = await supabase.from('consultas').insert(consultaPayload as any);
+      consErr = error;
+    }
 
     setSaving(false);
 
@@ -257,7 +286,7 @@ export default function Consulta1Form() {
       toast.success('Consulta 1 registrada com sucesso!');
     }
 
-    navigate(`/paciente/${pacienteData.id}`);
+    navigate(`/paciente/${pacienteId}`);
   };
 
   const fieldError = (valid: boolean) =>
