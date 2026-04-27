@@ -130,12 +130,17 @@ export default function HistoricoLaudosPage() {
         <span>Histórico</span>
       </div>
 
-      <h1 className="font-heading text-2xl font-bold text-foreground">
-        Histórico de laudos
-      </h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Todos os laudos gerados, em ordem do mais recente para o mais antigo.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">
+            Histórico de laudos
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Todos os laudos gerados, em ordem do mais recente para o mais antigo.
+          </p>
+        </div>
+        <RealtimeIndicator status={rtStatus} />
+      </div>
 
       {/* Filtros */}
       <section className="mt-6 rounded-xl border border-border bg-card p-4">
