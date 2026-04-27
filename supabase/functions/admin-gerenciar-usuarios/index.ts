@@ -127,6 +127,60 @@ Deno.serve(async (req) => {
         if (error) throw error;
         return ok({ ok: true, unidade: data });
       }
+      case 'listar_usuarios': {
+        // Lista todos os usuários auth com flags de papel
+        const usuarios: Array<{
+          user_id: string;
+          email: string | null;
+          created_at: string;
+          nome_profissional: string | null;
+          is_admin: boolean;
+          is_gestor_geral: boolean;
+          is_profissional: boolean;
+        }> = [];
+
+        // Paginação do auth admin (perPage máx 1000)
+        let page = 1;
+        const perPage = 200;
+        // limite de segurança: 10 páginas (2000 usuários)
+        for (let i = 0; i < 10; i++) {
+          const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+          if (error) throw error;
+          for (const u of data.users) {
+            usuarios.push({
+              user_id: u.id,
+              email: u.email ?? null,
+              created_at: u.created_at,
+              nome_profissional: null,
+              is_admin: false,
+              is_gestor_geral: false,
+              is_profissional: false,
+            });
+          }
+          if (data.users.length < perPage) break;
+          page++;
+        }
+
+        const ids = usuarios.map((u) => u.user_id);
+        if (ids.length > 0) {
+          const [adminsRes, gestoresRes, profsRes] = await Promise.all([
+            admin.from('admins').select('user_id').in('user_id', ids),
+            admin.from('gestores_gerais').select('user_id').in('user_id', ids),
+            admin.from('profissionais').select('user_id, nome').in('user_id', ids),
+          ]);
+          const adminSet = new Set((adminsRes.data ?? []).map((r) => r.user_id));
+          const gestorSet = new Set((gestoresRes.data ?? []).map((r) => r.user_id));
+          const profMap = new Map((profsRes.data ?? []).map((r) => [r.user_id, r.nome as string]));
+          for (const u of usuarios) {
+            u.is_admin = adminSet.has(u.user_id);
+            u.is_gestor_geral = gestorSet.has(u.user_id);
+            u.is_profissional = profMap.has(u.user_id);
+            u.nome_profissional = profMap.get(u.user_id) ?? null;
+          }
+        }
+
+        return ok({ ok: true, usuarios });
+      }
       default:
         return new Response(JSON.stringify({ error: 'Ação desconhecida' }), {
           status: 400,
