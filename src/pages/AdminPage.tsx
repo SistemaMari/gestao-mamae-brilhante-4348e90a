@@ -374,13 +374,76 @@ export default function AdminPage() {
 
           {/* Profissionais */}
           <div className="mb-6 rounded-xl border border-border bg-card p-5">
-            <h2 className="mb-4 font-heading text-base font-semibold text-foreground flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" /> Gestão de profissionais
-            </h2>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-heading text-base font-semibold text-foreground flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" /> Gestão de profissionais
+                <Badge variant="outline" className="ml-1 font-normal">
+                  {profissionaisFiltrados.length}{filtrosAtivos ? ` / ${profissionais.length}` : ''}
+                </Badge>
+              </h2>
+              <Button size="sm" variant="outline" onClick={exportarCSV} disabled={profissionaisFiltrados.length === 0}>
+                <Download className="mr-2 h-4 w-4" /> Exportar CSV
+              </Button>
+            </div>
+
+            {/* Filtros */}
+            <div className="mb-4 grid gap-3 md:grid-cols-12">
+              <div className="relative md:col-span-5">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar por nome, e-mail, CRM…"
+                  className="pl-9"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <Select value={filtroUnidade} onValueChange={setFiltroUnidade}>
+                  <SelectTrigger><SelectValue placeholder="Unidade" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as unidades</SelectItem>
+                    <SelectItem value="sem">Sem unidade (consultório)</SelectItem>
+                    {unidades.map((u) => <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2">
+                <Select value={filtroPlano} onValueChange={setFiltroPlano}>
+                  <SelectTrigger><SelectValue placeholder="Plano" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os planos</SelectItem>
+                    {planosUnicos.map((pl) => <SelectItem key={pl} value={pl}>{pl}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2">
+                <Select value={filtroPerfil} onValueChange={setFiltroPerfil}>
+                  <SelectTrigger><SelectValue placeholder="Perfil" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os perfis</SelectItem>
+                    <SelectItem value="consultorio">Consultório</SelectItem>
+                    <SelectItem value="institucional">Institucional</SelectItem>
+                    <SelectItem value="gestor">Gestor de unidade</SelectItem>
+                    <SelectItem value="gestor_geral">Gestor geral</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {filtrosAtivos && (
+              <div className="mb-3 flex justify-end">
+                <Button size="sm" variant="ghost" onClick={limparFiltros}>
+                  <X className="mr-1 h-3 w-3" /> Limpar filtros
+                </Button>
+              </div>
+            )}
+
             {loading ? (
               <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
-            ) : profissionais.length === 0 ? (
-              <p className="py-4 text-center text-sm text-muted-foreground">Nenhum profissional cadastrado</p>
+            ) : profissionaisFiltrados.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                {profissionais.length === 0 ? 'Nenhum profissional cadastrado' : 'Nenhum resultado para os filtros aplicados'}
+              </p>
             ) : (
               <Table>
                 <TableHeader>
@@ -388,12 +451,13 @@ export default function AdminPage() {
                     <TableHead>Nome</TableHead>
                     <TableHead>Unidade</TableHead>
                     <TableHead>Perfil</TableHead>
+                    <TableHead>Plano</TableHead>
                     <TableHead>Privilégios</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {profissionais.map((p) => (
+                  {profissionaisFiltrados.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell>
                         <div className="font-medium">{p.nome}</div>
