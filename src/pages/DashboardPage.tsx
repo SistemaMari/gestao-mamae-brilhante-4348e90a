@@ -313,6 +313,7 @@ export default function DashboardPage() {
               Inclui pacientes com status "Resultado do parto", "DMG afastado" e "Associar endocrino".
             </TooltipContent>
           </Tooltip>
+          </div>
         </div>
 
         {/* Patient list */}
