@@ -192,6 +192,83 @@ export default function Retorno1Form({
     return igCalculada;
   }, [igSemanas, igDias, igCalculada]);
 
+  // Autosave: rascunho de consulta + exame_glicemia (modo real, novo retorno)
+  const draftConsultaIdRef = useRef<string | null>(null);
+  const draftExameIdRef = useRef<string | null>(null);
+
+  const canAutosave =
+    !isPreview &&
+    !editingConsulta &&
+    !!profissionalData &&
+    !!user &&
+    valorValido &&
+    !!tipoExame &&
+    !saving;
+
+  const autosaveData = useMemo(
+    () => ({
+      valorNum,
+      tipoExame,
+      dataExame,
+      dataConsultaRetorno,
+      observacoes: observacoes.trim(),
+      igSemanas: igFinal?.semanas ?? null,
+      igDias: igFinal?.dias ?? null,
+    }),
+    [valorNum, tipoExame, dataExame, dataConsultaRetorno, observacoes, igFinal],
+  );
+
+  const { status: autosaveStatus } = useAutosave({
+    data: autosaveData,
+    enabled: canAutosave,
+    onSave: async (d) => {
+      if (!profissionalData) return;
+      const consultaPayload = {
+        paciente_id: paciente.id,
+        profissional_id: profissionalData.id,
+        tipo: 'retorno_1',
+        numero_sequencial: 2,
+        data: d.dataConsultaRetorno,
+        ig_semanas: d.igSemanas,
+        ig_dias: d.igDias,
+        observacoes: d.observacoes || null,
+        status_gerado: paciente.status_ficha,
+        is_rascunho: true,
+      };
+      if (!draftConsultaIdRef.current) {
+        const { data: cons, error } = await supabase
+          .from('consultas').insert(consultaPayload as any).select('id').single();
+        if (error || !cons) throw error ?? new Error('Falha rascunho consulta');
+        draftConsultaIdRef.current = cons.id;
+      } else {
+        const { error } = await supabase
+          .from('consultas').update(consultaPayload as any).eq('id', draftConsultaIdRef.current);
+        if (error) throw error;
+      }
+
+      const examePayload = {
+        consulta_id: draftConsultaIdRef.current,
+        paciente_id: paciente.id,
+        profissional_id: profissionalData.id,
+        valor_mgdl: d.valorNum,
+        tipo_exame: d.tipoExame,
+        data_exame: d.dataExame,
+        ig_semanas_na_data: d.igSemanas,
+        ig_dias_na_data: d.igDias,
+      };
+      if (!draftExameIdRef.current) {
+        const { data: ex, error } = await supabase
+          .from('exames_glicemia' as any).insert(examePayload as any).select('id').single();
+        if (error || !ex) throw error ?? new Error('Falha rascunho exame');
+        draftExameIdRef.current = (ex as any).id;
+      } else {
+        const { error } = await supabase
+          .from('exames_glicemia' as any).update(examePayload as any).eq('id', draftExameIdRef.current);
+        if (error) throw error;
+      }
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched(true);
