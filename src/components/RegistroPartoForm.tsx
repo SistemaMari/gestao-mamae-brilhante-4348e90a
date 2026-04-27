@@ -6,7 +6,7 @@ import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { FileText, Info, Loader2, Baby } from 'lucide-react';
 import { useAutosave } from '@/hooks/useAutosave';
-import { AutosaveIndicator } from '@/components/AutosaveIndicator';
+import AutosaveIndicator from '@/components/AutosaveIndicator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
