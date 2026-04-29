@@ -1,9 +1,7 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, getRedirectPath, type UserProfile } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { Loader2 } from 'lucide-react';
-
-type AllowedProfile = 'consultorio' | 'institucional' | 'gestor' | 'gestor_geral' | 'admin';
 
 export default function ProtectedRoute({
   children,
@@ -13,11 +11,11 @@ export default function ProtectedRoute({
 }: {
   children: React.ReactNode;
   skipProfileCheck?: boolean;
-  allowedProfiles?: AllowedProfile[];
+  allowedProfiles?: UserProfile[];
   skipOnboardingRedirect?: boolean;
 }) {
   const { user, loading, profile } = useAuth();
-  const { profissionalData, loading: loadingProf, perfilIncompleto } = useProfissionalData();
+  const { loading: loadingProf, perfilIncompleto } = useProfissionalData();
 
   if (loading || loadingProf) {
     return (
@@ -36,14 +34,14 @@ export default function ProtectedRoute({
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Server-side role enforcement: redirect users whose profile is not allowed for this route
-  if (allowedProfiles && profile && !allowedProfiles.includes(profile as AllowedProfile)) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   // Verificar perfil incompleto para profissionais (consultório / institucional)
   if (!skipProfileCheck && (profile === 'consultorio' || profile === 'institucional') && perfilIncompleto) {
     return <Navigate to="/completar-perfil" replace />;
+  }
+
+  // Autorização por perfil — silenciosamente redireciona para a home do perfil
+  if (allowedProfiles && allowedProfiles.length > 0 && profile && !allowedProfiles.includes(profile)) {
+    return <Navigate to={getRedirectPath(profile)} replace />;
   }
 
   return <>{children}</>;

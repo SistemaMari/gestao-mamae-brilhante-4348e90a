@@ -83,16 +83,24 @@ const App = () => (
             <Route path="/convite/token-exemplo-preview" element={<Navigate to="/vitrine/cadastro-convite" replace />} />
             <Route path="/convite/:token" element={<CadastroConvitePage />} />
 
-            {/* App Shell do profissional clínico */}
-            <Route element={<ProtectedRoute><AppShellClinico /></ProtectedRoute>}>
+            {/* App Shell do profissional clínico — rotas clínicas (consultorio + institucional) */}
+            <Route element={<ProtectedRoute allowedProfiles={['consultorio', 'institucional']}><AppShellClinico /></ProtectedRoute>}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/dashboard/metricas" element={<DashboardMetricasPage />} />
               <Route path="/paciente/nova" element={<PacientePage />} />
               <Route path="/paciente/:id" element={<PacientePage />} />
-              <Route path="/planos" element={<PlanosPage />} />
-              <Route path="/perfil" element={<PerfilPage />} />
               <Route path="/laudos" element={<HistoricoLaudosPage />} />
               <Route path="/laudo/:id" element={<LaudoViewerPage />} />
+            </Route>
+
+            {/* Planos — exclusivo do consultório */}
+            <Route element={<ProtectedRoute allowedProfiles={['consultorio']}><AppShellClinico /></ProtectedRoute>}>
+              <Route path="/planos" element={<PlanosPage />} />
+            </Route>
+
+            {/* Perfil — todos os perfis autenticados */}
+            <Route element={<ProtectedRoute allowedProfiles={['consultorio', 'institucional', 'gestor', 'gestor_geral', 'admin']}><AppShellClinico /></ProtectedRoute>}>
+              <Route path="/perfil" element={<PerfilPage />} />
             </Route>
 
             {/* Onboarding (autenticado, sem perfil ainda) */}
@@ -105,8 +113,8 @@ const App = () => (
               }
             />
 
-            {/* Completar perfil (dentro do shell mas skip profile check) */}
-            <Route element={<ProtectedRoute skipProfileCheck><AppShellClinico /></ProtectedRoute>}>
+            {/* Completar perfil (apenas consultório/institucional precisam completar cadastro) */}
+            <Route element={<ProtectedRoute skipProfileCheck allowedProfiles={['consultorio', 'institucional']}><AppShellClinico /></ProtectedRoute>}>
               <Route path="/completar-perfil" element={<CompletarPerfilPage />} />
             </Route>
 

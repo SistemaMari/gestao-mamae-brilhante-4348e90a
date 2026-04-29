@@ -1,79 +1,74 @@
+## Objetivo
 
+Garantir que cada perfil (consultorio, institucional, gestor, gestor_geral, admin) só acesse as rotas autorizadas. Hoje o `ProtectedRoute` já tem a prop `allowedProfiles` e ela já é aplicada em `/gestao`, `/admin` e `/consolidar`, mas **não está aplicada nas rotas clínicas** (`/dashboard`, `/dashboard/metricas`, `/paciente/*`, `/planos`, `/perfil`, `/laudos`, `/laudo/:id`). Além disso, o redirecionamento atual quando o perfil não é permitido manda sempre para `/dashboard`, o que é errado para `gestor`, `gestor_geral` e `admin`.
 
-# Substituir API do IBGE por lista estática vinda do PDF
+## Mudanças
 
-## Decisão
+### 1. `src/contexts/AuthContext.tsx`
+- Exportar o tipo `UserProfile` (hoje é interno) para reuso no `ProtectedRoute`.
+- Manter `getRedirectPath` intocado (já está exportado e correto).
 
-A lista de cidades passa a vir **100% de um arquivo estático** dentro do projeto, gerado a partir do(s) PDF(s) que você vai enviar. Sem dependência de API externa, sem fallback parcial, sem aviso de "modo offline".
+### 2. `src/components/ProtectedRoute.tsx`
+- Renomear/alinhar a prop existente `allowedProfiles` → manter o nome `allowedProfiles` (já em uso) e alinhá-la ao tipo `UserProfile` exportado.
+- **Corrigir o redirecionamento**: hoje faz `Navigate to="/dashboard"` quando o perfil não está permitido. Trocar por `Navigate to={getRedirectPath(profile)} replace` para mandar cada perfil à sua home.
+- Ordem de verificação preservada:
+  1. loading → spinner
+  2. sem `user` → `/login`
+  3. `profile === null` (e não skipOnboardingRedirect) → `/onboarding`
+  4. perfil incompleto (consultorio/institucional, sem skipProfileCheck) → `/completar-perfil`
+  5. **NOVO comportamento**: perfil válido fora de `allowedProfiles` → `getRedirectPath(profile)` (hoje vai sempre p/ `/dashboard`)
+  6. renderiza `children`
+- Retrocompatibilidade: se `allowedProfiles` não for passado, comportamento idêntico ao atual.
 
-## O que vai mudar
+### 3. `src/App.tsx` — aplicar matriz de acesso
 
-### 1. Novo arquivo de dados: `src/data/cidadesIBGE.ts`
+Reorganizar o bloco do `AppShellClinico` em grupos por permissão:
 
-Arquivo gerado a partir do PDF, no formato:
-
-```ts
-export const CIDADES_POR_UF: Record<string, string[]> = {
-  AC: ["Acrelândia", "Assis Brasil", ...],
-  AL: ["Água Branca", "Anadia", ...],
-  // ... 27 UFs
-};
+```text
+/dashboard, /dashboard/metricas         → [consultorio, institucional]
+/paciente/nova, /paciente/:id           → [consultorio, institucional]
+/laudos, /laudo/:id                     → [consultorio, institucional]
+/planos                                 → [consultorio]
+/perfil                                 → [consultorio, institucional, gestor, gestor_geral, admin]
+/completar-perfil (skipProfileCheck)    → [consultorio, institucional]   (apenas perfis que precisam completar cadastro)
 ```
 
-Cada UF com a lista **completa e oficial** do IBGE, ordenada alfabeticamente em pt-BR.
+Rotas fora do shell clínico — apenas ajustar/confirmar `allowedProfiles`:
+```text
+/gestao                 → [gestor, admin, gestor_geral]   (manter como está)
+/gestao/equipe          → [gestor]                        (manter)
+/admin, /admin/*        → [admin]                         (manter)
+/consolidar             → [admin, gestor_geral]           (manter)
+```
 
-### 2. Substituir o hook `useCidadesIBGE`
+Rotas que **não mudam**:
+- Vitrine (`/vitrine/*`), `/login`, `/recuperar-senha`, `/nova-senha`, `/convite/:token`, `/onboarding`, `*` (NotFound).
 
-O hook deixa de fazer `fetch` para `servicodados.ibge.gov.br` e passa a ler direto de `CIDADES_POR_UF[uf]`. Mantém a mesma assinatura `{ cidades, loading, erro }` para não quebrar o `ProfileForm`, mas:
-- `loading` sempre `false` (resposta síncrona)
-- `erro` sempre `null`
-- Remove cache em memória, `inflight`, e toda a lógica de fallback
+### 4. Sem mudanças
+- `getRedirectPath` permanece como está.
+- RLS, edge functions, sidebars e UIs internas — fora de escopo.
+- Sem toast/alert ao redirecionar (silencioso, conforme especificado).
 
-### 3. Limpar `ProfileForm.tsx`
+## Diagrama de fluxo do ProtectedRoute
 
-- Remove a mensagem "Lista parcial (sem conexão com o IBGE)" — não faz mais sentido.
-- Mantém o disabled do select de cidade enquanto não houver UF selecionada.
+```text
+request → loading? ──sim──► spinner
+            │
+            └─não─► user? ──não──► /login
+                     │
+                     └─sim─► profile==null? ──sim──► /onboarding
+                              │
+                              └─não─► perfil incompleto? ──sim──► /completar-perfil
+                                       │
+                                       └─não─► allowedProfiles && !inclui(profile)?
+                                                ├─sim─► getRedirectPath(profile)
+                                                └─não─► <children/>
+```
 
-### 4. Limpar `locationData.ts`
-
-- Remove o array `cities` de cada UF brasileira (vira fallback morto).
-- Mantém `countries`, `states` (label/value) e os outros países (USA, Espanha etc.) intactos — eles continuam usando o modelo antigo porque o PDF só cobre Brasil.
-
-## Como vamos montar a lista completa
-
-O PDF que você enviou foi parseado, mas o parser só processa **as primeiras 50 páginas** — o documento parou em Minas Gerais (letra T). Faltam:
-
-- Minas Gerais (de "T" em diante)
-- Espírito Santo (parcial)
-- Pará, Paraíba, Paraná, Pernambuco, Piauí
-- Rio de Janeiro, Rio Grande do Norte, Rio Grande do Sul
-- Rondônia, Roraima, Santa Catarina
-- São Paulo, Sergipe, Tocantins
-
-**Próximo passo (você):** reenviar o PDF dividido em partes de até 50 páginas cada. Sugestão de divisão:
-- Parte 1: páginas 1-50 (já recebida, cobre AC → MG-T)
-- Parte 2: páginas 51-100
-- Parte 3: páginas 101-150 (se houver)
-
-Conforme cada parte chegar, eu extraio o JSON e vou montando `cidadesIBGE.ts` incrementalmente.
-
-## Detalhes técnicos
-
-**Arquivos editados:**
-- `src/hooks/useCidadesIBGE.ts` — reescrito para ler do dataset estático
-- `src/components/ProfileForm.tsx` — remover aviso de offline
-- `src/data/locationData.ts` — esvaziar `cities` das UFs brasileiras
-- `src/data/cidadesIBGE.ts` — novo arquivo (gerado)
-
-**Não tocados:** `useProfissionalData`, `OnboardingPage`, `CompletarPerfilPage`, fluxo de auth/admin (escopo desta tarefa é só a lista de cidades).
-
-**Tamanho:** ~5.570 municípios brasileiros, ~150KB no bundle. É um custo aceitável e elimina latência + falhas de rede no formulário.
-
-## O que você verá depois
-
-- Dropdown de cidade abre instantaneamente assim que você seleciona o estado (sem "Carregando cidades...").
-- Lista completa e idêntica à oficial do IBGE, mesmo offline.
-- Sumiço do aviso "Lista parcial (sem conexão com o IBGE)".
-
-Me reenvie o PDF a partir da página 51 e eu sigo com a implementação.
-
+## Critérios de aceite
+1. Tipo `UserProfile` exportado de `AuthContext`.
+2. `ProtectedRoute` usa `getRedirectPath(profile)` no fallback de não-autorizado (não mais `/dashboard` fixo).
+3. Todas as rotas clínicas no `App.tsx` ganham `allowedProfiles` conforme a matriz.
+4. Gestor digitando `/dashboard` → vai para `/gestao`. Gestor geral digitando `/admin` → vai para `/consolidar`. Admin digitando `/dashboard` → vai para `/admin`. Consultório digitando `/gestao` → vai para `/dashboard`. Institucional digitando `/planos` → vai para `/dashboard`.
+5. Vitrine, login, onboarding e completar-perfil continuam funcionando como hoje.
+6. Nenhuma rota existente quebra; sem mensagens visíveis no redirecionamento.
