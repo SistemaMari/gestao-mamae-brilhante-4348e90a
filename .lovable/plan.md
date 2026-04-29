@@ -1,74 +1,73 @@
 ## Objetivo
 
-Garantir que cada perfil (consultorio, institucional, gestor, gestor_geral, admin) só acesse as rotas autorizadas. Hoje o `ProtectedRoute` já tem a prop `allowedProfiles` e ela já é aplicada em `/gestao`, `/admin` e `/consolidar`, mas **não está aplicada nas rotas clínicas** (`/dashboard`, `/dashboard/metricas`, `/paciente/*`, `/planos`, `/perfil`, `/laudos`, `/laudo/:id`). Além disso, o redirecionamento atual quando o perfil não é permitido manda sempre para `/dashboard`, o que é errado para `gestor`, `gestor_geral` e `admin`.
+Criar 6 contas de teste — uma para cada perfil + 1 consultório Free extra para testar bloqueios — todas com a mesma senha, mais 1 unidade fictícia e dados de exemplo (pacientes, fichas, laudos), para você logar e ver as telas reais de cada perfil.
 
-## Mudanças
+## Credenciais
 
-### 1. `src/contexts/AuthContext.tsx`
-- Exportar o tipo `UserProfile` (hoje é interno) para reuso no `ProtectedRoute`.
-- Manter `getRedirectPath` intocado (já está exportado e correto).
+Senha única para todas: **Teste@2026**
 
-### 2. `src/components/ProtectedRoute.tsx`
-- Renomear/alinhar a prop existente `allowedProfiles` → manter o nome `allowedProfiles` (já em uso) e alinhá-la ao tipo `UserProfile` exportado.
-- **Corrigir o redirecionamento**: hoje faz `Navigate to="/dashboard"` quando o perfil não está permitido. Trocar por `Navigate to={getRedirectPath(profile)} replace` para mandar cada perfil à sua home.
-- Ordem de verificação preservada:
-  1. loading → spinner
-  2. sem `user` → `/login`
-  3. `profile === null` (e não skipOnboardingRedirect) → `/onboarding`
-  4. perfil incompleto (consultorio/institucional, sem skipProfileCheck) → `/completar-perfil`
-  5. **NOVO comportamento**: perfil válido fora de `allowedProfiles` → `getRedirectPath(profile)` (hoje vai sempre p/ `/dashboard`)
-  6. renderiza `children`
-- Retrocompatibilidade: se `allowedProfiles` não for passado, comportamento idêntico ao atual.
+| E-mail | Perfil | Plano | Redireciona para |
+|---|---|---|---|
+| consultorio@teste.dramari | Consultório | Profissional (100 laudos) | /dashboard |
+| consultorio.free@teste.dramari | Consultório | Free (3 laudos / 3 pacientes) | /dashboard |
+| institucional@teste.dramari | Institucional (vinc. unidade) | — | /dashboard |
+| gestor@teste.dramari | Gestor da unidade | — | /gestao |
+| gestorgeral@teste.dramari | Gestor geral | — | /consolidar |
+| admin@teste.dramari | Admin | — | /admin |
 
-### 3. `src/App.tsx` — aplicar matriz de acesso
+## Dados fictícios que serão criados
 
-Reorganizar o bloco do `AppShellClinico` em grupos por permissão:
+**1 Unidade**: "Hospital Teste DMG" (São Paulo / SP), ativa, plano ativo.
 
-```text
-/dashboard, /dashboard/metricas         → [consultorio, institucional]
-/paciente/nova, /paciente/:id           → [consultorio, institucional]
-/laudos, /laudo/:id                     → [consultorio, institucional]
-/planos                                 → [consultorio]
-/perfil                                 → [consultorio, institucional, gestor, gestor_geral, admin]
-/completar-perfil (skipProfileCheck)    → [consultorio, institucional]   (apenas perfis que precisam completar cadastro)
-```
+**Vínculos**:
+- institucional@ → vinculado à unidade, perfil_institucional = 'institucional'
+- gestor@ → vinculado à unidade, perfil_institucional = 'gestor'
+- gestorgeral@ → linha em `gestores_gerais` + vínculo em `gestores_gerais_unidades` com a unidade
+- admin@ → linha em `admins`
 
-Rotas fora do shell clínico — apenas ajustar/confirmar `allowedProfiles`:
-```text
-/gestao                 → [gestor, admin, gestor_geral]   (manter como está)
-/gestao/equipe          → [gestor]                        (manter)
-/admin, /admin/*        → [admin]                         (manter)
-/consolidar             → [admin, gestor_geral]           (manter)
-```
+**3 Pacientes** vinculados à unidade (visíveis para institucional + gestor):
+- Paciente A — com Consulta 1 (Ficha A) preenchida e laudo gerado "TEM DMG"
+- Paciente B — com Consulta 1 (Ficha B/GTT) e laudo "NÃO TEM DMG"
+- Paciente C — rascunho aguardando GJ (status_ficha = 'aguardando_gj')
 
-Rotas que **não mudam**:
-- Vitrine (`/vitrine/*`), `/login`, `/recuperar-senha`, `/nova-senha`, `/convite/:token`, `/onboarding`, `*` (NotFound).
+**1 Paciente** vinculado ao consultorio@ (sem unidade), com 1 laudo gerado, para o consultório Profissional ter algo no dashboard.
 
-### 4. Sem mudanças
-- `getRedirectPath` permanece como está.
-- RLS, edge functions, sidebars e UIs internas — fora de escopo.
-- Sem toast/alert ao redirecionar (silencioso, conforme especificado).
+Os laudos serão inseridos com `conteudo_laudo` em texto markdown realista (cabeçalho + bloco 1 + 2 + 3) para a tela `/laudo/:id` renderizar corretamente.
 
-## Diagrama de fluxo do ProtectedRoute
+## Execução técnica
 
 ```text
-request → loading? ──sim──► spinner
-            │
-            └─não─► user? ──não──► /login
-                     │
-                     └─sim─► profile==null? ──sim──► /onboarding
-                              │
-                              └─não─► perfil incompleto? ──sim──► /completar-perfil
-                                       │
-                                       └─não─► allowedProfiles && !inclui(profile)?
-                                                ├─sim─► getRedirectPath(profile)
-                                                └─não─► <children/>
+1. Criar usuários no auth.users via Admin API (service role) — 6 chamadas
+2. Inserir linhas em public.profissionais (consultorio×2, institucional, gestor)
+   • triggers sync_profissional_role populam user_roles
+3. Inserir gestor geral em public.gestores_gerais + vínculo em
+   gestores_gerais_unidades
+   • trigger sync_gestor_geral_role popula user_roles
+4. Inserir admin em public.admins
+   • trigger sync_admin_role popula user_roles
+5. Inserir 1 unidade + ajustar unidade_id dos institucional/gestor
+6. Inserir pacientes, consultas, exames_glicemia, laudos
 ```
 
-## Critérios de aceite
-1. Tipo `UserProfile` exportado de `AuthContext`.
-2. `ProtectedRoute` usa `getRedirectPath(profile)` no fallback de não-autorizado (não mais `/dashboard` fixo).
-3. Todas as rotas clínicas no `App.tsx` ganham `allowedProfiles` conforme a matriz.
-4. Gestor digitando `/dashboard` → vai para `/gestao`. Gestor geral digitando `/admin` → vai para `/consolidar`. Admin digitando `/dashboard` → vai para `/admin`. Consultório digitando `/gestao` → vai para `/dashboard`. Institucional digitando `/planos` → vai para `/dashboard`.
-5. Vitrine, login, onboarding e completar-perfil continuam funcionando como hoje.
-6. Nenhuma rota existente quebra; sem mensagens visíveis no redirecionamento.
+Tudo isso será executado via **edge function única e descartável** `seed-test-accounts` (service role) chamada uma vez. A função:
+
+- É idempotente — checa se cada e-mail já existe e pula
+- Confirma e-mail automaticamente (`email_confirm: true`) para pular verificação
+- Retorna JSON com a tabela de credenciais ao final
+- Inclui guarda: só roda se header `x-seed-secret` bater com um secret novo `SEED_ADMIN_SECRET`
+
+Após o seed funcionar, a edge function fica no projeto mas protegida pelo secret. Você pode pedir para removê-la depois.
+
+## O que você verá após aprovar
+
+1. Mensagem confirmando que as 6 contas foram criadas
+2. Tabela com os 6 e-mails e a senha `Teste@2026`
+3. Instrução: vá para `/login`, entre com cada conta e o sistema te leva direto para a home do perfil
+
+## O que NÃO está no escopo
+
+- Não vou tocar em nada do código de auth, rotas ou ProtectedRoute (já auditado e correto)
+- Não vou criar fluxo de signup público (continua sem autocadastro, conforme regra do projeto)
+- Os dados fictícios são mínimos para preencher as telas — não são um seed completo de QA
+
+Posso prosseguir?
