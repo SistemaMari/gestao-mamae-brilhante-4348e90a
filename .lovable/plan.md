@@ -1,73 +1,46 @@
-## Objetivo
+## Diagnóstico
 
-Criar 6 contas de teste — uma para cada perfil + 1 consultório Free extra para testar bloqueios — todas com a mesma senha, mais 1 unidade fictícia e dados de exemplo (pacientes, fichas, laudos), para você logar e ver as telas reais de cada perfil.
+Confirmei via SQL no banco:
 
-## Credenciais
+| Email | user_id existe | linha em profissionais/admins/gg | plano | status |
+|---|---|---|---|---|
+| consultorio@teste.dramari | sim | profissionais ✓ | pro | ativo |
+| consultorio.free@teste.dramari | sim | profissionais ✓ | free | ativo |
+| institucional@teste.dramari | sim | profissionais ✓ (unidade vinculada) | pro | ativo |
+| gestor@teste.dramari | sim | profissionais ✓ (perfil_institucional=gestor) | pro | ativo |
+| gestorgeral@teste.dramari | sim | gestores_gerais ✓ | — | — |
+| admin@teste.dramari | sim | admins ✓ | — | — |
 
-Senha única para todas: **Teste@2026**
+Todos os 6 perfis estão **corretamente populados**. O login no Supabase Auth também sucedeu (confirmado nos auth logs). RLS de `profissionais` permite `auth.uid() = user_id`, então a query do `LoginPage` deveria encontrar a linha.
 
-| E-mail | Perfil | Plano | Redireciona para |
-|---|---|---|---|
-| consultorio@teste.dramari | Consultório | Profissional (100 laudos) | /dashboard |
-| consultorio.free@teste.dramari | Consultório | Free (3 laudos / 3 pacientes) | /dashboard |
-| institucional@teste.dramari | Institucional (vinc. unidade) | — | /dashboard |
-| gestor@teste.dramari | Gestor da unidade | — | /gestao |
-| gestorgeral@teste.dramari | Gestor geral | — | /consolidar |
-| admin@teste.dramari | Admin | — | /admin |
+A mensagem **"Conta não vinculada a nenhum perfil. Entre em contato com o suporte."** que aparece na sua screenshot **não existe em nenhum lugar do código atual** (varri `src/`, `i18n/`, `LoginPage.tsx`, `AuthContext.tsx`). A versão atual do `LoginPage` mostra `t('auth.timeout')` quando o polling falha — texto diferente.
 
-## Dados fictícios que serão criados
+**Conclusão**: o navegador está renderizando um bundle JS antigo (cache do Service Worker / CDN), de antes da última correção do fluxo de login. Os dados e o código novo estão certos; o cliente é que está velho.
 
-**1 Unidade**: "Hospital Teste DMG" (São Paulo / SP), ativa, plano ativo.
+## Correções a executar
 
-**Vínculos**:
-- institucional@ → vinculado à unidade, perfil_institucional = 'institucional'
-- gestor@ → vinculado à unidade, perfil_institucional = 'gestor'
-- gestorgeral@ → linha em `gestores_gerais` + vínculo em `gestores_gerais_unidades` com a unidade
-- admin@ → linha em `admins`
-
-**3 Pacientes** vinculados à unidade (visíveis para institucional + gestor):
-- Paciente A — com Consulta 1 (Ficha A) preenchida e laudo gerado "TEM DMG"
-- Paciente B — com Consulta 1 (Ficha B/GTT) e laudo "NÃO TEM DMG"
-- Paciente C — rascunho aguardando GJ (status_ficha = 'aguardando_gj')
-
-**1 Paciente** vinculado ao consultorio@ (sem unidade), com 1 laudo gerado, para o consultório Profissional ter algo no dashboard.
-
-Os laudos serão inseridos com `conteudo_laudo` em texto markdown realista (cabeçalho + bloco 1 + 2 + 3) para a tela `/laudo/:id` renderizar corretamente.
-
-## Execução técnica
+1. **Adicionar log de diagnóstico no LoginPage** para confirmar, no próximo login, qual perfil é detectado (some assim que confirmarmos):
 
 ```text
-1. Criar usuários no auth.users via Admin API (service role) — 6 chamadas
-2. Inserir linhas em public.profissionais (consultorio×2, institucional, gestor)
-   • triggers sync_profissional_role populam user_roles
-3. Inserir gestor geral em public.gestores_gerais + vínculo em
-   gestores_gerais_unidades
-   • trigger sync_gestor_geral_role popula user_roles
-4. Inserir admin em public.admins
-   • trigger sync_admin_role popula user_roles
-5. Inserir 1 unidade + ajustar unidade_id dos institucional/gestor
-6. Inserir pacientes, consultas, exames_glicemia, laudos
+após cada query (admin / gestor_geral / profissionais), console.log
+do resultado, para você ver no console qual ramo tomou.
 ```
 
-Tudo isso será executado via **edge function única e descartável** `seed-test-accounts` (service role) chamada uma vez. A função:
+2. **Forçar invalidação de cache**: bumpar versão no `index.html` (meta no-cache + query string no entry script via vite) para garantir que o bundle novo seja baixado.
 
-- É idempotente — checa se cada e-mail já existe e pula
-- Confirma e-mail automaticamente (`email_confirm: true`) para pular verificação
-- Retorna JSON com a tabela de credenciais ao final
-- Inclui guarda: só roda se header `x-seed-secret` bater com um secret novo `SEED_ADMIN_SECRET`
+3. **Instruções para você testar limpo**:
+   - Hard reload: **Ctrl+Shift+R** (ou Cmd+Shift+R no Mac)
+   - Ou abrir aba **anônima/incógnita** e logar com `consultorio@teste.dramari` / `Teste@2026`
+   - Se ainda falhar, abra o DevTools → Console e me mande o que aparece após clicar em "Entrar"
 
-Após o seed funcionar, a edge function fica no projeto mas protegida pelo secret. Você pode pedir para removê-la depois.
+4. **Se mesmo no incógnito falhar**, o problema real está no `LoginPage` — caso em que removo o polling manual e uso só o `AuthContext` (que já implementa `determineProfile` corretamente) + `getRedirectPath`. A página `/login` viraria: chama `signIn`, espera `profile` ficar não-nulo via context, e navega via `getRedirectPath(profile)`. Isso elimina a duplicação de lógica de detecção de perfil entre `AuthContext` e `LoginPage`.
 
-## O que você verá após aprovar
+## O que NÃO vou fazer
 
-1. Mensagem confirmando que as 6 contas foram criadas
-2. Tabela com os 6 e-mails e a senha `Teste@2026`
-3. Instrução: vá para `/login`, entre com cada conta e o sistema te leva direto para a home do perfil
+- Não vou recriar contas (já estão corretas no banco).
+- Não vou mudar RLS (já permite o acesso).
+- Não vou tocar no `AuthContext` antes de confirmar que o problema persiste em incógnito.
 
-## O que NÃO está no escopo
+## Próximo passo
 
-- Não vou tocar em nada do código de auth, rotas ou ProtectedRoute (já auditado e correto)
-- Não vou criar fluxo de signup público (continua sem autocadastro, conforme regra do projeto)
-- Os dados fictícios são mínimos para preencher as telas — não são um seed completo de QA
-
-Posso prosseguir?
+Aprove para eu (a) adicionar logs de diagnóstico no LoginPage e (b) bumpar cache-busting. Depois você testa em aba incógnita e me manda o resultado/console. Se ainda assim o erro aparecer, refatoro o LoginPage para usar só o AuthContext.

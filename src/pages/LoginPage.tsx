@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth, getRedirectPath } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,10 +16,25 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { signIn } = useAuth();
+  const { signIn, user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const [submitted, setSubmitted] = useState(false);
 
   const isFormValid = email.trim() !== '' && password.length >= 6;
+
+  // Once AuthContext has resolved the profile after a successful sign-in, redirect.
+  useEffect(() => {
+    if (!submitted || loading) return;
+    if (!user) return; // ainda propagando
+    if (profile === null) {
+      // sem perfil vinculado → onboarding
+      navigate('/onboarding', { replace: true });
+      return;
+    }
+    if (profile) {
+      navigate(getRedirectPath(profile), { replace: true });
+    }
+  }, [submitted, loading, user, profile, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +45,6 @@ export default function LoginPage() {
 
     if (error) {
       setIsLoading(false);
-      // Map common Supabase auth errors to translated messages
       const msg = error.toLowerCase();
       if (msg.includes('invalid') || msg.includes('credentials')) {
         setError(t('auth.invalidCredentials'));
@@ -41,31 +54,8 @@ export default function LoginPage() {
       return;
     }
 
-    const maxAttempts = 15;
-    for (let i = 0; i < maxAttempts; i++) {
-      await new Promise(r => setTimeout(r, 200));
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) continue;
-
-      const { data: admin } = await supabase.from('admins').select('id').eq('user_id', data.user.id).maybeSingle();
-      if (admin) { navigate('/admin', { replace: true }); return; }
-
-      const { data: gestorGeral } = await supabase.from('gestores_gerais').select('id').eq('user_id', data.user.id).maybeSingle();
-      if (gestorGeral) { navigate('/consolidar', { replace: true }); return; }
-
-      const { data: prof } = await supabase.from('profissionais').select('unidade_id, perfil_institucional').eq('user_id', data.user.id).maybeSingle();
-      if (!prof) {
-        navigate('/onboarding', { replace: true });
-        return;
-      }
-
-      if (!prof.unidade_id) { navigate('/dashboard', { replace: true }); return; }
-      if (prof.perfil_institucional === 'gestor') { navigate('/gestao', { replace: true }); return; }
-      navigate('/dashboard', { replace: true });
-      return;
-    }
-    setIsLoading(false);
-    setError(t('auth.timeout'));
+    // signIn ok — AuthContext vai resolver o profile e o useEffect acima redireciona
+    setSubmitted(true);
   };
 
   return (
