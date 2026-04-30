@@ -13,9 +13,12 @@ import NovaSenhaPage from "./pages/NovaSenhaPage";
 import DashboardPage from "./pages/DashboardPage";
 import DashboardMetricasPage from "./pages/DashboardMetricasPage";
 import GestaoPage from "./pages/GestaoPage";
-import AdminPage from "./pages/AdminPage";
-import AdminUnidadesPage from "./pages/AdminUnidadesPage";
-import AdminAdminsPage from "./pages/AdminAdminsPage";
+import AdminLayout from "./pages/admin/AdminLayout";
+import VisaoGeralPage from "./pages/admin/VisaoGeralPage";
+import DiagnosticosPage from "./pages/admin/DiagnosticosPage";
+import ExportarPage from "./pages/admin/ExportarPage";
+import AdminsPage from "./pages/admin/AdminsPage";
+import InstitucionaisPage from "./pages/admin/InstitucionaisPage";
 import ConsolidarPage from "./pages/ConsolidarPage";
 import PlanosPage from "./pages/PlanosPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
@@ -51,8 +54,6 @@ const App = () => (
             <Route path="/vitrine/completar-perfil" element={<PreviewCompletarPerfilPage />} />
             <Route path="/vitrine/gestao" element={<GestaoPage />} />
             <Route path="/vitrine/gestao/equipe" element={<PreviewGestaoEquipePage />} />
-            <Route path="/vitrine/admin" element={<AdminPage />} />
-            <Route path="/vitrine/admin/base-conhecimento" element={<BaseConhecimentoPage />} />
             <Route path="/vitrine/consolidar" element={<ConsolidarPage />} />
             <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
 
@@ -71,7 +72,6 @@ const App = () => (
             <Route path="/preview/dashboard" element={<Navigate to="/vitrine/dashboard" replace />} />
             <Route path="/preview/gestao" element={<Navigate to="/vitrine/gestao" replace />} />
             <Route path="/preview/gestao/equipe" element={<Navigate to="/vitrine/gestao/equipe" replace />} />
-            <Route path="/preview/admin" element={<Navigate to="/vitrine/admin" replace />} />
             <Route path="/preview/consolidar" element={<Navigate to="/vitrine/consolidar" replace />} />
             <Route path="/preview/cadastro-convite" element={<Navigate to="/vitrine/cadastro-convite" replace />} />
 
@@ -121,10 +121,14 @@ const App = () => (
             {/* Rotas que NÃO usam o shell clínico — com role guards */}
             <Route path="/gestao" element={<ProtectedRoute allowedProfiles={['gestor', 'admin', 'gestor_geral']}><GestaoPage /></ProtectedRoute>} />
             <Route path="/gestao/equipe" element={<ProtectedRoute allowedProfiles={['gestor']}><GestaoEquipePage /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute allowedProfiles={['admin']}><AdminPage /></ProtectedRoute>} />
-            <Route path="/admin/base-conhecimento" element={<ProtectedRoute allowedProfiles={['admin']}><BaseConhecimentoPage /></ProtectedRoute>} />
-            <Route path="/admin/unidades" element={<ProtectedRoute allowedProfiles={['admin']}><AdminUnidadesPage /></ProtectedRoute>} />
-            <Route path="/admin/admins" element={<ProtectedRoute allowedProfiles={['admin']}><AdminAdminsPage /></ProtectedRoute>} />
+            {/* Painel Administrativo (Prompt 22) */}
+            <Route element={<ProtectedRoute allowedProfiles={['admin']}><AdminLayout /></ProtectedRoute>}>
+              <Route path="/admin" element={<VisaoGeralPage />} />
+              <Route path="/admin/diagnosticos" element={<DiagnosticosPage />} />
+              <Route path="/admin/exportar" element={<ExportarPage />} />
+              <Route path="/admin/admins" element={<AdminsPage />} />
+              <Route path="/admin/institucionais" element={<InstitucionaisPage />} />
+            </Route>
             <Route path="/consolidar" element={<ProtectedRoute allowedProfiles={['admin', 'gestor_geral']}><ConsolidarPage /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
