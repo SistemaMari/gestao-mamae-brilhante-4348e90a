@@ -1,42 +1,60 @@
-# Fix: admin cai em /onboarding ao logar
+## Diagnóstico
 
-## Causa raiz
+Encontrei duas causas raízes distintas, ambas confirmadas no banco de dados.
 
-Em `src/contexts/AuthContext.tsx`, o efeito que monitora a sessão chama `setLoading(false)` **antes** de `determineProfile()` resolver — porque `determineProfile` está dentro de `setTimeout(..., 0)` e é assíncrono.
+### Erro 1 — Redirecionamento para perfil de médico em vez de admin
 
-Sequência atual após login do admin:
-1. `onAuthStateChange` dispara → `setUser(session.user)` + agenda `determineProfile` em setTimeout.
-2. `setLoading(false)` executa imediatamente.
-3. React renderiza `ProtectedRoute` com `loading=false`, `user=truthy`, `profile=null`.
-4. `ProtectedRoute` linha 33: `if (profile === null && !skipOnboardingRedirect)` → `<Navigate to="/onboarding" />`.
-5. `determineProfile` resolve `'admin'` ms depois, mas a navegação já aconteceu e o `OnboardingPage` é montado com `skipOnboardingRedirect`, ficando preso.
+A conta logada (`strategyaisolucoes`, `user_id 5a881ae0…`) está cadastrada **simultaneamente** em duas tabelas:
 
-Resultado: admin (e qualquer perfil) sempre vê a tela de onboarding por uma fração de segundo, e às vezes fica preso nela. A própria conta `strategyaisolucoes` está corretamente registrada em `public.admins` — não é problema de dados.
+- `admins` (correto)
+- `profissionais` (resíduo de cadastro antigo)
 
-## Correção
+A função `determineProfile` em `AuthContext.tsx` consulta `admins` **primeiro**, então deveria retornar `'admin'`. Porém, como a consulta a `admins` usa `.maybeSingle()` e a RLS exige `auth.uid() = user_id`, **se o token JWT ainda não estiver propagado no momento exato da query** (race condition residual com `getSession`), a consulta retorna `null` silenciosamente e cai no fallback `profissionais` → perfil `consultorio`.
 
-Manter `loading=true` enquanto o `profile` ainda não foi resolvido. Editar `src/contexts/AuthContext.tsx`:
+A conta `Admin Teste` (`f406391a…`) **não** está em `profissionais`, então funciona. Por isso o problema só aparece nesta conta específica.
 
-- Extrair a resolução do perfil em `resolverPerfil(uid)` que faz `setProfile` e só depois `setLoading(false)`.
-- No `onAuthStateChange`: quando há sessão, `setLoading(true)` e chama `resolverPerfil` dentro do `setTimeout(0)` (mantém o pattern anti-deadlock do Supabase).
-- No `getSession` inicial: chama `resolverPerfil` direto; só faz `setLoading(false)` na ausência de sessão.
-- Adicionar flag `cancelado` no cleanup para evitar `setState` após unmount.
+### Erro 2 — "Limite de pacientes atingido" com 0/3
 
-Comportamento resultante: o `<Loader2>` do `ProtectedRoute` fica visível por uns ms até `determineProfile` retornar `'admin'`, e então redireciona corretamente para `/admin` sem passar pelo onboarding.
+A função RPC `pode_criar_ficha` é `SECURITY DEFINER`, mas o privilégio `EXECUTE` **não foi concedido ao role `authenticated`** — apenas a `postgres`, `service_role` e `sandbox_exec`. Quando o Dashboard chama `supabase.rpc('pode_criar_ficha', …)`, a chamada falha silenciosamente, `data` vem `null`/`false`, e o código trata como "bloqueado" → abre o `BlockingModal`.
 
-## O que NÃO muda
+## Plano de correção
 
-- Sem mudanças em `OnboardingPage.tsx`, `ProtectedRoute.tsx`, rotas, RLS, tabelas ou Edge Functions.
-- A rota `/onboarding` continua existindo para usuários genuinamente sem perfil (auto-cadastro futuro / convidados que ainda não criaram registro).
-- Nenhuma migração de banco.
+### 1. Limpar o cadastro duplicado do admin (migration)
 
-## Arquivos editados
+Remover o registro de `profissionais` do `user_id 5a881ae0-1ea6-4365-8a8f-d5e94f613b64`, já que a conta é admin. Isso garante que mesmo no fallback a função retorne `'admin'`.
 
-- `src/contexts/AuthContext.tsx` (apenas o `useEffect` que escuta auth state — ~30 linhas).
+```sql
+DELETE FROM public.profissionais
+WHERE user_id = '5a881ae0-1ea6-4365-8a8f-d5e94f613b64';
+```
 
-## Aceite
+### 2. Conceder EXECUTE nas RPCs de plano (migration)
 
-- Login com `strategyaisolucoes` cai direto em `/admin` (sem flash de onboarding).
-- Login com profissional cai em `/dashboard`.
-- Login com gestor cai em `/gestao`. Login com gestor geral em `/consolidar`.
-- Usuário sem registro em nenhuma tabela continua indo para `/onboarding` (comportamento intencional).
+```sql
+GRANT EXECUTE ON FUNCTION public.pode_criar_ficha(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.pode_gerar_laudo(uuid) TO authenticated;
+```
+
+Isso resolve o BlockingModal indevido para todos os profissionais (não só o admin).
+
+### 3. Tornar `determineProfile` mais defensivo (código)
+
+Em `src/contexts/AuthContext.tsx`, ajustar `determineProfile` para:
+
+- Se a query a `admins` retornar erro (não apenas `null`), tentar novamente uma vez antes de cair no fallback.
+- Logar via `console.warn` quando uma conta tem registros em mais de uma tabela de perfil, facilitando diagnóstico futuro.
+
+Sem mudança de comportamento para contas saudáveis.
+
+### 4. Validação
+
+Após aplicar:
+- Login com `strategyaisolucoes` → deve ir direto para `/admin`.
+- Login com qualquer profissional Free com 0 pacientes → botão "Nova Paciente" abre o formulário, sem BlockingModal.
+
+## Resumo dos arquivos
+
+- **Migration nova**: limpeza do duplicado + GRANT EXECUTE nas duas RPCs.
+- **Editado**: `src/contexts/AuthContext.tsx` (hardening de `determineProfile`).
+
+Nenhum outro arquivo é alterado.
