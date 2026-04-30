@@ -63,6 +63,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelado = false;
+
+    const resolverPerfil = async (uid: string) => {
+      try {
+        const p = await determineProfile(uid);
+        if (!cancelado) setProfile(p);
+      } catch {
+        if (!cancelado) setProfile(null);
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    };
+
     // Listener primeiro — NUNCA usar await dentro do callback (deadlock conhecido do Supabase Auth)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -70,14 +83,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
+          // Mantém loading=true até o profile ser resolvido — evita flash de /onboarding
+          setLoading(true);
           // Defer chamadas Supabase para fora do callback
           setTimeout(() => {
-            determineProfile(session.user.id).then(setProfile).catch(() => setProfile(null));
+            resolverPerfil(session.user.id);
           }, 0);
         } else {
           setProfile(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
@@ -87,12 +102,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        determineProfile(session.user.id).then(setProfile).catch(() => setProfile(null));
+        resolverPerfil(session.user.id);
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelado = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
