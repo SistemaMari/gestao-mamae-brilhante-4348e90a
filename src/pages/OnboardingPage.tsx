@@ -20,9 +20,20 @@ export default function OnboardingPage() {
     if (!user) return;
     setLoading(true);
     const nome = user.email?.split('@')[0] ?? 'Profissional';
+    const { data: planoInicial, error: planoErr } = await supabase
+      .from('planos')
+      .select('id')
+      .eq('slug', 'inicial')
+      .maybeSingle();
+    if (planoErr || !planoInicial) {
+      setLoading(false);
+      toast({ title: t('onboarding.errorTitle'), description: t('onboarding.errorDesc'), variant: 'destructive' });
+      return;
+    }
     const { error } = await supabase.from('profissionais').insert({
       user_id: user.id,
       nome,
+      plano_id: planoInicial.id,
     });
     setLoading(false);
     if (error) {
