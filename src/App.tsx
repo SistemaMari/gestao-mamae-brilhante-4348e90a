@@ -33,6 +33,7 @@ import PreviewHubPage, {
 } from "./pages/PreviewHubPage";
 import PreviewAppShell from "./components/PreviewAppShell";
 import PacientePage from "./pages/PacientePage";
+import MeusCursosPage from "./pages/MeusCursosPage";
 import PerfilPage from "./pages/PerfilPage";
 import HistoricoLaudosPage from "./pages/HistoricoLaudosPage";
 import LaudoViewerPage from "./pages/LaudoViewerPage";
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="/paciente/:id" element={<PacientePage />} />
               <Route path="/laudos" element={<HistoricoLaudosPage />} />
               <Route path="/laudo/:id" element={<LaudoViewerPage />} />
+              <Route path="/meus-cursos" element={<MeusCursosPage />} />
             </Route>
 
             {/* Planos — exclusivo do consultório */}

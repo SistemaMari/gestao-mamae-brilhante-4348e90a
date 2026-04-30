@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Users, Settings, LogOut, ChevronLeft, ChevronRight,
-  Building2, BarChart3, ShieldCheck, UserPlus, Activity, BookOpen
+  Building2, BarChart3, ShieldCheck, UserPlus, Activity, BookOpen, GraduationCap
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -18,11 +18,13 @@ const navByProfile: Record<string, NavItem[]> = {
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'Fichas', icon: FileText, path: '/dashboard' },
     { label: 'Configurações', icon: Settings, path: '/dashboard' },
+    { label: 'Meus Cursos', icon: GraduationCap, path: '/meus-cursos' },
   ],
   institucional: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'Fichas', icon: FileText, path: '/dashboard' },
     { label: 'Configurações', icon: Settings, path: '/dashboard' },
+    { label: 'Meus Cursos', icon: GraduationCap, path: '/meus-cursos' },
   ],
   gestor: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/gestao' },
