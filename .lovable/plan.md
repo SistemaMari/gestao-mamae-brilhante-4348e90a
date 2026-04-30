@@ -1,60 +1,28 @@
-## Diagnóstico
+Identifiquei a causa atual: a conta `moadecarvalho@gmail.com` está registrada no banco apenas como `profissionais/consultorio` e não aparece na tabela de administradores. Por isso o app está obedecendo ao dado real do backend e direcionando para o perfil de médico.
 
-Encontrei duas causas raízes distintas, ambas confirmadas no banco de dados.
+Plano de correção:
 
-### Erro 1 — Redirecionamento para perfil de médico em vez de admin
+1. Corrigir o vínculo da sua conta no banco
+   - Inserir o usuário `eb7f5372-bb3c-4672-ae65-1c56574a6bec` na tabela `admins` com o nome existente.
+   - Inserir/sincronizar o papel `admin` na tabela `user_roles`.
+   - Remover o papel `consultorio` desse usuário em `user_roles`, para não manter papel conflitante.
+   - Remover o registro residual em `profissionais` para esse mesmo usuário, já que a conta deve ser ADMIN e não médica.
+   - Como essa conta não possui pacientes, consultas, laudos ou exames associados, a remoção do registro profissional não apagará produção clínica.
 
-A conta logada (`strategyaisolucoes`, `user_id 5a881ae0…`) está cadastrada **simultaneamente** em duas tabelas:
+2. Reforçar a autenticação para priorizar papéis oficiais
+   - Ajustar `AuthContext.tsx` para consultar primeiro `user_roles` e aplicar prioridade fixa:
+     - `admin`
+     - `gestor_geral`
+     - `gestor`
+     - `institucional`
+     - `consultorio`
+   - Manter as tabelas legadas (`admins`, `gestores_gerais`, `profissionais`) apenas como fallback, reduzindo a chance de novo redirecionamento errado quando houver dados antigos conflitantes.
 
-- `admins` (correto)
-- `profissionais` (resíduo de cadastro antigo)
+3. Corrigir o bloqueio secundário do shell clínico para não interferir em admin
+   - Ajustar `ProtectedRoute`/hook de dados profissionais para garantir que `useProfissionalData` não segure carregamento nem tente validar perfil médico quando o perfil resolvido for `admin`.
 
-A função `determineProfile` em `AuthContext.tsx` consulta `admins` **primeiro**, então deveria retornar `'admin'`. Porém, como a consulta a `admins` usa `.maybeSingle()` e a RLS exige `auth.uid() = user_id`, **se o token JWT ainda não estiver propagado no momento exato da query** (race condition residual com `getSession`), a consulta retorna `null` silenciosamente e cai no fallback `profissionais` → perfil `consultorio`.
+4. Validação esperada
+   - Após aprovar e aplicar, ao fazer login com `moadecarvalho@gmail.com`, o perfil resolvido deve ser `admin` e o redirecionamento deve ir direto para `/admin`.
+   - O acesso a `/paciente/nova` por essa conta deixará de ser permitido, porque ela não será mais tratada como médica.
 
-A conta `Admin Teste` (`f406391a…`) **não** está em `profissionais`, então funciona. Por isso o problema só aparece nesta conta específica.
-
-### Erro 2 — "Limite de pacientes atingido" com 0/3
-
-A função RPC `pode_criar_ficha` é `SECURITY DEFINER`, mas o privilégio `EXECUTE` **não foi concedido ao role `authenticated`** — apenas a `postgres`, `service_role` e `sandbox_exec`. Quando o Dashboard chama `supabase.rpc('pode_criar_ficha', …)`, a chamada falha silenciosamente, `data` vem `null`/`false`, e o código trata como "bloqueado" → abre o `BlockingModal`.
-
-## Plano de correção
-
-### 1. Limpar o cadastro duplicado do admin (migration)
-
-Remover o registro de `profissionais` do `user_id 5a881ae0-1ea6-4365-8a8f-d5e94f613b64`, já que a conta é admin. Isso garante que mesmo no fallback a função retorne `'admin'`.
-
-```sql
-DELETE FROM public.profissionais
-WHERE user_id = '5a881ae0-1ea6-4365-8a8f-d5e94f613b64';
-```
-
-### 2. Conceder EXECUTE nas RPCs de plano (migration)
-
-```sql
-GRANT EXECUTE ON FUNCTION public.pode_criar_ficha(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.pode_gerar_laudo(uuid) TO authenticated;
-```
-
-Isso resolve o BlockingModal indevido para todos os profissionais (não só o admin).
-
-### 3. Tornar `determineProfile` mais defensivo (código)
-
-Em `src/contexts/AuthContext.tsx`, ajustar `determineProfile` para:
-
-- Se a query a `admins` retornar erro (não apenas `null`), tentar novamente uma vez antes de cair no fallback.
-- Logar via `console.warn` quando uma conta tem registros em mais de uma tabela de perfil, facilitando diagnóstico futuro.
-
-Sem mudança de comportamento para contas saudáveis.
-
-### 4. Validação
-
-Após aplicar:
-- Login com `strategyaisolucoes` → deve ir direto para `/admin`.
-- Login com qualquer profissional Free com 0 pacientes → botão "Nova Paciente" abre o formulário, sem BlockingModal.
-
-## Resumo dos arquivos
-
-- **Migration nova**: limpeza do duplicado + GRANT EXECUTE nas duas RPCs.
-- **Editado**: `src/contexts/AuthContext.tsx` (hardening de `determineProfile`).
-
-Nenhum outro arquivo é alterado.
+Observação: esse plano corrige o problema atual no dado real da sua conta e também endurece o código para evitar reincidência por conflito entre papéis.
