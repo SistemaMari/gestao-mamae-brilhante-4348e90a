@@ -1,12 +1,4 @@
-## Etapa 1 — Reformular estrutura de planos no banco
-
-Apenas alterações de banco. Frontend fica pra Etapas 2 e 3.
-
-### Migration única (uma migration consolidando tudo)
-
-**1. Criar tabela `planos`**
-
-```sql
+-- 1. Tabela planos
 CREATE TABLE public.planos (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug text UNIQUE NOT NULL,
@@ -27,55 +19,48 @@ ALTER TABLE public.planos ENABLE ROW LEVEL SECURITY;
 CREATE TRIGGER planos_set_updated_at
   BEFORE UPDATE ON public.planos
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-```
 
-Seed:
-```sql
 INSERT INTO public.planos (slug, nome, preco_mensal, laudos_por_mes, pacientes_max, suporte, cursos_inclusos, ordem) VALUES
   ('inicial',       'Inicial',       79.00,  10,  NULL, 'email',       ARRAY['hiperglicemia'], 1),
   ('intermediaria', 'Intermediária', 139.00, 35,  NULL, 'email',       ARRAY['hiperglicemia','insulinoterapia'], 2),
   ('profissional',  'Profissional',  299.00, 100, NULL, 'prioritario', ARRAY['hiperglicemia','insulinoterapia','novos-paradigmas-dmg'], 3);
-```
 
-**2. Adicionar `plano_id` em `profissionais`**
+CREATE POLICY "Planos visiveis para autenticados" ON public.planos
+  FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Admins inserem planos" ON public.planos
+  FOR INSERT TO authenticated WITH CHECK (public.is_admin(auth.uid()));
+CREATE POLICY "Admins atualizam planos" ON public.planos
+  FOR UPDATE TO authenticated USING (public.is_admin(auth.uid()));
+CREATE POLICY "Admins removem planos" ON public.planos
+  FOR DELETE TO authenticated USING (public.is_admin(auth.uid()));
 
-```sql
+-- 2. plano_id em profissionais
 ALTER TABLE public.profissionais ADD COLUMN plano_id uuid REFERENCES public.planos(id);
 
 UPDATE public.profissionais
 SET plano_id = (SELECT id FROM public.planos WHERE slug = 'inicial');
 
 ALTER TABLE public.profissionais ALTER COLUMN plano_id SET NOT NULL;
-```
 
-Campo legado `plano` (text) **mantido** — será dropado em prompt futuro.
-
-**3. Sincronizar `laudos_limite` e zerar `laudos_usados`**
-
-```sql
+-- 3. Sincronizar laudos
 UPDATE public.profissionais p
 SET laudos_limite = pl.laudos_por_mes,
     laudos_usados = 0
 FROM public.planos pl
 WHERE p.plano_id = pl.id;
-```
 
-**4. Atualizar `pode_criar_ficha`** — remover limite de 3 pacientes do extinto Free. Como agora todos os planos têm pacientes ilimitados, a função passa a retornar sempre `true` (mantida por compatibilidade com código que ainda chama):
-
-```sql
+-- 4. pode_criar_ficha simplificada (sem limite Free)
 CREATE OR REPLACE FUNCTION public.pode_criar_ficha(p_profissional_id uuid)
 RETURNS boolean
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
 AS $$
   SELECT EXISTS (SELECT 1 FROM profissionais WHERE id = p_profissional_id);
 $$;
-```
 
-`pode_gerar_laudo` permanece inalterada — já lê `laudos_limite`/`laudos_usados` direto do profissional, que continuam existindo e foram sincronizados.
-
-**5. Criar tabela `tipos_unidade` + coluna `tipo_id` em `unidades`**
-
-```sql
+-- 5. tipos_unidade
 CREATE TABLE public.tipos_unidade (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   slug text UNIQUE NOT NULL,
@@ -98,47 +83,17 @@ INSERT INTO public.tipos_unidade (slug, nome) VALUES
   ('consultorio','Consultório'),
   ('outro','Outro');
 
+CREATE POLICY "Tipos unidade visiveis para autenticados" ON public.tipos_unidade
+  FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Admins inserem tipos unidade" ON public.tipos_unidade
+  FOR INSERT TO authenticated WITH CHECK (public.is_admin(auth.uid()));
+CREATE POLICY "Admins atualizam tipos unidade" ON public.tipos_unidade
+  FOR UPDATE TO authenticated USING (public.is_admin(auth.uid()));
+CREATE POLICY "Admins removem tipos unidade" ON public.tipos_unidade
+  FOR DELETE TO authenticated USING (public.is_admin(auth.uid()));
+
+-- 6. tipo_id em unidades
 ALTER TABLE public.unidades ADD COLUMN tipo_id uuid REFERENCES public.tipos_unidade(id);
 
 UPDATE public.unidades SET tipo_id = (SELECT id FROM public.tipos_unidade WHERE slug='hospital')   WHERE tipo='hospital';
 UPDATE public.unidades SET tipo_id = (SELECT id FROM public.tipos_unidade WHERE slug='maternidade') WHERE tipo='maternidade';
-```
-
-Campo legado `tipo` (text) em `unidades` **mantido**.
-
-**6. RLS**
-
-`planos` — leitura para qualquer autenticado; escrita apenas admin (via `has_role` / `is_admin`):
-```sql
-CREATE POLICY "Planos visiveis para autenticados" ON public.planos
-  FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Admins inserem planos" ON public.planos
-  FOR INSERT TO authenticated WITH CHECK (public.is_admin(auth.uid()));
-CREATE POLICY "Admins atualizam planos" ON public.planos
-  FOR UPDATE TO authenticated USING (public.is_admin(auth.uid()));
-CREATE POLICY "Admins removem planos" ON public.planos
-  FOR DELETE TO authenticated USING (public.is_admin(auth.uid()));
-```
-
-`tipos_unidade` — mesmas 4 policies análogas.
-
-### Verificação pós-migration (queries de leitura)
-
-- `SELECT count(*) FROM planos` → 3
-- `SELECT count(*) FROM tipos_unidade` → 10
-- `SELECT count(*) FROM profissionais WHERE plano_id IS NULL` → 0
-- `SELECT count(*) FROM unidades WHERE tipo_id IS NULL` → 0
-- `SELECT laudos_limite, laudos_usados FROM profissionais` → todos com 10/0 (Inicial)
-- `SELECT pode_criar_ficha(id), pode_gerar_laudo(id) FROM profissionais LIMIT 1` → executa sem erro
-
-### Fora de escopo (confirmado)
-
-- PlanosPage.tsx (Etapa 2)
-- Sidebar profissional + aba Meus Cursos (Etapa 3)
-- Tela admin de tipos de unidade
-- Tabela `assinaturas` e webhook Asaas (Lucas)
-- Drop dos campos legados `plano` e `tipo`
-
-### Critérios de aceite
-
-Todos os listados no prompt — atendidos pelos passos acima.

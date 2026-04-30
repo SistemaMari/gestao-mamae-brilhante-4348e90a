@@ -623,6 +623,51 @@ export type Database = {
           },
         ]
       }
+      planos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          cursos_inclusos: string[]
+          id: string
+          laudos_por_mes: number
+          nome: string
+          ordem: number
+          pacientes_max: number | null
+          preco_mensal: number
+          slug: string
+          suporte: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          cursos_inclusos?: string[]
+          id?: string
+          laudos_por_mes: number
+          nome: string
+          ordem: number
+          pacientes_max?: number | null
+          preco_mensal: number
+          slug: string
+          suporte: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          cursos_inclusos?: string[]
+          id?: string
+          laudos_por_mes?: number
+          nome?: string
+          ordem?: number
+          pacientes_max?: number | null
+          preco_mensal?: number
+          slug?: string
+          suporte?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profissionais: {
         Row: {
           cidade: string | null
@@ -641,6 +686,7 @@ export type Database = {
           periodo_renovacao: string | null
           plano: string
           plano_expira_em: string | null
+          plano_id: string
           plano_status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -666,6 +712,7 @@ export type Database = {
           periodo_renovacao?: string | null
           plano?: string
           plano_expira_em?: string | null
+          plano_id: string
           plano_status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -691,6 +738,7 @@ export type Database = {
           periodo_renovacao?: string | null
           plano?: string
           plano_expira_em?: string | null
+          plano_id?: string
           plano_status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -700,6 +748,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profissionais_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profissionais_unidade_id_fkey"
             columns: ["unidade_id"]
@@ -751,6 +806,30 @@ export type Database = {
         }
         Relationships: []
       }
+      tipos_unidade: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          slug: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          slug: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       unidades: {
         Row: {
           ativa: boolean
@@ -766,6 +845,7 @@ export type Database = {
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           tipo: string | null
+          tipo_id: string | null
         }
         Insert: {
           ativa?: boolean
@@ -781,6 +861,7 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           tipo?: string | null
+          tipo_id?: string | null
         }
         Update: {
           ativa?: boolean
@@ -796,8 +877,17 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           tipo?: string | null
+          tipo_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "unidades_tipo_id_fkey"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_unidade"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
