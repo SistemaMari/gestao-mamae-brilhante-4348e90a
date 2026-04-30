@@ -39,23 +39,21 @@ Deno.serve(async (req) => {
     const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-    // Cliente com JWT do usuário (para validar identidade)
-    const userClient = createClient(SUPABASE_URL, ANON, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    // Cliente service role para checagem e mutações
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) {
+    // Validar JWT via getClaims (compatível com signing-keys)
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsErr } = await admin.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      console.error('getClaims falhou:', claimsErr);
       return new Response(JSON.stringify({ error: 'Sessão inválida' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const callerId = userData.user.id;
-
-    // Cliente service role para checagem e mutações
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const callerId = claimsData.claims.sub as string;
 
     // Verificar se quem chamou é admin
     const { data: isAdminRow } = await admin
