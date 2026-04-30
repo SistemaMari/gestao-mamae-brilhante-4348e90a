@@ -26,12 +26,6 @@ import GestaoEquipePage from "./pages/GestaoEquipePage";
 import CadastroConvitePage from "./pages/CadastroConvitePage";
 
 import OnboardingPage from "./pages/OnboardingPage";
-import PreviewHubPage, {
-  PreviewCompletarPerfilPage,
-  PreviewGestaoEquipePage,
-  PreviewCadastroConvitePage,
-} from "./pages/PreviewHubPage";
-import PreviewAppShell from "./components/PreviewAppShell";
 import PacientePage from "./pages/PacientePage";
 import MeusCursosPage from "./pages/MeusCursosPage";
 import PerfilPage from "./pages/PerfilPage";
