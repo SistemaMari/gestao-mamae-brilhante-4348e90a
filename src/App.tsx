@@ -32,6 +32,12 @@ import PerfilPage from "./pages/PerfilPage";
 import HistoricoLaudosPage from "./pages/HistoricoLaudosPage";
 import LaudoViewerPage from "./pages/LaudoViewerPage";
 import NotFound from "./pages/NotFound";
+import PreviewHubPage, {
+  PreviewCompletarPerfilPage,
+  PreviewGestaoEquipePage,
+  PreviewCadastroConvitePage,
+} from "./pages/PreviewHubPage";
+import PreviewAppShell from "./components/PreviewAppShell";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +58,23 @@ const App = () => (
             <Route path="/nova-senha" element={<NovaSenhaPage />} />
             <Route path="/reset-password" element={<Navigate to="/nova-senha" replace />} />
             <Route path="/convite/:token" element={<CadastroConvitePage />} />
+
+            {/* Vitrine pública (sem login) — acessível por URL direta */}
+            <Route path="/vitrine" element={<PreviewHubPage />} />
+            <Route path="/vitrine/completar-perfil" element={<PreviewCompletarPerfilPage />} />
+            <Route path="/vitrine/gestao" element={<GestaoPage />} />
+            <Route path="/vitrine/gestao/equipe" element={<PreviewGestaoEquipePage />} />
+            <Route path="/vitrine/consolidar" element={<ConsolidarPage />} />
+            <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
+
+            {/* Vitrine com App Shell de demonstração */}
+            <Route element={<PreviewAppShell />}>
+              <Route path="/vitrine/dashboard" element={<DashboardPage />} />
+              <Route path="/vitrine/paciente/nova" element={<PacientePage />} />
+              <Route path="/vitrine/paciente/:id" element={<PacientePage />} />
+              <Route path="/vitrine/planos" element={<PlanosPage />} />
+              <Route path="/vitrine/perfil" element={<PerfilPage />} />
+            </Route>
 
             {/* App Shell do profissional clínico — rotas clínicas (consultorio + institucional) */}
             <Route element={<ProtectedRoute allowedProfiles={['consultorio', 'institucional']}><AppShellClinico /></ProtectedRoute>}>
