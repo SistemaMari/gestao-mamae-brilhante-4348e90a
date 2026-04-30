@@ -13,6 +13,7 @@ export interface ProfissionalData {
   especialidade: string | null;
   nome: string;
   unidade_id: string | null;
+  plano_id: string | null;
 }
 
 export function useProfissionalData() {
@@ -29,7 +30,7 @@ export function useProfissionalData() {
     const fetch = async () => {
       const { data: prof } = await supabase
         .from('profissionais')
-        .select('id, plano, plano_status, plano_expira_em, laudos_limite, laudos_usados, crm, especialidade, nome, identificador_padrao, unidade_id')
+        .select('id, plano, plano_id, plano_status, plano_expira_em, laudos_limite, laudos_usados, crm, especialidade, nome, identificador_padrao, unidade_id')
         .eq('user_id', user.id)
         .maybeSingle();
 
