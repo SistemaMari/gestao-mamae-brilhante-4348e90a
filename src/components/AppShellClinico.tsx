@@ -50,6 +50,7 @@ function useBreadcrumb() {
   if (path === '/completar-perfil') return { parent: null, current: t('profile.title') };
   if (path === '/dashboard/metricas') return { parent: null, current: t('nav.metrics') };
   if (path === '/laudos') return { parent: null, current: t('nav.history') };
+  if (path === '/meus-cursos') return { parent: null, current: 'Meus Cursos' };
   return null;
 }
 
