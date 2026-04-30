@@ -16,25 +16,43 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-async function checkAdmin(userId: string): Promise<boolean> {
-  // Tenta uma vez; se houver erro de rede/RLS transitório, tenta novamente.
+const ROLE_PRIORITY: UserProfile[] = [
+  'admin',
+  'gestor_geral',
+  'gestor',
+  'institucional',
+  'consultorio',
+];
+
+async function rolesFromUserRoles(userId: string): Promise<UserProfile[]> {
   for (let tentativa = 0; tentativa < 2; tentativa++) {
     const { data, error } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (!error) return !!data;
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId);
+    if (!error && data) {
+      return (data.map((r) => r.role) as UserProfile[]) ?? [];
+    }
     if (tentativa === 0) await new Promise((r) => setTimeout(r, 150));
   }
-  return false;
+  return [];
 }
 
 async function determineProfile(userId: string): Promise<UserProfile | null> {
-  // 1. Verificar se é admin (com retry defensivo)
-  if (await checkAdmin(userId)) return 'admin';
+  // 1. Fonte oficial: user_roles (com prioridade fixa)
+  const roles = await rolesFromUserRoles(userId);
+  for (const r of ROLE_PRIORITY) {
+    if (roles.includes(r)) return r;
+  }
 
-  // 2. Verificar se é gestor geral
+  // 2. Fallback legado: tabelas específicas — só se user_roles estiver vazio
+  const { data: admin } = await supabase
+    .from('admins')
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (admin) return 'admin';
+
   const { data: gestorGeral } = await supabase
     .from('gestores_gerais')
     .select('id')
@@ -42,15 +60,13 @@ async function determineProfile(userId: string): Promise<UserProfile | null> {
     .maybeSingle();
   if (gestorGeral) return 'gestor_geral';
 
-  // 3. Consultar tabela profissionais
   const { data: profissional } = await supabase
     .from('profissionais')
     .select('unidade_id, perfil_institucional')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (!profissional) return null; // Sem perfil vinculado
-
+  if (!profissional) return null;
   if (!profissional.unidade_id) return 'consultorio';
   if (profissional.perfil_institucional === 'gestor') return 'gestor';
   return 'institucional';
