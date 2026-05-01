@@ -38,6 +38,7 @@ import PreviewHubPage, {
   PreviewCadastroConvitePage,
 } from "./pages/PreviewHubPage";
 import PreviewAppShell from "./components/PreviewAppShell";
+import PreviewAdminLayout from "./pages/admin/PreviewAdminLayout";
 
 const queryClient = new QueryClient();
 
@@ -70,10 +71,23 @@ const App = () => (
             {/* Vitrine com App Shell de demonstração */}
             <Route element={<PreviewAppShell />}>
               <Route path="/vitrine/dashboard" element={<DashboardPage />} />
+              <Route path="/vitrine/dashboard/metricas" element={<DashboardMetricasPage />} />
               <Route path="/vitrine/paciente/nova" element={<PacientePage />} />
               <Route path="/vitrine/paciente/:id" element={<PacientePage />} />
+              <Route path="/vitrine/laudos" element={<HistoricoLaudosPage />} />
+              <Route path="/vitrine/laudo/:id" element={<LaudoViewerPage />} />
+              <Route path="/vitrine/meus-cursos" element={<MeusCursosPage />} />
               <Route path="/vitrine/planos" element={<PlanosPage />} />
               <Route path="/vitrine/perfil" element={<PerfilPage />} />
+            </Route>
+
+            {/* Vitrine do painel admin (sem auth) */}
+            <Route element={<PreviewAdminLayout />}>
+              <Route path="/vitrine/admin" element={<VisaoGeralPage />} />
+              <Route path="/vitrine/admin/diagnosticos" element={<DiagnosticosPage />} />
+              <Route path="/vitrine/admin/exportar" element={<ExportarPage />} />
+              <Route path="/vitrine/admin/admins" element={<AdminsPage />} />
+              <Route path="/vitrine/admin/institucionais" element={<InstitucionaisPage />} />
             </Route>
 
             {/* App Shell do profissional clínico — rotas clínicas (consultorio + institucional) */}
