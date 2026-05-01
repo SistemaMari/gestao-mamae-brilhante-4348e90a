@@ -1,59 +1,39 @@
 ## Diagnóstico
 
-Os dois "erros" são, na verdade, **404s de rota**, não falhas de runtime nem de backend:
+A tela de Diagnósticos está renderizando o erro **"Não foi possível carregar as métricas: forbidden"**.
 
-- `/vitrine/admin` — o `PreviewHubPage` tem um card que aponta para essa URL (linha 72), mas no `App.tsx` essa rota **não existe**. Cai no `<Route path="*" element={<NotFound />} />`. É exatamente o "404 Oops! Page not found" que você mandou no print.
-- `/vitrine/dashboard/metricas` — o `PreviewAppShell` (sidebar do dashboard do consultório, item "Meu Dashboard", linha 22) navega para essa URL, mas ela também não existe. Por isso o dashboard do profissional liberal "quebra" ao clicar em Meu Dashboard, e o console registra:
+Isso é o comportamento correto da RPC `metricas_diagnosticos_admin` — ela tem este bloqueio no início:
 
-  ```
-  404 Error: User attempted to access non-existent route: /vitrine/dashboard/metricas
-  ```
-
-Backend está OK — a RPC `metricas_diagnosticos_admin` retorna `200` normalmente. Foi puro descasamento entre os links da vitrine e as rotas registradas. Provavelmente ficou pendente de quando criamos o painel admin (`/admin/*`) e o dashboard de métricas (`/dashboard/metricas`): os equivalentes de vitrine não foram registrados.
-
-## O que vou mudar
-
-Apenas **`src/App.tsx`** — adicionar as rotas de vitrine que faltam, reaproveitando as páginas que já existem (modo preview, sem auth).
-
-### 1. Vitrine do admin
-
-Adicionar dentro do bloco "Vitrine pública (sem login)" um grupo análogo ao painel admin real, **sem `ProtectedRoute`** (vitrine é pública):
-
-```text
-/vitrine/admin                  → VisaoGeralPage   (dentro de AdminLayout)
-/vitrine/admin/diagnosticos     → DiagnosticosPage
-/vitrine/admin/exportar         → ExportarPage
-/vitrine/admin/admins           → AdminsPage
-/vitrine/admin/institucionais   → InstitucionaisPage
+```sql
+IF NOT public.is_admin(auth.uid()) THEN
+  RAISE EXCEPTION 'forbidden' USING ERRCODE = '42501';
+END IF;
 ```
 
-Como `AdminLayout` (sidebar do admin) hoje provavelmente usa links absolutos `/admin/...`, vou checar e, se necessário, fazê-lo detectar `location.pathname.startsWith('/vitrine')` para prefixar — mesmo padrão que `DashboardPage` já usa (`isPreview`). Isso é uma edição pequena, isolada ao `AdminSidebar`.
+Como você está acessando via `/vitrine/admin/diagnosticos` (vitrine pública, sem login ou logado como conta que não está na tabela `admins`), o `auth.uid()` não passa em `is_admin(...)` e a função aborta. A página então cai no branch de erro, mostrando o card vermelho.
 
-### 2. Vitrine do dashboard de métricas (profissional liberal)
+**Não é regressão da página em si** — todo o layout, gráficos e cards continuam intactos. Falta apenas alimentar a página com dados quando estamos em modo vitrine.
 
-Adicionar dentro do grupo `<PreviewAppShell />`:
+## Solução
 
-```text
-/vitrine/dashboard/metricas     → DashboardMetricasPage
-/vitrine/laudos                 → HistoricoLaudosPage
-/vitrine/laudo/:id              → LaudoViewerPage
-/vitrine/meus-cursos            → MeusCursosPage
-```
+Fazer a `DiagnosticosPage` detectar `/vitrine` e, nesse caso, exibir **dados de demonstração mockados** localmente — sem chamar a RPC. Mesmo padrão que o `DashboardPage` já usa (`isPreview = pathname.startsWith('/vitrine')`).
 
-Os três últimos são para evitar futuras 404 vindas dos itens "Histórico", "Meus cursos" etc. da sidebar de vitrine — incluo só os que de fato estão linkados pelo `PreviewAppShell` / `DashboardPage`. Se algum item ainda navegar para `/vitrine/...` sem rota, vou cobrir junto.
+A RPC e a tela real de admin (`/admin/diagnosticos`) ficam intactas.
 
-### 3. Verificações de coerência
+### Arquivos a alterar
 
-- Garantir que `DashboardMetricasPage` lide com o caso de "vitrine sem dados reais" sem quebrar (provavelmente já lida — usa as mesmas queries do `DashboardPage`, que já funciona em vitrine). Se quebrar por falta de auth, aplico o mesmo padrão `isPreview` que `DashboardPage` usa.
-- Não vou mexer na RPC, tabelas, RLS, nem em estilos.
+1. **`src/lib/mockMetricasDiagnosticos.ts`** (novo) — objeto com a mesma forma do JSON da RPC, preenchido com números plausíveis (~1.248 gestantes, ~187 DMG, evolução de 12 meses, top estados/cidades/unidades, desfechos perinatais). Serve apenas para a vitrine.
 
-## Fora de escopo
+2. **`src/pages/admin/DiagnosticosPage.tsx`**:
+   - Importar `useLocation` e o mock.
+   - Adicionar `const isPreview = pathname.startsWith('/vitrine')`.
+   - No `useEffect`: se `isPreview`, setar `dados = mock` e `loading = false`, **sem** chamar a RPC.
+   - Caso contrário, fluxo atual permanece (chama RPC, trata erro).
 
-- Não vou remover os cards "Painel Admin" / "Meu Dashboard" da vitrine — você pediu mais cedo que a vitrine mostre todos os perfis para demonstração.
-- Não vou tocar nas rotas autenticadas reais (`/admin`, `/dashboard/metricas`) — elas seguem funcionando.
+Nada de migração, nada de RLS, nada de mexer na função SQL.
 
 ## Resultado esperado
 
-- Clicar em "Painel Admin" no `/vitrine` abre o `VisaoGeralPage` em modo demo, com a sidebar do admin navegável (Diagnósticos, Exportar, etc.).
-- No dashboard do consultório em vitrine, clicar em "Meu Dashboard" abre `DashboardMetricasPage` sem 404.
-- Console fica sem o erro `non-existent route: /vitrine/dashboard/metricas`.
+- `/vitrine/admin/diagnosticos` mostra o painel completo populado com dados de exemplo (cards, evolução mensal, pizzas, funil, tabelas regionais).
+- `/admin/diagnosticos` (admin de verdade) continua usando a RPC real, com os bloqueios de admin intactos.
+- Sem alterações de backend / segurança.

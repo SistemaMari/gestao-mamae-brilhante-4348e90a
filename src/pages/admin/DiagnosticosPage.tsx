@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -6,6 +7,7 @@ import {
 } from "recharts";
 import { Loader2, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { mockMetricasDiagnosticos } from "@/lib/mockMetricasDiagnosticos";
 import {
   Tooltip as UiTooltip,
   TooltipContent,
@@ -313,12 +315,23 @@ function TabelaRegional({
 // =============================================================================
 
 export default function DiagnosticosPage() {
+  const { pathname } = useLocation();
+  const isPreview = pathname.startsWith("/vitrine");
+
   const [dados, setDados] = useState<Metricas | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelado = false;
+
+    // Vitrine pública: usa dados de demonstração e nem chama a RPC.
+    if (isPreview) {
+      setDados(mockMetricasDiagnosticos as unknown as Metricas);
+      setLoading(false);
+      return;
+    }
+
     (async () => {
       const { data, error } = await supabase.rpc("metricas_diagnosticos_admin");
       if (cancelado) return;
@@ -330,7 +343,7 @@ export default function DiagnosticosPage() {
       setLoading(false);
     })();
     return () => { cancelado = true; };
-  }, []);
+  }, [isPreview]);
 
   if (loading) {
     return (
