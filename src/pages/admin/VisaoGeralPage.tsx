@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { CardResumo } from "@/components/admin/CardResumo";
 import { PlaceholderSecao } from "@/components/admin/PlaceholderSecao";
 import { supabase } from "@/integrations/supabase/client";
+import { mockVisaoGeral } from "@/lib/mockVisaoGeral";
 
 interface Resumo {
   profissionais: number | null;
