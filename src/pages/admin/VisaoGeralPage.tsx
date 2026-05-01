@@ -32,10 +32,6 @@ export default function VisaoGeralPage() {
       setLoading(false);
       return;
     }
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelado = false;
 
     const carregar = async () => {
       const [profs, unids, pacs, lauds] = await Promise.all([
@@ -61,7 +57,7 @@ export default function VisaoGeralPage() {
     return () => {
       cancelado = true;
     };
-  }, []);
+  }, [isPreview]);
 
   return (
     <div className="space-y-8">
