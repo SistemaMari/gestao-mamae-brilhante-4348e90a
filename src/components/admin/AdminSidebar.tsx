@@ -1,4 +1,4 @@
-import { BarChart3, Map, Download, Users, Building2 } from "lucide-react";
+import { BarChart3, Map, Download, Users, Building2, UserPlus } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -17,6 +17,7 @@ const baseItems = [
   { title: "Filtros e Exportação", path: "/exportar", icon: Download, exact: false },
   { title: "Administradores", path: "/admins", icon: Users, exact: false },
   { title: "Contas Institucionais", path: "/institucionais", icon: Building2, exact: false },
+  { title: "Criar usuários", path: "/usuarios", icon: UserPlus, exact: false },
 ];
 
 export function AdminSidebar() {
