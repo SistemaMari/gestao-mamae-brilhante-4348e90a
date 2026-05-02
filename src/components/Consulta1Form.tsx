@@ -83,6 +83,7 @@ export default function Consulta1Form() {
       dataNascimento,
       tipoIdentificacao,
       numeroId: numeroId.trim(),
+      whatsapp: paraFormatoCanonico(whatsapp),
       dum,
       dataConsulta,
       observacoes: observacoes.trim(),
@@ -91,7 +92,7 @@ export default function Consulta1Form() {
       estado,
       cidade,
     }),
-    [nome, dataNascimento, tipoIdentificacao, numeroId, dum, dataConsulta, observacoes, dmgAnterior, pais, estado, cidade],
+    [nome, dataNascimento, tipoIdentificacao, numeroId, whatsapp, dum, dataConsulta, observacoes, dmgAnterior, pais, estado, cidade],
   );
 
   const { status: autosaveStatus } = useAutosave({
