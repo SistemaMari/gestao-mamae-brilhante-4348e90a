@@ -106,6 +106,7 @@ export default function Consulta1Form() {
         data_nascimento: d.dataNascimento || null,
         numero_identificacao: d.numeroId || null,
         tipo_identificacao: d.tipoIdentificacao,
+        whatsapp: d.whatsapp,
         dum: d.dum,
         pais: d.pais,
         estado: d.estado || null,
