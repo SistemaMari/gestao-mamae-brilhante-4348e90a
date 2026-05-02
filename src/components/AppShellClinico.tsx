@@ -65,13 +65,13 @@ const navItemsClinical: NavItem[] = [
   { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
   { labelKey: 'nav.history', icon: FileText, path: '/laudos' },
+  { labelKey: 'Meus Cursos', icon: GraduationCap, path: '/meus-cursos' },
   { labelKey: 'nav.metrics', icon: BarChart3, path: '/dashboard/metricas' },
 ];
 
 const navItemsAdmin: NavItem[] = [
   { labelKey: 'nav.plans', icon: CreditCard, path: '/planos' },
   { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
-  { labelKey: 'Meus Cursos', icon: GraduationCap, path: '/meus-cursos' },
 ];
 
 export default function AppShellClinico() {
@@ -153,10 +153,16 @@ export default function AppShellClinico() {
     </button>
   );
 
+  // Meus Cursos só aparece para planos pagos (que têm cursos inclusos).
+  const planoAtual = profissionalData?.plano ?? 'free';
+  const itensClinicos = navItemsClinical.filter(
+    (item) => item.path !== '/meus-cursos' || planoAtual !== 'free'
+  );
+
   const SidebarContent = () => (
     <>
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {navItemsClinical.map(renderNavButton)}
+        {itensClinicos.map(renderNavButton)}
         <div className="my-2 border-t" style={{ borderColor: '#E2E8F0' }} />
         {navItemsAdmin.map(renderNavButton)}
       </nav>
