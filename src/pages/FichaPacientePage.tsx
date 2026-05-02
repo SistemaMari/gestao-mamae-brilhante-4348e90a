@@ -17,8 +17,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  AlertTriangle, Calendar, Clock, FileText, Pencil, Plus, User, Loader2,
+  AlertTriangle, Calendar, Clock, FileText, Pencil, Plus, User, Loader2, MessageCircle,
 } from 'lucide-react';
+import {
+  mascararWhatsappBR,
+  validarWhatsappBR,
+  paraFormatoCanonico,
+  deCanonicoParaInput,
+  formatarWhatsappExibicao,
+} from '@/lib/whatsapp';
 import Retorno1Form from '@/components/Retorno1Form';
 import Consulta1ResultCard from '@/components/Consulta1ResultCard';
 import Retorno1ResultCard from '@/components/Retorno1ResultCard';
