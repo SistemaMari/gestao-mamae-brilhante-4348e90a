@@ -4,18 +4,19 @@ import { GraduationCap, Lock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
-import { nomeAmigavelCurso } from '@/lib/nomesCursos';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const CURSOS_SLUGS = ['hiperglicemia', 'insulinoterapia', 'novos-paradigmas-dmg'] as const;
-
-const PLANO_NECESSARIO: Record<string, string> = {
-  insulinoterapia: 'Intermediária',
-  'novos-paradigmas-dmg': 'Profissional',
-  hiperglicemia: 'Inicial',
-};
+interface Curso {
+  id: string;
+  slug: string;
+  nome: string;
+  descricao: string | null;
+  link_eduzz: string | null;
+  plano_minimo: string;
+  ordem: number;
+}
 
 interface PlanoInfo {
   slug: string;
@@ -23,38 +24,63 @@ interface PlanoInfo {
   cursos_inclusos: string[];
 }
 
+const NOME_PLANO_POR_SLUG: Record<string, string> = {
+  inicial: 'Inicial',
+  intermediaria: 'Intermediária',
+  profissional: 'Profissional',
+};
+
 export default function MeusCursosPage() {
   const navigate = useNavigate();
   const { profissionalData, loading: loadingProf } = useProfissionalData();
   const [plano, setPlano] = useState<PlanoInfo | null>(null);
-  const [loadingPlano, setLoadingPlano] = useState(true);
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(false);
 
-  const fetchPlano = useCallback(async () => {
+  const fetchDados = useCallback(async () => {
     if (!profissionalData?.plano_id) {
-      setLoadingPlano(false);
+      setLoading(false);
       return;
     }
-    setLoadingPlano(true);
+    setLoading(true);
     setErro(false);
-    const { data, error } = await supabase
-      .from('planos')
-      .select('slug, nome, cursos_inclusos')
-      .eq('id', profissionalData.plano_id)
-      .maybeSingle();
-    if (error || !data) {
+
+    const [resPlano, resCursos] = await Promise.all([
+      supabase
+        .from('planos')
+        .select('slug, nome, cursos_inclusos')
+        .eq('id', profissionalData.plano_id)
+        .maybeSingle(),
+      supabase
+        .from('cursos')
+        .select('id, slug, nome, descricao, link_eduzz, plano_minimo, ordem')
+        .eq('ativo', true)
+        .order('ordem', { ascending: true }),
+    ]);
+
+    if (resPlano.error || !resPlano.data || resCursos.error) {
       setErro(true);
     } else {
-      setPlano(data as PlanoInfo);
+      setPlano(resPlano.data as PlanoInfo);
+      setCursos((resCursos.data ?? []) as Curso[]);
     }
-    setLoadingPlano(false);
+    setLoading(false);
   }, [profissionalData?.plano_id]);
 
   useEffect(() => {
-    if (!loadingProf) fetchPlano();
-  }, [loadingProf, fetchPlano]);
+    if (!loadingProf) fetchDados();
+  }, [loadingProf, fetchDados]);
 
-  const loading = loadingProf || loadingPlano;
+  const carregando = loadingProf || loading;
+
+  const acessarCurso = (curso: Curso) => {
+    if (curso.link_eduzz) {
+      window.open(curso.link_eduzz, '_blank', 'noopener,noreferrer');
+    } else {
+      toast.info('Link em breve. Configurando acesso ao curso.');
+    }
+  };
 
   return (
     <div className="container max-w-6xl py-8">
@@ -65,7 +91,7 @@ export default function MeusCursosPage() {
         </p>
       </header>
 
-      {loading && (
+      {carregando && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-[240px] w-full rounded-lg" />
@@ -73,17 +99,17 @@ export default function MeusCursosPage() {
         </div>
       )}
 
-      {!loading && erro && (
+      {!carregando && erro && (
         <Card className="mx-auto max-w-md">
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
             <AlertCircle className="h-10 w-10 text-destructive" />
             <p className="text-foreground">Não foi possível carregar seus cursos.</p>
-            <Button onClick={fetchPlano} variant="outline">Tentar novamente</Button>
+            <Button onClick={fetchDados} variant="outline">Tentar novamente</Button>
           </CardContent>
         </Card>
       )}
 
-      {!loading && !erro && !profissionalData?.plano_id && (
+      {!carregando && !erro && !profissionalData?.plano_id && (
         <Card className="mx-auto max-w-md">
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
             <GraduationCap className="h-10 w-10 text-muted-foreground" />
@@ -95,15 +121,24 @@ export default function MeusCursosPage() {
         </Card>
       )}
 
-      {!loading && !erro && plano && (
+      {!carregando && !erro && plano && cursos.length === 0 && (
+        <Card className="mx-auto max-w-md">
+          <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
+            <GraduationCap className="h-10 w-10 text-muted-foreground" />
+            <p className="text-foreground">Nenhum curso disponível no momento.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!carregando && !erro && plano && cursos.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {CURSOS_SLUGS.map((slug) => {
-            const liberado = plano.cursos_inclusos?.includes(slug);
+          {cursos.map((curso) => {
+            const liberado = plano.cursos_inclusos?.includes(curso.slug);
+            const nomePlanoNecessario =
+              NOME_PLANO_POR_SLUG[curso.plano_minimo] ?? curso.plano_minimo;
+
             return (
-              <Card
-                key={slug}
-                className={liberado ? '' : 'opacity-60'}
-              >
+              <Card key={curso.id} className={liberado ? '' : 'opacity-60'}>
                 <CardContent className="flex flex-col gap-4 p-6">
                   <div
                     className="flex h-12 w-12 items-center justify-center rounded-full"
@@ -116,8 +151,12 @@ export default function MeusCursosPage() {
                   </div>
 
                   <h3 className="font-heading text-lg font-bold text-foreground">
-                    {nomeAmigavelCurso(slug)}
+                    {curso.nome}
                   </h3>
+
+                  {curso.descricao && (
+                    <p className="text-sm text-muted-foreground">{curso.descricao}</p>
+                  )}
 
                   {liberado ? (
                     <span
@@ -132,7 +171,7 @@ export default function MeusCursosPage() {
                       style={{ backgroundColor: '#F1F5F9' }}
                     >
                       <Lock className="h-3 w-3" />
-                      Disponível no plano {PLANO_NECESSARIO[slug]}
+                      Disponível no plano {nomePlanoNecessario}
                     </span>
                   )}
 
@@ -141,9 +180,7 @@ export default function MeusCursosPage() {
                       <Button
                         className="w-full text-white hover:opacity-90"
                         style={{ backgroundColor: '#9b87f5' }}
-                        onClick={() =>
-                          toast.info('Link em breve. Configurando acesso aos cursos.')
-                        }
+                        onClick={() => acessarCurso(curso)}
                       >
                         Acessar curso →
                       </Button>

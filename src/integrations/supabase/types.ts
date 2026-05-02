@@ -186,6 +186,45 @@ export type Database = {
           },
         ]
       }
+      cursos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          link_eduzz: string | null
+          nome: string
+          ordem: number
+          plano_minimo: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          link_eduzz?: string | null
+          nome: string
+          ordem?: number
+          plano_minimo?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          link_eduzz?: string | null
+          nome?: string
+          ordem?: number
+          plano_minimo?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       exames_glicemia: {
         Row: {
           consulta_id: string
