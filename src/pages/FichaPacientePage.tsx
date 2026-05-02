@@ -374,6 +374,14 @@ export default function FichaPacientePage() {
 
   const saveEditing = async () => {
     if (!paciente || !primeiraConsulta || !id) return;
+
+    const whatsappValid = validarWhatsappBR(editWhatsapp);
+    if (!whatsappValid.ok) {
+      toast.error(whatsappValid.mensagem || 'WhatsApp inválido.');
+      return;
+    }
+    const whatsappCanonico = paraFormatoCanonico(editWhatsapp);
+
     setEditSaving(true);
 
     if (isPreview) {
