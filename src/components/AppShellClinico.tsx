@@ -7,7 +7,7 @@ import { useSyncLanguageWithProfile } from '@/hooks/useSyncLanguageWithProfile';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Users, UserPlus, CreditCard, UserCog, LogOut, Menu, X,
-  ChevronRight, User, Loader2, BarChart3, FileText, GraduationCap
+  ChevronRight, User, Loader2, BarChart3, FileText, GraduationCap, Lock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
