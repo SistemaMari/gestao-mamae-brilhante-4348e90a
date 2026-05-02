@@ -212,6 +212,7 @@ export default function Consulta1Form() {
       data_nascimento: dataNascimento,
       numero_identificacao: numeroId.trim() || null,
       tipo_identificacao: tipoIdentificacao,
+      whatsapp: paraFormatoCanonico(whatsapp),
       dum,
       pais,
       estado: estado || null,
