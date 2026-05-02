@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppShellClinico from "@/components/AppShellClinico";
+import PlanoGuard from "@/components/PlanoGuard";
 import LoginPage from "./pages/LoginPage";
 import RecuperarSenhaPage from "./pages/RecuperarSenhaPage";
 import NovaSenhaPage from "./pages/NovaSenhaPage";
