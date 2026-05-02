@@ -571,6 +571,22 @@ export default function FichaPacientePage() {
                   placeholder="Opcional"
                 />
               </div>
+              <div className="space-y-1 sm:col-span-2">
+                <label className="text-xs font-medium text-foreground">WhatsApp (opcional)</label>
+                <div className="flex items-stretch gap-2">
+                  <span className="flex shrink-0 items-center rounded-md border border-input bg-muted px-3 text-sm font-medium text-muted-foreground">
+                    +55
+                  </span>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    value={editWhatsapp}
+                    onChange={(e) => setEditWhatsapp(mascararWhatsappBR(e.target.value))}
+                    placeholder="(11) 91234-5678"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium text-foreground">Data da consulta 1</label>
                 <Input
