@@ -132,29 +132,40 @@ export default function AppShellClinico() {
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/');
   };
 
-  const renderNavButton = (item: NavItem) => (
-    <button
-      key={item.path}
-      onClick={() => handleNavClick(item)}
-      className={cn(
-        'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-        isActive(item.path)
-          ? 'bg-[#E8E0FF] text-[#7E69AB]'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-      )}
-    >
-      <item.icon className="h-5 w-5 shrink-0" />
-      <span>{t(item.labelKey)}</span>
-      {item.path === '/planos' && profissionalData && (
-        <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
-          {profissionalData.plano}
-        </span>
-      )}
-    </button>
-  );
+  // Métricas: bloqueada para planos abaixo de Profissional → exibe cadeado.
+  const planoAtual = profissionalData?.plano ?? 'free';
+  const metricasBloqueada = planoAtual !== 'profissional';
+
+  const renderNavButton = (item: NavItem) => {
+    const ehMetricas = item.path === '/dashboard/metricas';
+    const bloqueado = ehMetricas && metricasBloqueada;
+    const Icon = bloqueado ? Lock : item.icon;
+
+    return (
+      <button
+        key={item.path}
+        onClick={() => handleNavClick(item)}
+        title={bloqueado ? 'Disponível no plano Profissional' : undefined}
+        className={cn(
+          'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+          isActive(item.path)
+            ? 'bg-[#E8E0FF] text-[#7E69AB]'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+          bloqueado && !isActive(item.path) && 'opacity-70'
+        )}
+      >
+        <Icon className="h-5 w-5 shrink-0" />
+        <span className="flex-1 text-left">{t(item.labelKey)}</span>
+        {item.path === '/planos' && profissionalData && (
+          <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
+            {profissionalData.plano}
+          </span>
+        )}
+      </button>
+    );
+  };
 
   // Meus Cursos só aparece para planos pagos (que têm cursos inclusos).
-  const planoAtual = profissionalData?.plano ?? 'free';
   const itensClinicos = navItemsClinical.filter(
     (item) => item.path !== '/meus-cursos' || planoAtual !== 'free'
   );
