@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { format, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { DateRange } from 'react-day-picker';
@@ -89,6 +89,8 @@ function fmtData(iso?: string | null) {
 
 export default function ConsolidarPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isVitrine = location.pathname.startsWith('/vitrine/');
 
   const [carregandoTela, setCarregandoTela] = useState(true);
   const [gestor, setGestor] = useState<GestorGeral | null>(null);
@@ -115,6 +117,27 @@ export default function ConsolidarPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      // Modo vitrine: pula auth e popula dados de demonstração.
+      if (isVitrine) {
+        const gestorMock: GestorGeral = {
+          id: 'demo-gestor-geral',
+          nome: 'Gestor Geral (demo)',
+          user_id: 'demo-user',
+        };
+        const unidadesMock: Unidade[] = [
+          { id: 'demo-u1', nome: 'Hospital Central (demo)' },
+          { id: 'demo-u2', nome: 'Maternidade Norte (demo)' },
+          { id: 'demo-u3', nome: 'UBS Vila Nova (demo)' },
+        ];
+        if (cancelled) return;
+        setGestor(gestorMock);
+        setUnidades(unidadesMock);
+        setUnidadesSelecionadas(new Set(unidadesMock.map((u) => u.id)));
+        setHistorico([]);
+        setCarregandoTela(false);
+        return;
+      }
+
       const { data: userData } = await supabase.auth.getUser();
       const user = userData.user;
       if (!user) { navigate('/login', { replace: true }); return; }
