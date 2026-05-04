@@ -1,164 +1,114 @@
 
-# Plano 23A — Backend Dashboard Admin
+## Prompt 23B — Dashboard Admin · Visão Geral
 
-Implementação integral do Prompt 23A v3 (Lucas). Cria a infraestrutura de dados agregados pro dashboard admin: 8 views materializadas, 2 cron jobs `pg_cron`, Edge Function autenticada `admin-metrics` e tabela de auditoria `admin_access_log`. Sem alterações de frontend.
+Construir a seção **Visão Geral** (`/admin`) consumindo as 8 views materializadas expostas pela Edge Function `admin-metrics` (entregue em 23A). Toda a estrutura espelha em `/vitrine/admin` sem auth, com fallback mock se a Function bloquear o token anônimo.
 
-## Pré-validação (já feita na inspeção do schema)
+O **Prompt Raiz** já está aplicado ao projeto (paleta lilás/verde-água/roxo, fontes Sora + Plus Jakarta Sans, tom afirmativo, gestor geral sem acesso clínico, etc.). Sem mudança de identidade — apenas reafirmação ao construir os novos componentes.
 
-- `profissional_id uuid NOT NULL` confirmado em `pacientes`, `consultas`, `laudos`, `partos`, `exames_glicemia`. **Não existe tabela `gtt` separada** — GTT vive em `consultas` via `tipo`/`cenario_clinico`. Ajusto o UNION ALL pra remover `gtt`.
-- `profissionais.plano_id uuid NOT NULL` confirmado (FK lógica pra `planos`).
-- `unidades.tipo_id uuid` confirmado.
-- Tabela `planos` tem 3 slugs esperados (`inicial`, `intermediaria`, `profissional`). Tabela `tipos_unidade` existe.
-- `data_expiracao_teste` não existe — nada a dropar.
+### 1. Camada de dados
 
-## Migration 1 — Extensão e auxiliar
+**`src/lib/adminMetrics.ts`**
+- `fetchAdminView(view, params?)` → `supabase.functions.invoke('admin-metrics', { body: { view, pais? } })`. Retorna `rows`.
+- Whitelist local com os 8 slugs do 23A: `resumo_global`, `distribuicao_geografica`, `top_cidades`, `unidades_resumo`, `profissionais_por_plano`, `evolucao_mensal_planos`, `evolucao_mensal_profissionais`, `alertas_operacionais`.
+- Tipos: `ResumoGlobalRow`, `AlertaRow`, `EvolucaoRow`, `PlanoRow`, `UnidadeResumoRow`, `GeoRow`, `CidadeRow`.
 
-```sql
-CREATE EXTENSION IF NOT EXISTS pg_cron;
+**`src/hooks/useAdminMetrics.ts`**
+- `useAdminView<T>(view, params?, opts?)` — wrapper de `useQuery` com `staleTime: 5min` por padrão.
+- `useAlertasOperacionais()` com `staleTime: 60s`.
+- `enabled` controlado (vitrine pode desligar após 401).
+- Em vitrine: 1 tentativa; se 401/403, devolve mock de `mockAdminMetrics.ts`.
 
--- View auxiliar de atividade dos últimos 30 dias
-CREATE MATERIALIZED VIEW IF NOT EXISTS mv_profissionais_ativos_30d AS
-SELECT profissional_id, MAX(ultima_acao) AS ultima_acao FROM (
-  SELECT profissional_id, created_at AS ultima_acao FROM pacientes
-   WHERE created_at > now() - interval '30 days'
-  UNION ALL
-  SELECT profissional_id, GREATEST(created_at, updated_at) FROM consultas
-   WHERE GREATEST(created_at, updated_at) > now() - interval '30 days'
-  UNION ALL
-  SELECT profissional_id, created_at FROM laudos
-   WHERE created_at > now() - interval '30 days'
-  UNION ALL
-  SELECT profissional_id, created_at FROM partos
-   WHERE created_at > now() - interval '30 days'
-  UNION ALL
-  SELECT profissional_id, created_at FROM exames_glicemia
-   WHERE created_at > now() - interval '30 days'
-) sub
-WHERE profissional_id IS NOT NULL
-GROUP BY profissional_id;
-CREATE UNIQUE INDEX idx_mv_ativos_30d_pk ON mv_profissionais_ativos_30d(profissional_id);
+**`src/lib/mockAdminMetrics.ts`** — payload representativo das 8 views, números coerentes com `mockVisaoGeral`. Comentário no topo lista as 8 views consumidas + versão do schema do 23A para facilitar manutenção quando o Lucas alterar uma MV.
+
+### 2. Componentes reutilizáveis (`src/components/admin/`)
+
+- **`AlertaOperacionalCard.tsx`** — borda lateral 4px colorida, ícone Lucide, número grande (Sora 28px bold), título, descrição, link "Ver detalhes" (`to="#"`, comentário citando Prompt 25). Os 5 cards têm tratamento visual idêntico — sem variação de opacidade.
+- **`GraficoPizzaPlanos.tsx`** — Recharts PieChart, 3 fatias fixas: Inicial `#5EEAD4`, Intermediária `#D6BCFA`, Profissional `#7C4DBA`. Tooltip + legenda.
+- **`GraficoPizzaTiposUnidade.tsx`** — PieChart genérico, paleta da marca (lilás/menta/roxo).
+- **`GraficoLinhaEvolucao.tsx`** — LineChart Recharts (últimos 12 meses), aceita 1+ séries (reusa para evolução de profissionais e de planos).
+- **`SeletorPais.tsx`** — Select shadcn alimentado pelos países distintos de `distribuicao_geografica`. Default `"BR"`.
+- **`SecaoBloco.tsx`** — wrapper com título Sora + skeleton durante loading (cada bloco carrega independente).
+- **`TabelaOrdenavel.tsx`** (já existe) — estender se necessário para paginação 20/página quando `rows.length > 50`.
+
+### 3. Mapa dos 5 alertas (v3)
+
+```
+profissional_inativo_30d   "Plano Profissional sem uso há 30+ dias"   #F59E0B
+intermediaria_inativo_30d  "Plano Intermediária sem uso há 30+ dias"  #F59E0B
+inicial_inativo_30d        "Plano Inicial sem uso há 30+ dias"        #F59E0B
+unidade_dormente           "Unidades sem profissionais ativos no mês" #94A3B8
+onboarding_travado         "Cadastros há 7+ dias sem completar perfil" #EF4444
+```
+Sempre os 5 cards, nesta ordem. Tipo ausente na view → mostrar 0. **Sem** `teste_expirando`.
+
+### 4. `src/pages/admin/VisaoGeralPage.tsx`
+
+Layout vertical (desktop-first; tablet empilha pizzas; mobile 1 coluna):
+
+```text
+┌ Cards de resumo rápido (já existentes)            ┐  ← mantidos
+├ Alertas Operacionais (grid 3/2/1, 5 cards)        ┤  ← NOVO
+├ Evolução mensal de profissionais (linha)          ┤
+├ [ Pizza planos ] [ Pizza tipos de unidade ]       ┤
+├ Tabela: Distribuição por país (cont. + %)         ┤
+├ Tabela: Distribuição por estado (filtro país)     ┤
+├ Tabela: Top 20 cidades                            ┤
+├ Tabela: Profissionais por unidade                 ┤
+├ Tabela: Pacientes por unidade (hist/ativos90/%)   ┤
+└ [ Card: Total gestores gerais ] [ Consolidações ] ┘
 ```
 
-## Migration 2 — As 8 MVs do dashboard
+- Cards de resumo do topo: continuam com `supabase.from(...).select(count)` autenticado e `mockVisaoGeral` em vitrine (já existe).
+- Todo o restante chama exclusivamente `admin-metrics` via os hooks.
+- Skeleton próprio por bloco (4 linhas em tabelas, círculo nas pizzas, retângulo nas linhas).
+- Ordenação clicável nas tabelas. Paginação 20/página em tabelas com >50 linhas.
 
-Cada MV tem **UNIQUE INDEX** pra permitir `REFRESH ... CONCURRENTLY`:
+### 5. Espelho na vitrine
 
-1. **`mv_admin_resumo_global`** — `total_profissionais`, `total_unidades`, `total_gestores_gerais`, `total_consolidacoes` (1 linha).
-2. **`mv_admin_distribuicao_geografica`** — `pais, estado, cidade, total_profissionais, total_unidades`.
-3. **`mv_admin_top_cidades`** — top 20 cidades por nº de profissionais.
-4. **`mv_admin_unidades_resumo`** — por unidade: `nome, tipo (via tipos_unidade.nome), cidade, estado, total_profissionais, total_pacientes, total_laudos`.
-5. **`mv_admin_profissionais_por_plano`** — JOIN `profissionais` × `planos` por `plano_id`: `plano_slug, plano_nome, total, ativos_30d`.
-6. **`mv_admin_evolucao_mensal_planos`** — últimos 12 meses, contagem de profissionais por plano e por mês de criação.
-7. **`mv_admin_evolucao_mensal_profissionais`** — últimos 12 meses, novos profissionais e ativos por mês.
-8. **`mv_admin_alertas_operacionais`** — 5 linhas fixas com `tipo_alerta, total`:
-   - `profissional_inativo_30d` — profissionais que não estão em `mv_profissionais_ativos_30d`.
-   - `intermediaria_inativo_30d` — plano `intermediaria` inativos.
-   - `inicial_inativo_30d` — plano `inicial` inativos.
-   - `unidade_dormente` — unidades sem nenhum profissional ativo nos últimos 30 dias.
-   - `onboarding_travado` — `created_at < now() - 7 days` AND (`crm` IS NULL OR `especialidade` IS NULL OR `unidade_id` IS NULL).
+- `/vitrine/admin` → `VisaoGeralPage` dentro de `PreviewAdminLayout` (já existe em `App.tsx`).
+- `VisaoGeralPage` detecta `isPreview = pathname.startsWith('/vitrine')`. Em preview os hooks recebem `previewMode: true` → tentam Edge Function 1x; falhou → mock. Skeletons durante a tentativa.
+- `AdminSidebar` já prefixa links com `/vitrine` quando aplicável.
 
-## Migration 3 — Refresh inicial (sem CONCURRENTLY)
+### 6. Critérios de aceite cobertos
 
-`REFRESH MATERIALIZED VIEW <nome>;` em cada uma das 9 MVs (auxiliar + 8). Obrigatório antes do primeiro refresh concorrente.
+- `/admin` deixa de ser placeholder.
+- 5 alertas v3 (sem `teste_expirando`) com número, descrição e "Ver detalhes".
+- Profissionais cadastrados + linha de evolução mensal.
+- Profissionais ativos 30d (`total_profissionais_ativos_30d` de `resumo_global`).
+- Distribuição país/estado/cidade (estado com seletor, default BR).
+- Pizza planos com 3 fatias exatas (Inicial/Intermediária/Profissional), cores `#5EEAD4` / `#D6BCFA` / `#7C4DBA`.
+- Linha de evolução de planos. Total unidades + pizza tipo de unidade.
+- Tabelas profissionais por unidade e pacientes por unidade (hist/ativos90/%).
+- Cards gestores gerais + consolidações. Tabelas ordenáveis, gráficos com tooltip.
+- Skeleton independente por bloco.
+- Zero acesso direto a `mv_*` — só via Edge Function.
+- Paginação 20/página em tabelas grandes. React Query 5min (60s para alertas).
+- Espelho `/vitrine/admin` renderiza a mesma tela sem auth.
+- Apenas paleta oficial. Nenhum dado clínico individual.
 
-## Migration 4 — Cron jobs
+### Detalhes técnicos
 
-```sql
--- Job horário: views gerais
-SELECT cron.unschedule('refresh_admin_views_hourly')
- WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname='refresh_admin_views_hourly');
-SELECT cron.schedule('refresh_admin_views_hourly', '0 * * * *', $$
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_profissionais_ativos_30d;
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_admin_resumo_global;
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_admin_distribuicao_geografica;
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_admin_top_cidades;
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_admin_unidades_resumo;
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_admin_profissionais_por_plano;
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_admin_evolucao_mensal_planos;
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_admin_evolucao_mensal_profissionais;
-$$);
+- Bibliotecas: `recharts` e `@tanstack/react-query` já instalados; `QueryClient` em `App.tsx`.
+- Sem migrações; 23A já criou MVs e cron jobs.
+- Tipos locais em `adminMetrics.ts` com base no schema declarado no 23A.
+- Cores semânticas restritas aos alertas; paleta da marca nos gráficos.
+- Textos PT-BR diretos (admin não traduzido).
+- Nada em `client.ts` / `types.ts` (auto-gerados).
 
--- Job 10min: alertas
-SELECT cron.unschedule('refresh_admin_alertas_10min')
- WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname='refresh_admin_alertas_10min');
-SELECT cron.schedule('refresh_admin_alertas_10min', '*/10 * * * *', $$
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_profissionais_ativos_30d;
-  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_admin_alertas_operacionais;
-$$);
-```
+### Arquivos a criar
+- `src/lib/adminMetrics.ts`
+- `src/lib/mockAdminMetrics.ts`
+- `src/hooks/useAdminMetrics.ts`
+- `src/components/admin/AlertaOperacionalCard.tsx`
+- `src/components/admin/GraficoPizzaPlanos.tsx`
+- `src/components/admin/GraficoPizzaTiposUnidade.tsx`
+- `src/components/admin/GraficoLinhaEvolucao.tsx`
+- `src/components/admin/SeletorPais.tsx`
+- `src/components/admin/SecaoBloco.tsx`
 
-## Migration 5 — admin_access_log + permissões
+### Arquivos a editar
+- `src/pages/admin/VisaoGeralPage.tsx` — substitui placeholder por conteúdo completo.
+- `src/components/admin/TabelaOrdenavel.tsx` — paginação opcional, se ainda não tiver.
+- `src/lib/mockVisaoGeral.ts` — mantido (mock novo vai em arquivo separado).
 
-```sql
-CREATE TABLE IF NOT EXISTS admin_access_log (
-  id BIGSERIAL PRIMARY KEY,
-  admin_id UUID NOT NULL REFERENCES profissionais(id),
-  view_consultada TEXT NOT NULL,
-  pais_filtro TEXT NULL,
-  ip TEXT NULL,
-  user_agent TEXT NULL,
-  status_code INTEGER NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-CREATE INDEX idx_admin_log_admin ON admin_access_log(admin_id, created_at DESC);
-CREATE INDEX idx_admin_log_view ON admin_access_log(view_consultada, created_at DESC);
-
-ALTER TABLE admin_access_log ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admins veem logs" ON admin_access_log FOR SELECT TO authenticated
-  USING (is_admin(auth.uid()));
--- INSERT só via service_role (Edge Function); não criar política pra authenticated.
-
--- Revogar acesso direto às MVs
-REVOKE ALL ON mv_admin_resumo_global,
-              mv_admin_distribuicao_geografica,
-              mv_admin_top_cidades,
-              mv_admin_unidades_resumo,
-              mv_admin_profissionais_por_plano,
-              mv_admin_evolucao_mensal_planos,
-              mv_admin_evolucao_mensal_profissionais,
-              mv_admin_alertas_operacionais,
-              mv_profissionais_ativos_30d
-       FROM authenticated, anon;
-```
-
-## Edge Function `admin-metrics`
-
-Arquivo: `supabase/functions/admin-metrics/index.ts`.
-
-- CORS via `corsHeaders` do supabase-js.
-- Validação JWT em código (verify_jwt = false por padrão).
-- **Whitelist** rígida do parâmetro `view` — só aceita os 8 nomes:
-  ```
-  resumo_global, distribuicao_geografica, top_cidades, unidades_resumo,
-  profissionais_por_plano, evolucao_mensal_planos,
-  evolucao_mensal_profissionais, alertas_operacionais
-  ```
-- Valida `is_admin(auth.uid())` via query — retorna 403 se não for admin.
-- Faz `SELECT * FROM mv_admin_<view>` usando service_role.
-- Aceita query param opcional `pais` (filtro client-side simples).
-- Loga sempre em `admin_access_log` (com status_code, ip do header `x-forwarded-for`, user_agent).
-- Headers de resposta: `Cache-Control: public, max-age=300` (60s pra `alertas_operacionais`).
-
-## Critérios de aceite (validação pós-deploy)
-
-1. `SELECT * FROM pg_extension WHERE extname='pg_cron'` retorna 1 linha.
-2. `SELECT count(*) FROM cron.job WHERE jobname IN ('refresh_admin_views_hourly','refresh_admin_alertas_10min')` = 2.
-3. As 9 MVs existem e têm dados (`SELECT count(*) FROM mv_admin_*`).
-4. `SELECT * FROM mv_admin_alertas_operacionais` retorna 5 linhas com os 5 `tipo_alerta` esperados.
-5. `SELECT * FROM mv_admin_profissionais_por_plano` retorna até 3 linhas (slugs `inicial`/`intermediaria`/`profissional`).
-6. Edge Function: chamada como admin → 200; como consultório → 403; com `view=DROP TABLE...` → 400.
-7. `SELECT count(*) FROM admin_access_log` cresce a cada chamada.
-8. SELECT direto em `mv_admin_*` como `authenticated` falha (permissão revogada).
-
-## Fora de escopo
-
-- Frontend admin (23B) — Moara/Lovable em outro prompt.
-- `assinaturas` / webhook Asaas — DOC separado.
-- Filtros geográficos avançados, exportação CSV (25A).
-
-## Riscos / observações
-
-- **pg_cron**: se a extensão não puder ser habilitada no plano atual do Cloud, a Migration 4 vai falhar. Nesse caso paro, te aviso, e cron vira agendamento externo (Vercel Cron / GH Actions chamando a Edge Function).
-- **`profissionais.plano` (text legado)**: vou ignorar essa coluna nas MVs e usar só `plano_id` JOIN `planos`. Não dropo a coluna agora — fica pra cleanup futuro.
-- **Volume `admin_access_log`**: sem TTL no escopo do 23A. Cleanup mensal pode entrar depois.
-
+Sem mudanças em backend, RLS, edge functions ou rotas além do que já está em `App.tsx`.
