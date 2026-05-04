@@ -322,6 +322,7 @@ export default function DiagnosticosPage() {
   const [dados, setDados] = useState<Metricas | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const { filtros } = useAdminFiltros();
 
   useEffect(() => {
     let cancelado = false;
@@ -346,6 +347,22 @@ export default function DiagnosticosPage() {
     return () => { cancelado = true; };
   }, [isPreview]);
 
+  const fEstado = filtros.estado === "todos" ? null : filtros.estado;
+  const fCidade = filtros.cidade === "todos" ? null : filtros.cidade;
+  const regionalFiltrado = useMemo(() => {
+    const r = dados?.regional;
+    if (!r) return { por_estado: [], por_cidade: [], por_unidade: [] };
+    return {
+      por_estado: r.por_estado.filter((x) => !fEstado || x.estado === fEstado),
+      por_cidade: r.por_cidade.filter(
+        (x) => (!fEstado || x.estado === fEstado) && (!fCidade || x.cidade === fCidade),
+      ),
+      por_unidade: r.por_unidade.filter(
+        (x) => (!fEstado || x.estado === fEstado) && (!fCidade || x.cidade === fCidade),
+      ),
+    };
+  }, [dados, fEstado, fCidade]);
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -364,19 +381,7 @@ export default function DiagnosticosPage() {
     );
   }
 
-  const { resumo, evolucao_mensal, momento_diagnostico, historico_dmg, tratamento, funil, desfechos, regional } = dados;
-  const { filtros } = useAdminFiltros();
-  const fEstado = filtros.estado === "todos" ? null : filtros.estado;
-  const fCidade = filtros.cidade === "todos" ? null : filtros.cidade;
-  const regionalFiltrado = useMemo(() => ({
-    por_estado: regional.por_estado.filter((r) => !fEstado || r.estado === fEstado),
-    por_cidade: regional.por_cidade.filter(
-      (r) => (!fEstado || r.estado === fEstado) && (!fCidade || r.cidade === fCidade),
-    ),
-    por_unidade: regional.por_unidade.filter(
-      (r) => (!fEstado || r.estado === fEstado) && (!fCidade || r.cidade === fCidade),
-    ),
-  }), [regional, fEstado, fCidade]);
+  const { resumo, evolucao_mensal, momento_diagnostico, historico_dmg, tratamento, funil, desfechos } = dados;
   const totalDmg = resumo.dmg || 1; // evita divisão por zero em %.
   const pct = (n: number) => `${Math.round((n / totalDmg) * 100)}%`;
   const pctSobreTotal = (n: number) =>
