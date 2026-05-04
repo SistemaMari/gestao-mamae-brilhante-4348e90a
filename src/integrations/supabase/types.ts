@@ -55,6 +55,42 @@ export type Database = {
           },
         ]
       }
+      admin_audit_log: {
+        Row: {
+          acao: string
+          alvo_admin_id: string | null
+          alvo_email: string
+          alvo_nome: string | null
+          created_at: string
+          executado_por: string
+          executado_por_email: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          acao: string
+          alvo_admin_id?: string | null
+          alvo_email: string
+          alvo_nome?: string | null
+          created_at?: string
+          executado_por: string
+          executado_por_email: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          acao?: string
+          alvo_admin_id?: string | null
+          alvo_email?: string
+          alvo_nome?: string | null
+          created_at?: string
+          executado_por?: string
+          executado_por_email?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       admins: {
         Row: {
           created_at: string
