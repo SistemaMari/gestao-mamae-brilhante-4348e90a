@@ -13,8 +13,8 @@ export function GraficoPizzaTiposUnidade({ rows }: Props) {
   }));
 
   return (
-    <div style={{ width: "100%", height: 280 }}>
-      <ResponsiveContainer>
+    <div className="min-h-[300px] w-full">
+      <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
             data={dados}

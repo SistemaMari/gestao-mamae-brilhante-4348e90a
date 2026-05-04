@@ -40,12 +40,19 @@ async function fetchPreviewView<T>(
       },
       body: JSON.stringify(body),
     });
-    if (!res.ok) return fallback;
+    if (!res.ok) {
+      console.info("[vitrine] Fallback mock ativado para view:", view);
+      return fallback;
+    }
     const json = await res.json().catch(() => null);
     const rows = json?.rows;
-    if (!Array.isArray(rows) || rows.length === 0) return fallback;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      console.info("[vitrine] Fallback mock ativado para view:", view);
+      return fallback;
+    }
     return rows as T[];
   } catch {
+    console.info("[vitrine] Fallback mock ativado para view:", view);
     return fallback;
   }
 }

@@ -29,8 +29,8 @@ export const paletaSeries = (n: number): string[] =>
 
 export function GraficoLinhaEvolucao({ dados, series, xKey = "mes", height = 280 }: Props) {
   return (
-    <div style={{ width: "100%", height }}>
-      <ResponsiveContainer>
+    <div className="w-full" style={{ minHeight: height }}>
+      <ResponsiveContainer width="100%" height={height}>
         <LineChart data={dados}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
           <XAxis dataKey={xKey} stroke="#64748B" fontSize={12} />

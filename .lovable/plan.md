@@ -1,23 +1,48 @@
-## Fix — Fallback mock em /vitrine/admin
+## Ajustes finos em /vitrine/admin
 
-**Sintoma:** `/vitrine/admin` quebra com overlay de runtime "Edge function returned 401" mesmo com `try/catch` no hook. O `supabase.functions.invoke` lança um erro que o overlay do Lovable intercepta antes do nosso `catch` silenciar.
+### 1. Log de debug do fallback — `src/hooks/useAdminMetrics.ts`
 
-**Causa:** Em preview usamos `supabase.functions.invoke`, que faz o erro 401 borbulhar pelo runtime mesmo dentro de `try/catch` (interceptado pelo overlay de dev). O fallback para mock só funcionou nos casos em que o erro não chegou a ser "throw".
+Em `fetchPreviewView`, adicionar `console.info('[vitrine] Fallback mock ativado para view:', view)` em dois pontos:
 
-### Mudanças
+- No ramo `if (!res.ok) { ... return fallback }`
+- No `catch { ... return fallback }`
 
-**1. `src/hooks/useAdminMetrics.ts` (único arquivo alterado)**
+Como `fetchPreviewView` só é chamado quando `previewMode === true` (ver `queryFn` no `useAdminView`), o log nunca dispara em produção autenticada. Nenhuma outra alteração na lógica de fetch/fallback.
 
-- Em **modo preview**: substituir `supabase.functions.invoke` por `fetch` direto para `${VITE_SUPABASE_URL}/functions/v1/admin-metrics`, com `apikey` + `Authorization: Bearer <publishable>` (ou `access_token` se houver sessão).
-- Qualquer falha (`!res.ok`, parse error, throw) → retorna mock de `MOCK_ADMIN[view]` silenciosamente. Sem nunca dar `throw` em preview.
-- Em **modo autenticado** (`previewMode=false`): mantém `fetchAdminView` exatamente como está; comportamento de `/admin` autenticado intacto.
-- React Query: `retry: false` em preview (não há razão pra retry quando já caímos pro mock).
-- `useAlertasOperacionais` continua delegando pra `useAdminView` (herda o mesmo tratamento).
+Também adicionar log no caminho onde `rows` vem vazio/inválido (mesmo tratamento — cai no fallback), para consistência com os 8 views esperados.
 
-**2. `src/pages/admin/VisaoGeralPage.tsx`** — já passa `previewMode` em todos os 8 hooks (verificado nas linhas 79–96). Nenhuma mudança necessária.
+### 2. Warnings Recharts width(-1)/height(-1)
 
-### Critérios de aceite
+Os 3 componentes já usam `<ResponsiveContainer>` dentro de `<div style={{ width: '100%', height: N }}>`, mas o warning aparece quando o pai (grid/card) ainda não tem largura computada no primeiro paint. Solução: trocar o wrapper inline por classe Tailwind com `min-h-[Npx] w-full` para garantir reserva de espaço antes do measure do ResponsiveContainer.
 
-- `/vitrine/admin` sem login: renderiza página completa com mock (alertas, evolução, 2 pizzas, todas as tabelas, cards finais). Sem overlay de erro.
-- `/admin` autenticado: continua chamando a Edge Function via `supabase.functions.invoke` e mostrando dados reais.
-- Nenhum outro arquivo tocado.
+**`src/components/admin/GraficoLinhaEvolucao.tsx`**
+```tsx
+<div className="min-h-[280px] w-full">
+  <ResponsiveContainer width="100%" height={280}>
+    <LineChart data={dados}>...</LineChart>
+  </ResponsiveContainer>
+</div>
+```
+
+**`src/components/admin/GraficoPizzaPlanos.tsx`** e **`src/components/admin/GraficoPizzaTiposUnidade.tsx`**
+```tsx
+<div className="min-h-[300px] w-full">
+  <ResponsiveContainer width="100%" height={300}>
+    <PieChart>...</PieChart>
+  </ResponsiveContainer>
+</div>
+```
+
+Altura sobe de 280 → 300 nas pizzas conforme especificado. Linha de evolução mantém 280.
+
+### Critério de aceite
+- Console em `/vitrine/admin`: 8 linhas `[vitrine] Fallback mock ativado para view: …` (uma por view).
+- Sem warnings `width(-1) and height(-1)`.
+- Gráficos renderizam imediatamente, sem flash.
+- `/admin` autenticado inalterado (log nunca dispara, `fetchAdminView` segue intocado).
+
+### Arquivos editados
+- `src/hooks/useAdminMetrics.ts`
+- `src/components/admin/GraficoLinhaEvolucao.tsx`
+- `src/components/admin/GraficoPizzaPlanos.tsx`
+- `src/components/admin/GraficoPizzaTiposUnidade.tsx`
