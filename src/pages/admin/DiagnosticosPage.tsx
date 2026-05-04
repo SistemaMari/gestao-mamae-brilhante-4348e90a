@@ -606,13 +606,13 @@ export default function DiagnosticosPage() {
         <TabelaRegional
           titulo="Por estado"
           cabecalhos={["Estado", "Gestantes", "DMG", "Taxa de DMG"]}
-          linhas={regional.por_estado.map((r) => [r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`])}
+          linhas={regionalFiltrado.por_estado.map((r) => [r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`])}
           vazioMsg="Sem dados regionais ainda."
         />
         <TabelaRegional
           titulo="Top 20 cidades"
           cabecalhos={["Cidade", "Estado", "Gestantes", "DMG", "Taxa de DMG"]}
-          linhas={regional.por_cidade.map((r) => [
+          linhas={regionalFiltrado.por_cidade.map((r) => [
             r.cidade, r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`,
           ])}
           vazioMsg="Sem dados de cidade ainda."
@@ -620,7 +620,7 @@ export default function DiagnosticosPage() {
         <TabelaRegional
           titulo="Por unidade"
           cabecalhos={["Unidade", "Cidade", "Estado", "Gestantes", "DMG", "Taxa de DMG"]}
-          linhas={regional.por_unidade.map((r) => [
+          linhas={regionalFiltrado.por_unidade.map((r) => [
             r.unidade, r.cidade, r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`,
           ])}
           vazioMsg="Nenhuma unidade com pacientes vinculadas."
