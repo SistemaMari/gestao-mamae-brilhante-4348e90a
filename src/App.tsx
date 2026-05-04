@@ -41,6 +41,7 @@ import PreviewHubPage, {
 } from "./pages/PreviewHubPage";
 import PreviewAppShell from "./components/PreviewAppShell";
 import PreviewAdminLayout from "./pages/admin/PreviewAdminLayout";
+import ComponentesDemoPage from "./pages/_dev/ComponentesDemoPage";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,9 @@ const App = () => (
               <Route path="/vitrine/admin/admins" element={<AdminsPage />} />
               <Route path="/vitrine/admin/institucionais" element={<InstitucionaisPage />} />
             </Route>
+
+            {/* Vitrine de componentes admin (sem layout/auth) — AJ1 */}
+            <Route path="/vitrine/admin/componentes" element={<ComponentesDemoPage />} />
 
             {/* App Shell do profissional clínico — rotas clínicas (consultorio + institucional) */}
             <Route element={<ProtectedRoute allowedProfiles={['consultorio', 'institucional']}><AppShellClinico /></ProtectedRoute>}>
