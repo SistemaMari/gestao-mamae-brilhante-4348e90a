@@ -78,19 +78,18 @@ Deno.serve(async (req) => {
     global: { headers: { Authorization: authHeader } },
     auth: { persistSession: false },
   });
-  const token = authHeader.replace("Bearer ", "");
   let userId: string | null = null;
   try {
-    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
       return new Response(
         JSON.stringify({ error: "Unauthorized: invalid or anonymous token" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    userId = claimsData.claims.sub as string;
+    userId = userData.user.id;
   } catch (err) {
-    console.error("[admin-metrics] getClaims threw:", err);
+    console.error("[admin-metrics] getUser threw:", err);
     return new Response(
       JSON.stringify({ error: "Unauthorized: token verification failed" }),
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },

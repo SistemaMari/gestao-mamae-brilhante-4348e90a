@@ -1,27 +1,29 @@
-# Prompt 25B — Filtros Globais + Exportação
+# Correção dos 2 bugs
 
-## Ajustes incorporados (do feedback aprovado)
-1. Cor lilás primária trocada de `#9b87f5` por **`#7C4DBA`** em todos os novos componentes desta entrega. Badge de filtros ativos: fundo `#EDE5F7`, texto `#5A3690`.
-2. Filtros que só valem em exportação (período + momento_diagnostico) ganham marcador visual: ícone 📥 (Download de lucide) ao lado do label + tooltip "Aplicado apenas em arquivos exportados. Totais da tela refletem todos os períodos."
-3. Helper `exportarCsvAdmin` faz refetch automático quando o cache do React Query estiver vazio, exibindo loading durante a operação.
-4. Erros de timeout no `supabase.functions.invoke` recebem mensagem específica: "Exportação muito grande. Aplique filtros de período ou tipo de conta para reduzir o volume."
+Diagnóstico confirmado pelos logs das Edge Functions. Aplicar 4 mudanças cirúrgicas:
 
-## Arquivos novos
-- `src/contexts/AdminFiltrosContext.tsx` — Context + sessionStorage (`admin:filtros`), defaults (últimos 6 meses), `filtrosAtivosCount`, `contratoExportacao` (formato Edge Function).
-- `src/components/admin/BarraFiltrosGlobais.tsx` — barra horizontal com 7 filtros (Período/País/Estado/Cidade/Tipo/Unidade/Momento), botões "Filtrar" (`#7C4DBA`) e "Limpar", badge ativos. Período e Momento marcados com 📥 + tooltip. Renderizada só em `/admin`, `/admin/diagnosticos`, `/admin/exportar`.
-- `src/lib/exportarCsvAdmin.ts` — converte arrays agregados em CSV (`;`, UTF-8 BOM). Faz refetch via `queryClient.fetchQuery` quando cache vazio.
+## 1. `supabase/functions/admin-metrics/index.ts` (linhas 81–98)
+Trocar `userClient.auth.getClaims(token)` por `userClient.auth.getUser()`, que existe em supabase-js 2.45 e já é o padrão usado em `exportar-relatorio-admin`. `userId = userData.user.id`.
 
-## Arquivos modificados
-- `src/pages/admin/AdminLayout.tsx` — envolve com `AdminFiltrosProvider` + renderiza `<BarraFiltrosGlobais />` abaixo do header.
-- `src/pages/admin/PreviewAdminLayout.tsx` — idem.
-- `src/pages/admin/VisaoGeralPage.tsx` — re-derivações client-side aplicando filtros geográficos/tipo/unidade às tabelas e gráficos.
-- `src/pages/admin/DiagnosticosPage.tsx` — filtra `regional.por_estado/por_cidade/por_unidade` client-side.
-- `src/pages/admin/ExportarPage.tsx` — substitui placeholder pela tela completa (resumo + seletor conteúdo + seletor formato + botão).
-- `src/contexts/AuthContext.tsx` — limpa `sessionStorage` no `signOut`.
+## 2. `supabase/functions/exportar-relatorio-admin/index.ts`
+- Em `coletarDados()` (linha 92), aceitar um segundo parâmetro `userClient` e chamar `userClient.rpc("metricas_diagnosticos_admin")` em vez de `admin.rpc(...)`. As MVs continuam via `admin` (service_role).
+- Na chamada (linha 541), passar `userClient` que já existe no handler.
 
-## Fluxo de exportação
-- **CSV**: lê cache via `queryClient.getQueryData(['admin-metrics', view, ...])`; se undefined, chama `queryClient.fetchQuery` (com loading "Carregando dados..."). Gera blob `text/csv;charset=utf-8` com `\ufeff` BOM, separador `;`. Download imediato.
-- **Excel/PDF**: `supabase.functions.invoke('exportar-relatorio-admin', { body: { formato, conteudo, filtros: contratoExportacao }})`. Loading "Gerando relatório...". Trata `status === 'vazio'`, erro genérico (com botão "Tentar novamente") e timeout (mensagem específica).
+## 3. `src/pages/admin/ExportarPage.tsx`
+Antes dos dois `setEstado("erro")` (caminho `if (error)` e `catch`), logar:
+```ts
+console.error('[exportar] Conteúdo:', conteudo, 'Formato:', formato,
+  'Body:', { conteudo, filtros: contratoExportacao }, 'Erro:', error,
+  'Status:', (error as any)?.context?.status,
+  'Response:', await (error as any)?.context?.text?.().catch(() => null));
+```
+Mensagem ao usuário passa a incluir status + trecho da resposta para diagnóstico imediato.
 
-## Limitação MVP comunicada na UI
-Período e momento_diagnostico ainda não recalculam totais da tela (back-end não aceita esses parâmetros hoje). Marcados visualmente como "exportação apenas". Filtros geográficos/tipo/unidade funcionam visualmente. Todos os 8 são enviados corretamente para a Edge Function de exportação.
+## 4. `src/lib/exportarCsvAdmin.ts`
+`console.info('[exportar-csv] cache vazio, refetch view:', view)` antes do refetch, e `console.error('[exportar-csv] etapa: <fetchQuery|rows-vazio> view:', view, 'erro:', e)` nos dois caminhos de falha.
+
+## Critério de aceite
+- Filtros País/Estado/Cidade em `/admin/*` populam com dados reais (Brasil → SP → São Paulo).
+- Sem mais `[admin-metrics] getClaims threw` nos edge logs.
+- Exportação Excel/PDF gera arquivo e retorna signed URL; sem mais `42501 forbidden`.
+- Em qualquer falha futura, console mostra payload completo + status HTTP.

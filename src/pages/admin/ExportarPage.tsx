@@ -172,13 +172,26 @@ export default function ExportarPage() {
       const { data, error } = winner as Awaited<typeof promise>;
 
       if (error) {
+        const status = (error as any)?.context?.status;
+        let respText: string | null = null;
+        try {
+          respText = await (error as any)?.context?.text?.();
+        } catch { /* ignore */ }
+        console.error(
+          "[exportar] Conteúdo:", conteudo,
+          "Formato:", formato,
+          "Body:", { conteudo, filtros: contratoExportacao },
+          "Erro:", error,
+          "Status:", status,
+          "Response:", respText,
+        );
         const msg = String(error.message ?? "").toLowerCase();
         if (msg.includes("timeout") || msg.includes("aborted") || msg.includes("__timeout__")) {
           setEstado("timeout");
           setMensagem(TIMEOUT_MSG);
         } else {
           setEstado("erro");
-          setMensagem("Falha ao gerar relatório. Tente novamente.");
+          setMensagem(`Falha ao gerar relatório (${status ?? "?"}). ${respText ?? error.message ?? ""}`.slice(0, 220));
         }
         return;
       }
@@ -214,13 +227,19 @@ export default function ExportarPage() {
         setMensagem("Resposta inesperada do servidor.");
       }
     } catch (e: unknown) {
+      console.error(
+        "[exportar] Conteúdo:", conteudo,
+        "Formato:", formato,
+        "Body:", { conteudo, filtros: contratoExportacao },
+        "Erro (catch):", e,
+      );
       const msg = String((e as Error)?.message ?? "").toLowerCase();
       if (msg.includes("__timeout__") || msg.includes("aborted")) {
         setEstado("timeout");
         setMensagem(TIMEOUT_MSG);
       } else {
         setEstado("erro");
-        setMensagem("Falha ao gerar relatório. Tente novamente.");
+        setMensagem(`Falha ao gerar relatório: ${(e as Error)?.message ?? "erro desconhecido"}`.slice(0, 220));
       }
     }
   };

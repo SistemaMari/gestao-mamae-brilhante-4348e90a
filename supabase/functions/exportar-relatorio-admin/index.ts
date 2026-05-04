@@ -91,11 +91,13 @@ function nomeArquivo(conteudo: string, formato: string, f: Filtros) {
 
 async function coletarDados(
   admin: ReturnType<typeof createClient>,
+  userClient: ReturnType<typeof createClient>,
   conteudo: string,
   filtros: Filtros,
 ) {
-  // Reusa a função SQL agregada existente. Ela já valida is_admin().
-  const { data: metricas, error: errMetricas } = await admin.rpc(
+  // A RPC valida is_admin(auth.uid()), então precisa rodar no contexto do
+  // JWT do admin (userClient), não com service_role (auth.uid() = null).
+  const { data: metricas, error: errMetricas } = await userClient.rpc(
     "metricas_diagnosticos_admin",
   );
   if (errMetricas) throw errMetricas;
@@ -538,7 +540,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Tipo de conteúdo não reconhecido." }, 400);
     }
 
-    const dados = await coletarDados(admin, conteudo, filtros);
+    const dados = await coletarDados(admin, userClient, conteudo, filtros);
     if (!temDados(dados, conteudo)) {
       return jsonResponse({
         status: "vazio",

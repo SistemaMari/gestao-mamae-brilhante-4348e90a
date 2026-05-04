@@ -45,6 +45,7 @@ export async function exportarCsvAdmin({
   let rows = queryClient.getQueryData<Array<Record<string, unknown>>>(queryKey);
 
   if (!rows || rows.length === 0) {
+    console.info("[exportar-csv] cache vazio, refetch view:", view);
     onLoading?.(true);
     try {
       rows = await queryClient.fetchQuery<Array<Record<string, unknown>>>({
@@ -56,6 +57,7 @@ export async function exportarCsvAdmin({
       });
     } catch (e) {
       onLoading?.(false);
+      console.error("[exportar-csv] etapa: fetchQuery view:", view, "erro:", e);
       return {
         ok: false,
         mensagem: "Falha ao carregar dados para exportação.",
@@ -66,6 +68,7 @@ export async function exportarCsvAdmin({
   }
 
   if (!rows || rows.length === 0) {
+    console.error("[exportar-csv] etapa: rows-vazio view:", view);
     return { ok: false, mensagem: "Sem dados para exportar." };
   }
 
