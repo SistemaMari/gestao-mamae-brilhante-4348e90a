@@ -14,7 +14,7 @@ export function CardResumo({ label, valor, loading }: CardResumoProps) {
     >
       <div className="flex items-center" style={{ minHeight: 44 }}>
         {loading ? (
-          <Loader2 className="h-6 w-6 animate-spin text-[#9b87f5]" />
+          <Loader2 className="h-6 w-6 animate-spin text-[#7C4DBA]" />
         ) : (
           <span
             className="text-[32px] leading-none font-bold"

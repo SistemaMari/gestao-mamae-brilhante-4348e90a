@@ -71,7 +71,7 @@ export default function UsuariosPage() {
   if (carregandoMeta) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-[#9b87f5]" />
+        <Loader2 className="h-6 w-6 animate-spin text-[#7C4DBA]" />
       </div>
     );
   }
@@ -232,7 +232,7 @@ function FormIndividual({
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={submit} disabled={enviando} className="bg-[#9b87f5] hover:bg-[#7E69AB]">
+        <Button onClick={submit} disabled={enviando} className="bg-[#7C4DBA] hover:bg-[#7E69AB]">
           {enviando ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Criando…</> : "Criar conta"}
         </Button>
       </div>
@@ -380,7 +380,7 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
         <Button
           onClick={criarTodos}
           disabled={enviando || itens.length === 0 || itens.every((i) => !!i.erro)}
-          className="bg-[#9b87f5] hover:bg-[#7E69AB]"
+          className="bg-[#7C4DBA] hover:bg-[#7E69AB]"
         >
           {enviando ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Criando…</> : "Criar válidos"}
         </Button>

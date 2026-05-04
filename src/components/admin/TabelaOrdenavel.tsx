@@ -171,8 +171,8 @@ export function TabelaOrdenavel({
                   onClick={() => setPagina(n)}
                   className="rounded border px-2 py-1 min-w-[32px]"
                   style={{
-                    borderColor: ativo ? "#9b87f5" : "#E2E8F0",
-                    background: ativo ? "#9b87f5" : "white",
+                    borderColor: ativo ? "#7C4DBA" : "#E2E8F0",
+                    background: ativo ? "#7C4DBA" : "white",
                     color: ativo ? "white" : "#1E293B",
                     fontWeight: ativo ? 600 : 400,
                   }}

@@ -509,7 +509,7 @@ export default function FichaACForm({
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="rounded-xl border border-[#9b87f5] bg-[#F1F0FB] p-4 space-y-1">
+      <div className="rounded-xl border border-[#7C4DBA] bg-[#F1F0FB] p-4 space-y-1">
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -694,7 +694,7 @@ export default function FichaACForm({
                         onChange={e => handleCellChange(dayIdx, p, e.target.value)}
                         onKeyDown={e => handleKeyDown(e, dayIdx, colIdx)}
                         className={`w-full text-center text-sm rounded-md border px-1 py-1.5 outline-none transition-colors
-                          focus:ring-2 focus:ring-[#9b87f5] focus:border-[#9b87f5]
+                          focus:ring-2 focus:ring-[#7C4DBA] focus:border-[#7C4DBA]
                           ${isNeg ? 'bg-red-100 border-red-400 text-red-700' : ''}
                           ${isHigh ? 'bg-amber-50 border-amber-400' : ''}
                           ${!isNeg && !isHigh ? getCellBg(p, val) : ''}
@@ -751,7 +751,7 @@ export default function FichaACForm({
         <Button
           onClick={handleSave}
           disabled={!canSave || saving}
-          className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+          className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
         >
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Salvar retorno
@@ -779,7 +779,7 @@ export default function FichaACForm({
                 setShowHighValueConfirm(false);
                 handleSave();
               }}
-              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+              className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
               Confirmar e salvar
             </AlertDialogAction>
@@ -816,7 +816,7 @@ export default function FichaACForm({
           <AlertDialogFooter className="justify-center">
             <AlertDialogAction
               onClick={handleCloseImpact}
-              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+              className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
               Fechar e ver laudo completo
             </AlertDialogAction>

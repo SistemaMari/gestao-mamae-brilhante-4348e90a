@@ -54,7 +54,7 @@ export default function AdminLayout() {
   if (verificando) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#9b87f5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#7C4DBA]" />
       </div>
     );
   }

@@ -276,7 +276,7 @@ export default function VisaoGeralPage() {
           <GraficoLinhaEvolucao
             dados={evolProfDados}
             series={[
-              { chave: "novos", nome: "Novos profissionais", cor: "#9b87f5" },
+              { chave: "novos", nome: "Novos profissionais", cor: "#7C4DBA" },
               { chave: "ativos", nome: "Ativos no mês", cor: "#5EEAD4" },
             ]}
           />

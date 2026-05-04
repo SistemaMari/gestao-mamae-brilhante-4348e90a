@@ -22,7 +22,7 @@ interface Props {
   height?: number;
 }
 
-const PALETA_BRAND = ["#9b87f5", "#5EEAD4", "#7C4DBA", "#7E69AB", "#D6BCFA"];
+const PALETA_BRAND = ["#7C4DBA", "#5EEAD4", "#7C4DBA", "#7E69AB", "#D6BCFA"];
 
 export const paletaSeries = (n: number): string[] =>
   Array.from({ length: n }, (_, i) => PALETA_BRAND[i % PALETA_BRAND.length]);

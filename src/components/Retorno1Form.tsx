@@ -548,11 +548,11 @@ export default function Retorno1Form({
 
         {/* C4: Impact pop-up */}
         <AlertDialog open={showPopup}>
-          <AlertDialogContent className={`border-2 ${resultado.tipo === 'negativo' ? 'border-[#9b87f5]' : resultado.tipo === 'positivo' ? 'border-orange-400' : 'border-red-400'}`}>
+          <AlertDialogContent className={`border-2 ${resultado.tipo === 'negativo' ? 'border-[#7C4DBA]' : resultado.tipo === 'positivo' ? 'border-orange-400' : 'border-red-400'}`}>
             <AlertDialogHeader>
               <AlertDialogTitle className="text-center text-lg">
                 {resultado.tipo === 'negativo' ? (
-                  <span className="flex items-center justify-center gap-2 text-[#9b87f5]">
+                  <span className="flex items-center justify-center gap-2 text-[#7C4DBA]">
                     <AlertTriangle className="h-5 w-5" />
                     DMG negativo — próximo passo: GTT 75g
                   </span>
@@ -599,7 +599,7 @@ export default function Retorno1Form({
             <AlertDialogFooter className="sm:justify-center">
               <AlertDialogAction
                 onClick={handlePopupClose}
-                className={resultado.tipo === 'negativo' ? 'bg-[#9b87f5] hover:bg-[#7E69AB] text-white' : resultado.tipo === 'positivo' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}
+                className={resultado.tipo === 'negativo' ? 'bg-[#7C4DBA] hover:bg-[#7E69AB] text-white' : resultado.tipo === 'positivo' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}
               >
                 {resultado.tipo === 'negativo' ? 'Entendi' : 'Entendi, ver laudo completo'}
               </AlertDialogAction>
@@ -622,7 +622,7 @@ export default function Retorno1Form({
               </Button>
               <Button
                 onClick={handleConfirmEdit}
-                className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+                className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
               >
                 Confirmar
               </Button>
@@ -635,7 +635,7 @@ export default function Retorno1Form({
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-[#9b87f5] bg-[#F1F0FB] p-4 space-y-1">
+      <div className="rounded-xl border border-[#7C4DBA] bg-[#F1F0FB] p-4 space-y-1">
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -779,7 +779,7 @@ export default function Retorno1Form({
           <Button
             type="submit"
             disabled={saving}
-            className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+            className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
           >
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar resultado

@@ -23,7 +23,7 @@ export function AdminHeader({ nomeAdmin }: AdminHeaderProps) {
         <div className="flex items-center gap-3 min-w-0">
           <div
             className="h-9 w-9 rounded-lg shrink-0"
-            style={{ background: "linear-gradient(135deg, #9b87f5, #5EEAD4)" }}
+            style={{ background: "linear-gradient(135deg, #7C4DBA, #5EEAD4)" }}
             aria-hidden
           />
           <h1

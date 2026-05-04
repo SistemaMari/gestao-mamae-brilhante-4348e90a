@@ -114,7 +114,7 @@ export default function MeusCursosPage() {
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
             <GraduationCap className="h-10 w-10 text-muted-foreground" />
             <p className="text-foreground">Você ainda não tem plano ativo.</p>
-            <Button onClick={() => navigate('/planos')} style={{ backgroundColor: '#9b87f5' }}>
+            <Button onClick={() => navigate('/planos')} style={{ backgroundColor: '#7C4DBA' }}>
               Ver planos
             </Button>
           </CardContent>
@@ -146,7 +146,7 @@ export default function MeusCursosPage() {
                   >
                     <GraduationCap
                       className="h-6 w-6"
-                      style={{ color: liberado ? '#9b87f5' : '#64748B' }}
+                      style={{ color: liberado ? '#7C4DBA' : '#64748B' }}
                     />
                   </div>
 
@@ -179,7 +179,7 @@ export default function MeusCursosPage() {
                     {liberado ? (
                       <Button
                         className="w-full text-white hover:opacity-90"
-                        style={{ backgroundColor: '#9b87f5' }}
+                        style={{ backgroundColor: '#7C4DBA' }}
                         onClick={() => acessarCurso(curso)}
                       >
                         Acessar curso →

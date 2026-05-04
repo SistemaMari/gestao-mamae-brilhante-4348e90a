@@ -536,7 +536,7 @@ export default function FichaPacientePage() {
                 variant="outline"
                 size="sm"
                 onClick={startEditing}
-                className="border-[#9b87f5] text-[#9b87f5] hover:bg-[#E8E0FF] gap-1.5 print:hidden"
+                className="border-[#7C4DBA] text-[#7C4DBA] hover:bg-[#E8E0FF] gap-1.5 print:hidden"
               >
                 <Pencil className="h-4 w-4" />
                 Editar
@@ -603,8 +603,8 @@ export default function FichaPacientePage() {
                     onClick={() => setEditDmgAnterior(true)}
                     className={`flex-1 rounded-lg border-2 px-3 py-2 text-sm font-medium transition-colors ${
                       editDmgAnterior
-                        ? 'border-[#9b87f5] bg-[#9b87f5]/10 text-[#9b87f5]'
-                        : 'border-border bg-card text-muted-foreground hover:border-[#9b87f5]/60'
+                        ? 'border-[#7C4DBA] bg-[#7C4DBA]/10 text-[#7C4DBA]'
+                        : 'border-border bg-card text-muted-foreground hover:border-[#7C4DBA]/60'
                     }`}
                   >
                     Sim
@@ -614,8 +614,8 @@ export default function FichaPacientePage() {
                     onClick={() => setEditDmgAnterior(false)}
                     className={`flex-1 rounded-lg border-2 px-3 py-2 text-sm font-medium transition-colors ${
                       !editDmgAnterior
-                        ? 'border-[#9b87f5] bg-[#9b87f5]/10 text-[#9b87f5]'
-                        : 'border-border bg-card text-muted-foreground hover:border-[#9b87f5]/60'
+                        ? 'border-[#7C4DBA] bg-[#7C4DBA]/10 text-[#7C4DBA]'
+                        : 'border-border bg-card text-muted-foreground hover:border-[#7C4DBA]/60'
                     }`}
                   >
                     Não
@@ -640,7 +640,7 @@ export default function FichaPacientePage() {
                 size="sm"
                 onClick={saveEditing}
                 disabled={editSaving || !editNome.trim()}
-                className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+                className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
               >
                 {editSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar alterações
@@ -754,8 +754,8 @@ export default function FichaPacientePage() {
         }
         // Estado 1 — IG < 24 semanas (normal)
         return (
-          <div className="rounded-xl border-2 border-[#9b87f5] bg-[#E8E0FF] p-4 flex items-start gap-3">
-            <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-[#9b87f5]" />
+          <div className="rounded-xl border-2 border-[#7C4DBA] bg-[#E8E0FF] p-4 flex items-start gap-3">
+            <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-[#7C4DBA]" />
             <div>
               <p className="text-sm font-bold text-[#5B21B6]">
                 GTT 75g deverá ser realizado entre <strong>{format(janelaGTT.inicio, 'dd/MM/yyyy')}</strong> e <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>
@@ -1017,7 +1017,7 @@ export default function FichaPacientePage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => setEditingConsultaId(c.id)}
-                              className="text-[#9b87f5] hover:text-[#7E69AB] hover:bg-[#E8E0FF] gap-1.5"
+                              className="text-[#7C4DBA] hover:text-[#7E69AB] hover:bg-[#E8E0FF] gap-1.5"
                             >
                               <Pencil className="h-3.5 w-3.5" />
                               <span className="text-xs">Editar valores</span>
@@ -1193,7 +1193,7 @@ export default function FichaPacientePage() {
 
           return (
             <Button
-              className="w-full text-left bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+              className="w-full text-left bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
               onClick={() => {
                 if (isRetorno1Button) {
                   setShowRetorno1(true);
@@ -1222,7 +1222,7 @@ export default function FichaPacientePage() {
         {canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt && !showRegistroParto && (
           <Button
             variant="outline"
-            className="w-full mt-2 border-[#9b87f5] text-[#9b87f5] hover:bg-[#E8E0FF] hover:text-[#7E69AB]"
+            className="w-full mt-2 border-[#7C4DBA] text-[#7C4DBA] hover:bg-[#E8E0FF] hover:text-[#7E69AB]"
             onClick={() => setShowRegistroParto(true)}
           >
             <FileText className="mr-2 h-4 w-4 shrink-0" />

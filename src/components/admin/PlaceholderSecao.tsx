@@ -16,7 +16,7 @@ export function PlaceholderSecao({
         style={{ background: "#F8FAFC", borderColor: "#E2E8F0" }}
       >
         <div className="mb-4 rounded-full p-3" style={{ background: "#E8E0FF" }}>
-          <Construction className="h-7 w-7" style={{ color: "#9b87f5" }} />
+          <Construction className="h-7 w-7" style={{ color: "#7C4DBA" }} />
         </div>
         <h2
           className="text-xl font-semibold mb-2"

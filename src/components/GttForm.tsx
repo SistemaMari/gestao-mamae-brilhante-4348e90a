@@ -799,7 +799,7 @@ export default function GttForm({
         <Button
           type="submit"
           disabled={saving}
-          className="flex-1 bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+          className="flex-1 bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
         >
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Salvar GTT
