@@ -343,9 +343,6 @@ export default function VisaoGeralPage() {
       <SecaoBloco
         titulo="Distribuição por estado"
         loading={distribuicao.isLoading}
-        acao={
-          <SeletorPais paises={paises} valor={paisSelecionado} onChange={setPaisSelecionado} />
-        }
         skeletonHeight={220}
       >
         <TabelaOrdenavel
@@ -374,45 +371,49 @@ export default function VisaoGeralPage() {
             { chave: "pais", titulo: "País" },
             { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
           ]}
-          dados={topCidades.data ?? []}
+          dados={topCidadesFiltradas}
         />
       </SecaoBloco>
 
-      {/* Profissionais por unidade */}
-      <SecaoBloco
-        titulo="Profissionais por unidade"
-        loading={unidades.isLoading}
-        skeletonHeight={220}
-      >
-        <TabelaOrdenavel
-          colunas={[
-            { chave: "nome", titulo: "Unidade" },
-            { chave: "tipo", titulo: "Tipo" },
-            { chave: "cidade", titulo: "Cidade" },
-            { chave: "estado", titulo: "UF" },
-            { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-          ]}
-          dados={unidades.data ?? []}
-        />
-      </SecaoBloco>
+      {mostrarTabelasInstitucionais && (
+        <>
+          {/* Profissionais por unidade */}
+          <SecaoBloco
+            titulo="Profissionais por unidade"
+            loading={unidades.isLoading}
+            skeletonHeight={220}
+          >
+            <TabelaOrdenavel
+              colunas={[
+                { chave: "nome", titulo: "Unidade" },
+                { chave: "tipo", titulo: "Tipo" },
+                { chave: "cidade", titulo: "Cidade" },
+                { chave: "estado", titulo: "UF" },
+                { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
+              ]}
+              dados={unidadesFiltradas}
+            />
+          </SecaoBloco>
 
-      {/* Pacientes por unidade */}
-      <SecaoBloco
-        titulo="Pacientes por unidade"
-        descricao="Histórico acumulado de pacientes e laudos gerados por unidade."
-        loading={unidades.isLoading}
-        skeletonHeight={220}
-      >
-        <TabelaOrdenavel
-          colunas={[
-            { chave: "nome", titulo: "Unidade" },
-            { chave: "cidade", titulo: "Cidade" },
-            { chave: "total_pacientes", titulo: "Pacientes (histórico)", alinhamento: "right" },
-            { chave: "total_laudos", titulo: "Laudos gerados", alinhamento: "right" },
-          ]}
-          dados={unidades.data ?? []}
-        />
-      </SecaoBloco>
+          {/* Pacientes por unidade */}
+          <SecaoBloco
+            titulo="Pacientes por unidade"
+            descricao="Histórico acumulado de pacientes e laudos gerados por unidade."
+            loading={unidades.isLoading}
+            skeletonHeight={220}
+          >
+            <TabelaOrdenavel
+              colunas={[
+                { chave: "nome", titulo: "Unidade" },
+                { chave: "cidade", titulo: "Cidade" },
+                { chave: "total_pacientes", titulo: "Pacientes (histórico)", alinhamento: "right" },
+                { chave: "total_laudos", titulo: "Laudos gerados", alinhamento: "right" },
+              ]}
+              dados={unidadesFiltradas}
+            />
+          </SecaoBloco>
+        </>
+      )}
 
       {/* Cards finais */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
