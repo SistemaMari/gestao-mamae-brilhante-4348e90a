@@ -1,48 +1,27 @@
-## Ajustes finos em /vitrine/admin
+# Prompt 25B — Filtros Globais + Exportação
 
-### 1. Log de debug do fallback — `src/hooks/useAdminMetrics.ts`
+## Ajustes incorporados (do feedback aprovado)
+1. Cor lilás primária trocada de `#9b87f5` por **`#7C4DBA`** em todos os novos componentes desta entrega. Badge de filtros ativos: fundo `#EDE5F7`, texto `#5A3690`.
+2. Filtros que só valem em exportação (período + momento_diagnostico) ganham marcador visual: ícone 📥 (Download de lucide) ao lado do label + tooltip "Aplicado apenas em arquivos exportados. Totais da tela refletem todos os períodos."
+3. Helper `exportarCsvAdmin` faz refetch automático quando o cache do React Query estiver vazio, exibindo loading durante a operação.
+4. Erros de timeout no `supabase.functions.invoke` recebem mensagem específica: "Exportação muito grande. Aplique filtros de período ou tipo de conta para reduzir o volume."
 
-Em `fetchPreviewView`, adicionar `console.info('[vitrine] Fallback mock ativado para view:', view)` em dois pontos:
+## Arquivos novos
+- `src/contexts/AdminFiltrosContext.tsx` — Context + sessionStorage (`admin:filtros`), defaults (últimos 6 meses), `filtrosAtivosCount`, `contratoExportacao` (formato Edge Function).
+- `src/components/admin/BarraFiltrosGlobais.tsx` — barra horizontal com 7 filtros (Período/País/Estado/Cidade/Tipo/Unidade/Momento), botões "Filtrar" (`#7C4DBA`) e "Limpar", badge ativos. Período e Momento marcados com 📥 + tooltip. Renderizada só em `/admin`, `/admin/diagnosticos`, `/admin/exportar`.
+- `src/lib/exportarCsvAdmin.ts` — converte arrays agregados em CSV (`;`, UTF-8 BOM). Faz refetch via `queryClient.fetchQuery` quando cache vazio.
 
-- No ramo `if (!res.ok) { ... return fallback }`
-- No `catch { ... return fallback }`
+## Arquivos modificados
+- `src/pages/admin/AdminLayout.tsx` — envolve com `AdminFiltrosProvider` + renderiza `<BarraFiltrosGlobais />` abaixo do header.
+- `src/pages/admin/PreviewAdminLayout.tsx` — idem.
+- `src/pages/admin/VisaoGeralPage.tsx` — re-derivações client-side aplicando filtros geográficos/tipo/unidade às tabelas e gráficos.
+- `src/pages/admin/DiagnosticosPage.tsx` — filtra `regional.por_estado/por_cidade/por_unidade` client-side.
+- `src/pages/admin/ExportarPage.tsx` — substitui placeholder pela tela completa (resumo + seletor conteúdo + seletor formato + botão).
+- `src/contexts/AuthContext.tsx` — limpa `sessionStorage` no `signOut`.
 
-Como `fetchPreviewView` só é chamado quando `previewMode === true` (ver `queryFn` no `useAdminView`), o log nunca dispara em produção autenticada. Nenhuma outra alteração na lógica de fetch/fallback.
+## Fluxo de exportação
+- **CSV**: lê cache via `queryClient.getQueryData(['admin-metrics', view, ...])`; se undefined, chama `queryClient.fetchQuery` (com loading "Carregando dados..."). Gera blob `text/csv;charset=utf-8` com `\ufeff` BOM, separador `;`. Download imediato.
+- **Excel/PDF**: `supabase.functions.invoke('exportar-relatorio-admin', { body: { formato, conteudo, filtros: contratoExportacao }})`. Loading "Gerando relatório...". Trata `status === 'vazio'`, erro genérico (com botão "Tentar novamente") e timeout (mensagem específica).
 
-Também adicionar log no caminho onde `rows` vem vazio/inválido (mesmo tratamento — cai no fallback), para consistência com os 8 views esperados.
-
-### 2. Warnings Recharts width(-1)/height(-1)
-
-Os 3 componentes já usam `<ResponsiveContainer>` dentro de `<div style={{ width: '100%', height: N }}>`, mas o warning aparece quando o pai (grid/card) ainda não tem largura computada no primeiro paint. Solução: trocar o wrapper inline por classe Tailwind com `min-h-[Npx] w-full` para garantir reserva de espaço antes do measure do ResponsiveContainer.
-
-**`src/components/admin/GraficoLinhaEvolucao.tsx`**
-```tsx
-<div className="min-h-[280px] w-full">
-  <ResponsiveContainer width="100%" height={280}>
-    <LineChart data={dados}>...</LineChart>
-  </ResponsiveContainer>
-</div>
-```
-
-**`src/components/admin/GraficoPizzaPlanos.tsx`** e **`src/components/admin/GraficoPizzaTiposUnidade.tsx`**
-```tsx
-<div className="min-h-[300px] w-full">
-  <ResponsiveContainer width="100%" height={300}>
-    <PieChart>...</PieChart>
-  </ResponsiveContainer>
-</div>
-```
-
-Altura sobe de 280 → 300 nas pizzas conforme especificado. Linha de evolução mantém 280.
-
-### Critério de aceite
-- Console em `/vitrine/admin`: 8 linhas `[vitrine] Fallback mock ativado para view: …` (uma por view).
-- Sem warnings `width(-1) and height(-1)`.
-- Gráficos renderizam imediatamente, sem flash.
-- `/admin` autenticado inalterado (log nunca dispara, `fetchAdminView` segue intocado).
-
-### Arquivos editados
-- `src/hooks/useAdminMetrics.ts`
-- `src/components/admin/GraficoLinhaEvolucao.tsx`
-- `src/components/admin/GraficoPizzaPlanos.tsx`
-- `src/components/admin/GraficoPizzaTiposUnidade.tsx`
+## Limitação MVP comunicada na UI
+Período e momento_diagnostico ainda não recalculam totais da tela (back-end não aceita esses parâmetros hoje). Marcados visualmente como "exportação apenas". Filtros geográficos/tipo/unidade funcionam visualmente. Todos os 8 são enviados corretamente para a Edge Function de exportação.
