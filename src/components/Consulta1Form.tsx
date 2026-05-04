@@ -310,7 +310,7 @@ export default function Consulta1Form() {
 
   return (
     <div className="mx-auto max-w-lg space-y-5">
-      <div className="rounded-xl border border-[#9b87f5] bg-[#F1F0FB] p-4 space-y-1">
+      <div className="rounded-xl border border-[#7C4DBA] bg-[#F1F0FB] p-4 space-y-1">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -524,8 +524,8 @@ export default function Consulta1Form() {
                 onClick={() => setDmgAnterior(true)}
                 className={`flex-1 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                   dmgAnterior === true
-                    ? 'border-[#9b87f5] bg-[#9b87f5]/10 text-[#9b87f5]'
-                    : 'border-[#9b87f5]/30 bg-card text-muted-foreground hover:border-[#9b87f5]/60'
+                    ? 'border-[#7C4DBA] bg-[#7C4DBA]/10 text-[#7C4DBA]'
+                    : 'border-[#7C4DBA]/30 bg-card text-muted-foreground hover:border-[#7C4DBA]/60'
                 } ${touched && dmgAnterior === null ? 'border-destructive' : ''}`}
               >
                 Sim
@@ -535,8 +535,8 @@ export default function Consulta1Form() {
                 onClick={() => setDmgAnterior(false)}
                 className={`flex-1 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                   dmgAnterior === false
-                    ? 'border-[#9b87f5] bg-[#9b87f5]/10 text-[#9b87f5]'
-                    : 'border-[#9b87f5]/30 bg-card text-muted-foreground hover:border-[#9b87f5]/60'
+                    ? 'border-[#7C4DBA] bg-[#7C4DBA]/10 text-[#7C4DBA]'
+                    : 'border-[#7C4DBA]/30 bg-card text-muted-foreground hover:border-[#7C4DBA]/60'
                 } ${touched && dmgAnterior === null ? 'border-destructive' : ''}`}
               >
                 Não
@@ -557,7 +557,7 @@ export default function Consulta1Form() {
             <Button
               type="submit"
               disabled={saving}
-              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+              className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar consulta

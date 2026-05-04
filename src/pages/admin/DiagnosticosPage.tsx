@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
   ResponsiveContainer,
@@ -8,6 +8,7 @@ import {
 import { Loader2, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { mockMetricasDiagnosticos } from "@/lib/mockMetricasDiagnosticos";
+import { useAdminFiltros } from "@/contexts/AdminFiltrosContext";
 import {
   Tooltip as UiTooltip,
   TooltipContent,
@@ -72,7 +73,7 @@ interface Metricas {
 const COR_VERDE = "#22C55E";
 const COR_LARANJA = "#F59E0B";
 const COR_VERMELHO = "#EF4444";
-const COR_LILAS = "#9b87f5";
+const COR_LILAS = "#7C4DBA";
 const COR_ROXO = "#7C4DBA";
 const COR_CINZA = "#94A3B8";
 
@@ -364,6 +365,18 @@ export default function DiagnosticosPage() {
   }
 
   const { resumo, evolucao_mensal, momento_diagnostico, historico_dmg, tratamento, funil, desfechos, regional } = dados;
+  const { filtros } = useAdminFiltros();
+  const fEstado = filtros.estado === "todos" ? null : filtros.estado;
+  const fCidade = filtros.cidade === "todos" ? null : filtros.cidade;
+  const regionalFiltrado = useMemo(() => ({
+    por_estado: regional.por_estado.filter((r) => !fEstado || r.estado === fEstado),
+    por_cidade: regional.por_cidade.filter(
+      (r) => (!fEstado || r.estado === fEstado) && (!fCidade || r.cidade === fCidade),
+    ),
+    por_unidade: regional.por_unidade.filter(
+      (r) => (!fEstado || r.estado === fEstado) && (!fCidade || r.cidade === fCidade),
+    ),
+  }), [regional, fEstado, fCidade]);
   const totalDmg = resumo.dmg || 1; // evita divisão por zero em %.
   const pct = (n: number) => `${Math.round((n / totalDmg) * 100)}%`;
   const pctSobreTotal = (n: number) =>
@@ -593,13 +606,13 @@ export default function DiagnosticosPage() {
         <TabelaRegional
           titulo="Por estado"
           cabecalhos={["Estado", "Gestantes", "DMG", "Taxa de DMG"]}
-          linhas={regional.por_estado.map((r) => [r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`])}
+          linhas={regionalFiltrado.por_estado.map((r) => [r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`])}
           vazioMsg="Sem dados regionais ainda."
         />
         <TabelaRegional
           titulo="Top 20 cidades"
           cabecalhos={["Cidade", "Estado", "Gestantes", "DMG", "Taxa de DMG"]}
-          linhas={regional.por_cidade.map((r) => [
+          linhas={regionalFiltrado.por_cidade.map((r) => [
             r.cidade, r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`,
           ])}
           vazioMsg="Sem dados de cidade ainda."
@@ -607,7 +620,7 @@ export default function DiagnosticosPage() {
         <TabelaRegional
           titulo="Por unidade"
           cabecalhos={["Unidade", "Cidade", "Estado", "Gestantes", "DMG", "Taxa de DMG"]}
-          linhas={regional.por_unidade.map((r) => [
+          linhas={regionalFiltrado.por_unidade.map((r) => [
             r.unidade, r.cidade, r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`,
           ])}
           vazioMsg="Nenhuma unidade com pacientes vinculadas."

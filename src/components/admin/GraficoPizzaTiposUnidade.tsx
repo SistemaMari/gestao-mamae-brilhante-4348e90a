@@ -1,6 +1,6 @@
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const PALETA = ["#9b87f5", "#5EEAD4", "#7E69AB", "#D6BCFA", "#99F6E4", "#C4B5FD", "#7C4DBA"];
+const PALETA = ["#7C4DBA", "#5EEAD4", "#7E69AB", "#D6BCFA", "#99F6E4", "#C4B5FD", "#7C4DBA"];
 
 interface Props {
   rows: { tipo: string | null; total: number }[];

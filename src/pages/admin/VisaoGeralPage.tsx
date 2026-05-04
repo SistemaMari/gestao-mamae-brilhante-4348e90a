@@ -8,10 +8,10 @@ import { GraficoLinhaEvolucao } from "@/components/admin/GraficoLinhaEvolucao";
 import { GraficoPizzaPlanos } from "@/components/admin/GraficoPizzaPlanos";
 import { GraficoPizzaTiposUnidade } from "@/components/admin/GraficoPizzaTiposUnidade";
 import { SecaoBloco } from "@/components/admin/SecaoBloco";
-import { SeletorPais } from "@/components/admin/SeletorPais";
 import { supabase } from "@/integrations/supabase/client";
 import { mockVisaoGeral } from "@/lib/mockVisaoGeral";
 import { useAdminView, useAlertasOperacionais } from "@/hooks/useAdminMetrics";
+import { useAdminFiltros } from "@/contexts/AdminFiltrosContext";
 import type {
   AlertaRow,
   CidadeRow,
@@ -95,18 +95,13 @@ export default function VisaoGeralPage() {
   const distribuicao = useAdminView<GeoRow>("distribuicao_geografica", undefined, { previewMode });
   const topCidades = useAdminView<CidadeRow>("top_cidades", undefined, { previewMode });
 
-  // ----- Filtro de país (default BR) -----
-  const paises = useMemo(() => {
-    const set = new Set<string>();
-    (distribuicao.data ?? []).forEach((r) => set.add(r.pais));
-    return Array.from(set).sort();
-  }, [distribuicao.data]);
-  const [paisSelecionado, setPaisSelecionado] = useState<string>("Brasil");
-  useEffect(() => {
-    if (paises.length && !paises.includes(paisSelecionado)) {
-      setPaisSelecionado(paises[0]);
-    }
-  }, [paises, paisSelecionado]);
+  // ----- Filtros globais -----
+  const { filtros } = useAdminFiltros();
+  const filtroPais = filtros.pais === "todos" ? null : filtros.pais;
+  const filtroEstado = filtros.estado === "todos" ? null : filtros.estado;
+  const filtroCidade = filtros.cidade === "todos" ? null : filtros.cidade;
+  const filtroTipo = filtros.tipo_conta === "todos" ? null : filtros.tipo_conta;
+  const filtroUnidade = filtros.unidade_id === "todos" ? null : filtros.unidade_id;
 
   // ----- Derivações -----
   const r0 = resumoGlobal.data?.[0];
@@ -146,18 +141,39 @@ export default function VisaoGeralPage() {
     { chave: "profissional", nome: "Profissional", cor: "#7C4DBA" },
   ];
 
+  // Unidades filtradas por geo + tipo + unidade_id
+  const unidadesFiltradas = useMemo(() => {
+    return (unidades.data ?? []).filter((u) => {
+      if (filtroPais && u.pais !== filtroPais) return false;
+      if (filtroEstado && u.estado !== filtroEstado) return false;
+      if (filtroCidade && u.cidade !== filtroCidade) return false;
+      if (filtroUnidade && u.unidade_id !== filtroUnidade) return false;
+      return true;
+    });
+  }, [unidades.data, filtroPais, filtroEstado, filtroCidade, filtroUnidade]);
+
   const tiposUnidade = useMemo(() => {
     const m = new Map<string, number>();
-    (unidades.data ?? []).forEach((u) => {
+    unidadesFiltradas.forEach((u) => {
       const k = u.tipo ?? "Não informado";
       m.set(k, (m.get(k) ?? 0) + 1);
     });
     return Array.from(m.entries()).map(([tipo, total]) => ({ tipo, total }));
-  }, [unidades.data]);
+  }, [unidadesFiltradas]);
+
+  // Distribuição filtrada por geo
+  const distribuicaoFiltrada = useMemo(() => {
+    return (distribuicao.data ?? []).filter((r) => {
+      if (filtroPais && r.pais !== filtroPais) return false;
+      if (filtroEstado && r.estado !== filtroEstado) return false;
+      if (filtroCidade && r.cidade !== filtroCidade) return false;
+      return true;
+    });
+  }, [distribuicao.data, filtroPais, filtroEstado, filtroCidade]);
 
   const distPais = useMemo(() => {
     const m = new Map<string, { profissionais: number; unidades: number }>();
-    (distribuicao.data ?? []).forEach((r) => {
+    distribuicaoFiltrada.forEach((r) => {
       const cur = m.get(r.pais) ?? { profissionais: 0, unidades: 0 };
       cur.profissionais += r.total_profissionais;
       cur.unidades += r.total_unidades;
@@ -170,12 +186,11 @@ export default function VisaoGeralPage() {
       total_unidades: v.unidades,
       pct: Math.round((v.profissionais / total) * 1000) / 10,
     }));
-  }, [distribuicao.data]);
+  }, [distribuicaoFiltrada]);
 
   const distEstado = useMemo(() => {
-    const filtradas = (distribuicao.data ?? []).filter((r) => r.pais === paisSelecionado);
     const m = new Map<string, { profissionais: number; unidades: number }>();
-    filtradas.forEach((r) => {
+    distribuicaoFiltrada.forEach((r) => {
       const cur = m.get(r.estado) ?? { profissionais: 0, unidades: 0 };
       cur.profissionais += r.total_profissionais;
       cur.unidades += r.total_unidades;
@@ -188,7 +203,21 @@ export default function VisaoGeralPage() {
       total_unidades: v.unidades,
       pct: Math.round((v.profissionais / total) * 1000) / 10,
     }));
-  }, [distribuicao.data, paisSelecionado]);
+  }, [distribuicaoFiltrada]);
+
+  const topCidadesFiltradas = useMemo(() => {
+    return (topCidades.data ?? []).filter((c) => {
+      if (filtroPais && c.pais !== filtroPais) return false;
+      if (filtroEstado && c.estado !== filtroEstado) return false;
+      if (filtroCidade && c.cidade !== filtroCidade) return false;
+      return true;
+    });
+  }, [topCidades.data, filtroPais, filtroEstado, filtroCidade]);
+
+  // Tipo de conta: institucional = unidade_id != null; consultorio = sem unidade.
+  // unidades_resumo só lista institucional, então o filtro de tipo_conta apenas
+  // afeta a visibilidade das tabelas de unidades.
+  const mostrarTabelasInstitucionais = filtroTipo !== "consultorio";
 
   return (
     <div className="space-y-10">
@@ -247,7 +276,7 @@ export default function VisaoGeralPage() {
           <GraficoLinhaEvolucao
             dados={evolProfDados}
             series={[
-              { chave: "novos", nome: "Novos profissionais", cor: "#9b87f5" },
+              { chave: "novos", nome: "Novos profissionais", cor: "#7C4DBA" },
               { chave: "ativos", nome: "Ativos no mês", cor: "#5EEAD4" },
             ]}
           />
@@ -314,9 +343,6 @@ export default function VisaoGeralPage() {
       <SecaoBloco
         titulo="Distribuição por estado"
         loading={distribuicao.isLoading}
-        acao={
-          <SeletorPais paises={paises} valor={paisSelecionado} onChange={setPaisSelecionado} />
-        }
         skeletonHeight={220}
       >
         <TabelaOrdenavel
@@ -345,45 +371,49 @@ export default function VisaoGeralPage() {
             { chave: "pais", titulo: "País" },
             { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
           ]}
-          dados={topCidades.data ?? []}
+          dados={topCidadesFiltradas}
         />
       </SecaoBloco>
 
-      {/* Profissionais por unidade */}
-      <SecaoBloco
-        titulo="Profissionais por unidade"
-        loading={unidades.isLoading}
-        skeletonHeight={220}
-      >
-        <TabelaOrdenavel
-          colunas={[
-            { chave: "nome", titulo: "Unidade" },
-            { chave: "tipo", titulo: "Tipo" },
-            { chave: "cidade", titulo: "Cidade" },
-            { chave: "estado", titulo: "UF" },
-            { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-          ]}
-          dados={unidades.data ?? []}
-        />
-      </SecaoBloco>
+      {mostrarTabelasInstitucionais && (
+        <>
+          {/* Profissionais por unidade */}
+          <SecaoBloco
+            titulo="Profissionais por unidade"
+            loading={unidades.isLoading}
+            skeletonHeight={220}
+          >
+            <TabelaOrdenavel
+              colunas={[
+                { chave: "nome", titulo: "Unidade" },
+                { chave: "tipo", titulo: "Tipo" },
+                { chave: "cidade", titulo: "Cidade" },
+                { chave: "estado", titulo: "UF" },
+                { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
+              ]}
+              dados={unidadesFiltradas}
+            />
+          </SecaoBloco>
 
-      {/* Pacientes por unidade */}
-      <SecaoBloco
-        titulo="Pacientes por unidade"
-        descricao="Histórico acumulado de pacientes e laudos gerados por unidade."
-        loading={unidades.isLoading}
-        skeletonHeight={220}
-      >
-        <TabelaOrdenavel
-          colunas={[
-            { chave: "nome", titulo: "Unidade" },
-            { chave: "cidade", titulo: "Cidade" },
-            { chave: "total_pacientes", titulo: "Pacientes (histórico)", alinhamento: "right" },
-            { chave: "total_laudos", titulo: "Laudos gerados", alinhamento: "right" },
-          ]}
-          dados={unidades.data ?? []}
-        />
-      </SecaoBloco>
+          {/* Pacientes por unidade */}
+          <SecaoBloco
+            titulo="Pacientes por unidade"
+            descricao="Histórico acumulado de pacientes e laudos gerados por unidade."
+            loading={unidades.isLoading}
+            skeletonHeight={220}
+          >
+            <TabelaOrdenavel
+              colunas={[
+                { chave: "nome", titulo: "Unidade" },
+                { chave: "cidade", titulo: "Cidade" },
+                { chave: "total_pacientes", titulo: "Pacientes (histórico)", alinhamento: "right" },
+                { chave: "total_laudos", titulo: "Laudos gerados", alinhamento: "right" },
+              ]}
+              dados={unidadesFiltradas}
+            />
+          </SecaoBloco>
+        </>
+      )}
 
       {/* Cards finais */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

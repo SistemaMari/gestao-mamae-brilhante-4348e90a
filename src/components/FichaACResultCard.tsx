@@ -190,7 +190,7 @@ export default function FichaACResultCard({
           <Button
             onClick={handleConfirmWeight}
             disabled={pesoNum <= 0 || saving}
-            className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+            className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
           >
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Confirmar peso e gerar laudo

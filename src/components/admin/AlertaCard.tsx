@@ -55,7 +55,7 @@ export function AlertaCard({ tipo, titulo, numero, descricao, linkVerDetalhes }:
               className="text-[12px] font-medium hover:underline"
               style={{
                 fontFamily: "Plus Jakarta Sans, sans-serif",
-                color: "#9b87f5",
+                color: "#7C4DBA",
               }}
             >
               Ver detalhes →

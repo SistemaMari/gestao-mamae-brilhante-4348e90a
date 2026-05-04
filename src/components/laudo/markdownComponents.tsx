@@ -8,7 +8,7 @@ const TOKENS = {
     strong: 'text-[#5B21B6]',
     p: 'text-[#4C1D95]',
     li: 'text-[#4C1D95]',
-    blockquote: 'border-l-4 border-[#9b87f5] bg-white/50 text-[#5B21B6]',
+    blockquote: 'border-l-4 border-[#7C4DBA] bg-white/50 text-[#5B21B6]',
   },
   menta: {
     h3: 'text-[#0D7364]',

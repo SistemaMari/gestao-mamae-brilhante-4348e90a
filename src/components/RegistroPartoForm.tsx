@@ -48,7 +48,7 @@ function HelpIcon({ text }: { text: string }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <button type="button" tabIndex={-1} aria-label="Mais informações">
-            <Info className="h-3.5 w-3.5 text-[#9b87f5]" />
+            <Info className="h-3.5 w-3.5 text-[#7C4DBA]" />
           </button>
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">
@@ -724,7 +724,7 @@ export default function RegistroPartoForm({
           </Button>
           <Button
             type="submit"
-            className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+            className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             disabled={!isValid || saving}
           >
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -748,7 +748,7 @@ export default function RegistroPartoForm({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={saving}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+              className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
               disabled={saving}
               onClick={(e) => {
                 e.preventDefault();

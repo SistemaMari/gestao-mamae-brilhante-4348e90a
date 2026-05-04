@@ -36,7 +36,7 @@ export default function Bloco3Conduta({ status, conteudo, erro, onTentarNovament
               {limiteAtingido ? (
                 <Button
                   size="sm"
-                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white"
+                  className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
                   onClick={() => navigate('/planos')}
                 >
                   Ver planos

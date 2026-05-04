@@ -42,7 +42,7 @@ interface ExameGlicemia {
 
 // Brand palette — NO semantic colors (orange/green/red) on this dashboard
 const BRAND = {
-  lilas: '#9b87f5',
+  lilas: '#7C4DBA',
   verdaAgua: '#5EEAD4',
   lilasClaro: '#D6BCFA',
   roxoEscuro: '#7E69AB',
@@ -53,7 +53,7 @@ const BRAND = {
   bgRosaSuave: '#FFF0F6',
   borderCinza: '#E2E8F0',
   borderLilas: '#D6BCFA',
-  borderLilasPrimario: '#9b87f5',
+  borderLilasPrimario: '#7C4DBA',
   borderVerdeAgua: '#5EEAD4',
   borderRosa: '#FBCFE8',
   textNumero: '#2D2B55',

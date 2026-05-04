@@ -51,7 +51,7 @@ export default function UpgradeRequired({
           <Button
             size="lg"
             className="gap-2 text-white hover:opacity-90"
-            style={{ backgroundColor: '#9b87f5' }}
+            style={{ backgroundColor: '#7C4DBA' }}
             onClick={() => navigate('/planos')}
           >
             Fazer upgrade

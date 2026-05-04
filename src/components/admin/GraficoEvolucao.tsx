@@ -23,7 +23,7 @@ interface GraficoEvolucaoProps {
 export function GraficoEvolucao({
   dados,
   titulo,
-  cor = "#9b87f5",
+  cor = "#7C4DBA",
   altura = 280,
 }: GraficoEvolucaoProps) {
   if (dados.length === 0) {
