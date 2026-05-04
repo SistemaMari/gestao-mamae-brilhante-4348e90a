@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_access_log: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: number
+          ip: string | null
+          pais_filtro: string | null
+          status_code: number
+          user_agent: string | null
+          view_consultada: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: number
+          ip?: string | null
+          pais_filtro?: string | null
+          status_code: number
+          user_agent?: string | null
+          view_consultada: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: number
+          ip?: string | null
+          pais_filtro?: string | null
+          status_code?: number
+          user_agent?: string | null
+          view_consultada?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_access_log_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admins: {
         Row: {
           created_at: string
@@ -177,6 +218,13 @@ export type Database = {
           unidade_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "convites_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_unidades_resumo"
+            referencedColumns: ["unidade_id"]
+          },
           {
             foreignKeyName: "convites_unidade_id_fkey"
             columns: ["unidade_id"]
@@ -383,6 +431,13 @@ export type Database = {
             foreignKeyName: "gestores_gerais_unidades_unidade_id_fkey"
             columns: ["unidade_id"]
             isOneToOne: false
+            referencedRelation: "mv_admin_unidades_resumo"
+            referencedColumns: ["unidade_id"]
+          },
+          {
+            foreignKeyName: "gestores_gerais_unidades_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
             referencedRelation: "unidades"
             referencedColumns: ["id"]
           },
@@ -525,6 +580,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profissionais"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pacientes_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_unidades_resumo"
+            referencedColumns: ["unidade_id"]
           },
           {
             foreignKeyName: "pacientes_unidade_id_fkey"
@@ -794,8 +856,29 @@ export type Database = {
             foreignKeyName: "profissionais_plano_id_fkey"
             columns: ["plano_id"]
             isOneToOne: false
+            referencedRelation: "mv_admin_evolucao_mensal_planos"
+            referencedColumns: ["plano_id"]
+          },
+          {
+            foreignKeyName: "profissionais_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_profissionais_por_plano"
+            referencedColumns: ["plano_id"]
+          },
+          {
+            foreignKeyName: "profissionais_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
             referencedRelation: "planos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profissionais_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_unidades_resumo"
+            referencedColumns: ["unidade_id"]
           },
           {
             foreignKeyName: "profissionais_unidade_id_fkey"
@@ -989,7 +1072,96 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      mv_admin_alertas_operacionais: {
+        Row: {
+          tipo_alerta: string | null
+          total: number | null
+        }
+        Relationships: []
+      }
+      mv_admin_distribuicao_geografica: {
+        Row: {
+          cidade: string | null
+          estado: string | null
+          pais: string | null
+          total_profissionais: number | null
+          total_unidades: number | null
+        }
+        Relationships: []
+      }
+      mv_admin_evolucao_mensal_planos: {
+        Row: {
+          mes: string | null
+          novos: number | null
+          plano_id: string | null
+          plano_nome: string | null
+          plano_slug: string | null
+        }
+        Relationships: []
+      }
+      mv_admin_evolucao_mensal_profissionais: {
+        Row: {
+          mes: string | null
+          novos_profissionais: number | null
+          profissionais_ativos: number | null
+        }
+        Relationships: []
+      }
+      mv_admin_profissionais_por_plano: {
+        Row: {
+          ativos_30d: number | null
+          ordem: number | null
+          plano_id: string | null
+          plano_nome: string | null
+          plano_slug: string | null
+          preco_mensal: number | null
+          total: number | null
+        }
+        Relationships: []
+      }
+      mv_admin_resumo_global: {
+        Row: {
+          atualizado_em: string | null
+          singleton: number | null
+          total_consolidacoes: number | null
+          total_gestores_gerais: number | null
+          total_profissionais: number | null
+          total_unidades: number | null
+        }
+        Relationships: []
+      }
+      mv_admin_top_cidades: {
+        Row: {
+          cidade: string | null
+          estado: string | null
+          pais: string | null
+          posicao: number | null
+          total_profissionais: number | null
+        }
+        Relationships: []
+      }
+      mv_admin_unidades_resumo: {
+        Row: {
+          ativa: boolean | null
+          cidade: string | null
+          estado: string | null
+          nome: string | null
+          pais: string | null
+          tipo: string | null
+          total_laudos: number | null
+          total_pacientes: number | null
+          total_profissionais: number | null
+          unidade_id: string | null
+        }
+        Relationships: []
+      }
+      mv_profissionais_ativos_30d: {
+        Row: {
+          profissional_id: string | null
+          ultima_acao: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       belongs_to_unidade: {
