@@ -133,6 +133,7 @@ Deno.serve(async (req) => {
 
       const out = (rows ?? []).map((r) => ({
         id: r.id,
+        user_id: r.user_id,
         nome: r.nome,
         email: emailMap.get(r.user_id) ?? null,
         created_at: r.created_at,
