@@ -39,7 +39,7 @@ export default function PlanoGuard({
     );
   }
 
-  const planoAtual = profissionalData?.plano ?? 'free';
+  const planoAtual = profissionalData?.plano ?? 'inicial';
   if (!planosPermitidos.includes(planoAtual)) {
     return (
       <UpgradeRequired

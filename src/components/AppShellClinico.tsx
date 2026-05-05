@@ -133,7 +133,7 @@ export default function AppShellClinico() {
   };
 
   // Métricas: bloqueada para planos abaixo de Profissional → exibe cadeado.
-  const planoAtual = profissionalData?.plano ?? 'free';
+  const planoAtual = profissionalData?.plano ?? 'inicial';
   const metricasBloqueada = planoAtual !== 'profissional';
 
   const renderNavButton = (item: NavItem) => {
@@ -165,10 +165,8 @@ export default function AppShellClinico() {
     );
   };
 
-  // Meus Cursos só aparece para planos pagos (que têm cursos inclusos).
-  const itensClinicos = navItemsClinical.filter(
-    (item) => item.path !== '/meus-cursos' || planoAtual !== 'free'
-  );
+  // Todos os planos atuais (Inicial, Intermediária, Profissional) têm cursos inclusos.
+  const itensClinicos = navItemsClinical;
 
   const SidebarContent = () => (
     <>
