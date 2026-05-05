@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RotateCw, Search, Ban, RefreshCcw, Pencil } from "lucide-react";
+import { Plus, RotateCw, Search, Ban, RefreshCcw, Pencil, Link2, Unlink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import ModalCadastrarGestorUnidade from "./ModalCadastrarGestorUnidade";
 import ModalEditarGestorUnidade from "./ModalEditarGestorUnidade";
 import AlertRevogarGestorUnidade from "./AlertRevogarGestorUnidade";
 import AlertReativarGestorUnidade from "./AlertReativarGestorUnidade";
+import ModalVincularGestor, { type AlvoVinculacao } from "./ModalVincularGestor";
+import AlertDesvincularGestor from "./AlertDesvincularGestor";
 
 export interface GestorUnidadeRow {
   id: string;
@@ -37,6 +39,8 @@ export default function AbaGestoresUnidade() {
   const [editar, setEditar] = useState<GestorUnidadeRow | null>(null);
   const [revogar, setRevogar] = useState<GestorUnidadeRow | null>(null);
   const [reativar, setReativar] = useState<GestorUnidadeRow | null>(null);
+  const [vincular, setVincular] = useState<AlvoVinculacao | null>(null);
+  const [desvincular, setDesvincular] = useState<{ gestor_id: string; gestor_nome: string; unidade_nome: string } | null>(null);
 
   const [filtroStatus, setFiltroStatus] = useState<StatusFiltro>("ativos");
   const [busca, setBusca] = useState("");
@@ -52,7 +56,12 @@ export default function AbaGestoresUnidade() {
     },
   });
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["institucional", "gestores-unidade"] });
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["institucional", "gestores-unidade"] });
+    qc.invalidateQueries({ queryKey: ["institucional", "unidades"] });
+    qc.invalidateQueries({ queryKey: ["institucional", "unidades-sem-gestor"] });
+    qc.invalidateQueries({ queryKey: ["institucional", "gestores-disponiveis"] });
+  };
 
   const lista = useMemo(() => {
     let r = data ?? [];
