@@ -21,11 +21,27 @@ type: feature
 - Gestor pode existir SEM unidade (`unidade_id=NULL`), aguardando vinculação.
 
 ## Edge Function `gerenciar-institucional` — ações de gestor de unidade
-listar_gestores_unidade, cadastrar_gestor_unidade (sem unidade), editar_gestor_unidade (só nome), revogar_acesso_gestor_unidade (bloqueia se vinculado → `gestor_ainda_vinculado`), reativar_acesso_gestor_unidade (não revincula).
+listar_gestores_unidade, cadastrar_gestor_unidade (com `unidade_id` opcional), editar_gestor_unidade (só nome), revogar_acesso_gestor_unidade (bloqueia se vinculado → `gestor_ainda_vinculado`), reativar_acesso_gestor_unidade (não revincula), **vincular_gestor_a_unidade**, **desvincular_gestor** (não revoga, mantém ativo).
 
-## `criar_unidade` — modos
-- `gestor_modo='novo'` (default, legado): cria gestor + envia invite.
-- `gestor_modo='existente'`: valida gestor solto (perfil='gestor', `unidade_id IS NULL`, não revogado), cria unidade e seta `unidade_id`.
+## `criar_unidade` — 3 modos
+- `gestor_modo='novo'`: cria gestor + invite.
+- `gestor_modo='existente'`: valida gestor solto, cria unidade e seta `unidade_id`.
+- `gestor_modo='em_aberto'`: cria unidade sem gestor (status `criada_em_aberto`).
+
+## 3 estados legítimos do par gestor↔unidade
+1. **Vinculado** — gestor.unidade_id=X
+2. **Unidade em aberto** — sem gestor ativo (badge "⚠ Sem gestor")
+3. **Gestor solto** — gestor ativo, sem unidade (badge "⚠ Sem unidade")
+
+## Desvincular ≠ Revogar
+- **Desvincular**: gestor segue ativo. Unidade vira em aberto.
+- **Revogar**: bloqueia login. Só permitido se gestor já estiver solto.
+
+## Tela /gestao para gestor desvinculado
+`src/pages/GestaoPage.tsx`: gestor ativo sem unidade vê mensagem "Você ainda não está vinculado a uma unidade".
+
+## Códigos de erro novos
+`unidade_ja_tem_gestor`, `gestor_nao_vinculado`, `gestor_revogado_para_vincular`.
 
 ## Combobox de gestores disponíveis
 - Filtro client-side (poucos gestores). **Dívida técnica**: revisitar quando passar de 50.
