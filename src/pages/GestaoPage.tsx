@@ -89,12 +89,19 @@ export default function GestaoPage() {
     } else {
       const { data: prof } = await supabase
         .from('profissionais')
-        .select('unidade_id')
+        .select('unidade_id, perfil_institucional, acesso_revogado')
         .eq('user_id', user.id)
         .maybeSingle();
-      if (prof?.unidade_id) setUnidadeId(prof.unidade_id);
-      else setLoading(false);
+      if (prof?.unidade_id) {
+        setUnidadeId(prof.unidade_id);
+      } else {
+        if (prof && prof.perfil_institucional === 'gestor' && !prof.acesso_revogado) {
+          setGestorSemUnidade(true);
+        }
+        setLoading(false);
+      }
     }
+    setContextoCarregado(true);
   };
 
   const fetchDados = async () => {
