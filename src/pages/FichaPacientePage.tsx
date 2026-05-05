@@ -1237,7 +1237,7 @@ export default function FichaPacientePage() {
           </Button>
         )}
 
-        {paciente?.id && !isPreviewPaciente(id) && (
+        {paciente?.id && (
           <div className="mt-6">
             <CarimboAtendimento variant="lista" pacienteId={paciente.id} />
           </div>
