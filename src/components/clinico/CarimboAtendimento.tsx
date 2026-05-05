@@ -16,6 +16,7 @@ interface RegistroLista {
 
 interface PropsBanner {
   variant: "banner";
+  mockProfissional?: { nome: string; crm: string | null; unidade_nome: string | null };
 }
 interface PropsInline {
   variant: "inline";
@@ -23,7 +24,9 @@ interface PropsInline {
 }
 interface PropsLista {
   variant: "lista";
-  pacienteId: string;
+  pacienteId?: string;
+  registros?: RegistroLista[];
+  forceVisible?: boolean;
 }
 type Props = PropsBanner | PropsInline | PropsLista;
 
