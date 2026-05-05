@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { extrairErroEdge, MENSAGENS_UNICIDADE, FALLBACK_GENERICO } from "@/lib/mensagensUnicidade";
+import { extrairErroEdge, FALLBACK_GENERICO } from "@/lib/mensagensUnicidade";
 
 interface Gestor { id: string; nome: string; }
 
