@@ -62,11 +62,19 @@ async function determineProfile(userId: string): Promise<UserProfile | null> {
 
   const { data: profissional } = await supabase
     .from('profissionais')
-    .select('unidade_id, perfil_institucional')
+    .select('unidade_id, perfil_institucional, acesso_revogado')
     .eq('user_id', userId)
     .maybeSingle();
 
   if (!profissional) return null;
+  if ((profissional as any).acesso_revogado) {
+    await supabase.auth.signOut();
+    try {
+      const { toast } = await import('sonner');
+      toast.error('Sua conta foi desativada. Entre em contato com o administrador.');
+    } catch { /* ignore */ }
+    return null;
+  }
   if (!profissional.unidade_id) return 'consultorio';
   if (profissional.perfil_institucional === 'gestor') return 'gestor';
   return 'institucional';

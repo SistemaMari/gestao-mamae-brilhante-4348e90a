@@ -843,6 +843,9 @@ export type Database = {
       }
       profissionais: {
         Row: {
+          acesso_revogado: boolean
+          acesso_revogado_em: string | null
+          acesso_revogado_por: string | null
           asaas_customer_id: string | null
           asaas_subscription_id: string | null
           cidade: string | null
@@ -856,8 +859,10 @@ export type Database = {
           idioma: string | null
           laudos_limite: number
           laudos_usados: number
+          motivo_revogacao: string | null
           nome: string
           pais: string | null
+          perfil_clinico: string | null
           perfil_institucional: string | null
           periodo_renovacao: string | null
           plano: string
@@ -873,6 +878,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          acesso_revogado?: boolean
+          acesso_revogado_em?: string | null
+          acesso_revogado_por?: string | null
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
           cidade?: string | null
@@ -886,8 +894,10 @@ export type Database = {
           idioma?: string | null
           laudos_limite?: number
           laudos_usados?: number
+          motivo_revogacao?: string | null
           nome: string
           pais?: string | null
+          perfil_clinico?: string | null
           perfil_institucional?: string | null
           periodo_renovacao?: string | null
           plano?: string
@@ -903,6 +913,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          acesso_revogado?: boolean
+          acesso_revogado_em?: string | null
+          acesso_revogado_por?: string | null
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
           cidade?: string | null
@@ -916,8 +929,10 @@ export type Database = {
           idioma?: string | null
           laudos_limite?: number
           laudos_usados?: number
+          motivo_revogacao?: string | null
           nome?: string
           pais?: string | null
+          perfil_clinico?: string | null
           perfil_institucional?: string | null
           periodo_renovacao?: string | null
           plano?: string
@@ -933,6 +948,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profissionais_acesso_revogado_por_fkey"
+            columns: ["acesso_revogado_por"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profissionais_plano_id_fkey"
             columns: ["plano_id"]

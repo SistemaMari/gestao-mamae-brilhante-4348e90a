@@ -4,9 +4,20 @@ export const MENSAGENS_UNICIDADE: Record<string, string> = {
     "Este e-mail já está cadastrado como gestor de outra unidade.",
   email_em_uso_profissional:
     "Este e-mail já está cadastrado como profissional.",
+  email_em_uso_profissional_outra_unidade:
+    "Este e-mail já está cadastrado como profissional de outra unidade.",
   email_em_uso_gestor_geral:
     "Este e-mail já está cadastrado como gestor geral.",
+  email_em_uso_consultorio:
+    "Esse profissional já tem conta de consultório. Por questão de auditoria, ele precisa aceitar o vínculo institucional via convite tradicional. Peça que o gestor da unidade envie pelo painel /gestao/equipe.",
   email_em_uso_outro: "Este e-mail já está em uso no sistema.",
+};
+
+export const PERFIL_CLINICO_LABEL: Record<string, string> = {
+  medico: "Médico(a)",
+  enfermeiro: "Enfermeiro(a)",
+  tecnico_enfermagem: "Técnico(a) de Enfermagem",
+  outro: "Outro",
 };
 
 export const FALLBACK_GENERICO =

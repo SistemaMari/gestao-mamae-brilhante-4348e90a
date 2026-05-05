@@ -1075,6 +1075,379 @@ Deno.serve(async (req) => {
       return jsonResponse({ status: "reenviado", tipo, id, email });
     }
 
+    // ============= listar_profissionais =============
+    if (acao === "listar_profissionais") {
+      const filtroUnidade = body.unidade_id ?? null;
+
+      let q = admin
+        .from("profissionais")
+        .select(
+          "id, user_id, nome, crm, especialidade, perfil_clinico, perfil_institucional, unidade_id, acesso_revogado, acesso_revogado_em, motivo_revogacao, created_at, unidades(nome)"
+        )
+        .not("unidade_id", "is", null)
+        .order("acesso_revogado", { ascending: true })
+        .order("created_at", { ascending: false });
+      if (filtroUnidade) q = q.eq("unidade_id", filtroUnidade);
+
+      const { data: profs, error: errList } = await q;
+      if (errList) {
+        console.error("Erro listar profissionais:", errList);
+        return jsonResponse({ error: "Erro ao listar." }, 500);
+      }
+
+      const userIds = (profs ?? []).map((p: any) => p.user_id).filter(Boolean);
+      const emailMap = await getEmailMap(admin, userIds);
+
+      // convites pendentes — por email
+      const emails = Array.from(emailMap.values())
+        .map((u) => u.email)
+        .filter(Boolean) as string[];
+      const pendentes = new Set<string>();
+      if (emails.length > 0) {
+        const { data: convs } = await admin
+          .from("convites")
+          .select("email_convidado")
+          .in("email_convidado", emails)
+          .eq("status", "pendente");
+        (convs ?? []).forEach((c: any) =>
+          pendentes.add((c.email_convidado ?? "").toLowerCase()),
+        );
+      }
+
+      const profissionais = (profs ?? []).map((p: any) => {
+        const auth = emailMap.get(p.user_id);
+        const email = auth?.email ?? null;
+        return {
+          id: p.id,
+          user_id: p.user_id,
+          nome: p.nome,
+          email,
+          crm: p.crm,
+          especialidade: p.especialidade,
+          perfil_clinico: p.perfil_clinico,
+          perfil_institucional: p.perfil_institucional,
+          unidade_id: p.unidade_id,
+          unidade_nome: p.unidades?.nome ?? null,
+          convite_pendente: email
+            ? pendentes.has(email.toLowerCase())
+            : false,
+          acesso_revogado: !!p.acesso_revogado,
+          acesso_revogado_em: p.acesso_revogado_em,
+          motivo_revogacao: p.motivo_revogacao,
+          created_at: p.created_at,
+        };
+      });
+
+      return jsonResponse({ status: "ok", profissionais });
+    }
+
+    // ============= convidar_profissional_unidade =============
+    if (acao === "convidar_profissional_unidade") {
+      const unidade_id = String(body.unidade_id ?? "").trim();
+      const nome = String(body.nome ?? "").trim();
+      const email = String(body.email ?? "").trim().toLowerCase();
+      const perfil = String(body.perfil ?? "").trim();
+      const PERFIS_VALIDOS = ["medico", "enfermeiro", "tecnico_enfermagem", "outro"];
+
+      if (!unidade_id || !nome || !email || !PERFIS_VALIDOS.includes(perfil)) {
+        return jsonResponse({ error: "Campos obrigatórios ausentes ou inválidos." }, 400);
+      }
+
+      const { data: uni } = await admin
+        .from("unidades")
+        .select("id, nome")
+        .eq("id", unidade_id)
+        .maybeSingle();
+      if (!uni) return jsonResponse({ error: "Unidade não encontrada." }, 404);
+
+      const conflito = await verificarEmailEmUso(admin, email);
+      if (conflito.em_uso) {
+        // Caso especial: profissional consultório (sem unidade)
+        if (conflito.perfil === "profissional" && conflito.user_id) {
+          const { data: prof } = await admin
+            .from("profissionais")
+            .select("unidade_id")
+            .eq("user_id", conflito.user_id)
+            .maybeSingle();
+          if (!prof?.unidade_id) {
+            return jsonResponse({
+              codigo: "email_em_uso_consultorio",
+              mensagem:
+                "Este profissional já tem conta de consultório. Por questão de auditoria, ele precisa aceitar o vínculo institucional via convite tradicional. Peça que o gestor da unidade envie o convite pelo painel /gestao/equipe.",
+            }, 400);
+          }
+          return jsonResponse({
+            codigo: "email_em_uso_profissional_outra_unidade",
+            mensagem: "Este e-mail já está cadastrado como profissional de outra unidade.",
+          }, 400);
+        }
+        return jsonResponse(erroEmailParaResposta(conflito.perfil), 400);
+      }
+
+      const planoId = await getPlanoIdInstitucional(admin);
+      if (!planoId) return jsonResponse({ error: "Plano padrão não encontrado." }, 500);
+
+      // Convida
+      const { data: invited, error: invErr } =
+        await admin.auth.admin.inviteUserByEmail(email, {
+          data: {
+            nome,
+            perfil: "profissional_institucional",
+            perfil_clinico: perfil,
+            unidade_nome: uni.nome,
+          },
+          redirectTo: `${APP_URL}/nova-senha?destino=/dashboard`,
+        });
+      if (invErr || !invited?.user) {
+        console.error("Erro invite profissional:", invErr);
+        return jsonResponse({ error: "Erro ao processar operação." }, 500);
+      }
+      const newUserId = invited.user.id;
+
+      // Cria registro profissional
+      const { data: prof, error: errProf } = await admin
+        .from("profissionais")
+        .insert({
+          user_id: newUserId,
+          nome,
+          unidade_id,
+          perfil_institucional: "institucional",
+          perfil_clinico: perfil,
+          plano_id: planoId,
+          plano_status: "ativo",
+        })
+        .select("id")
+        .single();
+      if (errProf) {
+        console.error("Erro insert profissional:", errProf);
+        await admin.auth.admin.deleteUser(newUserId).catch(() => {});
+        return jsonResponse({ error: "Erro ao processar operação." }, 500);
+      }
+
+      // Registra convite
+      const token = crypto.randomUUID();
+      const { data: conv } = await admin
+        .from("convites")
+        .insert({
+          unidade_id,
+          email_convidado: email,
+          token,
+          status: "pendente",
+          convidado_por: callerUserId,
+        })
+        .select("id")
+        .single();
+
+      await inserirAuditoria(
+        admin, callerUserId, callerEmail,
+        "convidar_profissional_unidade",
+        email, nome, null,
+        { unidade_id, unidade_nome: uni.nome, perfil_clinico: perfil, profissional_id: prof.id },
+      );
+
+      return jsonResponse({
+        status: "convite_enviado",
+        profissional_id: prof.id,
+        convite_id: conv?.id ?? null,
+      });
+    }
+
+    // ============= editar_profissional =============
+    if (acao === "editar_profissional") {
+      const profissional_id = String(body.profissional_id ?? "").trim();
+      if (!profissional_id) return jsonResponse({ error: "profissional_id obrigatório." }, 400);
+
+      const updates: Record<string, unknown> = {};
+      if (typeof body.nome === "string" && body.nome.trim()) updates.nome = body.nome.trim();
+      if (typeof body.perfil === "string") {
+        const PERFIS_VALIDOS = ["medico", "enfermeiro", "tecnico_enfermagem", "outro"];
+        if (!PERFIS_VALIDOS.includes(body.perfil)) {
+          return jsonResponse({ error: "Perfil clínico inválido." }, 400);
+        }
+        updates.perfil_clinico = body.perfil;
+      }
+      if (Object.keys(updates).length === 0) {
+        return jsonResponse({ error: "Nada a atualizar." }, 400);
+      }
+
+      const { data: prof } = await admin
+        .from("profissionais")
+        .select("id, nome, unidade_id, user_id")
+        .eq("id", profissional_id)
+        .maybeSingle();
+      if (!prof) return jsonResponse({ error: "Profissional não encontrado." }, 404);
+      if (!prof.unidade_id) return jsonResponse({ error: "Não é profissional institucional." }, 400);
+
+      const { error: errUpd } = await admin
+        .from("profissionais")
+        .update(updates)
+        .eq("id", profissional_id);
+      if (errUpd) {
+        console.error("Erro editar profissional:", errUpd);
+        return jsonResponse({ error: "Erro ao atualizar." }, 500);
+      }
+
+      const emailMap = await getEmailMap(admin, [prof.user_id]);
+      await inserirAuditoria(
+        admin, callerUserId, callerEmail, "editar_profissional",
+        emailMap.get(prof.user_id)?.email ?? "", prof.nome, null,
+        { profissional_id, updates },
+      );
+
+      return jsonResponse({ status: "atualizado" });
+    }
+
+    // ============= transferir_profissional =============
+    if (acao === "transferir_profissional") {
+      const profissional_id = String(body.profissional_id ?? "").trim();
+      const unidade_destino_id = String(body.unidade_destino_id ?? "").trim();
+      if (!profissional_id || !unidade_destino_id) {
+        return jsonResponse({ error: "Parâmetros obrigatórios ausentes." }, 400);
+      }
+
+      const { data: prof } = await admin
+        .from("profissionais")
+        .select("id, nome, unidade_id, user_id")
+        .eq("id", profissional_id)
+        .maybeSingle();
+      if (!prof) return jsonResponse({ error: "Profissional não encontrado." }, 404);
+      if (!prof.unidade_id) return jsonResponse({ error: "Profissional não tem unidade." }, 400);
+      if (prof.unidade_id === unidade_destino_id) {
+        return jsonResponse({ error: "Unidade destino igual à atual." }, 400);
+      }
+
+      const { data: uniOrigem } = await admin.from("unidades").select("nome").eq("id", prof.unidade_id).maybeSingle();
+      const { data: uniDestino } = await admin.from("unidades").select("id, nome").eq("id", unidade_destino_id).maybeSingle();
+      if (!uniDestino) return jsonResponse({ error: "Unidade destino não encontrada." }, 404);
+
+      const STATUS_INATIVOS = ["DMG afastado", "Resultado do parto", "Encerrada"];
+      const { count: orfasCount } = await admin
+        .from("pacientes")
+        .select("id", { count: "exact", head: true })
+        .eq("profissional_id", profissional_id)
+        .eq("unidade_id", prof.unidade_id)
+        .not("status_ficha", "in", `(${STATUS_INATIVOS.map((s) => `"${s}"`).join(",")})`);
+
+      const { error: errUpd } = await admin
+        .from("profissionais")
+        .update({ unidade_id: unidade_destino_id })
+        .eq("id", profissional_id);
+      if (errUpd) {
+        console.error("Erro transferir:", errUpd);
+        return jsonResponse({ error: "Erro ao transferir." }, 500);
+      }
+
+      const emailMap = await getEmailMap(admin, [prof.user_id]);
+      await inserirAuditoria(
+        admin, callerUserId, callerEmail, "transferir_profissional",
+        emailMap.get(prof.user_id)?.email ?? "", prof.nome, null,
+        {
+          profissional_id,
+          unidade_origem_id: prof.unidade_id,
+          unidade_origem_nome: uniOrigem?.nome ?? null,
+          unidade_destino_id,
+          unidade_destino_nome: uniDestino.nome,
+          pacientes_orfas_count: orfasCount ?? 0,
+        },
+      );
+
+      return jsonResponse({
+        status: "transferido",
+        pacientes_orfas_count: orfasCount ?? 0,
+        unidade_origem_nome: uniOrigem?.nome ?? null,
+        unidade_destino_nome: uniDestino.nome,
+      });
+    }
+
+    // ============= revogar_acesso_profissional =============
+    if (acao === "revogar_acesso_profissional") {
+      const profissional_id = String(body.profissional_id ?? "").trim();
+      const motivo = typeof body.motivo === "string" ? body.motivo.trim() || null : null;
+      if (!profissional_id) return jsonResponse({ error: "profissional_id obrigatório." }, 400);
+
+      const { data: prof } = await admin
+        .from("profissionais")
+        .select("id, nome, user_id, unidade_id, acesso_revogado")
+        .eq("id", profissional_id)
+        .maybeSingle();
+      if (!prof) return jsonResponse({ error: "Profissional não encontrado." }, 404);
+      if (!prof.unidade_id) return jsonResponse({ error: "Não é profissional institucional." }, 400);
+      if (prof.acesso_revogado) return jsonResponse({ error: "Acesso já está revogado." }, 400);
+
+      const { data: callerProf } = await admin
+        .from("profissionais")
+        .select("id")
+        .eq("user_id", callerUserId)
+        .maybeSingle();
+
+      const { error: errUpd } = await admin
+        .from("profissionais")
+        .update({
+          acesso_revogado: true,
+          acesso_revogado_em: new Date().toISOString(),
+          acesso_revogado_por: callerProf?.id ?? null,
+          motivo_revogacao: motivo,
+        })
+        .eq("id", profissional_id);
+      if (errUpd) {
+        console.error("Erro revogar:", errUpd);
+        return jsonResponse({ error: "Erro ao revogar." }, 500);
+      }
+
+      // Encerra sessões ativas
+      try {
+        await admin.auth.admin.signOut(prof.user_id, "global");
+      } catch (e) {
+        console.warn("signOut falhou:", e);
+      }
+
+      const emailMap = await getEmailMap(admin, [prof.user_id]);
+      await inserirAuditoria(
+        admin, callerUserId, callerEmail, "revogar_acesso_profissional",
+        emailMap.get(prof.user_id)?.email ?? "", prof.nome, null,
+        { profissional_id, motivo },
+      );
+
+      return jsonResponse({ status: "revogado" });
+    }
+
+    // ============= reativar_acesso_profissional =============
+    if (acao === "reativar_acesso_profissional") {
+      const profissional_id = String(body.profissional_id ?? "").trim();
+      if (!profissional_id) return jsonResponse({ error: "profissional_id obrigatório." }, 400);
+
+      const { data: prof } = await admin
+        .from("profissionais")
+        .select("id, nome, user_id, acesso_revogado")
+        .eq("id", profissional_id)
+        .maybeSingle();
+      if (!prof) return jsonResponse({ error: "Profissional não encontrado." }, 404);
+      if (!prof.acesso_revogado) return jsonResponse({ error: "Acesso não está revogado." }, 400);
+
+      const { error: errUpd } = await admin
+        .from("profissionais")
+        .update({
+          acesso_revogado: false,
+          acesso_revogado_em: null,
+          acesso_revogado_por: null,
+          motivo_revogacao: null,
+        })
+        .eq("id", profissional_id);
+      if (errUpd) {
+        console.error("Erro reativar:", errUpd);
+        return jsonResponse({ error: "Erro ao reativar." }, 500);
+      }
+
+      const emailMap = await getEmailMap(admin, [prof.user_id]);
+      await inserirAuditoria(
+        admin, callerUserId, callerEmail, "reativar_acesso_profissional",
+        emailMap.get(prof.user_id)?.email ?? "", prof.nome, null,
+        { profissional_id },
+      );
+
+      return jsonResponse({ status: "reativado" });
+    }
+
     return jsonResponse({ error: "Ação não reconhecida." }, 400);
   } catch (e) {
     console.error("Falha inesperada:", e);
