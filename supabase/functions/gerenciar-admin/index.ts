@@ -20,6 +20,7 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const APP_URL = Deno.env.get("APP_PUBLIC_URL") ?? "https://gestao-mamae-brilhante.lovable.app";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -247,6 +248,7 @@ Deno.serve(async (req) => {
       const { data: invited, error: invErr } =
         await admin.auth.admin.inviteUserByEmail(email, {
           data: { nome, perfil: "admin" },
+          redirectTo: `${APP_URL}/nova-senha`,
         });
       if (invErr || !invited?.user) {
         // fallback: createUser com senha temporária + generateLink
@@ -262,7 +264,11 @@ Deno.serve(async (req) => {
           return jsonResponse({ error: "Erro ao criar usuário." }, 500);
         }
         // tenta gerar magic link de recovery (não falha o fluxo se der ruim)
-        await admin.auth.admin.generateLink({ type: "invite", email });
+        await admin.auth.admin.generateLink({
+          type: "invite",
+          email,
+          options: { redirectTo: `${APP_URL}/nova-senha` },
+        });
         invited.user = created.user;
       }
 
