@@ -154,7 +154,13 @@ export default function AbaGestoresUnidade() {
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{g.email ?? "—"}</TableCell>
                 <TableCell>
-                  {g.unidade_nome ?? <span className="text-muted-foreground italic">— sem unidade —</span>}
+                  {g.unidade_nome ? (
+                    g.unidade_nome
+                  ) : !g.acesso_revogado ? (
+                    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⚠ Sem unidade</Badge>
+                  ) : (
+                    <span className="text-muted-foreground italic">—</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   {g.acesso_revogado ? (
@@ -170,6 +176,16 @@ export default function AbaGestoresUnidade() {
                     <Button variant="ghost" size="sm" onClick={() => setEditar(g)} disabled={g.acesso_revogado}>
                       <Pencil className="mr-1 h-3 w-3" /> Editar
                     </Button>
+                    {!g.acesso_revogado && !g.convite_pendente && !g.unidade_id && (
+                      <Button variant="ghost" size="sm" onClick={() => setVincular({ modo: "fixar_gestor", gestor_id: g.id, gestor_nome: g.nome })}>
+                        <Link2 className="mr-1 h-3 w-3" /> Vincular
+                      </Button>
+                    )}
+                    {!g.acesso_revogado && g.unidade_id && g.unidade_nome && (
+                      <Button variant="ghost" size="sm" onClick={() => setDesvincular({ gestor_id: g.id, gestor_nome: g.nome, unidade_nome: g.unidade_nome! })}>
+                        <Unlink className="mr-1 h-3 w-3" /> Desvincular
+                      </Button>
+                    )}
                     {g.acesso_revogado ? (
                       <Button variant="ghost" size="sm" onClick={() => setReativar(g)}>
                         <RefreshCcw className="mr-1 h-3 w-3" /> Reativar
@@ -196,6 +212,8 @@ export default function AbaGestoresUnidade() {
       <ModalEditarGestorUnidade alvo={editar} onClose={() => setEditar(null)} onSucesso={refresh} />
       <AlertRevogarGestorUnidade alvo={revogar} onClose={() => setRevogar(null)} onSucesso={refresh} />
       <AlertReativarGestorUnidade alvo={reativar} onClose={() => setReativar(null)} onSucesso={refresh} />
+      <ModalVincularGestor alvo={vincular} onClose={() => setVincular(null)} onSucesso={refresh} />
+      <AlertDesvincularGestor alvo={desvincular} onClose={() => setDesvincular(null)} onSucesso={refresh} />
     </div>
   );
 }
