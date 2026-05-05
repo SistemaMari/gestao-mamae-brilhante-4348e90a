@@ -58,14 +58,16 @@ export default function CarimboAtendimento(props: Props) {
   }, [user, ehInstitucional, props.variant]);
 
   if (props.variant === "banner") {
-    if (!ehInstitucional || !meuProf) return null;
+    const dados = props.mockProfissional ?? meuProf;
+    if (!dados) return null;
+    if (!props.mockProfissional && !ehInstitucional) return null;
     return (
       <div className="rounded-md border border-[#99F6E4] bg-[#F0FDFA] px-4 py-2 text-sm">
         <span className="text-muted-foreground">Atendendo como: </span>
-        <strong className="text-[#0F766E]">{meuProf.nome}</strong>
-        {meuProf.crm && <span className="text-[#0F766E]"> — CRM {meuProf.crm}</span>}
-        {meuProf.unidade_nome && (
-          <span className="text-muted-foreground"> | {meuProf.unidade_nome}</span>
+        <strong className="text-[#0F766E]">{dados.nome}</strong>
+        {dados.crm && <span className="text-[#0F766E]"> — CRM {dados.crm}</span>}
+        {dados.unidade_nome && (
+          <span className="text-muted-foreground"> | {dados.unidade_nome}</span>
         )}
       </div>
     );
@@ -82,7 +84,14 @@ export default function CarimboAtendimento(props: Props) {
     );
   }
 
-  return <ListaHistorico pacienteId={props.pacienteId} ehInstitucional={ehInstitucional || profile === "admin" || profile === "gestor_geral"} />;
+  if (props.registros) {
+    return <ListaHistoricoMock registros={props.registros} />;
+  }
+  return <ListaHistorico pacienteId={props.pacienteId!} ehInstitucional={props.forceVisible || ehInstitucional || profile === "admin" || profile === "gestor_geral"} />;
+}
+
+function ListaHistoricoMock({ registros }: { registros: RegistroLista[] }) {
+  return <ListaRender data={registros} isLoading={false} />;
 }
 
 function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; ehInstitucional: boolean }) {
