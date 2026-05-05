@@ -1,8 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AbaUnidades from "@/components/admin/institucional/AbaUnidades";
 import AbaGestoresGerais from "@/components/admin/institucional/AbaGestoresGerais";
+import AbaProfissionais from "@/components/admin/institucional/AbaProfissionais";
 
 export default function InstitucionaisPage() {
+  const triggerCls =
+    "rounded-none border-b-2 border-transparent bg-transparent px-4 py-2 font-[Sora] text-muted-foreground shadow-none data-[state=active]:border-[#9b87f5] data-[state=active]:bg-transparent data-[state=active]:text-[#5B3A8E] data-[state=active]:shadow-none";
+
   return (
     <div className="space-y-6 p-6">
       <header>
@@ -10,32 +14,21 @@ export default function InstitucionaisPage() {
           Gerenciamento institucional
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Unidades, gestores de unidade e gestores gerais.
+          Unidades, gestores gerais e profissionais.
         </p>
       </header>
 
       <Tabs defaultValue="unidades" className="w-full">
         <TabsList className="h-auto bg-transparent p-0 gap-2 border-b w-full justify-start rounded-none">
-          <TabsTrigger
-            value="unidades"
-            className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2 font-[Sora] text-muted-foreground shadow-none data-[state=active]:border-[#9b87f5] data-[state=active]:bg-transparent data-[state=active]:text-[#5B3A8E] data-[state=active]:shadow-none"
-          >
-            Unidades
-          </TabsTrigger>
-          <TabsTrigger
-            value="gestores"
-            className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2 font-[Sora] text-muted-foreground shadow-none data-[state=active]:border-[#9b87f5] data-[state=active]:bg-transparent data-[state=active]:text-[#5B3A8E] data-[state=active]:shadow-none"
-          >
-            Gestores Gerais
-          </TabsTrigger>
+          <TabsTrigger value="unidades" className={triggerCls}>Unidades</TabsTrigger>
+          <TabsTrigger value="gestores" className={triggerCls}>Gestores Gerais</TabsTrigger>
+          <TabsTrigger value="profissionais" className={triggerCls}>Profissionais</TabsTrigger>
         </TabsList>
-        <TabsContent value="unidades" className="mt-6">
-          <AbaUnidades />
-        </TabsContent>
-        <TabsContent value="gestores" className="mt-6">
-          <AbaGestoresGerais />
-        </TabsContent>
+        <TabsContent value="unidades" className="mt-6"><AbaUnidades /></TabsContent>
+        <TabsContent value="gestores" className="mt-6"><AbaGestoresGerais /></TabsContent>
+        <TabsContent value="profissionais" className="mt-6"><AbaProfissionais /></TabsContent>
       </Tabs>
     </div>
   );
 }
+
