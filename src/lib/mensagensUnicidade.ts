@@ -17,6 +17,12 @@ export const MENSAGENS_UNICIDADE: Record<string, string> = {
     "Este gestor já está vinculado a uma unidade.",
   gestor_revogado:
     "Este gestor está com acesso revogado. Reative-o antes de vinculá-lo a uma unidade.",
+  unidade_ja_tem_gestor:
+    "Esta unidade já tem um gestor ativo. Troque pelo painel de Unidades antes de vincular outro.",
+  gestor_nao_vinculado:
+    "Este gestor não está vinculado a nenhuma unidade.",
+  gestor_revogado_para_vincular:
+    "Este gestor está com acesso revogado. Reative-o antes de vinculá-lo a uma unidade.",
 };
 
 export const PERFIL_CLINICO_LABEL: Record<string, string> = {

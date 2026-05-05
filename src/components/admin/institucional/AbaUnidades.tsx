@@ -1,18 +1,23 @@
-import { useState, Fragment } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, RotateCw } from "lucide-react";
+import { Plus, RotateCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ModalCriarUnidade from "./ModalCriarUnidade";
 import ModalEditarUnidade, { type UnidadeEditavel } from "./ModalEditarUnidade";
 import ModalTrocarGestor from "./ModalTrocarGestor";
 import ModalReenviarConvite from "./ModalReenviarConvite";
+import ModalVincularGestor, { type AlvoVinculacao } from "./ModalVincularGestor";
+import AlertDesvincularGestor from "./AlertDesvincularGestor";
 import LinhaUnidadeExpandida from "./LinhaUnidadeExpandida";
 import { FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 
 export interface UnidadeRow extends UnidadeEditavel {
+  gestor_id: string | null;
   gestor_nome: string | null;
   gestor_email: string | null;
   convite_pendente: boolean | null;
@@ -22,13 +27,18 @@ export interface UnidadeRow extends UnidadeEditavel {
   plano?: string | null;
 }
 
+type StatusGestorFiltro = "todos" | "com_gestor" | "em_aberto";
+
 export default function AbaUnidades() {
   const qc = useQueryClient();
   const [openCriar, setOpenCriar] = useState(false);
   const [editar, setEditar] = useState<UnidadeEditavel | null>(null);
   const [trocar, setTrocar] = useState<{ id: string; nome: string } | null>(null);
   const [reenviar, setReenviar] = useState<{ tipo: "gestor_unidade"; id: string; email?: string | null } | null>(null);
+  const [vincular, setVincular] = useState<AlvoVinculacao | null>(null);
+  const [desvincular, setDesvincular] = useState<{ gestor_id: string; gestor_nome: string; unidade_nome: string } | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [filtroGestor, setFiltroGestor] = useState<StatusGestorFiltro>("todos");
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["institucional", "unidades"],
@@ -44,15 +54,39 @@ export default function AbaUnidades() {
     },
   });
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["institucional", "unidades"] });
-  const unidades = data ?? [];
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["institucional", "unidades"] });
+    qc.invalidateQueries({ queryKey: ["institucional", "gestores-unidade"] });
+    qc.invalidateQueries({ queryKey: ["institucional", "unidades-sem-gestor"] });
+    qc.invalidateQueries({ queryKey: ["institucional", "gestores-disponiveis"] });
+  };
+
+  const unidades = useMemo(() => {
+    let r = data ?? [];
+    if (filtroGestor === "com_gestor") r = r.filter((u) => !!u.gestor_id);
+    if (filtroGestor === "em_aberto") r = r.filter((u) => !u.gestor_id);
+    return r;
+  }, [data, filtroGestor]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {isLoading ? "Carregando…" : `${unidades.length} unidade${unidades.length === 1 ? "" : "s"}`}
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex items-end gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">Status do gestor</label>
+            <Select value={filtroGestor} onValueChange={(v) => setFiltroGestor(v as StatusGestorFiltro)}>
+              <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="com_gestor">Com gestor</SelectItem>
+                <SelectItem value="em_aberto">Em aberto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-sm text-muted-foreground pb-2">
+            {isLoading ? "Carregando…" : `${unidades.length} unidade${unidades.length === 1 ? "" : "s"}`}
+          </p>
+        </div>
         <Button onClick={() => setOpenCriar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
           <Plus className="mr-2 h-4 w-4" /> Criar unidade
         </Button>
@@ -77,9 +111,11 @@ export default function AbaUnidades() {
               <TableRow><TableCell colSpan={8} className="text-center text-destructive">Erro ao carregar unidades.</TableCell></TableRow>
             )}
             {!isLoading && !isError && unidades.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Nenhuma unidade cadastrada.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Nenhuma unidade encontrada.</TableCell></TableRow>
             )}
-            {unidades.map((u, idx) => (
+            {unidades.map((u, idx) => {
+              const emAberto = !u.gestor_id;
+              return (
               <Fragment key={u.id}>
                 <TableRow
                   className={`cursor-pointer ${idx % 2 === 0 ? "bg-white" : "bg-[#F5F3FA]"}`}
@@ -89,8 +125,14 @@ export default function AbaUnidades() {
                   <TableCell>{u.tipo || "—"}</TableCell>
                   <TableCell>{u.cidade || "—"}</TableCell>
                   <TableCell>
-                    {u.gestor_nome || "—"}
-                    {u.convite_pendente && <span className="ml-1" title="Convite pendente">⏳</span>}
+                    {emAberto ? (
+                      <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⚠ Sem gestor — em aberto</Badge>
+                    ) : (
+                      <>
+                        {u.gestor_nome}
+                        {u.convite_pendente && <span className="ml-1" title="Convite pendente">⏳</span>}
+                      </>
+                    )}
                   </TableCell>
                   <TableCell>{u.profissionais_count}</TableCell>
                   <TableCell>{u.pacientes_count}</TableCell>
@@ -98,8 +140,19 @@ export default function AbaUnidades() {
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="sm" onClick={() => setEditar(u)}>Editar</Button>
-                      <Button variant="ghost" size="sm" onClick={() => setTrocar({ id: u.id, nome: u.nome })}>Trocar gestor</Button>
-                      {u.convite_pendente && (
+                      {emAberto ? (
+                        <Button variant="ghost" size="sm" onClick={() => setVincular({ modo: "fixar_unidade", unidade_id: u.id, unidade_nome: u.nome })}>
+                          Vincular gestor
+                        </Button>
+                      ) : (
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => setTrocar({ id: u.id, nome: u.nome })}>Trocar gestor</Button>
+                          <Button variant="ghost" size="sm" onClick={() => setDesvincular({ gestor_id: u.gestor_id!, gestor_nome: u.gestor_nome ?? "Gestor", unidade_nome: u.nome })}>
+                            Desvincular
+                          </Button>
+                        </>
+                      )}
+                      {u.convite_pendente && !emAberto && (
                         <Button variant="ghost" size="sm" onClick={() => setReenviar({ tipo: "gestor_unidade", id: u.id, email: u.gestor_email })}>
                           <RotateCw className="mr-1 h-3 w-3" /> Reenviar
                         </Button>
@@ -121,7 +174,8 @@ export default function AbaUnidades() {
                   </TableRow>
                 )}
               </Fragment>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -130,6 +184,8 @@ export default function AbaUnidades() {
       <ModalEditarUnidade unidade={editar} onClose={() => setEditar(null)} onSucesso={refresh} />
       <ModalTrocarGestor unidade={trocar} onClose={() => setTrocar(null)} onSucesso={refresh} />
       <ModalReenviarConvite alvo={reenviar} onClose={() => setReenviar(null)} />
+      <ModalVincularGestor alvo={vincular} onClose={() => setVincular(null)} onSucesso={refresh} />
+      <AlertDesvincularGestor alvo={desvincular} onClose={() => setDesvincular(null)} onSucesso={refresh} />
     </div>
   );
 }

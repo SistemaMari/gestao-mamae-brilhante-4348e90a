@@ -46,6 +46,8 @@ export default function GestaoPage() {
   const [unidadeId, setUnidadeId] = useState<string | null>(null);
   const [isGestorGeral, setIsGestorGeral] = useState(false);
   const [unidadesDisponiveis, setUnidadesDisponiveis] = useState<UnidadeOpt[]>([]);
+  const [gestorSemUnidade, setGestorSemUnidade] = useState(false);
+  const [contextoCarregado, setContextoCarregado] = useState(false);
 
   const [totalProfissionais, setTotalProfissionais] = useState(0);
   const [convitesPendentes, setConvitesPendentes] = useState(0);
@@ -87,12 +89,19 @@ export default function GestaoPage() {
     } else {
       const { data: prof } = await supabase
         .from('profissionais')
-        .select('unidade_id')
+        .select('unidade_id, perfil_institucional, acesso_revogado')
         .eq('user_id', user.id)
         .maybeSingle();
-      if (prof?.unidade_id) setUnidadeId(prof.unidade_id);
-      else setLoading(false);
+      if (prof?.unidade_id) {
+        setUnidadeId(prof.unidade_id);
+      } else {
+        if (prof && prof.perfil_institucional === 'gestor' && !prof.acesso_revogado) {
+          setGestorSemUnidade(true);
+        }
+        setLoading(false);
+      }
     }
+    setContextoCarregado(true);
   };
 
   const fetchDados = async () => {
@@ -368,6 +377,31 @@ export default function GestaoPage() {
         return <Badge variant="outline">{traduzirStatus(status)}</Badge>;
     }
   };
+
+  if (contextoCarregado && gestorSemUnidade) {
+    return (
+      <div className="flex h-screen bg-background">
+        <AppSidebar />
+        <main className="flex-1 overflow-auto">
+          <div className="flex min-h-full items-center justify-center px-6 py-12">
+            <div className="max-w-xl rounded-xl border border-amber-300 bg-amber-50 p-8 text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-200">
+                <Building2 className="h-6 w-6 text-amber-900" />
+              </div>
+              <h1 className="font-heading text-xl font-semibold text-amber-950">
+                Você ainda não está vinculado a uma unidade
+              </h1>
+              <p className="mt-3 text-sm text-amber-900">
+                Sua conta de gestor está ativa, mas ainda não foi associada a nenhuma unidade.
+                Aguarde a vinculação por um administrador. Assim que estiver vinculado, esta tela
+                exibirá automaticamente o painel de gestão da unidade.
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">

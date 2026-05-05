@@ -48,7 +48,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
   const [estado, setEstado] = useState("");
   const [cidade, setCidade] = useState("");
   const [plano, setPlano] = useState("Institucional");
-  const [gestorModo, setGestorModo] = useState<"novo" | "existente">("novo");
+  const [gestorModo, setGestorModo] = useState<"novo" | "existente" | "em_aberto">("novo");
   const [gestorNome, setGestorNome] = useState("");
   const [gestorEmail, setGestorEmail] = useState("");
   const [gestorIdSelecionado, setGestorIdSelecionado] = useState("");
@@ -79,7 +79,9 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
     baseDadosUnidadeOk &&
     (gestorModo === "novo"
       ? gestorNome.trim() && EMAIL_REGEX.test(gestorEmail.trim())
-      : !!gestorIdSelecionado);
+      : gestorModo === "existente"
+      ? !!gestorIdSelecionado
+      : true);
 
   function reset() {
     setNome(""); setTipo("UBS"); setCnes(""); setPais("Brasil");
@@ -117,7 +119,9 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
           gestor_nome: gestorNome.trim(),
           gestor_email: gestorEmail.trim().toLowerCase(),
         }
-      : { ...baseBody, gestor_id: gestorIdSelecionado };
+      : gestorModo === "existente"
+      ? { ...baseBody, gestor_id: gestorIdSelecionado }
+      : baseBody;
 
     const { error } = await supabase.functions.invoke("gerenciar-institucional", { body });
     if (error) {
@@ -135,7 +139,9 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
     toast.success(
       gestorModo === "novo"
         ? `Unidade criada! E-mail enviado para ${gestorEmail.trim()}.`
-        : "Unidade criada e gestor vinculado.",
+        : gestorModo === "existente"
+        ? "Unidade criada e gestor vinculado."
+        : "Unidade criada em aberto. Vincule um gestor depois.",
     );
     handleOpenChange(false);
     onSucesso();
@@ -211,7 +217,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
             <h3 className="text-sm font-semibold text-[#5B3A8E]">Gestor da unidade</h3>
             <RadioGroup
               value={gestorModo}
-              onValueChange={(v) => setGestorModo(v as "novo" | "existente")}
+              onValueChange={(v) => setGestorModo(v as "novo" | "existente" | "em_aberto")}
               className="space-y-2"
               disabled={submitting}
             >
@@ -223,9 +229,13 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
                 <RadioGroupItem value="existente" id="modo-existente" />
                 <Label htmlFor="modo-existente" className="cursor-pointer font-normal">Selecionar gestor já cadastrado</Label>
               </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="em_aberto" id="modo-em-aberto" />
+                <Label htmlFor="modo-em-aberto" className="cursor-pointer font-normal">Deixar em aberto (vincular depois)</Label>
+              </div>
             </RadioGroup>
 
-            {gestorModo === "novo" ? (
+            {gestorModo === "novo" && (
               <>
                 <div className="space-y-1.5">
                   <Label>Nome do gestor</Label>
@@ -237,7 +247,8 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
                 </div>
                 <AvisoUnicidadeEmail />
               </>
-            ) : (
+            )}
+            {gestorModo === "existente" && (
               <div className="space-y-1.5">
                 <Label>Selecionar gestor</Label>
                 {loadingGestores ? (
@@ -261,6 +272,12 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
                     </SelectContent>
                   </Select>
                 )}
+              </div>
+            )}
+            {gestorModo === "em_aberto" && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                A unidade será criada sem gestor. Você poderá vincular um gestor depois pela aba
+                Unidades ou Gestores de Unidade.
               </div>
             )}
           </section>

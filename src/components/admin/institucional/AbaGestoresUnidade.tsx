@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RotateCw, Search, Ban, RefreshCcw, Pencil } from "lucide-react";
+import { Plus, RotateCw, Search, Ban, RefreshCcw, Pencil, Link2, Unlink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import ModalCadastrarGestorUnidade from "./ModalCadastrarGestorUnidade";
 import ModalEditarGestorUnidade from "./ModalEditarGestorUnidade";
 import AlertRevogarGestorUnidade from "./AlertRevogarGestorUnidade";
 import AlertReativarGestorUnidade from "./AlertReativarGestorUnidade";
+import ModalVincularGestor, { type AlvoVinculacao } from "./ModalVincularGestor";
+import AlertDesvincularGestor from "./AlertDesvincularGestor";
 
 export interface GestorUnidadeRow {
   id: string;
@@ -37,6 +39,8 @@ export default function AbaGestoresUnidade() {
   const [editar, setEditar] = useState<GestorUnidadeRow | null>(null);
   const [revogar, setRevogar] = useState<GestorUnidadeRow | null>(null);
   const [reativar, setReativar] = useState<GestorUnidadeRow | null>(null);
+  const [vincular, setVincular] = useState<AlvoVinculacao | null>(null);
+  const [desvincular, setDesvincular] = useState<{ gestor_id: string; gestor_nome: string; unidade_nome: string } | null>(null);
 
   const [filtroStatus, setFiltroStatus] = useState<StatusFiltro>("ativos");
   const [busca, setBusca] = useState("");
@@ -52,7 +56,12 @@ export default function AbaGestoresUnidade() {
     },
   });
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["institucional", "gestores-unidade"] });
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["institucional", "gestores-unidade"] });
+    qc.invalidateQueries({ queryKey: ["institucional", "unidades"] });
+    qc.invalidateQueries({ queryKey: ["institucional", "unidades-sem-gestor"] });
+    qc.invalidateQueries({ queryKey: ["institucional", "gestores-disponiveis"] });
+  };
 
   const lista = useMemo(() => {
     let r = data ?? [];
@@ -145,7 +154,13 @@ export default function AbaGestoresUnidade() {
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{g.email ?? "—"}</TableCell>
                 <TableCell>
-                  {g.unidade_nome ?? <span className="text-muted-foreground italic">— sem unidade —</span>}
+                  {g.unidade_nome ? (
+                    g.unidade_nome
+                  ) : !g.acesso_revogado ? (
+                    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⚠ Sem unidade</Badge>
+                  ) : (
+                    <span className="text-muted-foreground italic">—</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   {g.acesso_revogado ? (
@@ -161,6 +176,16 @@ export default function AbaGestoresUnidade() {
                     <Button variant="ghost" size="sm" onClick={() => setEditar(g)} disabled={g.acesso_revogado}>
                       <Pencil className="mr-1 h-3 w-3" /> Editar
                     </Button>
+                    {!g.acesso_revogado && !g.convite_pendente && !g.unidade_id && (
+                      <Button variant="ghost" size="sm" onClick={() => setVincular({ modo: "fixar_gestor", gestor_id: g.id, gestor_nome: g.nome })}>
+                        <Link2 className="mr-1 h-3 w-3" /> Vincular
+                      </Button>
+                    )}
+                    {!g.acesso_revogado && g.unidade_id && g.unidade_nome && (
+                      <Button variant="ghost" size="sm" onClick={() => setDesvincular({ gestor_id: g.id, gestor_nome: g.nome, unidade_nome: g.unidade_nome! })}>
+                        <Unlink className="mr-1 h-3 w-3" /> Desvincular
+                      </Button>
+                    )}
                     {g.acesso_revogado ? (
                       <Button variant="ghost" size="sm" onClick={() => setReativar(g)}>
                         <RefreshCcw className="mr-1 h-3 w-3" /> Reativar
@@ -187,6 +212,8 @@ export default function AbaGestoresUnidade() {
       <ModalEditarGestorUnidade alvo={editar} onClose={() => setEditar(null)} onSucesso={refresh} />
       <AlertRevogarGestorUnidade alvo={revogar} onClose={() => setRevogar(null)} onSucesso={refresh} />
       <AlertReativarGestorUnidade alvo={reativar} onClose={() => setReativar(null)} onSucesso={refresh} />
+      <ModalVincularGestor alvo={vincular} onClose={() => setVincular(null)} onSucesso={refresh} />
+      <AlertDesvincularGestor alvo={desvincular} onClose={() => setDesvincular(null)} onSucesso={refresh} />
     </div>
   );
 }

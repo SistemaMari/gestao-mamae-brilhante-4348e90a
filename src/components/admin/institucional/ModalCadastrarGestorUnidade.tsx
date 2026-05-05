@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,10 +9,16 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import AvisoUnicidadeEmail from "./AvisoUnicidadeEmail";
 import { MENSAGENS_UNICIDADE, FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SEM_VINCULO = "__sem_vinculo__";
+
+interface UnidadeOpt { id: string; nome: string; }
 
 interface Props {
   open: boolean;
@@ -22,12 +29,31 @@ interface Props {
 export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSucesso }: Props) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [unidadeId, setUnidadeId] = useState<string>(SEM_VINCULO);
   const [erro, setErro] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Unidades sem gestor ativo (cruzamento client-side)
+  const { data: unidadesSemGestor = [], isLoading: loadingUnidades } = useQuery({
+    queryKey: ["institucional", "unidades-sem-gestor"],
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("gerenciar-institucional", {
+        body: { acao: "listar_unidades" },
+      });
+      const all = (data?.unidades ?? []) as Array<{ id: string; nome: string; gestor_id: string | null }>;
+      return all
+        .filter((u) => !u.gestor_id)
+        .map((u) => ({ id: u.id, nome: u.nome }) as UnidadeOpt);
+    },
+    enabled: open,
+  });
+
   const valido = nome.trim() && EMAIL_REGEX.test(email.trim());
 
-  function reset() { setNome(""); setEmail(""); setErro(null); setSubmitting(false); }
+  function reset() {
+    setNome(""); setEmail(""); setUnidadeId(SEM_VINCULO);
+    setErro(null); setSubmitting(false);
+  }
   function handleOpenChange(v: boolean) { if (!v) reset(); onOpenChange(v); }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,13 +61,14 @@ export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSuce
     if (!valido || submitting) return;
     setSubmitting(true);
     setErro(null);
-    const { error } = await supabase.functions.invoke("gerenciar-institucional", {
-      body: {
-        acao: "cadastrar_gestor_unidade",
-        nome: nome.trim(),
-        email: email.trim().toLowerCase(),
-      },
-    });
+    const body: Record<string, unknown> = {
+      acao: "cadastrar_gestor_unidade",
+      nome: nome.trim(),
+      email: email.trim().toLowerCase(),
+    };
+    if (unidadeId !== SEM_VINCULO) body.unidade_id = unidadeId;
+
+    const { error } = await supabase.functions.invoke("gerenciar-institucional", { body });
     if (error) {
       const { codigo } = await extrairErroEdge(error);
       setSubmitting(false);
@@ -54,7 +81,11 @@ export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSuce
       return;
     }
     setSubmitting(false);
-    toast.success(`Gestor cadastrado! E-mail enviado para ${email.trim()}.`);
+    toast.success(
+      unidadeId !== SEM_VINCULO
+        ? `Gestor cadastrado e vinculado à unidade. E-mail enviado para ${email.trim()}.`
+        : `Gestor cadastrado! E-mail enviado para ${email.trim()}.`,
+    );
     handleOpenChange(false);
     onSucesso();
   }
@@ -67,8 +98,8 @@ export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSuce
             Cadastrar gestor de unidade
           </DialogTitle>
           <DialogDescription>
-            O gestor receberá um e-mail para definir senha. Você poderá vinculá-lo a uma unidade
-            depois, ao criar a unidade na aba Unidades ou trocando o gestor de uma unidade existente.
+            O gestor receberá um e-mail para definir senha. Você pode vinculá-lo já a uma unidade
+            existente sem gestor, ou deixar para depois.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -79,6 +110,23 @@ export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSuce
           <div className="space-y-1.5">
             <Label>E-mail</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={submitting} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Unidade (opcional)</Label>
+            <Select value={unidadeId} onValueChange={setUnidadeId} disabled={submitting || loadingUnidades}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={SEM_VINCULO}>— Não vincular agora —</SelectItem>
+                {unidadesSemGestor.map((u) => (
+                  <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!loadingUnidades && unidadesSemGestor.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Nenhuma unidade sem gestor disponível. O gestor será cadastrado solto.
+              </p>
+            )}
           </div>
           <AvisoUnicidadeEmail />
           {erro && (
