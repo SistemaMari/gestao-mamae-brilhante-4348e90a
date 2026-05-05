@@ -92,6 +92,12 @@ const previewCards: PreviewCardProps[] = [
     description: 'Prévia funcional do formulário público recebido por convite.',
     icon: UserPlus,
   },
+  {
+    to: '/vitrine/ficha-carimbada',
+    title: 'Ficha carimbada (demo)',
+    description: 'Visualize uma ficha de paciente com o carimbo CFM do profissional atendente.',
+    icon: CheckCircle2,
+  },
 ];
 
 function PreviewCard({ to, title, description, icon: Icon }: PreviewCardProps) {
