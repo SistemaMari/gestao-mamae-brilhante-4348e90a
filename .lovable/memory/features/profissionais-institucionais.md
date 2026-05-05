@@ -1,27 +1,34 @@
 ---
-name: Profissionais institucionais (admin)
-description: 3ª aba em /admin/institucionais — listar/convidar/editar/transferir/revogar profissionais. Inclui gate acesso_revogado em RLS.
+name: Profissionais e gestores institucionais (admin)
+description: 4 abas em /admin/institucionais — Unidades, Gestores de Unidade, Profissionais, Gestores Gerais. Inclui gate acesso_revogado em RLS.
 type: feature
 ---
 
-## Campos novos em `profissionais`
-- `perfil_clinico` TEXT (medico|enfermeiro|tecnico_enfermagem|outro) — separado de `especialidade` (texto livre) e `perfil_institucional` (gestor|institucional, controla `user_roles`).
-- `acesso_revogado` BOOLEAN, `acesso_revogado_em`, `acesso_revogado_por` (FK profissionais), `motivo_revogacao` TEXT.
+## Ordem das abas em `/admin/institucionais`
+1. Unidades (default)
+2. Gestores de Unidade
+3. Profissionais
+4. Gestores Gerais
 
-## Gate `acesso_revogado` nas RLS (8 tabelas)
-pacientes, consultas, exames_glicemia, perfis_glicemicos, valores_perfil, laudos, partos, registros_atendimento. Profissional revogado não vê nem insere nada clínico. Função `carimbar_atendimento` retorna NULL se revogado.
+## Distinção crítica
+- `profissionais.perfil_institucional='gestor'` → aba "Gestores de Unidade".
+- `profissionais.perfil_institucional='institucional'` (com `unidade_id`) → aba "Profissionais".
+- Filtro `listar_profissionais` exclui gestores via `.neq("perfil_institucional", "gestor")`.
 
-## Edge Function — 6 ações novas em `gerenciar-institucional`
-listar_profissionais, convidar_profissional_unidade, editar_profissional, transferir_profissional, revogar_acesso_profissional, reativar_acesso_profissional. Todas exigem admin.
+## Vínculo gestor↔unidade
+- Não há coluna `unidades.gestor_id`. Vínculo é `profissionais.unidade_id` + `perfil_institucional='gestor'`.
+- Cardinalidade 1:1 é convencional (sem UNIQUE no banco) — **dívida técnica**.
+- Gestor pode existir SEM unidade (`unidade_id=NULL`), aguardando vinculação.
 
-- editar_profissional só altera `nome` e `perfil_clinico`. CRM e e-mail são imutáveis (preserva carimbo CFM).
-- transferir_profissional: NÃO move pacientes (ficam órfãs na unidade origem para reatribuição).
-- email_em_uso_consultorio: bloqueia com mensagem específica (não força vínculo).
+## Edge Function `gerenciar-institucional` — ações de gestor de unidade
+listar_gestores_unidade, cadastrar_gestor_unidade (sem unidade), editar_gestor_unidade (só nome), revogar_acesso_gestor_unidade (bloqueia se vinculado → `gestor_ainda_vinculado`), reativar_acesso_gestor_unidade (não revincula).
 
-## Frontend
-- `AbaProfissionais.tsx` — query `["institucional","profissionais"]`, filtros (unidade/status/busca).
-- 5 modais/alerts: ModalConvidarProfissional, ModalEditarProfissional, ModalTransferirProfissional, AlertRevogarAcesso, AlertReativarAcesso.
-- `AuthContext.determineProfile`: força signOut se `acesso_revogado=TRUE`.
+## `criar_unidade` — modos
+- `gestor_modo='novo'` (default, legado): cria gestor + envia invite.
+- `gestor_modo='existente'`: valida gestor solto (perfil='gestor', `unidade_id IS NULL`, não revogado), cria unidade e seta `unidade_id`.
 
-## Dívida técnica
-- E-mails lidos via `auth.admin.listUsers/getUserById` (1 chamada por user_id em listar_profissionais). OK até ~100 profs; depois cachear `email` na tabela profissionais.
+## Combobox de gestores disponíveis
+- Filtro client-side (poucos gestores). **Dívida técnica**: revisitar quando passar de 50.
+
+## Campos novos em `profissionais` (Prompt 28)
+`perfil_clinico`, `acesso_revogado`, `acesso_revogado_em/_por`, `motivo_revogacao`. Gate `acesso_revogado` em RLS de 8 tabelas clínicas.

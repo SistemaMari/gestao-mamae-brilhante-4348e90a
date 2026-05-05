@@ -11,6 +11,12 @@ export const MENSAGENS_UNICIDADE: Record<string, string> = {
   email_em_uso_consultorio:
     "Esse profissional já tem conta de consultório. Por questão de auditoria, ele precisa aceitar o vínculo institucional via convite tradicional. Peça que o gestor da unidade envie pelo painel /gestao/equipe.",
   email_em_uso_outro: "Este e-mail já está em uso no sistema.",
+  gestor_ainda_vinculado:
+    "Este gestor ainda está vinculado a uma unidade. Antes de revogar o acesso, use a aba Unidades e troque o gestor desta unidade.",
+  gestor_ja_vinculado:
+    "Este gestor já está vinculado a uma unidade.",
+  gestor_revogado:
+    "Este gestor está com acesso revogado. Reative-o antes de vinculá-lo a uma unidade.",
 };
 
 export const PERFIL_CLINICO_LABEL: Record<string, string> = {

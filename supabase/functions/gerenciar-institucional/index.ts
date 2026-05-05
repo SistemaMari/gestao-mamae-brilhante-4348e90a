@@ -261,6 +261,82 @@ Deno.serve(async (req) => {
       const estado = body.estado ?? null;
       const cidade = body.cidade ?? null;
       const planoCategoria = body.plano ?? "clinica"; // só categoria
+      const gestorModo = String(body.gestor_modo ?? "novo");
+
+      const planoId = await getPlanoIdInstitucional(admin);
+      if (!planoId) {
+        return jsonResponse({ error: "Plano padrão não encontrado." }, 500);
+      }
+
+      if (gestorModo === "existente") {
+        const gestorIdSel = String(body.gestor_id ?? "").trim();
+        if (!nome || !gestorIdSel) {
+          return jsonResponse({ error: "Campos obrigatórios ausentes." }, 400);
+        }
+        const { data: profSel } = await admin
+          .from("profissionais")
+          .select("id, nome, user_id, unidade_id, perfil_institucional, acesso_revogado")
+          .eq("id", gestorIdSel)
+          .maybeSingle();
+        if (!profSel) return jsonResponse({ error: "Gestor não encontrado." }, 404);
+        if (profSel.perfil_institucional !== "gestor") {
+          return jsonResponse({ error: "Profissional selecionado não é gestor." }, 400);
+        }
+        if (profSel.unidade_id) {
+          return jsonResponse({
+            codigo: "gestor_ja_vinculado",
+            mensagem: "Este gestor já está vinculado a uma unidade.",
+          }, 400);
+        }
+        if (profSel.acesso_revogado) {
+          return jsonResponse({
+            codigo: "gestor_revogado",
+            mensagem: "Este gestor está com acesso revogado. Reative-o antes de vincular a uma unidade.",
+          }, 400);
+        }
+
+        const { data: unidade, error: errUni } = await admin
+          .from("unidades")
+          .insert({ nome, tipo, cnes, pais, estado, cidade, ativa: true })
+          .select("id, nome")
+          .single();
+        if (errUni || !unidade) {
+          console.error("Erro criar unidade:", errUni);
+          return jsonResponse({ error: "Erro ao processar operação. Nenhum dado foi alterado." }, 500);
+        }
+
+        const { error: errVinc } = await admin
+          .from("profissionais")
+          .update({ unidade_id: unidade.id })
+          .eq("id", profSel.id);
+        if (errVinc) {
+          console.error("Erro vincular gestor existente:", errVinc);
+          await admin.from("unidades").delete().eq("id", unidade.id);
+          return jsonResponse({ error: "Erro ao processar operação. Nenhum dado foi alterado." }, 500);
+        }
+
+        const emailMap = await getEmailMap(admin, [profSel.user_id]);
+        const gestorEmailExistente = emailMap.get(profSel.user_id)?.email ?? "";
+        await inserirAuditoria(
+          admin, callerUserId, callerEmail, "criar_unidade",
+          gestorEmailExistente, profSel.nome, null,
+          {
+            unidade_id: unidade.id,
+            unidade_nome: unidade.nome,
+            gestor_modo: "existente",
+            gestor_id: profSel.id,
+            plano_categoria: planoCategoria,
+          },
+        );
+
+        return jsonResponse({
+          status: "criado",
+          unidade_id: unidade.id,
+          gestor_id: profSel.id,
+        });
+      }
+
+      // ----- modo "novo" (legado, default) -----
       const gestorNome = String(body.gestor_nome ?? "").trim();
       const gestorEmail = String(body.gestor_email ?? "").trim().toLowerCase();
       if (!nome || !gestorNome || !gestorEmail) {
@@ -270,11 +346,6 @@ Deno.serve(async (req) => {
       const conflito = await verificarEmailEmUso(admin, gestorEmail);
       if (conflito.em_uso) {
         return jsonResponse(erroEmailParaResposta(conflito.perfil), 400);
-      }
-
-      const planoId = await getPlanoIdInstitucional(admin);
-      if (!planoId) {
-        return jsonResponse({ error: "Plano padrão não encontrado." }, 500);
       }
 
       // 1) Cria unidade
@@ -355,6 +426,7 @@ Deno.serve(async (req) => {
           unidade_nome: unidade.nome,
           gestor_email: gestorEmail,
           gestor_nome: gestorNome,
+          gestor_modo: "novo",
           plano_categoria: planoCategoria,
         },
       );
@@ -1085,6 +1157,7 @@ Deno.serve(async (req) => {
           "id, user_id, nome, crm, especialidade, perfil_clinico, perfil_institucional, unidade_id, acesso_revogado, acesso_revogado_em, motivo_revogacao, created_at, unidades(nome)"
         )
         .not("unidade_id", "is", null)
+        .neq("perfil_institucional", "gestor")
         .order("acesso_revogado", { ascending: true })
         .order("created_at", { ascending: false });
       if (filtroUnidade) q = q.eq("unidade_id", filtroUnidade);
@@ -1445,6 +1518,259 @@ Deno.serve(async (req) => {
         { profissional_id },
       );
 
+      return jsonResponse({ status: "reativado" });
+    }
+
+    // ============= listar_gestores_unidade =============
+    if (acao === "listar_gestores_unidade") {
+      const { data: profs, error: errList } = await admin
+        .from("profissionais")
+        .select(
+          "id, user_id, nome, unidade_id, acesso_revogado, acesso_revogado_em, motivo_revogacao, created_at, unidades(nome)",
+        )
+        .eq("perfil_institucional", "gestor")
+        .order("acesso_revogado", { ascending: true })
+        .order("created_at", { ascending: false });
+      if (errList) {
+        console.error("Erro listar gestores unidade:", errList);
+        return jsonResponse({ error: "Erro ao listar." }, 500);
+      }
+
+      const userIds = (profs ?? []).map((p: any) => p.user_id).filter(Boolean);
+      const emailMap = await getEmailMap(admin, userIds);
+      const emails = Array.from(emailMap.values())
+        .map((u) => u.email)
+        .filter(Boolean) as string[];
+      const pendentes = new Set<string>();
+      if (emails.length > 0) {
+        const { data: convs } = await admin
+          .from("convites")
+          .select("email_convidado")
+          .in("email_convidado", emails)
+          .eq("status", "pendente");
+        (convs ?? []).forEach((c: any) =>
+          pendentes.add((c.email_convidado ?? "").toLowerCase()),
+        );
+      }
+      // Heurística adicional para "convite pendente": gestor que ainda nunca logou.
+      const gestores = (profs ?? []).map((p: any) => {
+        const auth = emailMap.get(p.user_id);
+        const email = auth?.email ?? null;
+        const nuncaLogou = !auth?.last_sign_in_at;
+        return {
+          id: p.id,
+          user_id: p.user_id,
+          nome: p.nome,
+          email,
+          unidade_id: p.unidade_id,
+          unidade_nome: p.unidades?.nome ?? null,
+          convite_pendente:
+            (email ? pendentes.has(email.toLowerCase()) : false) || nuncaLogou,
+          acesso_revogado: !!p.acesso_revogado,
+          acesso_revogado_em: p.acesso_revogado_em,
+          motivo_revogacao: p.motivo_revogacao,
+          created_at: p.created_at,
+        };
+      });
+
+      return jsonResponse({ status: "ok", gestores });
+    }
+
+    // ============= cadastrar_gestor_unidade =============
+    if (acao === "cadastrar_gestor_unidade") {
+      const nome = String(body.nome ?? "").trim();
+      const email = String(body.email ?? "").trim().toLowerCase();
+      if (!nome || !email) {
+        return jsonResponse({ error: "Campos obrigatórios ausentes." }, 400);
+      }
+
+      const conflito = await verificarEmailEmUso(admin, email);
+      if (conflito.em_uso) {
+        if (conflito.perfil === "profissional" && conflito.user_id) {
+          const { data: prof } = await admin
+            .from("profissionais")
+            .select("unidade_id")
+            .eq("user_id", conflito.user_id)
+            .maybeSingle();
+          if (!prof?.unidade_id) {
+            return jsonResponse({
+              codigo: "email_em_uso_consultorio",
+              mensagem:
+                "Este profissional já tem conta de consultório. Por questão de auditoria, ele precisa aceitar o vínculo institucional via convite tradicional.",
+            }, 400);
+          }
+        }
+        return jsonResponse(erroEmailParaResposta(conflito.perfil), 400);
+      }
+
+      const planoId = await getPlanoIdInstitucional(admin);
+      if (!planoId) return jsonResponse({ error: "Plano padrão não encontrado." }, 500);
+
+      const { data: invited, error: invErr } =
+        await admin.auth.admin.inviteUserByEmail(email, {
+          data: { nome, perfil: "gestor_unidade" },
+          redirectTo: `${APP_URL}/nova-senha?destino=/gestao`,
+        });
+      if (invErr || !invited?.user) {
+        console.error("Erro invite gestor solto:", invErr);
+        return jsonResponse({ error: "Erro ao processar operação." }, 500);
+      }
+      const newUserId = invited.user.id;
+
+      const { data: prof, error: errProf } = await admin
+        .from("profissionais")
+        .insert({
+          user_id: newUserId,
+          nome,
+          unidade_id: null,
+          perfil_institucional: "gestor",
+          plano_id: planoId,
+          plano_status: "ativo",
+        })
+        .select("id")
+        .single();
+      if (errProf) {
+        console.error("Erro insert gestor solto:", errProf);
+        await admin.auth.admin.deleteUser(newUserId).catch(() => {});
+        return jsonResponse({ error: "Erro ao processar operação." }, 500);
+      }
+
+      await inserirAuditoria(
+        admin, callerUserId, callerEmail, "cadastrar_gestor_unidade",
+        email, nome, null, { gestor_id: prof.id },
+      );
+
+      return jsonResponse({ status: "cadastrado", gestor_id: prof.id });
+    }
+
+    // ============= editar_gestor_unidade =============
+    if (acao === "editar_gestor_unidade") {
+      const gestor_id = String(body.gestor_id ?? "").trim();
+      const nome = typeof body.nome === "string" ? body.nome.trim() : "";
+      if (!gestor_id || !nome) {
+        return jsonResponse({ error: "Campos obrigatórios ausentes." }, 400);
+      }
+      const { data: prof } = await admin
+        .from("profissionais")
+        .select("id, perfil_institucional, user_id, nome")
+        .eq("id", gestor_id)
+        .maybeSingle();
+      if (!prof) return jsonResponse({ error: "Gestor não encontrado." }, 404);
+      if (prof.perfil_institucional !== "gestor") {
+        return jsonResponse({ error: "Não é gestor de unidade." }, 400);
+      }
+
+      const { error: errUpd } = await admin
+        .from("profissionais")
+        .update({ nome })
+        .eq("id", gestor_id);
+      if (errUpd) {
+        console.error("Erro editar gestor:", errUpd);
+        return jsonResponse({ error: "Erro ao atualizar." }, 500);
+      }
+
+      const emailMap = await getEmailMap(admin, [prof.user_id]);
+      await inserirAuditoria(
+        admin, callerUserId, callerEmail, "editar_gestor_unidade",
+        emailMap.get(prof.user_id)?.email ?? "", nome, null, { gestor_id },
+      );
+      return jsonResponse({ status: "atualizado" });
+    }
+
+    // ============= revogar_acesso_gestor_unidade =============
+    if (acao === "revogar_acesso_gestor_unidade") {
+      const gestor_id = String(body.gestor_id ?? "").trim();
+      const motivo = typeof body.motivo === "string" ? body.motivo.trim() || null : null;
+      if (!gestor_id) return jsonResponse({ error: "gestor_id obrigatório." }, 400);
+
+      const { data: prof } = await admin
+        .from("profissionais")
+        .select("id, nome, user_id, unidade_id, perfil_institucional, acesso_revogado, unidades(nome)")
+        .eq("id", gestor_id)
+        .maybeSingle();
+      if (!prof) return jsonResponse({ error: "Gestor não encontrado." }, 404);
+      if (prof.perfil_institucional !== "gestor") {
+        return jsonResponse({ error: "Não é gestor de unidade." }, 400);
+      }
+      if (prof.acesso_revogado) {
+        return jsonResponse({ error: "Acesso já está revogado." }, 400);
+      }
+      if (prof.unidade_id) {
+        return jsonResponse({
+          codigo: "gestor_ainda_vinculado",
+          mensagem: `Este gestor ainda está vinculado à unidade ${(prof as any).unidades?.nome ?? ""}. Use a aba Unidades para trocar o gestor antes de revogar o acesso.`,
+          unidade_nome: (prof as any).unidades?.nome ?? null,
+          unidade_id: prof.unidade_id,
+        }, 400);
+      }
+
+      const { data: callerProf } = await admin
+        .from("profissionais")
+        .select("id")
+        .eq("user_id", callerUserId)
+        .maybeSingle();
+
+      const { error: errUpd } = await admin
+        .from("profissionais")
+        .update({
+          acesso_revogado: true,
+          acesso_revogado_em: new Date().toISOString(),
+          acesso_revogado_por: callerProf?.id ?? null,
+          motivo_revogacao: motivo,
+        })
+        .eq("id", gestor_id);
+      if (errUpd) {
+        console.error("Erro revogar gestor:", errUpd);
+        return jsonResponse({ error: "Erro ao revogar." }, 500);
+      }
+
+      try { await admin.auth.admin.signOut(prof.user_id, "global"); } catch (e) { console.warn(e); }
+
+      const emailMap = await getEmailMap(admin, [prof.user_id]);
+      await inserirAuditoria(
+        admin, callerUserId, callerEmail, "revogar_acesso_gestor_unidade",
+        emailMap.get(prof.user_id)?.email ?? "", prof.nome, null, { gestor_id, motivo },
+      );
+      return jsonResponse({ status: "revogado" });
+    }
+
+    // ============= reativar_acesso_gestor_unidade =============
+    if (acao === "reativar_acesso_gestor_unidade") {
+      const gestor_id = String(body.gestor_id ?? "").trim();
+      if (!gestor_id) return jsonResponse({ error: "gestor_id obrigatório." }, 400);
+
+      const { data: prof } = await admin
+        .from("profissionais")
+        .select("id, nome, user_id, perfil_institucional, acesso_revogado")
+        .eq("id", gestor_id)
+        .maybeSingle();
+      if (!prof) return jsonResponse({ error: "Gestor não encontrado." }, 404);
+      if (prof.perfil_institucional !== "gestor") {
+        return jsonResponse({ error: "Não é gestor de unidade." }, 400);
+      }
+      if (!prof.acesso_revogado) {
+        return jsonResponse({ error: "Acesso não está revogado." }, 400);
+      }
+
+      const { error: errUpd } = await admin
+        .from("profissionais")
+        .update({
+          acesso_revogado: false,
+          acesso_revogado_em: null,
+          acesso_revogado_por: null,
+          motivo_revogacao: null,
+        })
+        .eq("id", gestor_id);
+      if (errUpd) {
+        console.error("Erro reativar gestor:", errUpd);
+        return jsonResponse({ error: "Erro ao reativar." }, 500);
+      }
+
+      const emailMap = await getEmailMap(admin, [prof.user_id]);
+      await inserirAuditoria(
+        admin, callerUserId, callerEmail, "reativar_acesso_gestor_unidade",
+        emailMap.get(prof.user_id)?.email ?? "", prof.nome, null, { gestor_id },
+      );
       return jsonResponse({ status: "reativado" });
     }
 
