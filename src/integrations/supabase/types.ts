@@ -800,6 +800,7 @@ export type Database = {
           cursos_inclusos: string[]
           id: string
           laudos_por_mes: number
+          link_pagamento_asaas: string | null
           nome: string
           ordem: number
           pacientes_max: number | null
@@ -814,6 +815,7 @@ export type Database = {
           cursos_inclusos?: string[]
           id?: string
           laudos_por_mes: number
+          link_pagamento_asaas?: string | null
           nome: string
           ordem: number
           pacientes_max?: number | null
@@ -828,6 +830,7 @@ export type Database = {
           cursos_inclusos?: string[]
           id?: string
           laudos_por_mes?: number
+          link_pagamento_asaas?: string | null
           nome?: string
           ordem?: number
           pacientes_max?: number | null

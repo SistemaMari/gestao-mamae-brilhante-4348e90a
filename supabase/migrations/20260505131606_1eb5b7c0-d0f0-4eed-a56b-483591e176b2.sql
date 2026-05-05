@@ -1,0 +1,1 @@
+ALTER TABLE public.planos ADD COLUMN IF NOT EXISTS link_pagamento_asaas text;
