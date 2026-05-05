@@ -12,8 +12,8 @@ import {
 
 const DUMMY = {
   firstName: 'Mari',
-  planoLabel: 'Plano Teste — 3/10 laudos',
-  plano: 'teste',
+  planoLabel: 'Plano Inicial — 3/10 laudos',
+  plano: 'inicial',
 };
 
 const navItemsClinical = [

@@ -248,21 +248,12 @@ export default function DashboardPage() {
               </span>
             </div>
             <Progress value={isPreview ? 30 : usagePercent} className="h-2" />
-            {profissionalData?.plano === 'free' ? (
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Pacientes</span>
-                <span className="text-sm text-muted-foreground">
-                  {pacientes.length} de 3
-                </span>
-              </div>
-            ) : (
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Pacientes</span>
-                <span className="text-sm text-muted-foreground">
-                  {pacientes.length}
-                </span>
-              </div>
-            )}
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Pacientes</span>
+              <span className="text-sm text-muted-foreground">
+                {pacientes.length}
+              </span>
+            </div>
           </div>
         )}
 
