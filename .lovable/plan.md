@@ -1,14 +1,25 @@
-## Esconder barra de filtros globais em /admin/admins e /admin/exportar
+## Voltar a exibir a barra de filtros globais em "Filtros e exportação"
 
-Mudança única em **`src/pages/admin/AdminLayout.tsx`** (linha 69):
+Hoje, em `src/pages/admin/AdminLayout.tsx` (linha 69), a `BarraFiltrosGlobais` está oculta tanto em `/admin/admins` quanto em `/admin/exportar`:
 
 ```tsx
-<AdminHeader nomeAdmin={nomeAdmin} />
 {!["/admin/admins", "/admin/exportar"].includes(pathname) && (
   <BarraFiltrosGlobais />
 )}
 ```
 
-`pathname` já vem de `useLocation()` (linha 15). Demais rotas (`/admin`, `/admin/diagnosticos`, `/admin/usuarios`, `/admin/institucionais`) continuam mostrando a barra normalmente.
+### Mudança
 
-Sem mudanças no contexto de filtros (`AdminFiltrosProvider` continua envolvendo tudo, então não há side-effect quando o usuário volta para uma tela com filtros).
+Tirar `/admin/exportar` da lista de exclusão (mantendo só `/admin/admins`):
+
+```tsx
+{pathname !== "/admin/admins" && <BarraFiltrosGlobais />}
+```
+
+### Resultado
+
+- `/admin/exportar` **volta a exibir** a barra de filtros globais (período, país, estado, cidade, tipo de conta, unidade, momento diagnóstico) — exatamente o que você pediu.
+- `/admin/admins` continua sem a barra.
+- Demais rotas admin permanecem inalteradas.
+
+Sem mudanças em contexto, exportações ou outros componentes.
