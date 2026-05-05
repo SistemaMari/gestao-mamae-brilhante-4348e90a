@@ -70,8 +70,13 @@ export default function PlanosPage() {
     ? planos?.find((p) => p.id === planoAtualId)?.preco_mensal ?? null
     : null;
 
-  const handleAssinar = () => {
-    toast.info('Em breve — integração de pagamento.');
+  const handleAssinar = (plano: Plano) => {
+    if (!plano.link_pagamento_asaas) {
+      toast.error('Link de pagamento indisponível. Contate o suporte.');
+      return;
+    }
+    window.open(plano.link_pagamento_asaas, '_blank', 'noopener,noreferrer');
+    toast.info('Após confirmar o pagamento, você receberá um e-mail para definir sua senha.');
   };
 
   const renderHeader = () => (
