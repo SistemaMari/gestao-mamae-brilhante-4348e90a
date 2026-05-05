@@ -418,6 +418,14 @@ export default function Retorno1Form({
       data_ultima_consulta: dataConsultaRetorno,
     }).eq('id', paciente.id);
 
+    const { carimbarAtendimento } = await import('@/lib/carimbar');
+    await carimbarAtendimento({
+      pacienteId: paciente.id,
+      tipoOperacao: 'retorno',
+      recursoId: consultaId ?? undefined,
+      recursoTipo: 'retorno',
+    });
+
     setSaving(false);
 
     if (isDiagApplicable && diag) {

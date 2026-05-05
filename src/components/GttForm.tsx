@@ -358,6 +358,13 @@ export default function GttForm({
       data_ultima_consulta: dataConsulta,
     }).eq('id', paciente.id);
 
+    const { carimbarAtendimento } = await import('@/lib/carimbar');
+    await carimbarAtendimento({
+      pacienteId: paciente.id,
+      tipoOperacao: 'preencher_gtt',
+      recursoTipo: 'gtt',
+    });
+
     setSaving(false);
     setResultado(diag);
     if (diag.tipo !== 'negativo') {

@@ -413,6 +413,18 @@ export default function RegistroPartoForm({
       return;
     }
 
+    const { carimbarAtendimento } = await import('@/lib/carimbar');
+    await carimbarAtendimento({
+      pacienteId: paciente.id,
+      tipoOperacao: 'registrar_parto',
+      recursoTipo: 'parto',
+    });
+    await carimbarAtendimento({
+      pacienteId: paciente.id,
+      tipoOperacao: 'encerramento',
+      recursoTipo: 'paciente',
+    });
+
     setSaving(false);
     toast.success('Registro do parto salvo. Ficha encerrada.');
     onSaved();

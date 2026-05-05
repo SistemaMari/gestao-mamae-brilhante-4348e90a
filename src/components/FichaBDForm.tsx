@@ -513,6 +513,14 @@ export default function FichaBDForm({
         })
         .eq('id', paciente.id);
 
+      const { carimbarAtendimento } = await import('@/lib/carimbar');
+      await carimbarAtendimento({
+        pacienteId: paciente.id,
+        tipoOperacao: 'preencher_ficha_bd',
+        recursoId: consultaId ?? undefined,
+        recursoTipo: 'ficha',
+      });
+
       setSavedResult({ percentual: percentual!, adequado: isAdequado });
       setSaving(false);
       setShowImpact(true);

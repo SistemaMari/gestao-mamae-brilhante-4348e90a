@@ -277,6 +277,7 @@ export default function Consulta1Form() {
     };
 
     let consErr: unknown = null;
+    let consultaIdFinal: string | null = draftConsultaIdRef.current;
     if (draftConsultaIdRef.current) {
       const { error } = await supabase
         .from('consultas')
@@ -284,8 +285,13 @@ export default function Consulta1Form() {
         .eq('id', draftConsultaIdRef.current);
       consErr = error;
     } else {
-      const { error } = await supabase.from('consultas').insert(consultaPayload as any);
+      const { data: novaCons, error } = await supabase
+        .from('consultas')
+        .insert(consultaPayload as any)
+        .select('id')
+        .single();
       consErr = error;
+      consultaIdFinal = (novaCons as any)?.id ?? null;
     }
 
     setSaving(false);
@@ -295,6 +301,13 @@ export default function Consulta1Form() {
       console.error(consErr);
     } else {
       toast.success('Consulta 1 registrada com sucesso!');
+      const { carimbarAtendimento } = await import('@/lib/carimbar');
+      await carimbarAtendimento({
+        pacienteId: pacienteId!,
+        tipoOperacao: 'consulta_inicial',
+        recursoId: consultaIdFinal ?? undefined,
+        recursoTipo: 'consulta',
+      });
     }
 
     navigate(`/paciente/${pacienteId}`);

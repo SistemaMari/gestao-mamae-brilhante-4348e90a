@@ -970,6 +970,77 @@ export type Database = {
           },
         ]
       }
+      registros_atendimento: {
+        Row: {
+          created_at: string
+          id: string
+          paciente_id: string
+          profissional_crm: string | null
+          profissional_especialidade: string | null
+          profissional_id: string
+          profissional_nome: string
+          recurso_id: string | null
+          recurso_tipo: string | null
+          tipo_operacao: string
+          unidade_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          paciente_id: string
+          profissional_crm?: string | null
+          profissional_especialidade?: string | null
+          profissional_id: string
+          profissional_nome: string
+          recurso_id?: string | null
+          recurso_tipo?: string | null
+          tipo_operacao: string
+          unidade_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          paciente_id?: string
+          profissional_crm?: string | null
+          profissional_especialidade?: string | null
+          profissional_id?: string
+          profissional_nome?: string
+          recurso_id?: string | null
+          recurso_tipo?: string | null
+          tipo_operacao?: string
+          unidade_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registros_atendimento_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_atendimento_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registros_atendimento_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_unidades_resumo"
+            referencedColumns: ["unidade_id"]
+          },
+          {
+            foreignKeyName: "registros_atendimento_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       relatorios_unidade: {
         Row: {
           arquivo_path: string
@@ -1248,6 +1319,15 @@ export type Database = {
       belongs_to_unidade: {
         Args: { _unidade_id: string; _user_id: string }
         Returns: boolean
+      }
+      carimbar_atendimento: {
+        Args: {
+          p_paciente_id: string
+          p_recurso_id?: string
+          p_recurso_tipo?: string
+          p_tipo_operacao: string
+        }
+        Returns: string
       }
       current_user_has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }

@@ -256,6 +256,22 @@ Deno.serve(async (req) => {
       metadata: { ...laudo.metadata, modelo: MODEL, arquivos_enviados: arquivosBaixados.map((a) => a.name), referencias: parsed.referencias_citadas, metadados_do_laudo: parsed.metadados_do_laudo },
     }).eq("id", laudo.id);
 
+    // Carimbo CFM — só profissional institucional (com unidade_id)
+    if (profissional.unidade_id) {
+      const { error: carimboErr } = await supabaseAdmin.from("registros_atendimento").insert({
+        paciente_id,
+        profissional_id: profissional.id,
+        unidade_id: profissional.unidade_id,
+        tipo_operacao: "gerar_laudo",
+        recurso_id: laudo.id,
+        recurso_tipo: "laudo",
+        profissional_nome: profissional.nome,
+        profissional_crm: profissional.crm,
+        profissional_especialidade: profissional.especialidade,
+      });
+      if (carimboErr) console.error("Falha ao carimbar atendimento:", carimboErr);
+    }
+
     return jsonResp({
       success: true,
       laudo_id: laudo.id,

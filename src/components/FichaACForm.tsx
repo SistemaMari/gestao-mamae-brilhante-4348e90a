@@ -490,6 +490,14 @@ export default function FichaACForm({
         })
         .eq('id', paciente.id);
 
+      const { carimbarAtendimento } = await import('@/lib/carimbar');
+      await carimbarAtendimento({
+        pacienteId: paciente.id,
+        tipoOperacao: 'preencher_ficha_ac',
+        recursoId: consultaId ?? undefined,
+        recursoTipo: 'ficha',
+      });
+
       setSavedResult({ percentual: percentual!, adequado: isAdequado });
       setSaving(false);
       setShowImpact(true);

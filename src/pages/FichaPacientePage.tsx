@@ -28,6 +28,7 @@ import {
 } from '@/lib/whatsapp';
 import Retorno1Form from '@/components/Retorno1Form';
 import Consulta1ResultCard from '@/components/Consulta1ResultCard';
+import CarimboAtendimento from '@/components/clinico/CarimboAtendimento';
 import Retorno1ResultCard from '@/components/Retorno1ResultCard';
 import GttForm from '@/components/GttForm';
 import GttResultCard from '@/components/GttResultCard';
@@ -435,6 +436,13 @@ export default function FichaPacientePage() {
       toast.error('Erro ao atualizar dados.');
       return;
     }
+
+    const { carimbarAtendimento } = await import('@/lib/carimbar');
+    await carimbarAtendimento({
+      pacienteId: id!,
+      tipoOperacao: 'editar_dados_paciente',
+      recursoTipo: 'paciente',
+    });
 
     setPaciente((prev) =>
       prev
@@ -1228,6 +1236,12 @@ export default function FichaPacientePage() {
             <FileText className="mr-2 h-4 w-4 shrink-0" />
             + Registrar parto
           </Button>
+        )}
+
+        {paciente?.id && (
+          <div className="mt-6">
+            <CarimboAtendimento variant="lista" pacienteId={paciente.id} />
+          </div>
         )}
       </div>
     </div>
