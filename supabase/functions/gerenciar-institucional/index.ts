@@ -307,7 +307,7 @@ Deno.serve(async (req) => {
             perfil: "gestor_unidade",
             unidade_nome: unidade.nome,
           },
-          redirectTo: `${APP_URL}/definir-senha?destino=/gestao`,
+          redirectTo: `${APP_URL}/nova-senha?destino=/gestao`,
         });
       if (invErr || !invited?.user) {
         console.error("Erro invite gestor:", invErr);
@@ -504,7 +504,7 @@ Deno.serve(async (req) => {
             perfil: "gestor_unidade",
             unidade_nome: unidade.nome,
           },
-          redirectTo: `${APP_URL}/definir-senha?destino=/gestao`,
+          redirectTo: `${APP_URL}/nova-senha?destino=/gestao`,
         });
       if (invErr || !invited?.user) {
         console.error("Erro invite novo gestor:", invErr);
@@ -682,7 +682,7 @@ Deno.serve(async (req) => {
             instituicao,
             total_unidades: unidadeIds.length,
           },
-          redirectTo: `${APP_URL}/definir-senha?destino=/consolidar`,
+          redirectTo: `${APP_URL}/nova-senha?destino=/consolidar`,
         });
       if (invErr || !invited?.user) {
         console.error("Erro invite gestor geral:", invErr);
@@ -1049,8 +1049,8 @@ Deno.serve(async (req) => {
       const email = u.user.email!;
       const redirect =
         tipo === "gestor_unidade"
-          ? `${APP_URL}/definir-senha?destino=/gestao`
-          : `${APP_URL}/definir-senha?destino=/consolidar`;
+          ? `${APP_URL}/nova-senha?destino=/gestao`
+          : `${APP_URL}/nova-senha?destino=/consolidar`;
 
       const { error: invErr } = await admin.auth.admin.inviteUserByEmail(
         email,
