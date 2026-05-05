@@ -261,6 +261,82 @@ Deno.serve(async (req) => {
       const estado = body.estado ?? null;
       const cidade = body.cidade ?? null;
       const planoCategoria = body.plano ?? "clinica"; // só categoria
+      const gestorModo = String(body.gestor_modo ?? "novo");
+
+      const planoId = await getPlanoIdInstitucional(admin);
+      if (!planoId) {
+        return jsonResponse({ error: "Plano padrão não encontrado." }, 500);
+      }
+
+      if (gestorModo === "existente") {
+        const gestorIdSel = String(body.gestor_id ?? "").trim();
+        if (!nome || !gestorIdSel) {
+          return jsonResponse({ error: "Campos obrigatórios ausentes." }, 400);
+        }
+        const { data: profSel } = await admin
+          .from("profissionais")
+          .select("id, nome, user_id, unidade_id, perfil_institucional, acesso_revogado")
+          .eq("id", gestorIdSel)
+          .maybeSingle();
+        if (!profSel) return jsonResponse({ error: "Gestor não encontrado." }, 404);
+        if (profSel.perfil_institucional !== "gestor") {
+          return jsonResponse({ error: "Profissional selecionado não é gestor." }, 400);
+        }
+        if (profSel.unidade_id) {
+          return jsonResponse({
+            codigo: "gestor_ja_vinculado",
+            mensagem: "Este gestor já está vinculado a uma unidade.",
+          }, 400);
+        }
+        if (profSel.acesso_revogado) {
+          return jsonResponse({
+            codigo: "gestor_revogado",
+            mensagem: "Este gestor está com acesso revogado. Reative-o antes de vincular a uma unidade.",
+          }, 400);
+        }
+
+        const { data: unidade, error: errUni } = await admin
+          .from("unidades")
+          .insert({ nome, tipo, cnes, pais, estado, cidade, ativa: true })
+          .select("id, nome")
+          .single();
+        if (errUni || !unidade) {
+          console.error("Erro criar unidade:", errUni);
+          return jsonResponse({ error: "Erro ao processar operação. Nenhum dado foi alterado." }, 500);
+        }
+
+        const { error: errVinc } = await admin
+          .from("profissionais")
+          .update({ unidade_id: unidade.id })
+          .eq("id", profSel.id);
+        if (errVinc) {
+          console.error("Erro vincular gestor existente:", errVinc);
+          await admin.from("unidades").delete().eq("id", unidade.id);
+          return jsonResponse({ error: "Erro ao processar operação. Nenhum dado foi alterado." }, 500);
+        }
+
+        const emailMap = await getEmailMap(admin, [profSel.user_id]);
+        const gestorEmailExistente = emailMap.get(profSel.user_id)?.email ?? "";
+        await inserirAuditoria(
+          admin, callerUserId, callerEmail, "criar_unidade",
+          gestorEmailExistente, profSel.nome, null,
+          {
+            unidade_id: unidade.id,
+            unidade_nome: unidade.nome,
+            gestor_modo: "existente",
+            gestor_id: profSel.id,
+            plano_categoria: planoCategoria,
+          },
+        );
+
+        return jsonResponse({
+          status: "criado",
+          unidade_id: unidade.id,
+          gestor_id: profSel.id,
+        });
+      }
+
+      // ----- modo "novo" (legado, default) -----
       const gestorNome = String(body.gestor_nome ?? "").trim();
       const gestorEmail = String(body.gestor_email ?? "").trim().toLowerCase();
       if (!nome || !gestorNome || !gestorEmail) {
@@ -270,11 +346,6 @@ Deno.serve(async (req) => {
       const conflito = await verificarEmailEmUso(admin, gestorEmail);
       if (conflito.em_uso) {
         return jsonResponse(erroEmailParaResposta(conflito.perfil), 400);
-      }
-
-      const planoId = await getPlanoIdInstitucional(admin);
-      if (!planoId) {
-        return jsonResponse({ error: "Plano padrão não encontrado." }, 500);
       }
 
       // 1) Cria unidade
@@ -355,6 +426,7 @@ Deno.serve(async (req) => {
           unidade_nome: unidade.nome,
           gestor_email: gestorEmail,
           gestor_nome: gestorNome,
+          gestor_modo: "novo",
           plano_categoria: planoCategoria,
         },
       );
