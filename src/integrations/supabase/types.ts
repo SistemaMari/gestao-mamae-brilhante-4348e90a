@@ -112,6 +112,36 @@ export type Database = {
         }
         Relationships: []
       }
+      asaas_webhook_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_id: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          processed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+        }
+        Relationships: []
+      }
       consolidacoes: {
         Row: {
           created_at: string
@@ -810,9 +840,12 @@ export type Database = {
       }
       profissionais: {
         Row: {
+          asaas_customer_id: string | null
+          asaas_subscription_id: string | null
           cidade: string | null
           created_at: string
           crm: string | null
+          data_inicio_assinatura: string | null
           especialidade: string | null
           estado: string | null
           id: string
@@ -828,6 +861,7 @@ export type Database = {
           plano_expira_em: string | null
           plano_id: string
           plano_status: string
+          proxima_renovacao: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           telefone: string | null
@@ -836,9 +870,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
           cidade?: string | null
           created_at?: string
           crm?: string | null
+          data_inicio_assinatura?: string | null
           especialidade?: string | null
           estado?: string | null
           id?: string
@@ -854,6 +891,7 @@ export type Database = {
           plano_expira_em?: string | null
           plano_id: string
           plano_status?: string
+          proxima_renovacao?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           telefone?: string | null
@@ -862,9 +900,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
           cidade?: string | null
           created_at?: string
           crm?: string | null
+          data_inicio_assinatura?: string | null
           especialidade?: string | null
           estado?: string | null
           id?: string
@@ -880,6 +921,7 @@ export type Database = {
           plano_expira_em?: string | null
           plano_id?: string
           plano_status?: string
+          proxima_renovacao?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           telefone?: string | null
