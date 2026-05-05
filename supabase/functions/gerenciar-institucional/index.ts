@@ -643,22 +643,12 @@ Deno.serve(async (req) => {
       if (!nome || !email) {
         return jsonResponse({ error: "Nome e e-mail são obrigatórios." }, 400);
       }
-      if (unidadeIds.length === 0) {
-        return jsonResponse(
-          {
-            codigo: "sem_unidades",
-            mensagem: "Gestor geral precisa de ao menos 1 unidade vinculada.",
-          },
-          400,
-        );
-      }
-
-      // valida unidades
+      // valida unidades (array vazio é válido — vínculo é opcional)
       const { data: existentes } = await admin
         .from("unidades")
         .select("id")
-        .in("id", unidadeIds);
-      if ((existentes?.length ?? 0) !== unidadeIds.length) {
+        .in("id", unidadeIds.length ? unidadeIds : ["00000000-0000-0000-0000-000000000000"]);
+      if (unidadeIds.length > 0 && (existentes?.length ?? 0) !== unidadeIds.length) {
         return jsonResponse(
           {
             codigo: "unidade_nao_encontrada",
@@ -707,21 +697,23 @@ Deno.serve(async (req) => {
         );
       }
 
-      const vinculos = unidadeIds.map((uid) => ({
-        gestor_geral_id: gg.id,
-        unidade_id: uid,
-      }));
-      const { error: errVinc } = await admin
-        .from("gestores_gerais_unidades")
-        .insert(vinculos);
-      if (errVinc) {
-        console.error("Erro vínculos:", errVinc);
-        await admin.from("gestores_gerais").delete().eq("id", gg.id);
-        await admin.auth.admin.deleteUser(newUserId).catch(() => {});
-        return jsonResponse(
-          { error: "Erro ao processar operação. Nenhum dado foi alterado." },
-          500,
-        );
+      if (unidadeIds.length > 0) {
+        const vinculos = unidadeIds.map((uid) => ({
+          gestor_geral_id: gg.id,
+          unidade_id: uid,
+        }));
+        const { error: errVinc } = await admin
+          .from("gestores_gerais_unidades")
+          .insert(vinculos);
+        if (errVinc) {
+          console.error("Erro vínculos:", errVinc);
+          await admin.from("gestores_gerais").delete().eq("id", gg.id);
+          await admin.auth.admin.deleteUser(newUserId).catch(() => {});
+          return jsonResponse(
+            { error: "Erro ao processar operação. Nenhum dado foi alterado." },
+            500,
+          );
+        }
       }
 
       await inserirAuditoria(
@@ -819,15 +811,6 @@ Deno.serve(async (req) => {
           400,
         );
       }
-      if (unidadeIds.length === 0) {
-        return jsonResponse(
-          {
-            codigo: "sem_unidades",
-            mensagem: "Gestor geral precisa de ao menos 1 unidade vinculada.",
-          },
-          400,
-        );
-      }
 
       const { data: gg } = await admin
         .from("gestores_gerais")
@@ -844,18 +827,20 @@ Deno.serve(async (req) => {
         );
       }
 
-      const { data: existentes } = await admin
-        .from("unidades")
-        .select("id")
-        .in("id", unidadeIds);
-      if ((existentes?.length ?? 0) !== unidadeIds.length) {
-        return jsonResponse(
-          {
-            codigo: "unidade_nao_encontrada",
-            mensagem: "Uma ou mais unidades não existem.",
-          },
-          400,
-        );
+      if (unidadeIds.length > 0) {
+        const { data: existentes } = await admin
+          .from("unidades")
+          .select("id")
+          .in("id", unidadeIds);
+        if ((existentes?.length ?? 0) !== unidadeIds.length) {
+          return jsonResponse(
+            {
+              codigo: "unidade_nao_encontrada",
+              mensagem: "Uma ou mais unidades não existem.",
+            },
+            400,
+          );
+        }
       }
 
       const { data: atuaisRows } = await admin
