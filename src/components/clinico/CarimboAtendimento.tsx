@@ -16,6 +16,7 @@ interface RegistroLista {
 
 interface PropsBanner {
   variant: "banner";
+  mockProfissional?: { nome: string; crm: string | null; unidade_nome: string | null };
 }
 interface PropsInline {
   variant: "inline";
@@ -23,7 +24,9 @@ interface PropsInline {
 }
 interface PropsLista {
   variant: "lista";
-  pacienteId: string;
+  pacienteId?: string;
+  registros?: RegistroLista[];
+  forceVisible?: boolean;
 }
 type Props = PropsBanner | PropsInline | PropsLista;
 
@@ -55,14 +58,16 @@ export default function CarimboAtendimento(props: Props) {
   }, [user, ehInstitucional, props.variant]);
 
   if (props.variant === "banner") {
-    if (!ehInstitucional || !meuProf) return null;
+    const dados = props.mockProfissional ?? meuProf;
+    if (!dados) return null;
+    if (!props.mockProfissional && !ehInstitucional) return null;
     return (
       <div className="rounded-md border border-[#99F6E4] bg-[#F0FDFA] px-4 py-2 text-sm">
         <span className="text-muted-foreground">Atendendo como: </span>
-        <strong className="text-[#0F766E]">{meuProf.nome}</strong>
-        {meuProf.crm && <span className="text-[#0F766E]"> — CRM {meuProf.crm}</span>}
-        {meuProf.unidade_nome && (
-          <span className="text-muted-foreground"> | {meuProf.unidade_nome}</span>
+        <strong className="text-[#0F766E]">{dados.nome}</strong>
+        {dados.crm && <span className="text-[#0F766E]"> — CRM {dados.crm}</span>}
+        {dados.unidade_nome && (
+          <span className="text-muted-foreground"> | {dados.unidade_nome}</span>
         )}
       </div>
     );
@@ -79,26 +84,17 @@ export default function CarimboAtendimento(props: Props) {
     );
   }
 
-  return <ListaHistorico pacienteId={props.pacienteId} ehInstitucional={ehInstitucional || profile === "admin" || profile === "gestor_geral"} />;
+  if (props.registros) {
+    return <ListaHistoricoMock registros={props.registros} />;
+  }
+  return <ListaHistorico pacienteId={props.pacienteId!} ehInstitucional={props.forceVisible || ehInstitucional || profile === "admin" || profile === "gestor_geral"} />;
 }
 
-function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; ehInstitucional: boolean }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ["registros_atendimento", pacienteId],
-    enabled: ehInstitucional,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("registros_atendimento" as any)
-        .select("id, tipo_operacao, profissional_nome, profissional_crm, profissional_especialidade, created_at")
-        .eq("paciente_id", pacienteId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as unknown as RegistroLista[];
-    },
-  });
+function ListaHistoricoMock({ registros }: { registros: RegistroLista[] }) {
+  return <ListaRender data={registros} isLoading={false} />;
+}
 
-  if (!ehInstitucional) return null;
-
+function ListaRender({ data, isLoading }: { data: RegistroLista[] | undefined; isLoading: boolean }) {
   return (
     <div className="space-y-2">
       <h3 className="font-[Sora] text-base font-semibold text-[#5B3A8E]">
@@ -107,9 +103,7 @@ function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; e
       {isLoading ? (
         <Skeleton className="h-20 w-full" />
       ) : !data || data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Nenhum atendimento registrado ainda.
-        </p>
+        <p className="text-sm text-muted-foreground">Nenhum atendimento registrado ainda.</p>
       ) : (
         <ul className="divide-y rounded-md border bg-white">
           {data.map((r) => (
@@ -137,4 +131,23 @@ function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; e
       )}
     </div>
   );
+}
+
+function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; ehInstitucional: boolean }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["registros_atendimento", pacienteId],
+    enabled: ehInstitucional,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("registros_atendimento" as any)
+        .select("id, tipo_operacao, profissional_nome, profissional_crm, profissional_especialidade, created_at")
+        .eq("paciente_id", pacienteId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as RegistroLista[];
+    },
+  });
+
+  if (!ehInstitucional) return null;
+  return <ListaRender data={data} isLoading={isLoading} />;
 }

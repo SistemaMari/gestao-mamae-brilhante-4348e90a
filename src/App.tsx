@@ -42,6 +42,7 @@ import PreviewHubPage, {
 import PreviewAppShell from "./components/PreviewAppShell";
 import PreviewAdminLayout from "./pages/admin/PreviewAdminLayout";
 import ComponentesDemoPage from "./pages/_dev/ComponentesDemoPage";
+import FichaCarimbadaDemo from "./pages/_dev/FichaCarimbadaDemo";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="/vitrine/gestao/equipe" element={<PreviewGestaoEquipePage />} />
             <Route path="/vitrine/consolidar" element={<ConsolidarPage />} />
             <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
+            <Route path="/vitrine/ficha-carimbada" element={<FichaCarimbadaDemo />} />
 
             {/* Vitrine com App Shell de demonstração */}
             <Route element={<PreviewAppShell />}>
