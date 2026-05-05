@@ -151,4 +151,3 @@ function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; e
   if (!ehInstitucional) return null;
   return <ListaRender data={data} isLoading={isLoading} />;
 }
-}
