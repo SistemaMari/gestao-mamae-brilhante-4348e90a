@@ -125,8 +125,8 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-[#5B3A8E]">
-              {["Nome", "Tipo", "Cidade", "Gestor", "Profis.", "Pacient.", "Desde", "Ações"].map((h, i) => (
-                <TableHead key={h} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 7 ? "text-right" : ""}`}>
+              {["Nome", "Tipo", "Cidade", "Contratante", "Gestor", "Profis.", "Pacient.", "Desde", "Ações"].map((h, i) => (
+                <TableHead key={h} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 8 ? "text-right" : ""}`}>
                   {h}
                 </TableHead>
               ))}
