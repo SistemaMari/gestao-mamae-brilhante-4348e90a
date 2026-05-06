@@ -323,6 +323,10 @@ export default function GestaoPage() {
   };
 
   const exportPDF = async () => {
+    if (isVitrine) {
+      toast.success('Exportar PDF é uma funcionalidade da versão real (vitrine apenas demonstrativa).');
+      return;
+    }
     if (!user || !unidadeId) return;
     setExportandoPdf(true);
     try {
