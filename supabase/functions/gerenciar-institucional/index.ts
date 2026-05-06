@@ -890,34 +890,46 @@ Deno.serve(async (req) => {
       const userIds = (ggs ?? []).map((g) => g.user_id).filter(Boolean);
       const emailMap = await getEmailMap(admin, userIds);
 
-      // Vínculos + nomes de unidades
-      const { data: vinc } = await admin
-        .from("gestores_gerais_unidades")
-        .select("gestor_geral_id, unidade_id")
+      // [28.3a] Vínculos com contratantes (modelo novo)
+      const { data: vincC } = await admin
+        .from("gestores_gerais_contratantes")
+        .select("gestor_geral_id, contratante_id")
         .in("gestor_geral_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
 
-      const unidadeIds = Array.from(
-        new Set((vinc ?? []).map((v) => v.unidade_id)),
-      );
-      const { data: unidadesNomes } = await admin
-        .from("unidades")
+      const contratanteIds = Array.from(new Set((vincC ?? []).map((v) => v.contratante_id)));
+      const { data: contratantesRows } = await admin
+        .from("contratantes")
         .select("id, nome")
-        .in("id", unidadeIds.length ? unidadeIds : ["00000000-0000-0000-0000-000000000000"]);
-      const uMap = new Map(
-        (unidadesNomes ?? []).map((u) => [u.id, u.nome] as const),
-      );
+        .in("id", contratanteIds.length ? contratanteIds : ["00000000-0000-0000-0000-000000000000"]);
+      const cMap = new Map((contratantesRows ?? []).map((c) => [c.id, c.nome] as const));
 
-      const vincByGg = new Map<string, { id: string; nome: string }[]>();
-      for (const v of vinc ?? []) {
-        const arr = vincByGg.get(v.gestor_geral_id) ?? [];
-        arr.push({ id: v.unidade_id, nome: uMap.get(v.unidade_id) ?? "" });
-        vincByGg.set(v.gestor_geral_id, arr);
+      const contratantesByGg = new Map<string, { id: string; nome: string }[]>();
+      for (const v of vincC ?? []) {
+        const arr = contratantesByGg.get(v.gestor_geral_id) ?? [];
+        arr.push({ id: v.contratante_id, nome: cMap.get(v.contratante_id) ?? "" });
+        contratantesByGg.set(v.gestor_geral_id, arr);
+      }
+
+      // Compat: também retorna unidades_vinculadas[] derivadas via contratante (frontend antigo continua funcionando)
+      const { data: uniRows } = await admin
+        .from("unidades")
+        .select("id, nome, contratante_id")
+        .in("contratante_id", contratanteIds.length ? contratanteIds : ["00000000-0000-0000-0000-000000000000"]);
+      const uniByContratante = new Map<string, { id: string; nome: string }[]>();
+      for (const u of uniRows ?? []) {
+        const arr = uniByContratante.get(u.contratante_id) ?? [];
+        arr.push({ id: u.id, nome: u.nome });
+        uniByContratante.set(u.contratante_id, arr);
       }
 
       const out = (ggs ?? []).map((g) => {
         const info = emailMap.get(g.user_id);
         const meta = info?.user_metadata ?? {};
-        const unidades = vincByGg.get(g.id) ?? [];
+        const contratantes = contratantesByGg.get(g.id) ?? [];
+        const unidades: { id: string; nome: string }[] = [];
+        for (const c of contratantes) {
+          for (const u of uniByContratante.get(c.id) ?? []) unidades.push(u);
+        }
         return {
           id: g.id,
           user_id: g.user_id,
@@ -926,9 +938,11 @@ Deno.serve(async (req) => {
           cargo: meta.cargo ?? null,
           instituicao: meta.instituicao ?? null,
           convite_pendente: info ? info.last_sign_in_at == null : true,
+          contratantes_vinculados: contratantes,
+          // compat — frontend antigo
           unidades_vinculadas: unidades.length,
-          created_at: g.created_at,
           unidades,
+          created_at: g.created_at,
         };
       });
 
