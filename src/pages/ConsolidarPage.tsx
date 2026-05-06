@@ -389,10 +389,8 @@ export default function ConsolidarPage() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <AppSidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-[1280px] px-6 py-8 lg:px-10">
+    <div className="mx-auto max-w-[1280px] px-6 py-8 lg:px-10">
+          {/* spacer */}
           {/* ===== Cabeçalho ===== */}
           <div className="mb-6 flex items-center gap-2 text-sm text-primary">
             <BarChart3 className="h-4 w-4" />
