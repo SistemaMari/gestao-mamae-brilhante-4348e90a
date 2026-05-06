@@ -190,13 +190,13 @@ export default function AbaProfissionais() {
           </TableHeader>
           <TableBody>
             {isLoading && [0, 1, 2].map((i) => (
-              <TableRow key={i}><TableCell colSpan={7}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+              <TableRow key={i}><TableCell colSpan={8}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
             ))}
             {!isLoading && isError && (
-              <TableRow><TableCell colSpan={7} className="text-center text-destructive">Erro ao carregar profissionais.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-destructive">Erro ao carregar profissionais.</TableCell></TableRow>
             )}
             {!isLoading && !isError && lista.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">Nenhum profissional encontrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Nenhum profissional encontrado.</TableCell></TableRow>
             )}
             {lista.map((p, idx) => (
               <TableRow
