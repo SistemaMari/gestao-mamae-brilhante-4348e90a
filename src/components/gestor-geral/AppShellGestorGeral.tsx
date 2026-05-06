@@ -137,11 +137,16 @@ function GestorGeralSidebar({
 export default function AppShellGestorGeral() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [carregando, setCarregando] = useState(true);
-  const [nome, setNome] = useState("");
-  const [detalhe, setDetalhe] = useState("");
+  const { pathname } = useLocation();
+  const isVitrine = pathname.startsWith("/vitrine");
+  const [carregando, setCarregando] = useState(!isVitrine);
+  const [nome, setNome] = useState(isVitrine ? "Dr. Demo Gestor Geral" : "");
+  const [detalhe, setDetalhe] = useState(
+    isVitrine ? "Diretor Médico — Demo Health" : "",
+  );
 
   useEffect(() => {
+    if (isVitrine) return;
     let cancelado = false;
     (async () => {
       if (!user?.id) {
@@ -155,16 +160,19 @@ export default function AppShellGestorGeral() {
         .maybeSingle();
       if (cancelado) return;
       setNome(data?.nome ?? "");
-      // Cargo/instituição não estão modelados ainda; mostramos só o e-mail abaixo.
       setDetalhe("");
       setCarregando(false);
     })();
     return () => {
       cancelado = true;
     };
-  }, [user?.id, navigate]);
+  }, [user?.id, navigate, isVitrine]);
 
   const handleSair = async () => {
+    if (isVitrine) {
+      navigate("/vitrine", { replace: true });
+      return;
+    }
     await supabase.auth.signOut();
     navigate("/login", { replace: true });
   };
