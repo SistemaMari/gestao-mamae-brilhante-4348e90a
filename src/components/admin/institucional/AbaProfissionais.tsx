@@ -90,6 +90,7 @@ export default function AbaProfissionais() {
   const lista = useMemo(() => {
     let r = profs ?? [];
     if (filtroUnidade !== "todas") r = r.filter((p) => p.unidade_id === filtroUnidade);
+    if (filtroContratante !== "todos") r = r.filter((p) => p.contratante_id === filtroContratante);
     if (filtroStatus === "ativos") r = r.filter((p) => !p.acesso_revogado && !p.convite_pendente);
     if (filtroStatus === "pendente") r = r.filter((p) => p.convite_pendente && !p.acesso_revogado);
     if (filtroStatus === "revogado") r = r.filter((p) => p.acesso_revogado);
@@ -101,10 +102,11 @@ export default function AbaProfissionais() {
       );
     }
     return r;
-  }, [profs, filtroUnidade, filtroStatus, busca]);
+  }, [profs, filtroUnidade, filtroContratante, filtroStatus, busca]);
 
   function limpar() {
     setFiltroUnidade("todas");
+    setFiltroContratante("todos");
     setFiltroStatus("ativos");
     setBusca("");
   }
