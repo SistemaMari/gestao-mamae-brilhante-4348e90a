@@ -141,6 +141,18 @@ export default function AbaProfissionais() {
           </Select>
         </div>
         <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Contratante</label>
+          <Select value={filtroContratante} onValueChange={setFiltroContratante}>
+            <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os contratantes</SelectItem>
+              {contratantesOpt.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Status</label>
           <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as StatusFiltro)}>
             <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
