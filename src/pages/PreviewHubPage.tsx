@@ -313,14 +313,11 @@ export function PreviewGestaoEquipePage() {
   };
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
+    <div className="px-6 py-8 lg:px-10">
       <div className="mx-auto max-w-6xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <Link to="/" className="text-sm font-medium text-primary transition-opacity hover:opacity-80">
-              ← Voltar para a vitrine
-            </Link>
-            <h1 className="mt-3 font-heading text-3xl font-bold text-foreground">Gerenciar Equipe</h1>
+            <h1 className="font-heading text-3xl font-bold text-foreground">Gerenciar Equipe</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Prévia funcional da área do gestor para convidar, reenviar e remover profissionais.
             </p>
@@ -401,7 +398,7 @@ export function PreviewGestaoEquipePage() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 }
 
