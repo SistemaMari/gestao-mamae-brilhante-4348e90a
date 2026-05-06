@@ -240,6 +240,7 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
       <ModalReenviarConvite alvo={reenviar} onClose={() => setReenviar(null)} />
       <ModalVincularGestor alvo={vincular} onClose={() => setVincular(null)} onSucesso={refresh} />
       <AlertDesvincularGestor alvo={desvincular} onClose={() => setDesvincular(null)} onSucesso={refresh} />
+      <ModalTransferirUnidade alvo={transferir} onClose={() => setTransferir(null)} onSucesso={refresh} />
     </div>
   );
 }
