@@ -1043,7 +1043,7 @@ export default function FichaPacientePage() {
                     return (
                       <>
                         {/* Edit button — only for last consultation */}
-                        {canEdit && (
+                        {canEdit && !isReadOnly && (
                           <div className="no-print flex justify-end mb-2">
                             <Button
                               variant="ghost"
