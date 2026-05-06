@@ -18,6 +18,8 @@ interface Props {
   disabled?: boolean;
   /** Inclui contratantes encerrados (uso no Modal Editar Gestor Geral). Default: false */
   incluirEncerrados?: boolean;
+  /** IDs a esconder da lista (ex.: contratante origem na transferência). */
+  excluirIds?: string[];
   /** Callback opcional: navegar para a aba Contratantes quando lista vazia. */
   onIrParaContratantes?: () => void;
   placeholder?: string;
@@ -27,7 +29,7 @@ const MARI_SANDBOX_NOME = "MARI Sandbox";
 
 export default function SelectContratante({
   value, onChange, disabled,
-  incluirEncerrados = false, onIrParaContratantes,
+  incluirEncerrados = false, excluirIds = [], onIrParaContratantes,
   placeholder = "Selecione um contratante…",
 }: Props) {
   const { data = [], isLoading } = useQuery({
@@ -44,7 +46,9 @@ export default function SelectContratante({
     },
   });
 
-  if (!isLoading && data.length === 0) {
+  const filtered = data.filter((c) => !excluirIds.includes(c.id));
+
+  if (!isLoading && filtered.length === 0) {
     return (
       <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
         <p>Não há contratantes ativos cadastrados. Cadastre um contratante antes de criar a unidade.</p>
@@ -69,7 +73,7 @@ export default function SelectContratante({
         <SelectValue placeholder={isLoading ? "Carregando…" : placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {data.map((c) => (
+        {filtered.map((c) => (
           <SelectItem key={c.id} value={c.id}>
             {c.nome}
             {c.status !== "ativo" ? ` (${c.status})` : ""}

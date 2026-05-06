@@ -2,13 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { ArrowRightLeft } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   unidadeId: string;
+  unidadeNome: string;
   cnes: string | null;
   plano: string | null;
   gestorEmail: string | null;
   createdAt: string;
+  contratanteId: string | null;
+  contratanteNome: string | null;
+  contratanteAtivo: boolean;
+  onTransferir?: () => void;
 }
 
 const PERFIL_LABEL: Record<string, string> = {
@@ -17,7 +25,10 @@ const PERFIL_LABEL: Record<string, string> = {
   consultorio: "Consultório",
 };
 
-export default function LinhaUnidadeExpandida({ unidadeId, cnes, plano, gestorEmail, createdAt }: Props) {
+export default function LinhaUnidadeExpandida({
+  unidadeId, cnes, plano, gestorEmail, createdAt,
+  contratanteAtivo, onTransferir,
+}: Props) {
   const { data, isLoading } = useQuery({
     queryKey: ["institucional", "unidade-profissionais", unidadeId],
     queryFn: async () => {
@@ -66,6 +77,32 @@ export default function LinhaUnidadeExpandida({ unidadeId, cnes, plano, gestorEm
           </Table>
         )}
       </div>
+
+      {onTransferir && (
+        <div className="mt-4 flex justify-end">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={onTransferir}
+                    disabled={!contratanteAtivo}
+                  >
+                    <ArrowRightLeft className="mr-1 h-3 w-3" /> Transferir contratante
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!contratanteAtivo && (
+                <TooltipContent>
+                  Reative o contratante atual ou aguarde reativação para transferir.
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
     </div>
   );
 }

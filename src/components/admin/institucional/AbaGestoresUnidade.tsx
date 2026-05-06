@@ -24,12 +24,18 @@ export interface GestorUnidadeRow {
   email: string | null;
   unidade_id: string | null;
   unidade_nome: string | null;
+  contratante_id?: string | null;
+  contratante_nome?: string | null;
+  contratante_status?: string | null;
   convite_pendente: boolean;
   acesso_revogado: boolean;
   acesso_revogado_em: string | null;
   motivo_revogacao: string | null;
   created_at: string;
 }
+
+interface ContratanteOpt { id: string; nome: string; status: string; }
+const MARI_SANDBOX_NOME = "MARI Sandbox";
 
 type StatusFiltro = "todos" | "ativos" | "pendente" | "revogado" | "sem_unidade";
 
@@ -43,7 +49,18 @@ export default function AbaGestoresUnidade() {
   const [desvincular, setDesvincular] = useState<{ gestor_id: string; gestor_nome: string; unidade_nome: string } | null>(null);
 
   const [filtroStatus, setFiltroStatus] = useState<StatusFiltro>("ativos");
+  const [filtroContratante, setFiltroContratante] = useState<string>("todos");
   const [busca, setBusca] = useState("");
+
+  const { data: contratantesOpt = [] } = useQuery({
+    queryKey: ["institucional", "contratantes-ativos"],
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("gerenciar-institucional", {
+        body: { acao: "listar_contratantes" },
+      });
+      return ((data?.contratantes ?? []) as ContratanteOpt[]).filter((c) => c.status === "ativo");
+    },
+  });
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["institucional", "gestores-unidade"],
@@ -69,14 +86,15 @@ export default function AbaGestoresUnidade() {
     if (filtroStatus === "pendente") r = r.filter((g) => g.convite_pendente && !g.acesso_revogado);
     if (filtroStatus === "revogado") r = r.filter((g) => g.acesso_revogado);
     if (filtroStatus === "sem_unidade") r = r.filter((g) => !g.unidade_id && !g.acesso_revogado);
+    if (filtroContratante !== "todos") r = r.filter((g) => g.contratante_id === filtroContratante);
     if (busca.trim()) {
       const q = busca.trim().toLowerCase();
       r = r.filter((g) => g.nome.toLowerCase().includes(q) || (g.email ?? "").toLowerCase().includes(q));
     }
     return r;
-  }, [data, filtroStatus, busca]);
+  }, [data, filtroStatus, filtroContratante, busca]);
 
-  function limpar() { setFiltroStatus("ativos"); setBusca(""); }
+  function limpar() { setFiltroStatus("ativos"); setFiltroContratante("todos"); setBusca(""); }
 
   async function reenviar(g: GestorUnidadeRow) {
     if (!g.email) return;

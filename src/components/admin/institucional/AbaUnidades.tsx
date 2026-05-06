@@ -14,6 +14,7 @@ import ModalReenviarConvite from "./ModalReenviarConvite";
 import ModalVincularGestor, { type AlvoVinculacao } from "./ModalVincularGestor";
 import AlertDesvincularGestor from "./AlertDesvincularGestor";
 import LinhaUnidadeExpandida from "./LinhaUnidadeExpandida";
+import ModalTransferirUnidade from "./ModalTransferirUnidade";
 import { FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 
 export interface UnidadeRow extends UnidadeEditavel {
@@ -27,6 +28,7 @@ export interface UnidadeRow extends UnidadeEditavel {
   plano?: string | null;
   contratante_id?: string | null;
   contratante_nome?: string | null;
+  contratante_status?: string | null;
 }
 
 interface ContratanteOpt { id: string; nome: string; status: string; }
@@ -43,6 +45,7 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
   const [vincular, setVincular] = useState<AlvoVinculacao | null>(null);
   const [desvincular, setDesvincular] = useState<{ gestor_id: string; gestor_nome: string; unidade_nome: string } | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [transferir, setTransferir] = useState<{ unidade_id: string; unidade_nome: string; contratante_origem_id: string | null; contratante_origem_nome: string | null } | null>(null);
   const [filtroGestor, setFiltroGestor] = useState<StatusGestorFiltro>("todos");
   const [filtroContratante, setFiltroContratante] = useState<string>("todos");
 
@@ -157,7 +160,12 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
                     {u.contratante_nome === MARI_SANDBOX_NOME ? (
                       <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">⚙ Sandbox</Badge>
                     ) : (
-                      u.contratante_nome ?? "—"
+                      <span className="inline-flex items-center gap-1">
+                        {u.contratante_nome ?? "—"}
+                        {u.contratante_status && u.contratante_status !== "ativo" && (
+                          <Badge className="bg-slate-200 text-slate-700 hover:bg-slate-200">⊘ Encerrado</Badge>
+                        )}
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -201,10 +209,20 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
                     <TableCell colSpan={9} className="p-0">
                       <LinhaUnidadeExpandida
                         unidadeId={u.id}
+                        unidadeNome={u.nome}
                         cnes={u.cnes ?? null}
                         plano={u.plano ?? null}
                         gestorEmail={u.gestor_email ?? null}
                         createdAt={u.created_at}
+                        contratanteId={u.contratante_id ?? null}
+                        contratanteNome={u.contratante_nome ?? null}
+                        contratanteAtivo={(u.contratante_status ?? "ativo") === "ativo"}
+                        onTransferir={u.contratante_nome !== MARI_SANDBOX_NOME ? () => setTransferir({
+                          unidade_id: u.id,
+                          unidade_nome: u.nome,
+                          contratante_origem_id: u.contratante_id ?? null,
+                          contratante_origem_nome: u.contratante_nome ?? null,
+                        }) : undefined}
                       />
                     </TableCell>
                   </TableRow>
@@ -222,6 +240,7 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
       <ModalReenviarConvite alvo={reenviar} onClose={() => setReenviar(null)} />
       <ModalVincularGestor alvo={vincular} onClose={() => setVincular(null)} onSucesso={refresh} />
       <AlertDesvincularGestor alvo={desvincular} onClose={() => setDesvincular(null)} onSucesso={refresh} />
+      <ModalTransferirUnidade alvo={transferir} onClose={() => setTransferir(null)} onSucesso={refresh} />
     </div>
   );
 }
