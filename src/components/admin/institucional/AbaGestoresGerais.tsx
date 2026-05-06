@@ -65,7 +65,7 @@ export default function AbaGestoresGerais() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-[#5B3A8E]">
-                {["Nome", "Instituição", "Unidades", "Ações"].map((h, i) => (
+                {["Nome", "Instituição", "Contratantes", "Ações"].map((h, i) => (
                   <TableHead key={h} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 3 ? "text-right" : ""}`}>
                     {h}
                   </TableHead>
