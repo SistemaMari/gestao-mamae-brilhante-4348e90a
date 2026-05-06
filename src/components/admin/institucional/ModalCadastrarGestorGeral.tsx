@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import MultiSelectUnidades, { type UnidadeOption } from "./MultiSelectUnidades";
+import MultiSelectContratantes, { type ContratanteOption } from "./MultiSelectContratantes";
 import AvisoUnicidadeEmail from "./AvisoUnicidadeEmail";
 import { MENSAGENS_UNICIDADE, FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 
