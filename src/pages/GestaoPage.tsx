@@ -40,21 +40,46 @@ interface UnidadeOpt { id: string; nome: string; }
 export default function GestaoPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isVitrine = pathname.startsWith('/vitrine');
+  const basePath = isVitrine ? '/vitrine/gestao' : '/gestao';
 
-  const [unidadeNome, setUnidadeNome] = useState('');
-  const [unidadeId, setUnidadeId] = useState<string | null>(null);
+  const [unidadeNome, setUnidadeNome] = useState(isVitrine ? 'Hospital Demo MARI' : '');
+  const [unidadeId, setUnidadeId] = useState<string | null>(isVitrine ? 'vitrine-unidade' : null);
   const [isGestorGeral, setIsGestorGeral] = useState(false);
   const [unidadesDisponiveis, setUnidadesDisponiveis] = useState<UnidadeOpt[]>([]);
   const [gestorSemUnidade, setGestorSemUnidade] = useState(false);
-  const [contextoCarregado, setContextoCarregado] = useState(false);
+  const [contextoCarregado, setContextoCarregado] = useState(isVitrine);
 
-  const [totalProfissionais, setTotalProfissionais] = useState(0);
-  const [convitesPendentes, setConvitesPendentes] = useState(0);
-  const [totalLaudos, setTotalLaudos] = useState(0);
-  const [pacientesEmInsulina, setPacientesEmInsulina] = useState(0);
-  const [atividades, setAtividades] = useState<AtividadeRecente[]>([]);
-  const [fichas, setFichas] = useState<FichaResumo[]>([]);
-  const [_loading, setLoading] = useState(true);
+  const [totalProfissionais, setTotalProfissionais] = useState(isVitrine ? 8 : 0);
+  const [convitesPendentes, setConvitesPendentes] = useState(isVitrine ? 2 : 0);
+  const [totalLaudos, setTotalLaudos] = useState(isVitrine ? 47 : 0);
+  const [pacientesEmInsulina, setPacientesEmInsulina] = useState(isVitrine ? 6 : 0);
+  const [atividades, setAtividades] = useState<AtividadeRecente[]>(
+    isVitrine
+      ? [
+          { id: 'a1', tipo: 'laudo', descricao: 'Laudo gerado', profissional_nome: 'Dra. Ana Souza', data: new Date(Date.now() - 2 * 86400000).toISOString() },
+          { id: 'a2', tipo: 'consulta', descricao: 'Primeira consulta registrado', profissional_nome: 'Dr. Carlos Lima', data: new Date(Date.now() - 3 * 86400000).toISOString() },
+          { id: 'a3', tipo: 'laudo', descricao: 'Laudo gerado', profissional_nome: 'Dra. Bia Mello', data: new Date(Date.now() - 4 * 86400000).toISOString() },
+          { id: 'a4', tipo: 'consulta', descricao: 'Retorno registrado', profissional_nome: 'Dra. Ana Souza', data: new Date(Date.now() - 6 * 86400000).toISOString() },
+        ]
+      : [],
+  );
+  const [fichas, setFichas] = useState<FichaResumo[]>(
+    isVitrine
+      ? Array.from({ length: 23 }).map((_, i) => ({
+          id: `f${i}`,
+          nome: ['Mariana Silva', 'Patrícia Souza', 'Júlia Costa', 'Renata Lima', 'Camila Rocha', 'Beatriz Alves', 'Larissa Pinto', 'Fernanda Dias'][i % 8] + ' ' + (i + 1),
+          status_ficha: ['em_acompanhamento', 'aguardando_gj', 'em_acompanhamento', 'alta', 'concluido'][i % 5],
+          profissional_id: `p${i % 4}`,
+          profissional_nome: ['Dra. Ana Souza', 'Dr. Carlos Lima', 'Dra. Bia Mello', 'Dr. Diego Reis'][i % 4],
+          data_ultima_consulta: new Date(Date.now() - (i + 1) * 86400000).toISOString(),
+          created_at: new Date(Date.now() - (i + 7) * 86400000).toISOString(),
+          dmg_gestacao_anterior: i % 3 === 0,
+        }))
+      : [],
+  );
+  const [_loading, setLoading] = useState(!isVitrine);
   const [exportandoPdf, setExportandoPdf] = useState(false);
 
   // Filtros locais
@@ -65,14 +90,16 @@ export default function GestaoPage() {
   const [periodoFim, setPeriodoFim] = useState<Date | null>(null);
 
   useEffect(() => {
+    if (isVitrine) return;
     if (!user) return;
     initContext();
-  }, [user]);
+  }, [user, isVitrine]);
 
   useEffect(() => {
+    if (isVitrine) return;
     if (!user || !unidadeId) return;
     fetchDados();
-  }, [user, unidadeId, periodoInicio, periodoFim]);
+  }, [user, unidadeId, periodoInicio, periodoFim, isVitrine]);
 
   const initContext = async () => {
     if (!user) return;
