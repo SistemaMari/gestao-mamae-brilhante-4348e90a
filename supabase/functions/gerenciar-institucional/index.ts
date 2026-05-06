@@ -1984,14 +1984,18 @@ Deno.serve(async (req) => {
 
       const { data: uniRows } = await admin
         .from("unidades")
-        .select("id, contratante_id")
+        .select("id, nome, contratante_id")
         .in("contratante_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
       const uniByCont = new Map<string, string[]>();
+      const nomesByCont = new Map<string, string[]>();
       const uniIds: string[] = [];
       for (const u of uniRows ?? []) {
         const arr = uniByCont.get(u.contratante_id) ?? [];
         arr.push(u.id);
         uniByCont.set(u.contratante_id, arr);
+        const narr = nomesByCont.get(u.contratante_id) ?? [];
+        narr.push(u.nome);
+        nomesByCont.set(u.contratante_id, narr);
         uniIds.push(u.id);
       }
 
