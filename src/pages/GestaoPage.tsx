@@ -72,23 +72,54 @@ export default function GestaoPage() {
   );
   const [fichas, setFichas] = useState<FichaResumo[]>(
     isVitrine
-      ? Array.from({ length: 23 }).map((_, i) => ({
-          id: `f${i}`,
-          nome: ['Mariana Silva', 'Patrícia Souza', 'Júlia Costa', 'Renata Lima', 'Camila Rocha', 'Beatriz Alves', 'Larissa Pinto', 'Fernanda Dias'][i % 8] + ' ' + (i + 1),
-          status_ficha: ['em_acompanhamento', 'aguardando_gj', 'em_acompanhamento', 'alta', 'concluido'][i % 5],
-          profissional_id: `p${i % 4}`,
-          profissional_nome: ['Dra. Ana Souza', 'Dr. Carlos Lima', 'Dra. Bia Mello', 'Dr. Diego Reis'][i % 4],
-          data_ultima_consulta: new Date(Date.now() - (i + 1) * 86400000).toISOString(),
-          created_at: new Date(Date.now() - (i + 7) * 86400000).toISOString(),
-          dmg_gestacao_anterior: i % 3 === 0,
-        }))
+      ? (() => {
+          const base = [
+            { nome: 'Maria Souza', status_ficha: 'dmg_confirmado', prof: 'Dra. Ana Souza',  semWeeks: 28, semDays: 3, ult: 1, prox: 6 },
+            { nome: 'Beatriz Alves', status_ficha: 'aguardando_gtt', prof: 'Dr. Carlos Lima', semWeeks: 24, semDays: 1, ult: 2, prox: 5 },
+            { nome: 'Júlia Costa',   status_ficha: 'dmg_confirmado', prof: 'Dra. Bia Mello',  semWeeks: 32, semDays: 5, ult: 3, prox: 4 },
+            { nome: 'Renata Lima',   status_ficha: 'dmg_afastado',   prof: 'Dr. Diego Reis',  semWeeks: 36, semDays: 2, ult: 4, prox: 9 },
+            { nome: 'Camila Rocha',  status_ficha: 'aguardando_gj',  prof: 'Dra. Ana Souza',  semWeeks: 20, semDays: 0, ult: 5, prox: 2 },
+          ];
+          const extras = ['Mariana Silva','Patrícia Souza','Larissa Pinto','Fernanda Dias','Helena Pires','Roberta Cunha','Aline Tavares','Tatiana Reis','Sofia Mendes','Vivian Gomes','Carla Nogueira','Bianca Moura','Yasmin Borges','Eduarda Pacheco','Joana Vieira','Isabela Ramos','Karina Brito','Luana Sales'];
+          const profs = ['Dra. Ana Souza', 'Dr. Carlos Lima', 'Dra. Bia Mello', 'Dr. Diego Reis'];
+          const statuses = ['dmg_confirmado','aguardando_gtt','dmg_afastado','aguardando_gj','encaminhada_endocrino'];
+          const today = Date.now();
+          const day = 86400000;
+          const all = [...base, ...extras.map((nome, i) => ({
+            nome,
+            status_ficha: statuses[i % statuses.length],
+            prof: profs[i % profs.length],
+            semWeeks: 18 + (i * 3) % 20,
+            semDays: i % 7,
+            ult: (i + 6) % 30,
+            prox: ((i + 1) % 20) - 5,
+          }))];
+          return all.map((f, i) => {
+            // Calcula uma DUM coerente para que calcIdadeGestacional renderize a IG desejada
+            const totalDias = f.semWeeks * 7 + f.semDays;
+            const dum = new Date(today - totalDias * day).toISOString().slice(0, 10);
+            const proxDate = f.prox >= 0 ? new Date(today + f.prox * day) : new Date(today - Math.abs(f.prox) * day);
+            return {
+              id: `vit-${i}`,
+              nome: f.nome,
+              status_ficha: f.status_ficha,
+              profissional_id: `p-${f.prof}`,
+              profissional_nome: f.prof,
+              data_ultima_consulta: new Date(today - f.ult * day).toISOString().slice(0, 10),
+              data_proximo_retorno: proxDate.toISOString().slice(0, 10),
+              created_at: new Date(today - (f.ult + 30) * day).toISOString(),
+              dmg_gestacao_anterior: i % 4 === 0,
+              dum,
+              usg_data: null,
+              usg_ig_semanas: null,
+              usg_ig_dias: null,
+            };
+          });
+        })()
       : [],
   );
   const [_loading, setLoading] = useState(!isVitrine);
   const [exportandoPdf, setExportandoPdf] = useState(false);
-
-  // Filtros locais
-  const [filtroStatus, setFiltroStatus] = useState('todos');
 
   // Filtros globais
   const [periodoInicio, setPeriodoInicio] = useState<Date | null>(null);
