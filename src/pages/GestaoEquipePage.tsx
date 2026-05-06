@@ -242,9 +242,7 @@ export default function GestaoEquipePage() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <AppSidebar />
-      <main className="flex-1 overflow-auto px-6 py-8 lg:px-10">
+    <div className="px-6 py-8 lg:px-10">
         <div className="mx-auto max-w-5xl">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
