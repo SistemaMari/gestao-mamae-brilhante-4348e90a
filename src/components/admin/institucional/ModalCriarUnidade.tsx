@@ -17,6 +17,7 @@ import { countries } from "@/data/locationData";
 import { useCidadesIBGE } from "@/hooks/useCidadesIBGE";
 import CidadeCombobox from "@/components/CidadeCombobox";
 import AvisoUnicidadeEmail from "./AvisoUnicidadeEmail";
+import SelectContratante from "./SelectContratante";
 import {
   MENSAGENS_UNICIDADE, FALLBACK_GENERICO, extrairErroEdge,
 } from "@/lib/mensagensUnicidade";
