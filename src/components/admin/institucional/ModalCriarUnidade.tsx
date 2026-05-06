@@ -79,6 +79,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
 
   const baseDadosUnidadeOk = nome.trim() && tipo && estado && cidade;
   const valido =
+    !!contratanteId &&
     baseDadosUnidadeOk &&
     (gestorModo === "novo"
       ? gestorNome.trim() && EMAIL_REGEX.test(gestorEmail.trim())
@@ -87,6 +88,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
       : true);
 
   function reset() {
+    setContratanteId("");
     setNome(""); setTipo("UBS"); setCnes(""); setPais("Brasil");
     setEstado(""); setCidade(""); setPlano("Institucional");
     setGestorModo("novo");
@@ -107,6 +109,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
 
     const baseBody: Record<string, unknown> = {
       acao: "criar_unidade",
+      contratante_id: contratanteId,
       nome: nome.trim(),
       tipo,
       cnes: cnes.trim() || null,
