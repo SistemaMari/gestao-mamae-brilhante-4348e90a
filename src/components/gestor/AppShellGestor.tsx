@@ -34,11 +34,11 @@ function iniciais(nome?: string | null) {
     .join("");
 }
 
-function GestorSidebar({ nome, unidade, email, onSair }: { nome: string; unidade: string; email: string; onSair: () => void }) {
+function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: string; unidade: string; email: string; basePath: string; onSair: () => void }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
-
+  const items = buildItems(basePath);
   const isActive = (url: string, exact: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(`${url}/`);
 
