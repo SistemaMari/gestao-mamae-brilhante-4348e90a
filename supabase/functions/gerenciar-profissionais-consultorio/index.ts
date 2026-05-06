@@ -1,6 +1,6 @@
 // Edge Function: gerenciar-profissionais-consultorio
 // Ações admin: listar, cadastrar, editar, mudar_plano, revogar_acesso
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
