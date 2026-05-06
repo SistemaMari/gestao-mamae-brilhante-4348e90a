@@ -126,6 +126,18 @@ export default function AbaGestoresUnidade() {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">Contratante</label>
+          <Select value={filtroContratante} onValueChange={setFiltroContratante}>
+            <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os contratantes</SelectItem>
+              {contratantesOpt.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-1 flex-1 min-w-[220px]">
           <label className="text-xs text-muted-foreground">Buscar por nome ou e-mail</label>
           <div className="relative">
@@ -143,8 +155,8 @@ export default function AbaGestoresUnidade() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-[#5B3A8E]">
-              {["Nome", "E-mail", "Unidade vinculada", "Status", "Ações"].map((h, i) => (
-                <TableHead key={h} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 4 ? "text-right" : ""}`}>
+              {["Nome", "E-mail", "Unidade vinculada", "Contratante", "Status", "Ações"].map((h, i) => (
+                <TableHead key={h} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 5 ? "text-right" : ""}`}>
                   {h}
                 </TableHead>
               ))}
@@ -152,13 +164,13 @@ export default function AbaGestoresUnidade() {
           </TableHeader>
           <TableBody>
             {isLoading && [0, 1, 2].map((i) => (
-              <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+              <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
             ))}
             {!isLoading && isError && (
-              <TableRow><TableCell colSpan={5} className="text-center text-destructive">Erro ao carregar gestores.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-destructive">Erro ao carregar gestores.</TableCell></TableRow>
             )}
             {!isLoading && !isError && lista.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Nenhum gestor encontrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Nenhum gestor encontrado.</TableCell></TableRow>
             )}
             {lista.map((g, idx) => (
               <TableRow
@@ -178,6 +190,15 @@ export default function AbaGestoresUnidade() {
                     <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⚠ Sem unidade</Badge>
                   ) : (
                     <span className="text-muted-foreground italic">—</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {g.contratante_nome === MARI_SANDBOX_NOME ? (
+                    <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">⚙ Sandbox</Badge>
+                  ) : g.contratante_status === "encerrado" ? (
+                    <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100" title="Contratante encerrado">⊘ {g.contratante_nome}</Badge>
+                  ) : (
+                    g.contratante_nome ?? <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
                 <TableCell>

@@ -1,10 +1,10 @@
 ---
-name: Camada Contratante (Prompt 28.3) — progresso
-description: 28.3 schema + 28.3a Edge Function COMPLETA. Pendente apenas frontend (28.3b/c).
+name: Camada Contratante (Prompt 28.3) — COMPLETO
+description: Trilogia 28.3 (a/b/c-1/c-2) 100% em produção. Camada Contratante totalmente integrada.
 type: feature
 ---
 
-## Status: 28.3 schema OK, 28.3a Edge Function OK. Pendente 28.3b/c (frontend).
+## Status: ✅ Trilogia 28.3 COMPLETA. Apenas housekeeping não-bloqueante pendente.
 
 ### EM PRODUÇÃO
 - Tabelas: `contratantes`, `gestores_gerais_contratantes`, `log_transferencia_unidade`.
@@ -73,8 +73,17 @@ Ações novas (6):
 - Novo componente `MultiSelectContratantes.tsx` (duplicado de MultiSelectUnidades).
 - BUG FIX `AbaGestoresUnidade`: filtro 'Ativos' agora inclui convite pendente; só revogados ficam excluídos.
 
-### PENDENTE 28.3c-2
-- Botões Encerrar/Reativar contratante (modais com preview/cascata) — stubs ainda em AbaContratantes.
-- Modal Transferir Unidade entre contratantes (UI usa `transferir_unidade_de_contratante` que já existe no backend).
-- Botão "Transferir contratante" na linha expandida de Unidade.
-- Housekeeping: remover `MultiSelectUnidades.tsx` legado e ação backend `atualizar_vinculos_unidades` (alias).
+### 28.3c-2 APLICADO ✅ Trilogia 28.3 COMPLETA
+- Backend: `listar_gestores_unidade` e `listar_gestores_gerais` agora retornam `contratante_id`/`nome`/`status` via JOIN.
+- 3 modais novos: `ModalEncerrarContratante` (preview impacto + motivo ≥20), `AlertReativarContratante`, `ModalTransferirUnidade` (excluirIds + justificativa ≥20).
+- `SelectContratante` ganhou prop `excluirIds[]`.
+- `AbaContratantes`: botões Encerrar (status=ativo) e Reativar (status=encerrado) funcionais — stubs disabled removidos.
+- `AbaUnidades` + `LinhaUnidadeExpandida`: ação "Transferir contratante" (disabled tooltip se unidade inativa).
+- `AbaGestoresUnidade`: nova coluna Contratante (badge ⚙ Sandbox / ⊘ Encerrado) + filtro Contratante; colSpan ajustado para 6.
+- `AbaProfissionais`: badge ⊘ Encerrado + opacity-60 em linhas com contratante encerrado.
+- `AbaGestoresGerais`: tooltip prefixa ⊘ em contratantes com `status="encerrado"`.
+
+### Housekeeping pós-28.3 (futuro, não-bloqueante)
+- Remover `MultiSelectUnidades.tsx` legado.
+- Remover ação alias `atualizar_vinculos_unidades` no backend (mantido por compat).
+- Substituir stub `onIrParaContratantes` por filtro automático na aba Contratantes (V2).

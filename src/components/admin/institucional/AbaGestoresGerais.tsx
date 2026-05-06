@@ -19,7 +19,7 @@ interface GestorGeralRow {
   cargo: string | null;
   instituicao: string | null;
   convite_pendente: boolean | null;
-  contratantes_vinculados: { id: string; nome: string }[];
+  contratantes_vinculados: { id: string; nome: string; status?: string }[];
   // legacy compat (não usado mais na UI, mas evita quebra se backend retornar)
   unidades_vinculadas?: number;
   unidades?: { id: string; nome: string }[];
@@ -99,7 +99,7 @@ export default function AbaGestoresGerais() {
                       <TooltipContent>
                         {!g.contratantes_vinculados?.length
                           ? "Sem contratantes vinculados"
-                          : g.contratantes_vinculados.slice(0, 10).map((c) => c.nome).join(", ") +
+                          : g.contratantes_vinculados.slice(0, 10).map((c) => (c.status === "encerrado" ? `⊘ ${c.nome}` : c.nome)).join(", ") +
                             (g.contratantes_vinculados.length > 10 ? "…" : "")}
                       </TooltipContent>
                     </Tooltip>

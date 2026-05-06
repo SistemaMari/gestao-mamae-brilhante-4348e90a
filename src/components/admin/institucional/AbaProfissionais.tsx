@@ -29,6 +29,7 @@ export interface ProfissionalRow {
   unidade_nome: string | null;
   contratante_id?: string | null;
   contratante_nome?: string | null;
+  contratante_status?: string | null;
   convite_pendente: boolean;
   acesso_revogado: boolean;
   acesso_revogado_em: string | null;
@@ -201,7 +202,7 @@ export default function AbaProfissionais() {
             {lista.map((p, idx) => (
               <TableRow
                 key={p.id}
-                className={`${idx % 2 === 0 ? "bg-white" : "bg-[#F5F3FA]"} ${p.acesso_revogado ? "opacity-60" : ""}`}
+                className={`${idx % 2 === 0 ? "bg-white" : "bg-[#F5F3FA]"} ${p.acesso_revogado || p.contratante_status === "encerrado" ? "opacity-60" : ""}`}
               >
                 <TableCell className="font-medium">
                   {p.nome}
@@ -215,6 +216,8 @@ export default function AbaProfissionais() {
                 <TableCell>
                   {p.contratante_nome === MARI_SANDBOX_NOME ? (
                     <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">⚙ Sandbox</Badge>
+                  ) : p.contratante_status === "encerrado" ? (
+                    <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100" title="Contratante encerrado">⊘ {p.contratante_nome}</Badge>
                   ) : (
                     p.contratante_nome ?? "—"
                   )}
