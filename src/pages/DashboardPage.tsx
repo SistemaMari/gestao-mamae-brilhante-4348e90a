@@ -16,7 +16,7 @@ import {
   Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
   User, Info, Loader2
 } from 'lucide-react';
-import { differenceInDays, format, addDays } from 'date-fns';
+import { differenceInDays, format } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 import { STATUS_CONFIG, calcIdadeGestacional } from '@/lib/fichaUtils';
 
