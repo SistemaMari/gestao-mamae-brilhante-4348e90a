@@ -65,7 +65,7 @@ export default function AbaGestoresUnidade() {
 
   const lista = useMemo(() => {
     let r = data ?? [];
-    if (filtroStatus === "ativos") r = r.filter((g) => !g.acesso_revogado && !g.convite_pendente);
+    if (filtroStatus === "ativos") r = r.filter((g) => !g.acesso_revogado);
     if (filtroStatus === "pendente") r = r.filter((g) => g.convite_pendente && !g.acesso_revogado);
     if (filtroStatus === "revogado") r = r.filter((g) => g.acesso_revogado);
     if (filtroStatus === "sem_unidade") r = r.filter((g) => !g.unidade_id && !g.acesso_revogado);
