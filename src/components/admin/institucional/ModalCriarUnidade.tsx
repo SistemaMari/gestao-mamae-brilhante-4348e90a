@@ -164,6 +164,22 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <section className="space-y-3">
+            <h3 className="text-sm font-semibold text-[#5B3A8E]">Contratante</h3>
+            <div className="space-y-1.5">
+              <Label>Contratante *</Label>
+              <SelectContratante
+                value={contratanteId}
+                onChange={setContratanteId}
+                disabled={submitting}
+                onIrParaContratantes={() => {
+                  handleOpenChange(false);
+                  onIrParaContratantes?.();
+                }}
+              />
+            </div>
+          </section>
+
+          <section className="space-y-3">
             <h3 className="text-sm font-semibold text-[#5B3A8E]">Dados da unidade</h3>
             <div className="space-y-1.5">
               <Label>Nome da unidade</Label>
