@@ -42,6 +42,9 @@ export const MENSAGENS_UNICIDADE: Record<string, string> = {
   nome_contratante_obrigatorio:
     "Informe o nome do contratante (até 200 caracteres).",
   contato_email_invalido: "E-mail de contato inválido.",
+
+  // [28.3b]
+  contratante_obrigatorio: "O contratante é obrigatório para criar uma unidade.",
 };
 
 export const PERFIL_CLINICO_LABEL: Record<string, string> = {
