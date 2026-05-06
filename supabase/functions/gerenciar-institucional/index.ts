@@ -1647,6 +1647,9 @@ Deno.serve(async (req) => {
           email,
           unidade_id: p.unidade_id,
           unidade_nome: p.unidades?.nome ?? null,
+          contratante_id: p.unidades?.contratante_id ?? null,
+          contratante_nome: p.unidades?.contratantes?.nome ?? null,
+          contratante_status: p.unidades?.contratantes?.status ?? null,
           convite_pendente:
             (email ? pendentes.has(email.toLowerCase()) : false) || nuncaLogou,
           acesso_revogado: !!p.acesso_revogado,
