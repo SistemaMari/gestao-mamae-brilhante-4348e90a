@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RotateCw } from "lucide-react";
+import { Plus, RotateCw, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -31,6 +32,7 @@ export default function AbaGestoresGerais() {
   const [editar, setEditar] = useState<GestorGeralRow | null>(null);
   const [desativar, setDesativar] = useState<{ id: string; nome: string } | null>(null);
   const [reenviar, setReenviar] = useState<{ tipo: "gestor_geral"; id: string; email?: string | null } | null>(null);
+  const [busca, setBusca] = useState("");
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["institucional", "gestores-gerais"],
@@ -47,14 +49,28 @@ export default function AbaGestoresGerais() {
   });
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["institucional", "gestores-gerais"] });
-  const lista = data ?? [];
+  const lista = useMemo(() => {
+    const todos = data ?? [];
+    if (!busca.trim()) return todos;
+    const q = busca.trim().toLowerCase();
+    return todos.filter((g) => g.nome.toLowerCase().includes(q));
+  }, [data, busca]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {isLoading ? "Carregando…" : `${lista.length} gestor${lista.length === 1 ? "" : "es"} gera${lista.length === 1 ? "l" : "is"}`}
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex items-end gap-3">
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">Buscar por nome do gestor</label>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input className="pl-8 w-[260px]" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Digite o nome…" />
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground pb-2">
+            {isLoading ? "Carregando…" : `${lista.length} gestor${lista.length === 1 ? "" : "es"} gera${lista.length === 1 ? "l" : "is"}`}
+          </p>
+        </div>
         <Button onClick={() => setOpenCadastrar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
           <Plus className="mr-2 h-4 w-4" /> Cadastrar gestor geral
         </Button>

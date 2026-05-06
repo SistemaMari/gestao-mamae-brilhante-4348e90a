@@ -1,8 +1,9 @@
 import { useState, useMemo, Fragment } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RotateCw } from "lucide-react";
+import { Plus, RotateCw, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -48,6 +49,7 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
   const [transferir, setTransferir] = useState<{ unidade_id: string; unidade_nome: string; contratante_origem_id: string | null; contratante_origem_nome: string | null } | null>(null);
   const [filtroGestor, setFiltroGestor] = useState<StatusGestorFiltro>("todos");
   const [filtroContratante, setFiltroContratante] = useState<string>("todos");
+  const [busca, setBusca] = useState("");
 
   const { data: contratantesOpt = [] } = useQuery({
     queryKey: ["institucional", "contratantes-ativos"],
@@ -85,8 +87,12 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
     if (filtroGestor === "com_gestor") r = r.filter((u) => !!u.gestor_id);
     if (filtroGestor === "em_aberto") r = r.filter((u) => !u.gestor_id);
     if (filtroContratante !== "todos") r = r.filter((u) => u.contratante_id === filtroContratante);
+    if (busca.trim()) {
+      const q = busca.trim().toLowerCase();
+      r = r.filter((u) => u.nome.toLowerCase().includes(q));
+    }
     return r;
-  }, [data, filtroGestor, filtroContratante]);
+  }, [data, filtroGestor, filtroContratante, busca]);
 
   return (
     <div className="space-y-4">
@@ -114,6 +120,13 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">Buscar por nome da unidade</label>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input className="pl-8 w-[260px]" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Digite o nome do hospital…" />
+            </div>
           </div>
           <p className="text-sm text-muted-foreground pb-2">
             {isLoading ? "Carregando…" : `${unidades.length} unidade${unidades.length === 1 ? "" : "s"}`}
