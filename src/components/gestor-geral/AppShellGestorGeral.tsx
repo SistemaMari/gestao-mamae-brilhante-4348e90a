@@ -17,9 +17,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-const items = [
-  { title: "Consolidador", path: "/consolidar", icon: FileBarChart, exact: true },
-  { title: "Configurações", path: "/consolidar/configuracoes", icon: Settings, exact: false },
+const buildItems = (base: string) => [
+  { title: "Consolidador", path: base, icon: FileBarChart, exact: true },
+  { title: "Configurações", path: `${base}/configuracoes`, icon: Settings, exact: false },
 ];
 
 function iniciais(nome?: string | null) {
