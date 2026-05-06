@@ -104,15 +104,15 @@ export default function ModalCadastrarGestorGeral({ open, onOpenChange, onSucess
             <Input value={instituicao} onChange={(e) => setInstituicao(e.target.value)} disabled={submitting} />
           </div>
           <div className="space-y-1.5">
-            <Label>Unidades vinculadas (opcional)</Label>
-            <MultiSelectUnidades
-              unidades={unidades ?? []}
-              selecionadas={unidadeIds}
-              onChange={setUnidadeIds}
+            <Label>Contratantes vinculados (opcional)</Label>
+            <MultiSelectContratantes
+              contratantes={contratantes ?? []}
+              selecionadas={contratanteIds}
+              onChange={setContratanteIds}
               disabled={submitting}
             />
             <p className="text-xs text-muted-foreground">
-              Você pode cadastrar o gestor sem vincular unidades agora e fazer isso depois pelo botão Editar.
+              Você pode cadastrar o gestor sem vincular contratantes agora e fazer isso depois pelo botão Editar.
             </p>
           </div>
 
