@@ -3,8 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation, useNavigate } from 'react-router-dom';
 import StatCard from '@/components/StatCard';
-import { Users, FileText, UserPlus, ArrowRight, Building2, Clock, Download, Filter, Activity, Syringe, HeartPulse, FileDown, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { Users, FileText, UserPlus, ArrowRight, Building2, Clock, Activity, Syringe, HeartPulse, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,6 +14,7 @@ import FiltroPeriodoGlobal from '@/components/gestao/FiltroPeriodoGlobal';
 import MetricasPartoSection from '@/components/gestao/MetricasPartoSection';
 import PacientesPorProfissional from '@/components/gestao/PacientesPorProfissional';
 import { exportarRelatorioPdf } from '@/lib/exportarRelatorioPdf';
+import { STATUS_CONFIG, calcIdadeGestacional } from '@/lib/fichaUtils';
 
 interface AtividadeRecente {
   id: string;
