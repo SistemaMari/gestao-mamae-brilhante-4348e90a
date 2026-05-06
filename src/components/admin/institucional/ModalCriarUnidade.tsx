@@ -17,6 +17,7 @@ import { countries } from "@/data/locationData";
 import { useCidadesIBGE } from "@/hooks/useCidadesIBGE";
 import CidadeCombobox from "@/components/CidadeCombobox";
 import AvisoUnicidadeEmail from "./AvisoUnicidadeEmail";
+import SelectContratante from "./SelectContratante";
 import {
   MENSAGENS_UNICIDADE, FALLBACK_GENERICO, extrairErroEdge,
 } from "@/lib/mensagensUnicidade";
@@ -38,9 +39,11 @@ interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSucesso: () => void;
+  onIrParaContratantes?: () => void;
 }
 
-export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Props) {
+export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrParaContratantes }: Props) {
+  const [contratanteId, setContratanteId] = useState("");
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("UBS");
   const [cnes, setCnes] = useState("");
@@ -76,6 +79,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
 
   const baseDadosUnidadeOk = nome.trim() && tipo && estado && cidade;
   const valido =
+    !!contratanteId &&
     baseDadosUnidadeOk &&
     (gestorModo === "novo"
       ? gestorNome.trim() && EMAIL_REGEX.test(gestorEmail.trim())
@@ -84,6 +88,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
       : true);
 
   function reset() {
+    setContratanteId("");
     setNome(""); setTipo("UBS"); setCnes(""); setPais("Brasil");
     setEstado(""); setCidade(""); setPlano("Institucional");
     setGestorModo("novo");
@@ -104,6 +109,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
 
     const baseBody: Record<string, unknown> = {
       acao: "criar_unidade",
+      contratante_id: contratanteId,
       nome: nome.trim(),
       tipo,
       cnes: cnes.trim() || null,
@@ -157,6 +163,22 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso }: Pro
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold text-[#5B3A8E]">Contratante</h3>
+            <div className="space-y-1.5">
+              <Label>Contratante *</Label>
+              <SelectContratante
+                value={contratanteId}
+                onChange={setContratanteId}
+                disabled={submitting}
+                onIrParaContratantes={() => {
+                  handleOpenChange(false);
+                  onIrParaContratantes?.();
+                }}
+              />
+            </div>
+          </section>
+
           <section className="space-y-3">
             <h3 className="text-sm font-semibold text-[#5B3A8E]">Dados da unidade</h3>
             <div className="space-y-1.5">

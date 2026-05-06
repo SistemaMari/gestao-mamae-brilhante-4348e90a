@@ -263,11 +263,12 @@ Deno.serve(async (req) => {
       const planoCategoria = body.plano ?? "clinica"; // só categoria
       const gestorModo = String(body.gestor_modo ?? "novo");
 
-      // [28.3a] contratante_id agora é validado quando enviado.
-      // Workaround MARI Sandbox mantido como fallback até o 28.3b expor o Select no frontend.
-      const MARI_SANDBOX_ID = "feac2ad0-cb91-43c3-a043-094ac0d95d08";
-      let contratante_id = String(body.contratante_id ?? "").trim();
-      if (contratante_id) {
+      // [28.3b] contratante_id é obrigatório. Workaround MARI Sandbox removido.
+      const contratante_id = String(body.contratante_id ?? "").trim();
+      if (!contratante_id) {
+        return jsonResponse({ codigo: "contratante_obrigatorio", mensagem: "O contratante é obrigatório para criar uma unidade." }, 400);
+      }
+      {
         const { data: cont } = await admin
           .from("contratantes")
           .select("id, status")
@@ -279,8 +280,6 @@ Deno.serve(async (req) => {
         if (cont.status !== "ativo") {
           return jsonResponse({ codigo: "contratante_encerrado", mensagem: "Contratante está encerrado e não pode receber novas unidades." }, 400);
         }
-      } else {
-        contratante_id = MARI_SANDBOX_ID;
       }
 
       const planoId = await getPlanoIdInstitucional(admin);
@@ -1985,14 +1984,18 @@ Deno.serve(async (req) => {
 
       const { data: uniRows } = await admin
         .from("unidades")
-        .select("id, contratante_id")
+        .select("id, nome, contratante_id")
         .in("contratante_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
       const uniByCont = new Map<string, string[]>();
+      const nomesByCont = new Map<string, string[]>();
       const uniIds: string[] = [];
       for (const u of uniRows ?? []) {
         const arr = uniByCont.get(u.contratante_id) ?? [];
         arr.push(u.id);
         uniByCont.set(u.contratante_id, arr);
+        const narr = nomesByCont.get(u.contratante_id) ?? [];
+        narr.push(u.nome);
+        nomesByCont.set(u.contratante_id, narr);
         uniIds.push(u.id);
       }
 
@@ -2021,6 +2024,7 @@ Deno.serve(async (req) => {
         return {
           ...c,
           unidades_count: unis.length,
+          unidades_nomes: nomesByCont.get(c.id) ?? [],
           gestores_gerais_count: ggByCont.get(c.id) ?? 0,
           profissionais_count: profCount,
         };

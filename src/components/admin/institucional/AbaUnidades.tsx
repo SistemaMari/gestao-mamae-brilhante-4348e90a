@@ -29,7 +29,7 @@ export interface UnidadeRow extends UnidadeEditavel {
 
 type StatusGestorFiltro = "todos" | "com_gestor" | "em_aberto";
 
-export default function AbaUnidades() {
+export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContratantes?: () => void } = {}) {
   const qc = useQueryClient();
   const [openCriar, setOpenCriar] = useState(false);
   const [editar, setEditar] = useState<UnidadeEditavel | null>(null);
@@ -180,7 +180,7 @@ export default function AbaUnidades() {
         </Table>
       </div>
 
-      <ModalCriarUnidade open={openCriar} onOpenChange={setOpenCriar} onSucesso={refresh} />
+      <ModalCriarUnidade open={openCriar} onOpenChange={setOpenCriar} onSucesso={refresh} onIrParaContratantes={onIrParaContratantes} />
       <ModalEditarUnidade unidade={editar} onClose={() => setEditar(null)} onSucesso={refresh} />
       <ModalTrocarGestor unidade={trocar} onClose={() => setTrocar(null)} onSucesso={refresh} />
       <ModalReenviarConvite alvo={reenviar} onClose={() => setReenviar(null)} />

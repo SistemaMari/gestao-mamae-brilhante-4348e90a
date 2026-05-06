@@ -49,3 +49,17 @@ Ações novas (6):
 ### Próximos sub-prompts
 - **28.3b**: AbaContratantes + ModalCadastrar/Editar; remover fallback MARI Sandbox de `criar_unidade` quando ModalCriarUnidade ganhar Select.
 - **28.3c**: ModalEncerrar/AlertReativar/ModalTransferir + ajustes em AbaUnidades/AbaProfissionais/AbaGestoresGerais + nova ordem de tabs.
+
+### 28.3b APLICADO
+- Aba Contratantes (default) com listar/cadastrar/editar — CNPJ read-only no editar.
+- Filtro client-side: `nome !== "MARI Sandbox"` em `AbaContratantes` e `SelectContratante`.
+- `SelectContratante.tsx` reutilizável (props `incluirEncerrados`, `onIrParaContratantes`) — será usado em 28.3c (ModalTransferirUnidade, ModalCadastrarGestorGeral).
+- `ModalCriarUnidade` agora exige `contratante_id`. Workaround MARI Sandbox REMOVIDO em `criar_unidade` (retorna `contratante_obrigatorio` se ausente).
+- Validação data_termino > 1 ano: ALERTA via window.confirm, NÃO bloqueio.
+- `listar_contratantes` agora retorna `unidades_nomes[]` para tooltip.
+- `mensagensUnicidade.ts`: adicionado `contratante_obrigatorio`.
+- Smoke OK: `criar_unidade` sem contratante_id → 400 `contratante_obrigatorio`.
+
+### PENDENTE 28.3c (CRITICO — não esquecer)
+- Botões **Encerrar** e **Reativar** em `AbaContratantes.tsx` estão como stub `disabled` com tooltip "Em breve — 28.3c". Implementar `ModalEncerrarContratante` + `AlertReativarContratante` chamando `encerrar_contratante`/`reativar_contratante` (já existem na Edge Function).
+- ModalTransferirUnidade + ajustes em AbaUnidades/AbaProfissionais (coluna Contratante) + AbaGestoresGerais (vínculo por contratante).
