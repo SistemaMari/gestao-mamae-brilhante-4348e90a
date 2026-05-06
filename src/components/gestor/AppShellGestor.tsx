@@ -17,11 +17,11 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-const items = [
-  { title: "Painel", path: "/gestao", icon: LayoutDashboard, exact: true },
-  { title: "Equipe", path: "/gestao/equipe", icon: Users, exact: false },
-  { title: "Fichas da unidade", path: "/gestao/fichas", icon: FileText, exact: false },
-  { title: "Configurações", path: "/gestao/configuracoes", icon: Settings, exact: false },
+const buildItems = (base: string) => [
+  { title: "Painel", path: base, icon: LayoutDashboard, exact: true },
+  { title: "Equipe", path: `${base}/equipe`, icon: Users, exact: false },
+  { title: "Fichas da unidade", path: `${base}/fichas`, icon: FileText, exact: false },
+  { title: "Configurações", path: `${base}/configuracoes`, icon: Settings, exact: false },
 ];
 
 function iniciais(nome?: string | null) {
