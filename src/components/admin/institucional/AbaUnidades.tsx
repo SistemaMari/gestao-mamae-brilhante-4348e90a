@@ -55,6 +55,8 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
       return ((data?.contratantes ?? []) as ContratanteOpt[]).filter((c) => c.status === "ativo");
     },
   });
+
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["institucional", "unidades"],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("gerenciar-institucional", {
