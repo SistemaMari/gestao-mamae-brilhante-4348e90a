@@ -650,6 +650,86 @@ export type Database = {
           },
         ]
       }
+      log_mudanca_plano: {
+        Row: {
+          alterado_em: string
+          alterado_por: string
+          id: string
+          motivo: string
+          plano_anterior_id: string | null
+          plano_novo_id: string | null
+          profissional_id: string
+        }
+        Insert: {
+          alterado_em?: string
+          alterado_por: string
+          id?: string
+          motivo: string
+          plano_anterior_id?: string | null
+          plano_novo_id?: string | null
+          profissional_id: string
+        }
+        Update: {
+          alterado_em?: string
+          alterado_por?: string
+          id?: string
+          motivo?: string
+          plano_anterior_id?: string | null
+          plano_novo_id?: string | null
+          profissional_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "log_mudanca_plano_plano_anterior_id_fkey"
+            columns: ["plano_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_evolucao_mensal_planos"
+            referencedColumns: ["plano_id"]
+          },
+          {
+            foreignKeyName: "log_mudanca_plano_plano_anterior_id_fkey"
+            columns: ["plano_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_profissionais_por_plano"
+            referencedColumns: ["plano_id"]
+          },
+          {
+            foreignKeyName: "log_mudanca_plano_plano_anterior_id_fkey"
+            columns: ["plano_anterior_id"]
+            isOneToOne: false
+            referencedRelation: "planos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "log_mudanca_plano_plano_novo_id_fkey"
+            columns: ["plano_novo_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_evolucao_mensal_planos"
+            referencedColumns: ["plano_id"]
+          },
+          {
+            foreignKeyName: "log_mudanca_plano_plano_novo_id_fkey"
+            columns: ["plano_novo_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_profissionais_por_plano"
+            referencedColumns: ["plano_id"]
+          },
+          {
+            foreignKeyName: "log_mudanca_plano_plano_novo_id_fkey"
+            columns: ["plano_novo_id"]
+            isOneToOne: false
+            referencedRelation: "planos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "log_mudanca_plano_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       log_transferencia_unidade: {
         Row: {
           contratante_destino_id: string
