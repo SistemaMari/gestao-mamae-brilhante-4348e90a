@@ -765,9 +765,23 @@ Deno.serve(async (req) => {
       const email = String(body.email ?? "").trim().toLowerCase();
       const cargo = body.cargo ?? null;
       const instituicao = body.instituicao ?? null;
-      const unidadeIds: string[] = Array.isArray(body.unidade_ids)
-        ? body.unidade_ids
+
+      // [28.3a] Modelo novo: contratante_ids[]. Backwards-compat: aceita unidade_ids[] legado e converte.
+      let contratanteIds: string[] = Array.isArray(body.contratante_ids)
+        ? body.contratante_ids.filter((x: any) => typeof x === "string" && x)
         : [];
+      const unidadeIdsLegado: string[] = Array.isArray(body.unidade_ids)
+        ? body.unidade_ids.filter((x: any) => typeof x === "string" && x)
+        : [];
+      if (contratanteIds.length === 0 && unidadeIdsLegado.length > 0) {
+        console.warn("[28.3a] criar_gestor_geral recebeu unidade_ids[] legado — convertendo para contratante_ids[].");
+        const { data: uniRows } = await admin
+          .from("unidades")
+          .select("contratante_id")
+          .in("id", unidadeIdsLegado);
+        contratanteIds = Array.from(new Set((uniRows ?? []).map((u: any) => u.contratante_id).filter(Boolean)));
+      }
+
       if (!nome || !email) {
         return jsonResponse({ error: "Nome e e-mail são obrigatórios." }, 400);
       }
@@ -777,6 +791,21 @@ Deno.serve(async (req) => {
         return jsonResponse(erroEmailParaResposta(conflito.perfil), 400);
       }
 
+      // Validar contratantes (existem e ativos)
+      if (contratanteIds.length > 0) {
+        const { data: contRows } = await admin
+          .from("contratantes")
+          .select("id, status")
+          .in("id", contratanteIds);
+        if ((contRows?.length ?? 0) !== contratanteIds.length) {
+          return jsonResponse({ codigo: "contratante_inexistente", mensagem: "Um ou mais contratantes não existem." }, 400);
+        }
+        const encerrados = (contRows ?? []).filter((c: any) => c.status !== "ativo").map((c: any) => c.id);
+        if (encerrados.length > 0) {
+          return jsonResponse({ codigo: "contratante_encerrado", mensagem: "Um ou mais contratantes estão encerrados.", ids: encerrados }, 400);
+        }
+      }
+
       const { data: invited, error: invErr } =
         await admin.auth.admin.inviteUserByEmail(email, {
           data: {
@@ -784,7 +813,7 @@ Deno.serve(async (req) => {
             perfil: "gestor_geral",
             cargo,
             instituicao,
-            total_unidades: unidadeIds.length,
+            total_contratantes: contratanteIds.length,
           },
           redirectTo: `${APP_URL}/nova-senha?destino=/consolidar`,
         });
@@ -811,16 +840,16 @@ Deno.serve(async (req) => {
         );
       }
 
-      if (unidadeIds.length > 0) {
-        const vinculos = unidadeIds.map((uid) => ({
+      if (contratanteIds.length > 0) {
+        const vinculos = contratanteIds.map((cid) => ({
           gestor_geral_id: gg.id,
-          unidade_id: uid,
+          contratante_id: cid,
         }));
         const { error: errVinc } = await admin
-          .from("gestores_gerais_unidades")
+          .from("gestores_gerais_contratantes")
           .insert(vinculos);
         if (errVinc) {
-          console.error("Erro vínculos unidades:", errVinc);
+          console.error("Erro vínculos contratantes:", errVinc);
           await admin.from("gestores_gerais").delete().eq("id", gg.id);
           await admin.auth.admin.deleteUser(newUserId).catch(() => {});
           return jsonResponse(
@@ -837,7 +866,7 @@ Deno.serve(async (req) => {
         {
           gestor_geral_id: gg.id,
           email,
-          total_unidades: unidadeIds.length,
+          total_contratantes: contratanteIds.length,
           cargo,
           instituicao,
         },
@@ -846,7 +875,7 @@ Deno.serve(async (req) => {
       return jsonResponse({
         status: "criado",
         gestor_geral_id: gg.id,
-        unidades_vinculadas: unidadeIds.length,
+        contratantes_vinculados: contratanteIds.length,
       });
     }
 
