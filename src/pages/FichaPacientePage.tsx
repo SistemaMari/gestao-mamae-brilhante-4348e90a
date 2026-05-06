@@ -189,6 +189,12 @@ export default function FichaPacientePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const isPreview = location.pathname.startsWith('/vitrine');
+  const isReadOnly =
+    location.pathname.startsWith('/gestao/fichas/') ||
+    location.pathname.startsWith('/vitrine/gestao/fichas/');
+  const fichasBackPath = location.pathname.startsWith('/vitrine')
+    ? '/vitrine/gestao/fichas'
+    : '/gestao/fichas';
   useAuth();
   useProfissionalData();
 
@@ -502,6 +508,24 @@ export default function FichaPacientePage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      {isReadOnly && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-2 print:hidden">
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => navigate(fichasBackPath)}
+              className="text-[#7C4DBA] hover:underline font-medium"
+            >
+              Fichas da unidade
+            </button>
+            <span className="text-muted-foreground">›</span>
+            <span className="text-foreground font-medium truncate">{paciente.nome}</span>
+          </div>
+          <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 shrink-0">
+            Modo visualização
+          </Badge>
+        </div>
+      )}
+
       {/* DMG anterior banner */}
       {(editing ? editDmgAnterior : paciente.dmg_gestacao_anterior) && (
         <div className="flex items-start gap-3 rounded-xl border-2 border-orange-400 bg-orange-50 p-4">
@@ -539,7 +563,7 @@ export default function FichaPacientePage() {
                 {status.label}
               </Badge>
             )}
-            {!editing && (
+            {!editing && !isReadOnly && (
               <Button
                 variant="outline"
                 size="sm"
@@ -1019,7 +1043,7 @@ export default function FichaPacientePage() {
                     return (
                       <>
                         {/* Edit button — only for last consultation */}
-                        {canEdit && (
+                        {canEdit && !isReadOnly && (
                           <div className="no-print flex justify-end mb-2">
                             <Button
                               variant="ghost"
@@ -1177,9 +1201,9 @@ export default function FichaPacientePage() {
       {/* Standalone results removed — results appear only inside history accordion */}
       {/* Cenário 5 (encerramento) renderizado somente dentro da ficha expansível do histórico */}
 
-      {/* Next step button — hidden in print */}
+      {/* Next step button — hidden in print and read-only */}
       <div className="print:hidden">
-        {(() => {
+        {!isReadOnly && (() => {
           if (showRetorno1 || showFichaAC || showFichaBD || showGtt || showRegistroParto) return null;
           if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
 
@@ -1227,7 +1251,7 @@ export default function FichaPacientePage() {
         })()}
 
         {/* Botão secundário — Registro do Parto */}
-        {canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt && !showRegistroParto && (
+        {!isReadOnly && canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt && !showRegistroParto && (
           <Button
             variant="outline"
             className="w-full mt-2 border-[#7C4DBA] text-[#7C4DBA] hover:bg-[#E8E0FF] hover:text-[#7E69AB]"

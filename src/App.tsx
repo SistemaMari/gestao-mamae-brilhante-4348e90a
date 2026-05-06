@@ -30,6 +30,7 @@ import CadastroConvitePage from "./pages/CadastroConvitePage";
 import AppShellGestor from "@/components/gestor/AppShellGestor";
 import AppShellGestorGeral from "@/components/gestor-geral/AppShellGestorGeral";
 import StubEmConstrucao from "@/components/StubEmConstrucao";
+import FichasUnidadePage from "./pages/gestao/FichasUnidadePage";
 import OnboardingPage from "./pages/OnboardingPage";
 import PacientePage from "./pages/PacientePage";
 import MeusCursosPage from "./pages/MeusCursosPage";
@@ -73,7 +74,8 @@ const App = () => (
             <Route element={<AppShellGestor />}>
               <Route path="/vitrine/gestao" element={<GestaoPage />} />
               <Route path="/vitrine/gestao/equipe" element={<PreviewGestaoEquipePage />} />
-              <Route path="/vitrine/gestao/fichas" element={<StubEmConstrucao titulo="Fichas da unidade" />} />
+              <Route path="/vitrine/gestao/fichas" element={<FichasUnidadePage />} />
+              <Route path="/vitrine/gestao/fichas/:id" element={<PacientePage />} />
               <Route path="/vitrine/gestao/configuracoes" element={<StubEmConstrucao titulo="Configurações" />} />
             </Route>
             <Route element={<AppShellGestorGeral />}>
@@ -161,7 +163,8 @@ const App = () => (
             <Route element={<ProtectedRoute allowedProfiles={['gestor']}><AppShellGestor /></ProtectedRoute>}>
               <Route path="/gestao" element={<GestaoPage />} />
               <Route path="/gestao/equipe" element={<GestaoEquipePage />} />
-              <Route path="/gestao/fichas" element={<StubEmConstrucao titulo="Fichas da unidade" />} />
+              <Route path="/gestao/fichas" element={<FichasUnidadePage />} />
+              <Route path="/gestao/fichas/:id" element={<PacientePage />} />
               <Route path="/gestao/configuracoes" element={<StubEmConstrucao titulo="Configurações" />} />
             </Route>
             {/* Painel Administrativo (Prompt 22) */}

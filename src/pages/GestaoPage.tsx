@@ -3,8 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation, useNavigate } from 'react-router-dom';
 import StatCard from '@/components/StatCard';
-import { Users, FileText, UserPlus, ArrowRight, Building2, Clock, Download, Filter, Activity, Syringe, HeartPulse, FileDown, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { Users, FileText, UserPlus, ArrowRight, Building2, Clock, Activity, Syringe, HeartPulse, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,6 +14,7 @@ import FiltroPeriodoGlobal from '@/components/gestao/FiltroPeriodoGlobal';
 import MetricasPartoSection from '@/components/gestao/MetricasPartoSection';
 import PacientesPorProfissional from '@/components/gestao/PacientesPorProfissional';
 import { exportarRelatorioPdf } from '@/lib/exportarRelatorioPdf';
+import { STATUS_CONFIG, calcIdadeGestacional } from '@/lib/fichaUtils';
 
 interface AtividadeRecente {
   id: string;
@@ -31,8 +31,13 @@ interface FichaResumo {
   profissional_id: string;
   profissional_nome: string;
   data_ultima_consulta: string | null;
+  data_proximo_retorno: string | null;
   created_at: string;
   dmg_gestacao_anterior: boolean | null;
+  dum: string | null;
+  usg_data: string | null;
+  usg_ig_semanas: number | null;
+  usg_ig_dias: number | null;
 }
 
 interface UnidadeOpt { id: string; nome: string; }
@@ -67,23 +72,54 @@ export default function GestaoPage() {
   );
   const [fichas, setFichas] = useState<FichaResumo[]>(
     isVitrine
-      ? Array.from({ length: 23 }).map((_, i) => ({
-          id: `f${i}`,
-          nome: ['Mariana Silva', 'Patrícia Souza', 'Júlia Costa', 'Renata Lima', 'Camila Rocha', 'Beatriz Alves', 'Larissa Pinto', 'Fernanda Dias'][i % 8] + ' ' + (i + 1),
-          status_ficha: ['em_acompanhamento', 'aguardando_gj', 'em_acompanhamento', 'alta', 'concluido'][i % 5],
-          profissional_id: `p${i % 4}`,
-          profissional_nome: ['Dra. Ana Souza', 'Dr. Carlos Lima', 'Dra. Bia Mello', 'Dr. Diego Reis'][i % 4],
-          data_ultima_consulta: new Date(Date.now() - (i + 1) * 86400000).toISOString(),
-          created_at: new Date(Date.now() - (i + 7) * 86400000).toISOString(),
-          dmg_gestacao_anterior: i % 3 === 0,
-        }))
+      ? (() => {
+          const base = [
+            { nome: 'Maria Souza', status_ficha: 'dmg_confirmado', prof: 'Dra. Ana Souza',  semWeeks: 28, semDays: 3, ult: 1, prox: 6 },
+            { nome: 'Beatriz Alves', status_ficha: 'aguardando_gtt', prof: 'Dr. Carlos Lima', semWeeks: 24, semDays: 1, ult: 2, prox: 5 },
+            { nome: 'Júlia Costa',   status_ficha: 'dmg_confirmado', prof: 'Dra. Bia Mello',  semWeeks: 32, semDays: 5, ult: 3, prox: 4 },
+            { nome: 'Renata Lima',   status_ficha: 'dmg_afastado',   prof: 'Dr. Diego Reis',  semWeeks: 36, semDays: 2, ult: 4, prox: 9 },
+            { nome: 'Camila Rocha',  status_ficha: 'aguardando_gj',  prof: 'Dra. Ana Souza',  semWeeks: 20, semDays: 0, ult: 5, prox: 2 },
+          ];
+          const extras = ['Mariana Silva','Patrícia Souza','Larissa Pinto','Fernanda Dias','Helena Pires','Roberta Cunha','Aline Tavares','Tatiana Reis','Sofia Mendes','Vivian Gomes','Carla Nogueira','Bianca Moura','Yasmin Borges','Eduarda Pacheco','Joana Vieira','Isabela Ramos','Karina Brito','Luana Sales'];
+          const profs = ['Dra. Ana Souza', 'Dr. Carlos Lima', 'Dra. Bia Mello', 'Dr. Diego Reis'];
+          const statuses = ['dmg_confirmado','aguardando_gtt','dmg_afastado','aguardando_gj','encaminhada_endocrino'];
+          const today = Date.now();
+          const day = 86400000;
+          const all = [...base, ...extras.map((nome, i) => ({
+            nome,
+            status_ficha: statuses[i % statuses.length],
+            prof: profs[i % profs.length],
+            semWeeks: 18 + (i * 3) % 20,
+            semDays: i % 7,
+            ult: (i + 6) % 30,
+            prox: ((i + 1) % 20) - 5,
+          }))];
+          return all.map((f, i) => {
+            // Calcula uma DUM coerente para que calcIdadeGestacional renderize a IG desejada
+            const totalDias = f.semWeeks * 7 + f.semDays;
+            const dum = new Date(today - totalDias * day).toISOString().slice(0, 10);
+            const proxDate = f.prox >= 0 ? new Date(today + f.prox * day) : new Date(today - Math.abs(f.prox) * day);
+            return {
+              id: `vit-${i}`,
+              nome: f.nome,
+              status_ficha: f.status_ficha,
+              profissional_id: `p-${f.prof}`,
+              profissional_nome: f.prof,
+              data_ultima_consulta: new Date(today - f.ult * day).toISOString().slice(0, 10),
+              data_proximo_retorno: proxDate.toISOString().slice(0, 10),
+              created_at: new Date(today - (f.ult + 30) * day).toISOString(),
+              dmg_gestacao_anterior: i % 4 === 0,
+              dum,
+              usg_data: null,
+              usg_ig_semanas: null,
+              usg_ig_dias: null,
+            };
+          });
+        })()
       : [],
   );
   const [_loading, setLoading] = useState(!isVitrine);
   const [exportandoPdf, setExportandoPdf] = useState(false);
-
-  // Filtros locais
-  const [filtroStatus, setFiltroStatus] = useState('todos');
 
   // Filtros globais
   const [periodoInicio, setPeriodoInicio] = useState<Date | null>(null);
@@ -149,7 +185,7 @@ export default function GestaoPage() {
 
     let qFichas = supabase
       .from('pacientes')
-      .select('id, nome, status_ficha, profissional_id, data_ultima_consulta, created_at, dmg_gestacao_anterior')
+      .select('id, nome, status_ficha, profissional_id, data_ultima_consulta, data_proximo_retorno, created_at, dmg_gestacao_anterior, dum, usg_data, usg_ig_semanas, usg_ig_dias')
       .eq('unidade_id', unidadeId)
       .eq('is_rascunho', false);
     if (inicioStr) qFichas = qFichas.gte('created_at', inicioStr);
@@ -192,15 +228,20 @@ export default function GestaoPage() {
     });
     setPacientesEmInsulina(pacientesInsulina.size);
 
-    const fichasList: FichaResumo[] = (fichasRes.data || []).map(f => ({
+    const fichasList: FichaResumo[] = (fichasRes.data || []).map((f: any) => ({
       id: f.id,
       nome: f.nome,
       status_ficha: f.status_ficha,
       profissional_id: f.profissional_id,
       profissional_nome: (profissionaisMap.get(f.profissional_id) || 'Desconhecido') as string,
       data_ultima_consulta: f.data_ultima_consulta,
+      data_proximo_retorno: f.data_proximo_retorno,
       created_at: f.created_at,
       dmg_gestacao_anterior: f.dmg_gestacao_anterior,
+      dum: f.dum,
+      usg_data: f.usg_data,
+      usg_ig_semanas: f.usg_ig_semanas,
+      usg_ig_dias: f.usg_ig_dias,
     }));
     setFichas(fichasList);
 
@@ -229,98 +270,21 @@ export default function GestaoPage() {
     setLoading(false);
   };
 
-  const fichasFiltradas = useMemo(() => {
-    if (filtroStatus === 'todos') return fichas;
-    return fichas.filter(f => f.status_ficha === filtroStatus);
-  }, [fichas, filtroStatus]);
+  // Resumo (5 fichas mais urgentes para o Painel)
+  const fichasResumo = useMemo(() => {
+    const sorted = [...fichas].sort((a, b) => {
+      // data_proximo_retorno ASC NULLS LAST
+      if (!a.data_proximo_retorno && !b.data_proximo_retorno) return 0;
+      if (!a.data_proximo_retorno) return 1;
+      if (!b.data_proximo_retorno) return -1;
+      return a.data_proximo_retorno.localeCompare(b.data_proximo_retorno);
+    });
+    return sorted.slice(0, 5);
+  }, [fichas]);
 
   const totalFichas = fichas.length;
   const fichasComDmg = fichas.filter(f => f.dmg_gestacao_anterior).length;
-  const fichasAtivas = fichas.filter(f => ['aguardando_gj', 'em_acompanhamento'].includes(f.status_ficha)).length;
-
-  const exportCSV = () => {
-    const headers = ['Nome', 'Status', 'Profissional', 'Última Consulta', 'Criada em'];
-    const rows = fichasFiltradas.map(f => [
-      f.nome,
-      traduzirStatus(f.status_ficha),
-      f.profissional_nome,
-      f.data_ultima_consulta ? new Date(f.data_ultima_consulta).toLocaleDateString('pt-BR') : '—',
-      new Date(f.created_at).toLocaleDateString('pt-BR'),
-    ]);
-    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-    downloadFile(csv, 'fichas_unidade.csv', 'text/csv');
-    toast.success('CSV exportado!');
-  };
-
-  const exportJSON = () => {
-    const data = fichasFiltradas.map(f => ({
-      nome: f.nome,
-      status: traduzirStatus(f.status_ficha),
-      profissional: f.profissional_nome,
-      ultima_consulta: f.data_ultima_consulta,
-      criada_em: f.created_at,
-    }));
-    downloadFile(JSON.stringify(data, null, 2), 'fichas_unidade.json', 'application/json');
-    toast.success('JSON exportado!');
-  };
-
-  const exportXLSX = () => {
-    const inicioStr = periodoInicio ? format(periodoInicio, 'dd/MM/yyyy') : '—';
-    const fimStr = periodoFim ? format(periodoFim, 'dd/MM/yyyy') : '—';
-
-    // Aba 1 — Resumo
-    const resumoRows = [
-      ['Relatório de Gestão — Unidade'],
-      ['Unidade', unidadeNome],
-      ['Período', `${inicioStr} até ${fimStr}`],
-      ['Gerado em', new Date().toLocaleString('pt-BR')],
-      [],
-      ['Indicador', 'Valor'],
-      ['Profissionais ativos', totalProfissionais],
-      ['Convites pendentes', convitesPendentes],
-      ['Fichas no período', totalFichas],
-      ['Fichas ativas', fichasAtivas],
-      ['DMG em gestação anterior', fichasComDmg],
-      ['Pacientes em insulina', pacientesEmInsulina],
-      ['Laudos gerados', totalLaudos],
-      ['Taxa DMG (%)', totalFichas > 0 ? Number(((fichasComDmg / totalFichas) * 100).toFixed(1)) : 0],
-    ];
-    const wsResumo = XLSX.utils.aoa_to_sheet(resumoRows);
-    wsResumo['!cols'] = [{ wch: 32 }, { wch: 28 }];
-
-    // Aba 2 — Fichas (respeita filtro de status)
-    const fichasHeader = ['Paciente', 'Status', 'Profissional', 'Última consulta', 'Criada em', 'DMG anterior'];
-    const fichasRows = fichasFiltradas.map(f => [
-      f.nome,
-      traduzirStatus(f.status_ficha),
-      f.profissional_nome,
-      f.data_ultima_consulta ? new Date(f.data_ultima_consulta).toLocaleDateString('pt-BR') : '—',
-      new Date(f.created_at).toLocaleDateString('pt-BR'),
-      f.dmg_gestacao_anterior ? 'Sim' : 'Não',
-    ]);
-    const wsFichas = XLSX.utils.aoa_to_sheet([fichasHeader, ...fichasRows]);
-    wsFichas['!cols'] = [{ wch: 32 }, { wch: 22 }, { wch: 28 }, { wch: 16 }, { wch: 14 }, { wch: 14 }];
-
-    // Aba 3 — Atividade recente
-    const atvHeader = ['Tipo', 'Descrição', 'Profissional', 'Data'];
-    const atvRows = atividades.map(a => [
-      a.tipo,
-      a.descricao,
-      a.profissional_nome,
-      new Date(a.data).toLocaleDateString('pt-BR'),
-    ]);
-    const wsAtv = XLSX.utils.aoa_to_sheet([atvHeader, ...atvRows]);
-    wsAtv['!cols'] = [{ wch: 12 }, { wch: 36 }, { wch: 28 }, { wch: 14 }];
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
-    XLSX.utils.book_append_sheet(wb, wsFichas, 'Fichas');
-    XLSX.utils.book_append_sheet(wb, wsAtv, 'Atividade');
-
-    const filename = `relatorio-${(unidadeNome || 'unidade').replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
-    XLSX.writeFile(wb, filename);
-    toast.success('Excel exportado!');
-  };
+  const fichasAtivas = fichas.filter(f => ['aguardando_gj', 'aguardando_gtt', 'dmg_confirmado'].includes(f.status_ficha)).length;
 
   const exportPDF = async () => {
     if (isVitrine) {
@@ -339,8 +303,6 @@ export default function GestaoPage() {
         periodoInicio: inicioStr,
         periodoFim: fimStr,
         metricasResumo: {
-          // Schema 18A — 21 chaves (campos não calculados pelo frontend ficam 0;
-          // o backend automático preenche todos via gerar-relatorios-mensais)
           unidade_nome: unidadeNome,
           total_gestantes: totalFichas,
           total_dmg_confirmado: fichasComDmg,
@@ -375,38 +337,6 @@ export default function GestaoPage() {
     }
   };
 
-  const downloadFile = (content: string, filename: string, type: string) => {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const traduzirStatus = (status: string) => {
-    const map: Record<string, string> = {
-      aguardando_gj: 'Aguardando GJ',
-      em_acompanhamento: 'Em acompanhamento',
-      alta: 'Alta',
-      concluido: 'Concluído',
-    };
-    return map[status] || status;
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'em_acompanhamento':
-        return <Badge className="bg-primary/10 text-primary border-primary/20">Em acompanhamento</Badge>;
-      case 'alta':
-        return <Badge className="bg-secondary/20 text-secondary-foreground border-secondary/30">Alta</Badge>;
-      case 'concluido':
-        return <Badge className="bg-muted text-muted-foreground border-muted">Concluído</Badge>;
-      default:
-        return <Badge variant="outline">{traduzirStatus(status)}</Badge>;
-    }
-  };
 
   if (contextoCarregado && gestorSemUnidade) {
     return (
@@ -532,77 +462,77 @@ export default function GestaoPage() {
               <PacientesPorProfissional fichas={fichas} />
             </div>
 
-            {/* Fichas */}
+            {/* Fichas — resumo executivo (5 mais urgentes) */}
             <div id="fichas-section" className="mb-8 rounded-xl border border-border bg-card p-5">
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-heading text-lg font-semibold text-foreground">Fichas da unidade</h2>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-                    <SelectTrigger className="w-[180px] h-9">
-                      <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todos">Todos os status</SelectItem>
-                      <SelectItem value="aguardando_gj">Aguardando GJ</SelectItem>
-                      <SelectItem value="em_acompanhamento">Em acompanhamento</SelectItem>
-                      <SelectItem value="alta">Alta</SelectItem>
-                      <SelectItem value="concluido">Concluído</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="sm" onClick={exportCSV} disabled={fichasFiltradas.length === 0}>
-                    <Download className="h-3.5 w-3.5" />
-                    CSV
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={exportXLSX} disabled={fichasFiltradas.length === 0}>
-                    <FileSpreadsheet className="h-3.5 w-3.5" />
-                    Excel
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={exportJSON} disabled={fichasFiltradas.length === 0}>
-                    <Download className="h-3.5 w-3.5" />
-                    JSON
-                  </Button>
-                </div>
               </div>
 
-              {fichasFiltradas.length === 0 ? (
+              {fichas.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <FileText className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                  <p className="text-sm text-muted-foreground">Nenhuma ficha encontrada</p>
+                  <p className="text-sm text-muted-foreground">Nenhuma ficha cadastrada nesta unidade ainda.</p>
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-lg border border-border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Paciente</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Profissional</TableHead>
-                        <TableHead>Última consulta</TableHead>
-                        <TableHead>Criada em</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {fichasFiltradas.map(f => (
-                        <TableRow key={f.id}>
-                          <TableCell className="font-medium">{f.nome}</TableCell>
-                          <TableCell>{getStatusBadge(f.status_ficha)}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{f.profissional_nome}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {f.data_ultima_consulta ? new Date(f.data_ultima_consulta).toLocaleDateString('pt-BR') : '—'}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {new Date(f.created_at).toLocaleDateString('pt-BR')}
-                          </TableCell>
+                <>
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Paciente</TableHead>
+                          <TableHead>IG</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Profissional</TableHead>
+                          <TableHead>Última consulta</TableHead>
+                          <TableHead>Próxima consulta</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {fichasResumo.map(f => {
+                          const cfg = STATUS_CONFIG[f.status_ficha];
+                          return (
+                            <TableRow
+                              key={f.id}
+                              className="cursor-pointer"
+                              onClick={() => navigate(`${basePath}/fichas/${f.id}`)}
+                            >
+                              <TableCell className="font-medium">{f.nome}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{calcIdadeGestacional(f)}</TableCell>
+                              <TableCell>
+                                {cfg ? (
+                                  <Badge className={`${cfg.color} text-white border-0`}>{cfg.label}</Badge>
+                                ) : (
+                                  <Badge variant="outline">{f.status_ficha}</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{f.profissional_nome}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {f.data_ultima_consulta ? new Date(f.data_ultima_consulta).toLocaleDateString('pt-BR') : '—'}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {f.data_proximo_retorno ? new Date(f.data_proximo_retorno).toLocaleDateString('pt-BR') : '—'}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {fichas.length > 5 && (
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`${basePath}/fichas`)}
+                        className="text-[#7C4DBA] hover:text-[#7E69AB] hover:bg-[#E8E0FF]"
+                      >
+                        Ver todas as fichas ({fichas.length}) <ArrowRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
-              <p className="mt-2 text-xs text-muted-foreground">
-                {fichasFiltradas.length} de {fichas.length} fichas exibidas
-              </p>
             </div>
 
             {/* Atividade recente */}

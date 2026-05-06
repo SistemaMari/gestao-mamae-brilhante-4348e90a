@@ -16,67 +16,11 @@ import {
   Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
   User, Info, Loader2
 } from 'lucide-react';
-import { differenceInDays, format, addDays } from 'date-fns';
+import { differenceInDays, format } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
+import { STATUS_CONFIG, calcIdadeGestacional } from '@/lib/fichaUtils';
 
 interface Paciente extends PreviewPaciente {}
-
-const STATUS_CONFIG: Record<string, { label: string; color: string; meaning: string }> = {
-  aguardando_gj: {
-    label: 'Aguardando GJ',
-    color: 'bg-gray-500',
-    meaning: 'Consulta 1 registrada. Aguardando resultado da glicemia de jejum.',
-  },
-  aguardando_gtt: {
-    label: 'Aguardando GTT',
-    color: 'bg-blue-500',
-    meaning: 'GJ normal (< 92). Aguardando GTT 75g entre 24-28 semanas.',
-  },
-  dmg_afastado: {
-    label: 'DMG afastado',
-    color: 'bg-emerald-500',
-    meaning: 'GTT normal. Diagnóstico de DMG descartado. Pré-natal normal.',
-  },
-  dmg_confirmado: {
-    label: 'DMG confirmado',
-    color: 'bg-orange-500',
-    meaning: 'Diagnóstico positivo (GJ ≥ 92, GTT alterado ou Overt). Em acompanhamento ativo.',
-  },
-  resultado_parto: {
-    label: 'Resultado do parto',
-    color: 'bg-purple-500',
-    meaning: 'Parto realizado. Desfecho perinatal registrado.',
-  },
-  encaminhada_endocrino: {
-    label: 'Associar endocrino',
-    color: 'bg-red-500',
-    meaning: 'Cenário 7: controle inadequado com insulina. MARI encerrada. Acompanhamento compartilhado GO + endocrinologista.',
-  },
-};
-
-function calcIdadeGestacional(paciente: Paciente): string {
-  let refDate: Date | null = null;
-
-  if (paciente.usg_data && paciente.usg_ig_semanas != null) {
-    const usgDate = parseDateLocal(paciente.usg_data);
-    if (usgDate) {
-      const diasNaUsg = (paciente.usg_ig_semanas * 7) + (paciente.usg_ig_dias || 0);
-      refDate = addDays(usgDate, -diasNaUsg); // DUM corrigida
-    }
-  } else if (paciente.dum) {
-    refDate = parseDateLocal(paciente.dum);
-  }
-
-  if (!refDate) return '—';
-
-  const today = new Date();
-  const totalDias = differenceInDays(today, refDate);
-  if (totalDias < 0) return '—';
-
-  const semanas = Math.floor(totalDias / 7);
-  const dias = totalDias % 7;
-  return `${semanas} sem + ${dias} dias`;
-}
 
 function getReturnBadge(paciente: Paciente): { type: 'proximo' | 'vencido'; tooltip: string } | null {
   if (paciente.status_ficha !== 'dmg_confirmado') return null;
