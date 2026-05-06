@@ -189,6 +189,12 @@ export default function FichaPacientePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const isPreview = location.pathname.startsWith('/vitrine');
+  const isReadOnly =
+    location.pathname.startsWith('/gestao/fichas/') ||
+    location.pathname.startsWith('/vitrine/gestao/fichas/');
+  const fichasBackPath = location.pathname.startsWith('/vitrine')
+    ? '/vitrine/gestao/fichas'
+    : '/gestao/fichas';
   useAuth();
   useProfissionalData();
 
