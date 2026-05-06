@@ -898,14 +898,15 @@ Deno.serve(async (req) => {
       const contratanteIds = Array.from(new Set((vincC ?? []).map((v) => v.contratante_id)));
       const { data: contratantesRows } = await admin
         .from("contratantes")
-        .select("id, nome")
+        .select("id, nome, status")
         .in("id", contratanteIds.length ? contratanteIds : ["00000000-0000-0000-0000-000000000000"]);
-      const cMap = new Map((contratantesRows ?? []).map((c) => [c.id, c.nome] as const));
+      const cMap = new Map((contratantesRows ?? []).map((c) => [c.id, { nome: c.nome, status: c.status }] as const));
 
-      const contratantesByGg = new Map<string, { id: string; nome: string }[]>();
+      const contratantesByGg = new Map<string, { id: string; nome: string; status: string }[]>();
       for (const v of vincC ?? []) {
         const arr = contratantesByGg.get(v.gestor_geral_id) ?? [];
-        arr.push({ id: v.contratante_id, nome: cMap.get(v.contratante_id) ?? "" });
+        const info = cMap.get(v.contratante_id);
+        arr.push({ id: v.contratante_id, nome: info?.nome ?? "", status: info?.status ?? "ativo" });
         contratantesByGg.set(v.gestor_geral_id, arr);
       }
 
