@@ -1227,11 +1227,12 @@ Deno.serve(async (req) => {
     // ============= listar_profissionais =============
     if (acao === "listar_profissionais") {
       const filtroUnidade = body.unidade_id ?? null;
+      const filtroContratante = body.contratante_id ?? null;
 
       let q = admin
         .from("profissionais")
         .select(
-          "id, user_id, nome, crm, especialidade, perfil_clinico, perfil_institucional, unidade_id, acesso_revogado, acesso_revogado_em, motivo_revogacao, created_at, unidades(nome)"
+          "id, user_id, nome, crm, especialidade, perfil_clinico, perfil_institucional, unidade_id, acesso_revogado, acesso_revogado_em, motivo_revogacao, created_at, unidades(nome, contratante_id, contratantes(id, nome))"
         )
         .not("unidade_id", "is", null)
         .neq("perfil_institucional", "gestor")
@@ -1264,7 +1265,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      const profissionais = (profs ?? []).map((p: any) => {
+      let profissionais = (profs ?? []).map((p: any) => {
         const auth = emailMap.get(p.user_id);
         const email = auth?.email ?? null;
         return {
@@ -1278,6 +1279,8 @@ Deno.serve(async (req) => {
           perfil_institucional: p.perfil_institucional,
           unidade_id: p.unidade_id,
           unidade_nome: p.unidades?.nome ?? null,
+          contratante_id: p.unidades?.contratante_id ?? null,
+          contratante_nome: p.unidades?.contratantes?.nome ?? null,
           convite_pendente: email
             ? pendentes.has(email.toLowerCase())
             : false,
@@ -1287,6 +1290,10 @@ Deno.serve(async (req) => {
           created_at: p.created_at,
         };
       });
+
+      if (filtroContratante) {
+        profissionais = profissionais.filter((p) => p.contratante_id === filtroContratante);
+      }
 
       return jsonResponse({ status: "ok", profissionais });
     }
