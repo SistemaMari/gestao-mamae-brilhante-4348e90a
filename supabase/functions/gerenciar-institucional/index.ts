@@ -691,10 +691,13 @@ Deno.serve(async (req) => {
 
     // ============= listar_unidades =============
     if (acao === "listar_unidades") {
-      const { data: unidades } = await admin
+      const filtroContratante = body.contratante_id ?? null;
+      let q = admin
         .from("unidades")
-        .select("id, nome, tipo, cnes, pais, estado, cidade, created_at")
+        .select("id, nome, tipo, cnes, pais, estado, cidade, contratante_id, created_at, contratantes(id, nome, status)")
         .order("created_at", { ascending: false });
+      if (filtroContratante) q = q.eq("contratante_id", filtroContratante);
+      const { data: unidades } = await q;
 
       const { data: gestores } = await admin
         .from("profissionais")
@@ -717,7 +720,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Contagens
       const { data: profCounts } = await admin
         .from("profissionais")
         .select("unidade_id");
@@ -735,7 +737,7 @@ Deno.serve(async (req) => {
           pacMap.set(p.unidade_id, (pacMap.get(p.unidade_id) ?? 0) + 1);
       }
 
-      const out = (unidades ?? []).map((u) => {
+      const out = (unidades ?? []).map((u: any) => {
         const g = gestorByUnidade.get(u.id) ?? {};
         return {
           id: u.id,
@@ -745,6 +747,9 @@ Deno.serve(async (req) => {
           pais: u.pais,
           estado: u.estado,
           cidade: u.cidade,
+          contratante_id: u.contratante_id,
+          contratante_nome: u.contratantes?.nome ?? null,
+          contratante_status: u.contratantes?.status ?? null,
           gestor_id: g.gestor_id ?? null,
           gestor_user_id: g.gestor_user_id ?? null,
           gestor_nome: g.gestor_nome ?? null,
