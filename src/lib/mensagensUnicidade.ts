@@ -45,6 +45,15 @@ export const MENSAGENS_UNICIDADE: Record<string, string> = {
 
   // [28.3b]
   contratante_obrigatorio: "O contratante é obrigatório para criar uma unidade.",
+
+  // [29.1] Profissionais consultório
+  plano_inexistente: "Plano não encontrado.",
+  plano_inativo: "Plano selecionado não está mais ativo.",
+  plano_igual_atual: "O profissional já está neste plano.",
+  motivo_curto_mudanca: "Motivo da mudança deve ter no mínimo 10 caracteres.",
+  motivo_curto_revogacao: "Motivo da revogação deve ter no mínimo 20 caracteres.",
+  ja_revogado: "Este profissional já está com acesso revogado.",
+  email_ja_cadastrado: "Já existe um usuário cadastrado com este e-mail.",
 };
 
 export const PERFIL_CLINICO_LABEL: Record<string, string> = {

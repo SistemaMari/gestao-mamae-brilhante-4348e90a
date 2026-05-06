@@ -20,7 +20,7 @@ import DiagnosticosPage from "./pages/admin/DiagnosticosPage";
 import ExportarPage from "./pages/admin/ExportarPage";
 import AdminsPage from "./pages/admin/AdminsPage";
 import InstitucionaisPage from "./pages/admin/InstitucionaisPage";
-import UsuariosPage from "./pages/admin/UsuariosPage";
+import ProfissionaisConsultorioPage from "./pages/admin/ProfissionaisConsultorioPage";
 import ConsolidarPage from "./pages/ConsolidarPage";
 import PlanosPage from "./pages/PlanosPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
@@ -156,7 +156,7 @@ const App = () => (
               <Route path="/admin/exportar" element={<ExportarPage />} />
               <Route path="/admin/admins" element={<AdminsPage />} />
               <Route path="/admin/institucionais" element={<InstitucionaisPage />} />
-              <Route path="/admin/usuarios" element={<UsuariosPage />} />
+              <Route path="/admin/profissionais" element={<ProfissionaisConsultorioPage />} />
             </Route>
             <Route path="/consolidar" element={<ProtectedRoute allowedProfiles={['admin', 'gestor_geral']}><ConsolidarPage /></ProtectedRoute>} />
 
