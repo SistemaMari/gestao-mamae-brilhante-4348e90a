@@ -16,6 +16,8 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import ModalContratante, { type ContratanteForm } from "./ModalContratante";
+import ModalEncerrarContratante from "./ModalEncerrarContratante";
+import AlertReativarContratante from "./AlertReativarContratante";
 import { formatCNPJ, unmaskCNPJ } from "@/lib/cnpj";
 import { FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 
@@ -65,6 +67,8 @@ export default function AbaContratantes() {
   const [busca, setBusca] = useState("");
   const [openCriar, setOpenCriar] = useState(false);
   const [editar, setEditar] = useState<ContratanteRow | null>(null);
+  const [encerrar, setEncerrar] = useState<{ id: string; nome: string } | null>(null);
+  const [reativar, setReativar] = useState<{ id: string; nome: string } | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["institucional", "contratantes"],
@@ -202,16 +206,25 @@ export default function AbaContratantes() {
                         <Button variant="ghost" size="sm" onClick={() => setEditar(c)} disabled={encerrado}>
                           Editar
                         </Button>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>
-                              <Button variant="ghost" size="sm" disabled>
-                                {encerrado ? "Reativar" : "Encerrar"}
-                              </Button>
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>Em breve — 28.3c</TooltipContent>
-                        </Tooltip>
+                        {c.status !== "encerrado" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive"
+                            onClick={() => setEncerrar({ id: c.id, nome: c.nome })}
+                          >
+                            Encerrar
+                          </Button>
+                        )}
+                        {c.status !== "ativo" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setReativar({ id: c.id, nome: c.nome })}
+                          >
+                            Reativar
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
