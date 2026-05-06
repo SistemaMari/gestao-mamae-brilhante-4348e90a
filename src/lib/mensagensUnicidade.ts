@@ -54,6 +54,7 @@ export const MENSAGENS_UNICIDADE: Record<string, string> = {
   motivo_curto_revogacao: "Motivo da revogação deve ter no mínimo 20 caracteres.",
   ja_revogado: "Este profissional já está com acesso revogado.",
   email_ja_cadastrado: "Já existe um usuário cadastrado com este e-mail.",
+  nao_revogado: "Este profissional não está com acesso revogado.",
 };
 
 export const PERFIL_CLINICO_LABEL: Record<string, string> = {

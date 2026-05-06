@@ -359,6 +359,39 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ============ REATIVAR ACESSO ============
+    if (acao === "reativar_acesso_consultorio") {
+      const Schema = z.object({ profissional_id: z.string().uuid() });
+      const parsed = Schema.safeParse(body);
+      if (!parsed.success) return erro("validacao", "Dados inválidos.");
+      const { profissional_id } = parsed.data;
+
+      const { data: prof } = await supabaseAdmin
+        .from("profissionais")
+        .select("id, acesso_revogado")
+        .eq("id", profissional_id)
+        .maybeSingle();
+      if (!prof) return erro("profissional_inexistente", "Profissional não encontrado.", 404);
+      if (!prof.acesso_revogado) {
+        return erro("nao_revogado", "Este profissional não está com acesso revogado.");
+      }
+
+      const { error: upErr } = await supabaseAdmin
+        .from("profissionais")
+        .update({
+          acesso_revogado: false,
+          acesso_revogado_em: null,
+          acesso_revogado_por: null,
+          motivo_revogacao: null,
+        })
+        .eq("id", profissional_id);
+      if (upErr) {
+        console.error("[reativar] err:", upErr);
+        return erro("erro_interno", "Erro ao reativar.", 500);
+      }
+      return json({ status: "reativado" });
+    }
+
     return erro("acao_invalida", "Ação desconhecida.");
   } catch (err) {
     console.error("[gerenciar-profissionais-consultorio] erro:", err);
