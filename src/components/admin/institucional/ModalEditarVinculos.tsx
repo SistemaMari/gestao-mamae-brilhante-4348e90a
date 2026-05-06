@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import MultiSelectUnidades, { type UnidadeOption } from "./MultiSelectUnidades";
+import MultiSelectContratantes, { type ContratanteOption } from "./MultiSelectContratantes";
 import { FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 
 interface GestorGeralAlvo {
   id: string;
   nome: string;
   email: string | null;
-  unidades: { id: string; nome: string }[];
+  contratantes_vinculados: { id: string; nome: string }[];
 }
 
 interface Props {
@@ -23,21 +23,27 @@ interface Props {
   onSucesso: () => void;
 }
 
+const MARI_SANDBOX_NOME = "MARI Sandbox";
+
 export default function ModalEditarVinculos({ alvo, onClose, onSucesso }: Props) {
   const [ids, setIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (alvo) setIds(alvo.unidades.map((u) => u.id));
+    if (alvo) setIds(alvo.contratantes_vinculados.map((c) => c.id));
   }, [alvo]);
 
-  const { data: unidades } = useQuery({
-    queryKey: ["institucional", "unidades"],
+  const { data: contratantes = [] } = useQuery({
+    queryKey: ["institucional", "contratantes-todos"],
     queryFn: async () => {
       const { data } = await supabase.functions.invoke("gerenciar-institucional", {
-        body: { acao: "listar_unidades" },
+        body: { acao: "listar_contratantes" },
       });
-      return (data?.unidades ?? []) as UnidadeOption[];
+      // Carrega todos (ativos + encerrados) para preservar vínculos pré-existentes;
+      // apenas ativos (e os já-selecionados) ficam selecionáveis no MultiSelect.
+      return ((data?.contratantes ?? []) as ContratanteOption[]).filter(
+        (c) => c.nome !== MARI_SANDBOX_NOME,
+      );
     },
     enabled: !!alvo,
   });
@@ -50,7 +56,7 @@ export default function ModalEditarVinculos({ alvo, onClose, onSucesso }: Props)
       body: {
         acao: "atualizar_vinculos_gestor_geral",
         gestor_geral_id: alvo.id,
-        unidade_ids: ids,
+        contratante_ids: ids,
       },
     });
     setSubmitting(false);
@@ -59,7 +65,7 @@ export default function ModalEditarVinculos({ alvo, onClose, onSucesso }: Props)
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    toast.success(`Vínculos atualizados: ${data?.adicionadas ?? 0} adicionadas, ${data?.removidas ?? 0} removidas.`);
+    toast.success(`Vínculos atualizados: ${data?.adicionadas ?? 0} adicionados, ${data?.removidas ?? 0} removidos.`);
     onSucesso(); onClose();
   }
 
@@ -74,11 +80,12 @@ export default function ModalEditarVinculos({ alvo, onClose, onSucesso }: Props)
             <div><strong>{alvo?.nome}</strong></div>
             <div className="text-muted-foreground">{alvo?.email}</div>
           </div>
-          <MultiSelectUnidades
-            unidades={unidades ?? []}
+          <MultiSelectContratantes
+            contratantes={contratantes}
             selecionadas={ids}
             onChange={setIds}
             disabled={submitting}
+            desabilitarEncerrados
           />
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>Cancelar</Button>
