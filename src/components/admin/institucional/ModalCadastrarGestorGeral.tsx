@@ -26,24 +26,25 @@ export default function ModalCadastrarGestorGeral({ open, onOpenChange, onSucess
   const [email, setEmail] = useState("");
   const [cargo, setCargo] = useState("");
   const [instituicao, setInstituicao] = useState("");
-  const [unidadeIds, setUnidadeIds] = useState<string[]>([]);
+  const [contratanteIds, setContratanteIds] = useState<string[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: unidades } = useQuery({
-    queryKey: ["institucional", "unidades"],
+  const { data: contratantes } = useQuery({
+    queryKey: ["institucional", "contratantes-ativos-modal"],
     queryFn: async () => {
       const { data } = await supabase.functions.invoke("gerenciar-institucional", {
-        body: { acao: "listar_unidades" },
+        body: { acao: "listar_contratantes" },
       });
-      return (data?.unidades ?? []) as UnidadeOption[];
+      return ((data?.contratantes ?? []) as ContratanteOption[])
+        .filter((c) => c.status === "ativo" && c.nome !== "MARI Sandbox");
     },
     enabled: open,
   });
 
   function reset() {
     setNome(""); setEmail(""); setCargo(""); setInstituicao("");
-    setUnidadeIds([]); setErro(null); setSubmitting(false);
+    setContratanteIds([]); setErro(null); setSubmitting(false);
   }
   function handleOpenChange(v: boolean) { if (!v) reset(); onOpenChange(v); }
 
@@ -60,7 +61,7 @@ export default function ModalCadastrarGestorGeral({ open, onOpenChange, onSucess
         email: email.trim().toLowerCase(),
         cargo: cargo.trim() || null,
         instituicao: instituicao.trim() || null,
-        unidade_ids: unidadeIds,
+        contratante_ids: contratanteIds,
       },
     });
     if (error) {
@@ -70,10 +71,10 @@ export default function ModalCadastrarGestorGeral({ open, onOpenChange, onSucess
       handleOpenChange(false); toast.error(FALLBACK_GENERICO); return;
     }
     setSubmitting(false);
-    if (unidadeIds.length > 0) {
-      toast.success(`Gestor geral cadastrado! E-mail enviado. ${unidadeIds.length} unidade${unidadeIds.length === 1 ? "" : "s"} vinculada${unidadeIds.length === 1 ? "" : "s"}.`);
+    if (contratanteIds.length > 0) {
+      toast.success(`Gestor geral cadastrado! E-mail enviado. ${contratanteIds.length} contratante${contratanteIds.length === 1 ? "" : "s"} vinculado${contratanteIds.length === 1 ? "" : "s"}.`);
     } else {
-      toast.success("Gestor geral cadastrado! E-mail enviado. Vincule unidades quando estiver pronto.");
+      toast.success("Gestor geral cadastrado! E-mail enviado. Vincule contratantes quando estiver pronto.");
     }
     handleOpenChange(false); onSucesso();
   }
