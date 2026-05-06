@@ -153,6 +153,13 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
                   <TableCell className="font-medium">{u.nome}</TableCell>
                   <TableCell>{u.tipo || "—"}</TableCell>
                   <TableCell>{u.cidade || "—"}</TableCell>
+                  <TableCell onClick={(e) => { e.stopPropagation(); onIrParaContratantes?.(); }} className={onIrParaContratantes ? "cursor-pointer hover:underline" : ""}>
+                    {u.contratante_nome === MARI_SANDBOX_NOME ? (
+                      <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">⚙ Sandbox</Badge>
+                    ) : (
+                      u.contratante_nome ?? "—"
+                    )}
+                  </TableCell>
                   <TableCell>
                     {emAberto ? (
                       <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⚠ Sem gestor — em aberto</Badge>
