@@ -247,6 +247,16 @@ export default function AbaContratantes() {
           onOpenChange={(v) => !v && setEditar(null)}
           onSucesso={refresh}
         />
+        <ModalEncerrarContratante
+          contratante={encerrar}
+          onClose={() => setEncerrar(null)}
+          onSucesso={refresh}
+        />
+        <AlertReativarContratante
+          contratante={reativar}
+          onClose={() => setReativar(null)}
+          onSucesso={refresh}
+        />
       </div>
     </TooltipProvider>
   );
