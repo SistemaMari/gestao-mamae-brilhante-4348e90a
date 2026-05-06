@@ -92,12 +92,15 @@ export default function AbaGestoresGerais() {
                   <TableCell>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="cursor-help underline decoration-dotted">{g.unidades_vinculadas}</span>
+                        <span className="cursor-help underline decoration-dotted">
+                          {g.contratantes_vinculados?.length ?? 0} contratante{(g.contratantes_vinculados?.length ?? 0) === 1 ? "" : "s"}
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {g.unidades.length === 0
-                          ? "Sem unidades vinculadas"
-                          : g.unidades.map((u) => u.nome).join(", ")}
+                        {!g.contratantes_vinculados?.length
+                          ? "Sem contratantes vinculados"
+                          : g.contratantes_vinculados.slice(0, 10).map((c) => c.nome).join(", ") +
+                            (g.contratantes_vinculados.length > 10 ? "…" : "")}
                       </TooltipContent>
                     </Tooltip>
                   </TableCell>
