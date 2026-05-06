@@ -30,8 +30,8 @@ export default function AlertReativarContratante({ contratante, onClose, onSuces
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    const reativados = (data as any)?.profissionais_reativados ?? 0;
-    toast.success(`Contratante ${contratante.nome} reativado. ${reativados} profissionais voltaram a ter acesso.`);
+    const reativados = (data as any)?.profissionais_restaurados_count ?? 0;
+    toast.success(`Contratante ${contratante.nome} reativado. ${reativados} profissional${reativados === 1 ? "" : "is"} voltaram a ter acesso.`);
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes"] });
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes-ativos"] });
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes-select"] });
