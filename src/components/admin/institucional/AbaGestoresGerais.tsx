@@ -19,8 +19,10 @@ interface GestorGeralRow {
   cargo: string | null;
   instituicao: string | null;
   convite_pendente: boolean | null;
-  unidades_vinculadas: number;
-  unidades: { id: string; nome: string }[];
+  contratantes_vinculados: { id: string; nome: string }[];
+  // legacy compat (não usado mais na UI, mas evita quebra se backend retornar)
+  unidades_vinculadas?: number;
+  unidades?: { id: string; nome: string }[];
 }
 
 export default function AbaGestoresGerais() {
