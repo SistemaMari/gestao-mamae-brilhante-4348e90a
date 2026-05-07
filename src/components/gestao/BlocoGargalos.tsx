@@ -1,6 +1,16 @@
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { PainelGargalos } from '@/lib/painelEstrategicoTypes';
+import CardInfoTooltip from './CardInfoTooltip';
+
+const TOOLTIPS: Record<string, string> = {
+  sem_gj:
+    'Pacientes com primeira consulta registrada mas sem glicemia de jejum no atendimento. A GJ é o primeiro exame de rastreamento de DMG (protocolo Febrasgo) e deve ser solicitada na primeira consulta de pré-natal — inclusive para identificar diabete pré-gestacional. Falha aqui significa que o rastreamento não começou.',
+  gtt:
+    'Pacientes acima de 28 semanas que ainda não fizeram o Teste de Tolerância à Glicose. A janela ideal de rastreamento é 24-28 semanas — depois disso, o diagnóstico fica tardio e o tempo de tratamento antes do parto encurta. Convocar essas pacientes é prioridade.',
+  sem_retorno:
+    'Pacientes diagnosticadas com DMG cujo último atendimento foi há mais de 14 dias. DMG exige acompanhamento próximo (perfis glicêmicos quinzenais, ajuste de tratamento). Ausência de retorno pode indicar abandono — fator crítico de risco para o binômio mãe-bebê.',
+};
 
 interface Props {
   data: PainelGargalos;
@@ -113,7 +123,10 @@ export default function BlocoGargalos({ data, loading, error }: Props) {
                     {it.data.count}
                   </span>
                 </div>
-                <p className="mt-3 text-sm font-semibold text-foreground">{it.titulo}</p>
+                <div className="mt-3 flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-foreground">{it.titulo}</p>
+                  <CardInfoTooltip text={TOOLTIPS[it.key]} />
+                </div>
                 <p className="mt-1 text-xs text-muted-foreground">{it.descricao}</p>
                 {tem && (
                   <button
