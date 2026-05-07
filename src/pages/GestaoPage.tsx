@@ -142,10 +142,6 @@ export default function GestaoPage() {
         setTendencia(teRes.data as unknown as PainelTendencia);
       }
 
-      const { data: profs } = await supabase
-        .from('profissionais')
-        .select('id, nome')
-        .eq('unidade_id', unidadeId);
     } finally {
       setLoadingBlocos(false);
     }
