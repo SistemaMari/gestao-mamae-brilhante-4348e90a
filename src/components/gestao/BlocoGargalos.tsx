@@ -8,28 +8,60 @@ interface Props {
   error?: string | null;
 }
 
+type Severidade = 'amarelo' | 'laranja' | 'vermelho';
+
+const PALETA: Record<Severidade, { border: string; bg: string; iconBg: string; iconText: string }> = {
+  amarelo: {
+    border: 'border-yellow-200',
+    bg: 'bg-yellow-50',
+    iconBg: 'bg-yellow-100',
+    iconText: 'text-yellow-700',
+  },
+  laranja: {
+    border: 'border-orange-200',
+    bg: 'bg-orange-50',
+    iconBg: 'bg-orange-100',
+    iconText: 'text-orange-700',
+  },
+  vermelho: {
+    border: 'border-red-200',
+    bg: 'bg-red-50',
+    iconBg: 'bg-red-100',
+    iconText: 'text-red-700',
+  },
+};
+
 export default function BlocoGargalos({ data, loading, error }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const basePath = pathname.startsWith('/vitrine') ? '/vitrine/gestao' : '/gestao';
 
-  const itens = [
+  const itens: Array<{
+    key: string;
+    titulo: string;
+    descricao: string;
+    severidade: Severidade;
+    data: { count: number; paciente_ids: string[] };
+  }> = [
     {
       key: 'sem_gj',
       titulo: 'Sem GJ na primeira consulta',
       descricao: 'Pacientes com atendimento mas sem glicemia de jejum registrada.',
+      severidade: 'amarelo',
       data: data.sem_gj_primeira_consulta,
     },
     {
       key: 'gtt',
       titulo: 'GTT em atraso',
       descricao: 'IG ≥ 28 semanas sem TTOG registrado.',
+      severidade: 'laranja',
       data: data.atrasadas_gtt,
     },
     {
       key: 'sem_retorno',
       titulo: 'DMG confirmado sem retorno',
       descricao: 'Sem registro de atendimento há mais de 14 dias.',
+      severidade: 'vermelho',
       data: data.confirmadas_sem_retorno,
     },
   ];
@@ -59,16 +91,23 @@ export default function BlocoGargalos({ data, loading, error }: Props) {
         <div className="grid gap-4 sm:grid-cols-3">
           {itens.map(it => {
             const tem = it.data.count > 0;
+            const p = PALETA[it.severidade];
             return (
               <div
                 key={it.key}
                 className={`rounded-xl border p-5 ${
-                  tem ? 'border-amber-200 bg-amber-50' : 'border-border bg-card'
+                  tem ? `${p.border} ${p.bg}` : 'border-border bg-card'
                 }`}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
-                    <AlertTriangle className="h-5 w-5 text-amber-700" />
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                      tem ? p.iconBg : 'bg-muted'
+                    }`}
+                  >
+                    <AlertTriangle
+                      className={`h-5 w-5 ${tem ? p.iconText : 'text-muted-foreground'}`}
+                    />
                   </div>
                   <span className="font-heading text-2xl font-bold text-foreground tabular-nums">
                     {it.data.count}
