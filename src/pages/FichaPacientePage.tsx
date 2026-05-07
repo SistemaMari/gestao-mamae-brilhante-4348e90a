@@ -982,6 +982,7 @@ export default function FichaPacientePage() {
                               pacienteId={paciente.id}
                               consultaId={c.id}
                               isPreview={isPreview}
+                              isReadOnly={isReadOnly}
                               onWeightSaved={() => {
                                 if (isPreview) {
                                   const p = getPreviewPacienteById(paciente.id);
