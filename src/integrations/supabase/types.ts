@@ -1605,6 +1605,13 @@ export type Database = {
         Args: { _unidade_id: string; _user_id: string }
         Returns: boolean
       }
+      get_painel_gargalos: { Args: { p_unidade_id: string }; Returns: Json }
+      get_painel_operacao: { Args: { p_unidade_id: string }; Returns: Json }
+      get_painel_perfil_clinico: {
+        Args: { p_unidade_id: string }
+        Returns: Json
+      }
+      get_painel_tendencia: { Args: { p_unidade_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
