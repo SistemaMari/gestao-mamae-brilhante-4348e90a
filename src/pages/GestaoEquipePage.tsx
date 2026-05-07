@@ -54,6 +54,9 @@ export default function GestaoEquipePage() {
   const [removeTarget, setRemoveTarget] = useState<Membro | null>(null);
   const [removing, setRemoving] = useState(false);
 
+  const [distribuicao, setDistribuicao] = useState<PainelOperacao['distribuicao_profissionais']>([]);
+  const [atividades, setAtividades] = useState<AtividadeItem[]>([]);
+
   const fetchEquipe = async () => {
     if (!user) return;
     setLoading(true);
