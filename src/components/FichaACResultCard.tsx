@@ -28,13 +28,14 @@ interface FichaACResultCardProps {
   pacienteId?: string;
   consultaId?: string;
   isPreview?: boolean;
+  isReadOnly?: boolean;
   onWeightSaved?: () => void;
 }
 
 export default function FichaACResultCard({
   percentual, adequado, totalPreenchidos, dentroMeta,
   peso, doseTotal, doseManha, doseNoite,
-  pacienteId, consultaId, isPreview, onWeightSaved,
+  pacienteId, consultaId, isPreview, isReadOnly, onWeightSaved,
 }: FichaACResultCardProps) {
   const bgColor = adequado ? '#DCFCE7' : '#FEF3C7';
   const borderColor = adequado ? '#86EFAC' : '#FCD34D';
@@ -50,7 +51,7 @@ export default function FichaACResultCard({
   const calcDoseManha = calcDoseTotal ? Math.round((calcDoseTotal * 2 / 3) * 10) / 10 : null;
   const calcDoseNoite = calcDoseTotal ? Math.round((calcDoseTotal * 1 / 3) * 10) / 10 : null;
 
-  const needsWeight = !adequado && (peso == null || peso <= 0);
+  const needsWeight = !adequado && (peso == null || peso <= 0) && !isReadOnly;
   const hasWeight = !adequado && peso != null && peso > 0 && doseTotal != null;
 
   const handleConfirmWeight = async () => {

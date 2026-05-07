@@ -100,7 +100,7 @@ export default function GestaoPage() {
             const dum = new Date(today - totalDias * day).toISOString().slice(0, 10);
             const proxDate = f.prox >= 0 ? new Date(today + f.prox * day) : new Date(today - Math.abs(f.prox) * day);
             return {
-              id: `vit-${i}`,
+              id: i < 10 ? `demo-${i + 1}` : `vit-${i}`,
               nome: f.nome,
               status_ficha: f.status_ficha,
               profissional_id: `p-${f.prof}`,
