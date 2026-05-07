@@ -18,6 +18,9 @@ import {
 import { toast } from 'sonner';
 import { ArrowLeft, Plus, RefreshCw, Trash2, Loader2, Users, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import DistribuicaoProfissionais from '@/components/gestao/DistribuicaoProfissionais';
+import AtividadeRecente, { type AtividadeItem } from '@/components/gestao/AtividadeRecente';
+import type { PainelOperacao } from '@/lib/painelEstrategicoTypes';
 
 interface Membro {
   id: string;
