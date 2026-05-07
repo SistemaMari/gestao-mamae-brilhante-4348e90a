@@ -320,6 +320,29 @@ export default function FichasUnidadePage() {
         </div>
       </div>
 
+      {filtroAtivo && (() => {
+        const meta = FILTRO_META[filtroAtivo];
+        const count = filtradas.length;
+        const Icon = meta.Icon;
+        return (
+          <div className="mb-4">
+            <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm ${CHIP_STYLES[meta.cor]}`}>
+              <Icon className="h-4 w-4" />
+              <span className="font-medium">{meta.titulo}</span>
+              <span className="font-normal">· {count} {count === 1 ? 'paciente' : 'pacientes'}</span>
+              <button
+                type="button"
+                aria-label="Limpar filtro de gargalo"
+                onClick={limparFiltroGargalo}
+                className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-black/5"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <Table>
           <TableHeader>
