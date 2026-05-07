@@ -91,6 +91,38 @@ export default function FichasUnidadePage() {
   const [buscaDebounced, setBuscaDebounced] = useState('');
   const [page, setPage] = useState(1);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filtroParam = searchParams.get('filtro');
+  const idsParam = searchParams.get('ids');
+  const FILTRO_VALIDOS = ['sem_gj_primeira', 'atrasadas_gtt', 'sem_retorno'] as const;
+  type FiltroKey = typeof FILTRO_VALIDOS[number];
+  const filtroAtivo: FiltroKey | null =
+    filtroParam && (FILTRO_VALIDOS as readonly string[]).includes(filtroParam)
+      ? (filtroParam as FiltroKey)
+      : null;
+  const idsFiltro = useMemo(() => {
+    if (!filtroAtivo || idsParam == null) return null;
+    return new Set(idsParam.split(',').map(s => s.trim()).filter(Boolean));
+  }, [filtroAtivo, idsParam]);
+
+  const FILTRO_META: Record<FiltroKey, { titulo: string; cor: 'amarelo' | 'laranja' | 'vermelho'; Icon: typeof AlertTriangle }> = {
+    sem_gj_primeira: { titulo: 'Sem GJ na primeira consulta', cor: 'amarelo', Icon: AlertTriangle },
+    atrasadas_gtt: { titulo: 'GTT em atraso', cor: 'laranja', Icon: AlertCircle },
+    sem_retorno: { titulo: 'DMG confirmado sem retorno', cor: 'vermelho', Icon: AlertOctagon },
+  };
+  const CHIP_STYLES: Record<'amarelo' | 'laranja' | 'vermelho', string> = {
+    amarelo: 'bg-yellow-50 border-yellow-200 text-yellow-900',
+    laranja: 'bg-orange-50 border-orange-200 text-orange-900',
+    vermelho: 'bg-red-50 border-red-200 text-red-900',
+  };
+
+  const limparFiltroGargalo = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('filtro');
+    next.delete('ids');
+    setSearchParams(next, { replace: true });
+  };
+
   // debounce 300ms
   useEffect(() => {
     const t = setTimeout(() => setBuscaDebounced(busca), 300);
