@@ -9,9 +9,7 @@ import {
   FileText,
   Users,
   Activity,
-  FileDown,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -19,9 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { toast } from 'sonner';
 import { format } from 'date-fns';
-import FiltroPeriodoGlobal from '@/components/gestao/FiltroPeriodoGlobal';
 import BlocoOperacao from '@/components/gestao/BlocoOperacao';
 import BlocoPerfilClinico from '@/components/gestao/BlocoPerfilClinico';
 import BlocoGargalos from '@/components/gestao/BlocoGargalos';
@@ -68,7 +64,6 @@ export default function GestaoPage() {
   const [gestorSemUnidade, setGestorSemUnidade] = useState(false);
   const [contextoCarregado, setContextoCarregado] = useState(isVitrine);
 
-  // 4 blocos
   const [operacao, setOperacao] = useState<PainelOperacao | null>(
     isVitrine ? mockOperacao : null,
   );
@@ -94,10 +89,6 @@ export default function GestaoPage() {
         ]
       : [],
   );
-
-  const [periodoInicio, setPeriodoInicio] = useState<Date | null>(null);
-  const [periodoFim, setPeriodoFim] = useState<Date | null>(null);
-  const [exportandoPdf, setExportandoPdf] = useState(false);
 
   useEffect(() => {
     if (isVitrine) return;
@@ -173,7 +164,6 @@ export default function GestaoPage() {
         setTendencia(teRes.data as unknown as PainelTendencia);
       }
 
-      // Atividade recente — mantida do fluxo antigo (consultas + laudos da unidade)
       const { data: profs } = await supabase
         .from('profissionais')
         .select('id, nome')
@@ -222,20 +212,6 @@ export default function GestaoPage() {
     }
   };
 
-  const exportPDF = async () => {
-    if (isVitrine) {
-      toast.success('Exportar PDF é uma funcionalidade da versão real (vitrine apenas demonstrativa).');
-      return;
-    }
-    setExportandoPdf(true);
-    try {
-      // Reuso simples: abre print do navegador. PDF arquivado segue no fluxo anterior se necessário.
-      window.print();
-    } finally {
-      setExportandoPdf(false);
-    }
-  };
-
   if (contextoCarregado && gestorSemUnidade) {
     return (
       <div className="flex min-h-full items-center justify-center px-6 py-12">
@@ -258,72 +234,48 @@ export default function GestaoPage() {
   return (
     <div className="px-6 py-8 lg:px-10">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
-            <Building2 className="h-4 w-4" />
-            <span>{contextoCarregado ? unidadeNome || '—' : 'Carregando...'}</span>
-          </div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">
-            Painel da unidade
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Visão estratégica da operação clínica
-          </p>
+      <div className="mb-6">
+        <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
+          <Building2 className="h-4 w-4" />
+          <span>{contextoCarregado ? unidadeNome || '—' : 'Carregando...'}</span>
         </div>
-        <Button onClick={exportPDF} disabled={exportandoPdf || (!isVitrine && !unidadeId)}>
-          <FileDown className="h-4 w-4" />
-          {exportandoPdf ? 'Gerando...' : 'Exportar PDF'}
-        </Button>
+        <h1 className="font-heading text-2xl font-bold text-foreground">
+          Painel da unidade
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Visão estratégica da operação clínica
+        </p>
       </div>
 
-      {/* Filtros */}
-      <div className="mb-6 rounded-xl border border-border bg-card p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          {isGestorGeral && unidadesDisponiveis.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Unidade:</span>
-              <Select value={unidadeId || ''} onValueChange={v => setUnidadeId(v)}>
-                <SelectTrigger className="h-9 w-[240px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {unidadesDisponiveis.map(u => (
-                    <SelectItem key={u.id} value={u.id}>
-                      {u.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <div className="flex flex-1 justify-end">
-            <FiltroPeriodoGlobal
-              inicio={periodoInicio}
-              fim={periodoFim}
-              onChange={(i, f) => {
-                setPeriodoInicio(i);
-                setPeriodoFim(f);
-              }}
-            />
-          </div>
+      {/* Seletor de unidade — só aparece para gestor geral */}
+      {isGestorGeral && unidadesDisponiveis.length > 0 && (
+        <div className="mb-6 flex items-center gap-2 rounded-xl border border-border bg-card p-4">
+          <span className="text-sm text-muted-foreground">Unidade:</span>
+          <Select value={unidadeId || ''} onValueChange={v => setUnidadeId(v)}>
+            <SelectTrigger className="h-9 w-[260px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {unidadesDisponiveis.map(u => (
+                <SelectItem key={u.id} value={u.id}>
+                  {u.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      </div>
+      )}
 
-      <div id="dashboard-relatorio" className="space-y-8">
-        {/* Bloco 1 */}
+      <div className="space-y-8">
         {operacao && <BlocoOperacao data={operacao} loading={loadingBlocos} error={erroBlocos} />}
         {!operacao && loadingBlocos && (
           <BlocoOperacao data={mockOperacao} loading error={null} />
         )}
 
-        {/* Bloco 2 */}
         {perfil && <BlocoPerfilClinico data={perfil} loading={loadingBlocos} error={erroBlocos} />}
 
-        {/* Bloco 3 */}
         {gargalos && <BlocoGargalos data={gargalos} loading={loadingBlocos} error={erroBlocos} />}
 
-        {/* Bloco 4 */}
         {tendencia && <BlocoTendencia data={tendencia} loading={loadingBlocos} error={erroBlocos} />}
 
         {/* Quick actions */}
@@ -363,7 +315,7 @@ export default function GestaoPage() {
           </div>
         </div>
 
-        {/* Atividade recente — mantida */}
+        {/* Atividade recente */}
         <div className="rounded-xl border border-border bg-card p-5">
           <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">
             Atividade recente
