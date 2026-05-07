@@ -116,6 +116,56 @@ export default function GestaoEquipePage() {
     }));
 
     setMembros([...ativos, ...conviteMembros]);
+
+    // Distribuição (RPC do painel)
+    const opRes = await supabase.rpc('get_painel_operacao', { p_unidade_id: prof.unidade_id });
+    if (!opRes.error && opRes.data) {
+      const op = opRes.data as unknown as PainelOperacao;
+      setDistribuicao(op.distribuicao_profissionais || []);
+    }
+
+    // Atividade recente
+    const profMap = new Map((profissionais || []).map(p => [p.id, p.nome]));
+    profMap.set(prof.id, ''); // self may exist; fill later if needed
+    const profIds = (profissionais || []).map(p => p.id);
+    if (profIds.length > 0) {
+      const [consRes, lauRes] = await Promise.all([
+        supabase
+          .from('consultas')
+          .select('id, data, profissional_id, tipo')
+          .in('profissional_id', profIds)
+          .order('data', { ascending: false })
+          .limit(10),
+        supabase
+          .from('laudos')
+          .select('id, created_at, profissional_id, status')
+          .in('profissional_id', profIds)
+          .order('created_at', { ascending: false })
+          .limit(10),
+      ]);
+      const acts: AtividadeItem[] = [];
+      (consRes.data || []).forEach((c: any) => {
+        acts.push({
+          id: c.id,
+          tipo: 'consulta',
+          descricao: `${c.tipo === 'consulta_1' ? 'Primeira consulta' : 'Retorno'} registrado`,
+          profissional_nome: (profMap.get(c.profissional_id) || 'Desconhecido') as string,
+          data: c.data,
+        });
+      });
+      (lauRes.data || []).forEach((l: any) => {
+        acts.push({
+          id: l.id,
+          tipo: 'laudo',
+          descricao: `Laudo ${l.status === 'gerado' ? 'gerado' : 'pendente'}`,
+          profissional_nome: (profMap.get(l.profissional_id) || 'Desconhecido') as string,
+          data: l.created_at,
+        });
+      });
+      acts.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+      setAtividades(acts.slice(0, 10));
+    }
+
     setLoading(false);
   };
 
