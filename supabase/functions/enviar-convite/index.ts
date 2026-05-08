@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       (u) => u.email?.toLowerCase() === email_convidado
     );
 
-    let fluxo: "criacao" | "vinculacao" = "criacao";
+    
 
     if (authUser) {
       // 3a. Already an admin?
