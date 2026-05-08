@@ -167,7 +167,7 @@ const App = () => (
               <Route path="/gestao/equipe" element={<GestaoEquipePage />} />
               <Route path="/gestao/fichas" element={<FichasUnidadePage />} />
               <Route path="/gestao/fichas/:id" element={<PacientePage />} />
-              <Route path="/gestao/configuracoes" element={<StubEmConstrucao titulo="Configurações" />} />
+              <Route path="/gestao/configuracoes" element={<ConfiguracoesPage />} />
             </Route>
             {/* Painel Administrativo (Prompt 22) */}
             <Route element={<ProtectedRoute allowedProfiles={['admin']}><AdminLayout /></ProtectedRoute>}>
