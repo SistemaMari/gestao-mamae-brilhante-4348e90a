@@ -45,7 +45,7 @@ function Card({ title, tooltip, value, subtitle, Icon }: CardProps) {
 
 export default function BlocoOperacao({ data, loading, error }: Props) {
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" data-pdf-section="operacao">
       <h2 className="font-heading text-lg font-semibold text-foreground">
         Operação da unidade
       </h2>
