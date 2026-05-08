@@ -9,7 +9,7 @@ export const MENSAGENS_UNICIDADE: Record<string, string> = {
   email_em_uso_gestor_geral:
     "Este e-mail já está cadastrado como gestor geral.",
   email_em_uso_consultorio:
-    "Esse profissional já tem conta de consultório. Por questão de auditoria, ele precisa aceitar o vínculo institucional via convite tradicional. Peça que o gestor da unidade envie pelo painel /gestao/equipe.",
+    "Este e-mail já tem conta de consultório particular (assinatura Asaas individual). Cada e-mail pertence a um único modelo no MARI. Peça à pessoa que use outro e-mail para vincular à sua unidade.",
   email_em_uso_outro: "Este e-mail já está em uso no sistema.",
   gestor_ainda_vinculado:
     "Este gestor ainda está vinculado a uma unidade. Antes de revogar o acesso, use a aba Unidades e troque o gestor desta unidade.",

@@ -39,12 +39,11 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await supabaseUser.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
+    const { data: userData, error: userErr } = await supabaseUser.auth.getUser();
+    if (userErr || !userData?.user?.id) {
       return json({ status: "erro", mensagem: "Não autenticado." }, 401);
     }
-    const callerUserId = claimsData.claims.sub as string;
+    const callerUserId = userData.user.id;
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -80,7 +79,7 @@ Deno.serve(async (req) => {
       (u) => u.email?.toLowerCase() === email_convidado
     );
 
-    let fluxo: "criacao" | "vinculacao" = "criacao";
+    
 
     if (authUser) {
       // 3a. Already an admin?
@@ -117,8 +116,10 @@ Deno.serve(async (req) => {
           }
           return json({ status: "email_em_uso_outra_unidade" });
         }
-        // Has account but no unidade => consultorio: oferece vinculação
-        fluxo = "vinculacao";
+        // Has account but no unidade => conta consultório.
+        // Regra atual: 1 e-mail = 1 modelo (consultório OU institucional).
+        // Vinculação cruzada está descontinuada.
+        return json({ status: "email_em_uso_consultorio" });
       } else {
         // Auth user exists but no profissional row — treat as outro perfil em uso
         return json({ status: "email_em_uso_outro" });
@@ -162,10 +163,10 @@ Deno.serve(async (req) => {
       .single();
 
     console.log(
-      `[CONVITE] (${fluxo}) Email would be sent to ${email_convidado} for unit ${unidade?.nome}`
+      `[CONVITE] Email would be sent to ${email_convidado} for unit ${unidade?.nome}`
     );
 
-    return json({ status: "enviado", fluxo });
+    return json({ status: "enviado" });
   } catch (err) {
     console.error("[enviar-convite] unexpected error:", err);
     return json({ status: "erro", mensagem: "Erro interno. Tente novamente." }, 500);

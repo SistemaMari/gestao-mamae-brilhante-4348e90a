@@ -25,7 +25,6 @@ export default function CadastroConvitePage() {
 
   const [status, setStatus] = useState<ConviteStatus>('loading');
   const [convite, setConvite] = useState<ConviteData | null>(null);
-  const [existingUserId, setExistingUserId] = useState<string | null>(null);
 
   // Form fields
   const [nome, setNome] = useState('');
@@ -36,7 +35,6 @@ export default function CadastroConvitePage() {
   const [idioma, setIdioma] = useState('pt-BR');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [vinculando, setVinculando] = useState(false);
 
   // Countdown after success
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -127,9 +125,8 @@ export default function CadastroConvitePage() {
         toast.success('Conta criada com sucesso!');
         setCountdown(3);
       } else if (data?.status === 'email_existente') {
-        // The user already has an account — they need to log in first, then
-        // the vincular-profissional function will use their JWT to link them.
-        setExistingUserId('existing'); // sentinel, no longer used as id
+        // E-mail já tem conta no MARI. Fluxo de vinculação foi descontinuado:
+        // cada e-mail = um único modelo (consultório OU institucional).
         setStatus('email_existente');
       } else {
         toast.error(data?.mensagem || 'Erro ao criar conta.');
@@ -139,36 +136,6 @@ export default function CadastroConvitePage() {
     }
 
     setSubmitting(false);
-  };
-
-  const handleVincular = async () => {
-    if (!convite) return;
-
-    // The user must be logged in for the edge function to identify them via JWT.
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      toast.info('Faça login para vincular sua conta a esta unidade.');
-      navigate(`/login?next=/convite/${convite.token}`);
-      return;
-    }
-
-    setVinculando(true);
-    try {
-      const res = await supabase.functions.invoke('vincular-profissional', {
-        body: { token: convite.token },
-      });
-
-      if (res.data?.status === 'sucesso') {
-        toast.success('Vinculação realizada com sucesso!');
-        setCountdown(3);
-      } else {
-        toast.error(res.data?.mensagem || 'Erro ao vincular.');
-      }
-    } catch {
-      toast.error('Erro ao vincular.');
-    }
-
-    setVinculando(false);
   };
 
   // Status screens
@@ -213,23 +180,33 @@ export default function CadastroConvitePage() {
   if (status === 'email_existente') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-[500px] rounded-xl border border-border bg-card p-8 shadow-sm text-center">
+        <div className="w-full max-w-[560px] rounded-xl border border-border bg-card p-8 shadow-sm text-center">
           <AlertTriangle className="mx-auto h-12 w-12 text-amber-500" />
           <h2 className="mt-4 font-heading text-xl font-bold text-foreground">
-            Você já tem uma conta MARI
+            Este e-mail já está em uso no MARI
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Deseja vincular-se a <strong>{convite?.unidade_nome}</strong>?
-          </p>
-          <div className="mt-6 flex flex-col gap-3">
-            <Button onClick={handleVincular} disabled={vinculando}>
-              {vinculando && <Loader2 className="h-4 w-4 animate-spin" />}
-              Sim, vincular-me
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/login')}>
-              Não, manter minha conta individual
-            </Button>
+          <div className="mt-3 space-y-3 text-left text-sm text-muted-foreground">
+            <p>
+              Você já tem uma conta MARI usando este e-mail (provavelmente como
+              profissional de consultório particular). No MARI, cada e-mail
+              pertence a um único modelo de uso — consultório OU unidade
+              institucional.
+            </p>
+            <p>
+              <strong className="text-foreground">Como prosseguir:</strong> peça
+              à pessoa que enviou o convite para reenviá-lo usando um e-mail
+              diferente — pode ser um e-mail profissional secundário ou pessoal.
+              Você poderá ter as duas contas em paralelo, cada uma com seu
+              modelo de atendimento.
+            </p>
           </div>
+          <Button
+            variant="outline"
+            className="mt-6"
+            onClick={() => navigate('/login')}
+          >
+            Voltar ao login
+          </Button>
         </div>
       </div>
     );
