@@ -31,6 +31,7 @@ import AppShellGestor from "@/components/gestor/AppShellGestor";
 import AppShellGestorGeral from "@/components/gestor-geral/AppShellGestorGeral";
 import StubEmConstrucao from "@/components/StubEmConstrucao";
 import FichasUnidadePage from "./pages/gestao/FichasUnidadePage";
+import ConfiguracoesPage from "./pages/gestao/ConfiguracoesPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import PacientePage from "./pages/PacientePage";
 import MeusCursosPage from "./pages/MeusCursosPage";
