@@ -81,6 +81,11 @@ export default function PocPdfGraficoPage() {
     const url = URL.createObjectURL(blob);
     setPdfUrl(url);
 
+    // Expor PDF + canvas como base64 em textareas para extração via tooling
+    const pdfB64 = pdf.output('datauristring');
+    (window as unknown as { __pocPdfB64: string }).__pocPdfB64 = pdfB64;
+    (window as unknown as { __pocCanvasB64: string }).__pocCanvasB64 = dataUrl;
+
     const t1 = performance.now();
     setTempoMs(Math.round(t1 - t0));
     setStatus('PDF gerado ✓');
@@ -186,6 +191,12 @@ export default function PocPdfGraficoPage() {
               src={canvasDataUrl}
               alt="canvas capturado"
               style={{ width: '100%', border: '1px solid #E2E8F0' }}
+            />
+            <textarea
+              data-testid="canvas-b64"
+              readOnly
+              value={canvasDataUrl}
+              style={{ display: 'none' }}
             />
           </section>
         )}
