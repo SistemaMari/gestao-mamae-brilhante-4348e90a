@@ -146,6 +146,7 @@ export default function ConfiguracoesPage() {
   const [equipe, setEquipe] = useState<EquipeData>({ total: 0, ultimaInclusao: null });
   const [gestorNome, setGestorNome] = useState<string | null>(null);
   const [gestorEmail, setGestorEmail] = useState<string | null>(null);
+  const [statusMesAnterior, setStatusMesAnterior] = useState<'loading' | 'gerado' | 'aguardando' | 'falha'>('loading');
 
   useEffect(() => {
     if (isVitrine) {
