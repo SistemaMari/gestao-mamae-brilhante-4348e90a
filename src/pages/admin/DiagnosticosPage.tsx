@@ -475,7 +475,7 @@ export default function DiagnosticosPage() {
       <NotaLgpd />
 
       {/* 1. Cards de resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricaCard label="Total de gestantes" valor={resumo.total_gestantes} />
         <MetricaCard
           label="DMG confirmado"
@@ -488,6 +488,14 @@ export default function DiagnosticosPage() {
           valor={resumo.overt}
           sublabel={pctSobreTotal(resumo.overt) + " do total"}
           cor={COR_VERMELHO}
+        />
+        <MetricaCard
+          label="DMG + Overt combinados"
+          valor={resumo.dmg_overt_total}
+          sublabel={pctSobreTotal(resumo.dmg_overt_total) + " do total"}
+          cor={COR_ROXO}
+          destaque
+          tooltip="Soma automática de pacientes com DMG ou Overt Diabete."
         />
         <MetricaCard
           label="Taxa de controle adequado"
