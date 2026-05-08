@@ -11,6 +11,16 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import { STATUS_CONFIG, calcIdadeGestacional } from '@/lib/fichaUtils';
+import { slugify } from '@/lib/slugify';
+
+const STATUS_CHIP_KEYS = [
+  'aguardando_gj',
+  'aguardando_gtt',
+  'dmg_confirmado',
+  'dmg_afastado',
+  'resultado_parto',
+  'encaminhada_endocrino',
+] as const;
 
 interface Ficha {
   id: string;
