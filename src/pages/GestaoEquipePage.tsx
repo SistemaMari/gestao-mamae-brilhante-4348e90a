@@ -89,7 +89,7 @@ export default function GestaoEquipePage() {
       .from('equipe_unidade_view' as any)
       .select('id, nome, crm, especialidade, created_at')
       .eq('unidade_id', prof.unidade_id);
-    const profissionais = (profRes.data ?? []) as Array<{
+    const profissionais = ((profRes.data ?? []) as unknown) as Array<{
       id: string; nome: string; crm: string | null; especialidade: string | null; created_at: string;
     }>;
 
