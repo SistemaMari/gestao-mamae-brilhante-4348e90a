@@ -1,8 +1,17 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { createRoot, type Root } from 'react-dom/client';
+import { createElement } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { gerarResumoExecutivo } from './gerarResumoExecutivo';
 import { slugify } from './slugify';
+import { fetchDadosEquipe } from './fetchDadosEquipe';
+import { PdfModeContext } from '@/components/gestao/PdfModeContext';
+import BlocoOperacao from '@/components/gestao/BlocoOperacao';
+import BlocoPerfilClinico from '@/components/gestao/BlocoPerfilClinico';
+import BlocoGargalos from '@/components/gestao/BlocoGargalos';
+import BlocoTendencia from '@/components/gestao/BlocoTendencia';
+import SecaoEquipePdf from '@/components/gestao/SecaoEquipePdf';
 import type {
   PainelOperacao,
   PainelPerfilClinico,
@@ -36,6 +45,7 @@ export interface ExportarPainelInput {
 const A4 = { w: 595.28, h: 841.89 }; // pt
 const MARGIN = 32;
 const FOOTER_H = 24;
+const OFFSCREEN_WIDTH_PX = 1024;
 
 async function carregarFontes() {
   try {
@@ -81,14 +91,14 @@ function buildResumoElement(
         Relatório gerado em ${geradoEm.toLocaleDateString('pt-BR')} às ${geradoEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
       </div>
     </div>
-    <div style="background: #F8FAFC; border-left: 4px solid #7E69AB; padding: 16px 20px; border-radius: 8px;">
-      <div style="font-family: 'Sora', system-ui, sans-serif; font-weight: 600; font-size: 15px; color: #7E69AB; margin-bottom: 10px;">
+    <div style="background: #F8FAFC; border-left: 4px solid #7E69AB; padding: 18px 22px; border-radius: 8px;">
+      <div style="font-family: 'Sora', system-ui, sans-serif; font-weight: 600; font-size: 15px; color: #7E69AB; margin-bottom: 12px;">
         Resumo executivo
       </div>
       ${frases
         .map(
           f =>
-            `<p style="margin: 8px 0; font-size: 14px; line-height: 1.55; color: #334155;">• ${escapeHtml(f)}</p>`,
+            `<p style="margin: 0 0 10px 0; font-size: 14px; line-height: 1.6; color: #334155;">${escapeHtml(f)}</p>`,
         )
         .join('')}
     </div>
@@ -187,7 +197,6 @@ function addCanvasPaginated(
     return;
   }
 
-  // Slice em múltiplas páginas
   const sliceHpx = Math.floor(usableH * ratio);
   let yPx = 0;
   let firstSlice = true;
@@ -221,16 +230,18 @@ export async function exportarPainelPdf(
   input: ExportarPainelInput,
 ): Promise<{ ok: boolean; tempoMs: number; error?: string }> {
   const t0 = performance.now();
+  let off: HTMLDivElement | null = null;
+  let reactRoot: Root | null = null;
   try {
     await carregarFontes();
 
-    // Buscar detalhes nominais dos gargalos (RPC)
+    // Buscar detalhes nominais dos gargalos (RPC) + dados do painel de equipe
+    const isVitrine = input.unidadeId === 'vitrine-unidade';
     let detalhes: DetalhesGargalos = {
       sem_gj_primeira_consulta: [],
       atrasadas_gtt: [],
       confirmadas_sem_retorno: [],
     };
-    const isVitrine = input.unidadeId === 'vitrine-unidade';
     if (!isVitrine) {
       const { data, error } = await supabase.rpc('get_painel_gargalos_detalhado', {
         p_unidade_id: input.unidadeId,
@@ -241,6 +252,10 @@ export async function exportarPainelPdf(
       }
     }
 
+    const dadosEquipe = isVitrine
+      ? null
+      : await fetchDadosEquipe(input.unidadeId).catch(() => null);
+
     const geradoEm = new Date();
     const frases = gerarResumoExecutivo({
       unidadeNome: input.unidadeNome,
@@ -250,26 +265,42 @@ export async function exportarPainelPdf(
     });
 
     // Off-screen container
-    const off = document.createElement('div');
-    off.style.cssText = 'position: fixed; left: -10000px; top: 0; z-index: -1;';
+    off = document.createElement('div');
+    off.style.cssText = `position: fixed; left: -10000px; top: 0; width: ${OFFSCREEN_WIDTH_PX}px; background: #ffffff; z-index: -1;`;
     document.body.appendChild(off);
 
+    // 1) Resumo (HTML puro)
     const resumoEl = buildResumoElement(input.unidadeNome, frases, geradoEm);
     off.appendChild(resumoEl);
 
+    // 2) React root para os blocos do painel + equipe (com PdfModeContext = true)
+    const reactHost = document.createElement('div');
+    reactHost.style.cssText = `width: ${OFFSCREEN_WIDTH_PX}px; padding: 24px; background: #ffffff;`;
+    off.appendChild(reactHost);
+
+    reactRoot = createRoot(reactHost);
+    reactRoot.render(
+      createElement(
+        PdfModeContext.Provider,
+        { value: true },
+        createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 24 } },
+          createElement(BlocoOperacao, { data: input.operacao }),
+          createElement(BlocoPerfilClinico, { data: input.perfil }),
+          createElement(BlocoGargalos, { data: input.gargalos, hideVerPacientesLink: true }),
+          createElement(BlocoTendencia, { data: input.tendencia, showDataLabels: true }),
+          dadosEquipe ? createElement(SecaoEquipePdf, { dados: dadosEquipe }) : null,
+        ),
+      ),
+    );
+
+    // 3) Apêndice (HTML puro)
     const apendiceEl = buildApendiceElement(detalhes);
     off.appendChild(apendiceEl);
 
-    // Aguarda layout
+    // Aguarda layout + Recharts renderizar (ResponsiveContainer + animações)
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-    // Capturas: resumo + seções do painel ao vivo + apêndice
-    const liveSelectors = [
-      'data-pdf-section="operacao"',
-      'data-pdf-section="perfil"',
-      'data-pdf-section="gargalos"',
-      'data-pdf-section="tendencia"',
-    ];
+    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
 
@@ -277,9 +308,10 @@ export async function exportarPainelPdf(
     const cResumo = await captureToCanvas(resumoEl);
     addCanvasPaginated(pdf, cResumo, { firstPage: true });
 
-    // Seções do painel
-    for (const sel of liveSelectors) {
-      const node = document.querySelector(`[${sel}]`) as HTMLElement | null;
+    // Seções renderizadas pelo React (cada uma vira uma página)
+    const sections = ['operacao', 'perfil', 'gargalos', 'tendencia', 'equipe'];
+    for (const sec of sections) {
+      const node = reactHost.querySelector(`[data-pdf-section="${sec}"]`) as HTMLElement | null;
       if (!node) continue;
       const c = await captureToCanvas(node);
       addCanvasPaginated(pdf, c);
@@ -291,11 +323,8 @@ export async function exportarPainelPdf(
 
     addFootersAllPages(pdf, input.unidadeNome, geradoEm);
 
-    document.body.removeChild(off);
-
     const filename = `painel-${slugify(input.unidadeNome)}-${geradoEm.toISOString().slice(0, 10)}.pdf`;
     const blob = pdf.output('blob');
-    // Expor para QA
     const b64 = pdf.output('datauristring').replace(/^data:.*?;base64,/, '');
     (window as unknown as Record<string, unknown>).__painelPdfB64 = b64;
     let dbg = document.getElementById('__painel_pdf_b64') as HTMLTextAreaElement | null;
@@ -318,5 +347,8 @@ export async function exportarPainelPdf(
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Falha ao gerar PDF';
     return { ok: false, tempoMs: Math.round(performance.now() - t0), error: msg };
+  } finally {
+    try { reactRoot?.unmount(); } catch { /* ignore */ }
+    if (off && off.parentNode) off.parentNode.removeChild(off);
   }
 }
