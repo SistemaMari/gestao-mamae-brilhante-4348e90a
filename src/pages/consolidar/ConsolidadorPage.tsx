@@ -135,13 +135,13 @@ function BlocoPerfilClinicoConsolidado() {
           Falha ao carregar perfil clínico.
         </div>
       ) : isLoading || !data ? (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid gap-3 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-24 rounded-xl" />
           ))}
         </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-3">
           <MetricCard
             label="Taxa DMG positivo"
             value={formatPctOrDash(data.taxa_dmg_positivo_pct, 1)}
@@ -154,12 +154,6 @@ function BlocoPerfilClinicoConsolidado() {
             value={formatIg(data.ig_media_diagnostico)}
             Icon={Activity}
             tooltip="Idade gestacional média no momento do diagnóstico de DMG. Janela ideal: 24-28 semanas."
-          />
-          <MetricCard
-            label="Tempo médio DUM → diagnóstico"
-            value={formatIg(data.tempo_medio_dum_diagnostico)}
-            Icon={Activity}
-            tooltip="Tempo médio (em sem+dias) entre a DUM da paciente e a confirmação do DMG."
           />
           <MetricCard
             label="Tempo médio de fechamento"
@@ -193,6 +187,7 @@ function BlocoGargalosConsolidado() {
       loading={isLoading}
       error={isError ? "Falha ao carregar gargalos." : null}
       hideVerPacientesLink
+      subtitle="Onde há falha de rastreamento na sua rede."
     />
   );
 }

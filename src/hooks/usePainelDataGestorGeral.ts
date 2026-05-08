@@ -268,3 +268,36 @@ export function useDiagnosticoAlertas() {
     gcTime: 60 * 60_000,
   });
 }
+
+// ============================================================
+// Top destaques (Aba 3)
+// ============================================================
+
+export interface TopDestaque {
+  unidade_id: string;
+  unidade_nome: string;
+  diagnosticos: number;
+}
+export interface TopDestaquesPayload {
+  mais: TopDestaque | null;
+  menos: TopDestaque | null;
+}
+
+export function useTopDestaques() {
+  const { filtros, unidadesEfetivas, semSelecao } = useFiltrosGestorGeral();
+  return useQuery({
+    queryKey: buildKey(["painel-gg", "top-destaques"], unidadesEfetivas, filtros.dataInicio, filtros.dataFim),
+    enabled: !semSelecao,
+    queryFn: async (): Promise<TopDestaquesPayload> => {
+      const { data, error } = await supabase.rpc("get_top_destaques_gestor_geral", {
+        p_data_inicio: filtros.dataInicio,
+        p_data_fim: filtros.dataFim,
+        p_unidades: unidadesEfetivas ?? undefined,
+      });
+      if (error) throw error;
+      return data as unknown as TopDestaquesPayload;
+    },
+    staleTime: 60_000,
+    gcTime: 60 * 60_000,
+  });
+}

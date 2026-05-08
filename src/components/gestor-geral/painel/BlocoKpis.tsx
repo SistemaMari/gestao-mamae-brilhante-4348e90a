@@ -61,30 +61,35 @@ export default function BlocoKpis({ data, isLoading, isError, onRetry }: Props) 
       titulo: "Pacientes ativos",
       valor: fmtNum(data.totais.pacientes_ativos),
       variacao: fmtVarPct(data.variacao_periodo_anterior.pacientes_ativos_pct),
+      tooltip:
+        "Gestantes com DUM nos últimos 280 dias nas unidades selecionadas. Snapshot atual — não depende da janela do filtro.",
     },
     {
       titulo: "Laudos emitidos",
       valor: fmtNum(data.totais.laudos_emitidos),
       variacao: fmtVarPct(data.variacao_periodo_anterior.laudos_emitidos_pct),
+      tooltip: "Laudos gerados no período selecionado pelas unidades selecionadas.",
     },
     {
       titulo: "Taxa DMG positivo",
       valor: fmtPct(data.totais.taxa_dmg_positivo_pct, 1),
       variacao: fmtVarPp(data.variacao_periodo_anterior.taxa_dmg_positivo_delta),
       tooltip:
-        "Taxa alta pode indicar boa captação ou população de risco — interprete no contexto da sua rede.",
+        "Percentual de laudos do período com diagnóstico positivo de DMG. Faixa esperada Febrasgo: 7-18%.",
     },
     {
       titulo: "Partos registrados",
       valor: fmtNum(data.totais.partos_registrados),
       variacao: { text: "—", tone: "neutral" },
       hideTrend: true,
+      tooltip: "Partos registrados no período pelas unidades selecionadas.",
     },
     {
       titulo: "Profissionais ativos",
       valor: fmtNum(data.totais.profissionais_ativos),
       variacao: { text: "—", tone: "neutral" },
       hideTrend: true,
+      tooltip: "Profissionais com ao menos 1 paciente em acompanhamento nas unidades selecionadas.",
     },
   ];
 

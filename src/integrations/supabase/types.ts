@@ -1863,6 +1863,14 @@ export type Database = {
           unidade_nome: string
         }[]
       }
+      get_top_destaques_gestor_geral: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
       get_visao_geral_gestor_geral: {
         Args: {
           p_data_fim: string

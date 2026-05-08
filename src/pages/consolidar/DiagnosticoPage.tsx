@@ -3,17 +3,20 @@ import {
   useDiagnosticoKpis,
   useDiagnosticoRanking,
   useDiagnosticoAlertas,
+  useTopDestaques,
 } from "@/hooks/usePainelDataGestorGeral";
 import EmptyStateSemSelecao from "@/components/gestor-geral/EmptyStateSemSelecao";
 import BlocoKpis from "@/components/gestor-geral/painel/BlocoKpis";
 import BlocoRanking from "@/components/gestor-geral/painel/BlocoRanking";
 import BlocoAlertas from "@/components/gestor-geral/painel/BlocoAlertas";
+import BlocoTopDestaques from "@/components/gestor-geral/painel/BlocoTopDestaques";
 
 export default function DiagnosticoPage() {
   const { semSelecao } = useFiltrosGestorGeral();
   const kpis = useDiagnosticoKpis();
   const ranking = useDiagnosticoRanking();
   const alertas = useDiagnosticoAlertas();
+  const destaques = useTopDestaques();
 
   if (semSelecao) return <EmptyStateSemSelecao />;
 
@@ -32,6 +35,11 @@ export default function DiagnosticoPage() {
         isLoading={kpis.isLoading}
         isError={kpis.isError}
         onRetry={() => kpis.refetch()}
+      />
+      <BlocoTopDestaques
+        data={destaques.data}
+        isLoading={destaques.isLoading}
+        isError={destaques.isError}
       />
       <BlocoRanking
         data={ranking.data}

@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { RankingUnidade } from "@/hooks/usePainelGestorGeral";
 import { fmtNum, fmtPct, humanizeUltimaAtividade } from "./utils/formatters";
+import TooltipInfo from "@/components/gestor-geral/TooltipInfo";
 
 interface Props {
   data: RankingUnidade[] | undefined;
@@ -99,27 +100,27 @@ export default function BlocoRanking({ data, isLoading, isError, onRetry }: Prop
     }
   };
 
-  const Header = ({ k, label, align }: { k: SortKey; label: string; align?: "right" }) => (
+  const Header = ({ k, label, align, tooltip }: { k: SortKey; label: string; align?: "right"; tooltip?: string }) => (
     <TableHead className={align === "right" ? "text-right" : undefined}>
-      <button
-        type="button"
-        onClick={() => onSort(k)}
-        className={cn(
-          "inline-flex items-center gap-1 hover:text-[#7E69AB] transition-colors",
-          align === "right" && "ml-auto",
-        )}
-      >
-        {label}
-        {sortKey === k ? (
-          sortDir === "asc" ? (
-            <ArrowUp className="h-3 w-3" />
+      <span className={cn("inline-flex items-center gap-1", align === "right" && "ml-auto")}>
+        <button
+          type="button"
+          onClick={() => onSort(k)}
+          className="inline-flex items-center gap-1 hover:text-[#7E69AB] transition-colors"
+        >
+          {label}
+          {sortKey === k ? (
+            sortDir === "asc" ? (
+              <ArrowUp className="h-3 w-3" />
+            ) : (
+              <ArrowDown className="h-3 w-3" />
+            )
           ) : (
-            <ArrowDown className="h-3 w-3" />
-          )
-        ) : (
-          <ArrowUpDown className="h-3 w-3 opacity-40" />
-        )}
-      </button>
+            <ArrowUpDown className="h-3 w-3 opacity-40" />
+          )}
+        </button>
+        {tooltip && <TooltipInfo text={tooltip} />}
+      </span>
     </TableHead>
   );
 
@@ -164,12 +165,12 @@ export default function BlocoRanking({ data, isLoading, isError, onRetry }: Prop
           <TableHeader>
             <TableRow className="bg-[#F8FAFC]">
               <Header k="unidade_nome" label="Unidade" />
-              <Header k="pacientes_ativos" label="Pacientes" />
-              <Header k="laudos_emitidos" label="Laudos" />
-              <Header k="taxa_dmg_positivo_pct" label="Taxa DMG+" />
-              <Header k="tempo_medio_fechamento_dias" label="Tempo médio" />
-              <Header k="ultima_atividade" label="Última atividade" />
-              <Header k="status_operacional" label="Status" />
+              <Header k="pacientes_ativos" label="Pacientes" tooltip="Gestantes com DUM nos últimos 280 dias." />
+              <Header k="laudos_emitidos" label="Laudos" tooltip="Laudos gerados no período selecionado." />
+              <Header k="taxa_dmg_positivo_pct" label="Taxa DMG+" tooltip="Percentual de laudos do período com diagnóstico positivo de DMG." />
+              <Header k="tempo_medio_fechamento_dias" label="Tempo médio" tooltip="Dias médios entre DUM e parto registrado no período. '—' quando não há partos elegíveis." />
+              <Header k="ultima_atividade" label="Última atividade" tooltip="Último registro (paciente, laudo, exame ou atendimento) na unidade." />
+              <Header k="status_operacional" label="Status" tooltip="Ativa: registro nos últimos 30d. Atenção: 30-60d. Inativa: >60d. Não iniciada: sem registros." />
             </TableRow>
           </TableHeader>
           <TableBody>

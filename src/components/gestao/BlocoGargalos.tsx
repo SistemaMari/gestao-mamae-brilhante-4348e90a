@@ -17,6 +17,7 @@ interface Props {
   loading?: boolean;
   error?: string | null;
   hideVerPacientesLink?: boolean;
+  subtitle?: string;
 }
 
 type Severidade = 'amarelo' | 'laranja' | 'vermelho';
@@ -42,7 +43,7 @@ const PALETA: Record<Severidade, { border: string; bg: string; iconBg: string; i
   },
 };
 
-export default function BlocoGargalos({ data, loading, error, hideVerPacientesLink }: Props) {
+export default function BlocoGargalos({ data, loading, error, hideVerPacientesLink, subtitle }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const basePath = pathname.startsWith('/vitrine') ? '/vitrine/gestao' : '/gestao';
@@ -85,9 +86,12 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
 
   return (
     <section className="space-y-3" data-pdf-section="gargalos">
-      <h2 className="font-heading text-lg font-semibold text-foreground">
-        Gargalos de cuidado
-      </h2>
+      <div>
+        <h2 className="font-heading text-lg font-semibold text-foreground">
+          Gargalos de cuidado
+        </h2>
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+      </div>
       {error ? (
         <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
           {error}
