@@ -2,6 +2,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { createRoot, type Root } from 'react-dom/client';
 import { createElement } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { gerarResumoExecutivo } from './gerarResumoExecutivo';
 import { slugify } from './slugify';
@@ -281,14 +282,18 @@ export async function exportarPainelPdf(
     reactRoot = createRoot(reactHost);
     reactRoot.render(
       createElement(
-        PdfModeContext.Provider,
-        { value: true },
-        createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 24 } },
-          createElement(BlocoOperacao, { data: input.operacao }),
-          createElement(BlocoPerfilClinico, { data: input.perfil }),
-          createElement(BlocoGargalos, { data: input.gargalos, hideVerPacientesLink: true }),
-          createElement(BlocoTendencia, { data: input.tendencia, showDataLabels: true }),
-          dadosEquipe ? createElement(SecaoEquipePdf, { dados: dadosEquipe }) : null,
+        MemoryRouter,
+        { initialEntries: ['/gestao'] },
+        createElement(
+          PdfModeContext.Provider,
+          { value: true },
+          createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 24 } },
+            createElement(BlocoOperacao, { data: input.operacao }),
+            createElement(BlocoPerfilClinico, { data: input.perfil }),
+            createElement(BlocoGargalos, { data: input.gargalos, hideVerPacientesLink: true }),
+            createElement(BlocoTendencia, { data: input.tendencia, showDataLabels: true }),
+            dadosEquipe ? createElement(SecaoEquipePdf, { dados: dadosEquipe }) : null,
+          ),
         ),
       ),
     );
@@ -312,9 +317,16 @@ export async function exportarPainelPdf(
     const sections = ['operacao', 'perfil', 'gargalos', 'tendencia', 'equipe'];
     for (const sec of sections) {
       const node = reactHost.querySelector(`[data-pdf-section="${sec}"]`) as HTMLElement | null;
-      if (!node) continue;
-      const c = await captureToCanvas(node);
-      addCanvasPaginated(pdf, c);
+      if (!node) {
+        console.warn(`[exportarPainelPdf] seção "${sec}" não renderizou no host React`);
+        continue;
+      }
+      try {
+        const c = await captureToCanvas(node);
+        addCanvasPaginated(pdf, c);
+      } catch (err) {
+        console.error(`[exportarPainelPdf] falha ao capturar seção "${sec}":`, err);
+      }
     }
 
     // Apêndice
