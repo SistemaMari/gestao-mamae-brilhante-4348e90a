@@ -406,25 +406,46 @@ export default function ConfiguracoesPage() {
             />
 
             <ul className="space-y-3">
-              {cronograma.map((item) => (
-                <li key={item.label} className="flex items-center gap-3 text-sm">
-                  {item.proximo ? (
-                    <Clock className="h-4 w-4 shrink-0 text-[#9b87f5]" />
-                  ) : (
+              {/* Mês anterior — com status real */}
+              <li className="flex items-center gap-3 text-sm">
+                {statusMesAnterior === 'loading' ? (
+                  <>
+                    <SkeletonLine className="h-4 w-4 shrink-0 rounded-full" />
+                    <SkeletonLine className="h-4 w-64" />
+                  </>
+                ) : statusMesAnterior === 'gerado' ? (
+                  <>
                     <Check className="h-4 w-4 shrink-0 text-green-600" />
-                  )}
-                  <span
-                    className={
-                      item.proximo
-                        ? 'font-semibold text-[#5B3A8C]'
-                        : 'text-[#475569]'
-                    }
-                  >
-                    {item.label}
-                    {item.proximo && <span className="ml-1 font-semibold">(próximo)</span>}
-                  </span>
-                </li>
-              ))}
+                    <span className="text-[#475569]">
+                      {labelMesAnterior} <span className="text-[#64748B]">— Gerado</span>
+                    </span>
+                  </>
+                ) : statusMesAnterior === 'aguardando' ? (
+                  <>
+                    <Clock className="h-4 w-4 shrink-0 text-[#9b87f5]" />
+                    <span className="text-[#475569]">
+                      {labelMesAnterior}{' '}
+                      <span className="text-[#64748B]">— Aguardando geração — prevista para hoje 03:00</span>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-[#D97706]" />
+                    <span className="text-[#475569]">
+                      {labelMesAnterior}{' '}
+                      <span className="font-semibold text-[#B45309]">— Não gerado — contate o suporte</span>
+                    </span>
+                  </>
+                )}
+              </li>
+
+              {/* Próximo — cronograma puro */}
+              <li className="flex items-center gap-3 text-sm">
+                <Clock className="h-4 w-4 shrink-0 text-[#9b87f5]" />
+                <span className="font-semibold text-[#5B3A8C]">
+                  {labelProximo} <span className="font-semibold">(próximo)</span>
+                </span>
+              </li>
             </ul>
 
             <p className="mt-5 text-xs text-[#64748B]">
