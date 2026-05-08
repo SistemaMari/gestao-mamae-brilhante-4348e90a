@@ -170,20 +170,65 @@ export default function GestaoPage() {
     );
   }
 
+  const [exportando, setExportando] = useState(false);
+  const podeExportar = !!operacao && !!perfil && !!gargalos && !!tendencia && !loadingBlocos;
+
+  const handleExportar = async () => {
+    if (!operacao || !perfil || !gargalos || !tendencia || !unidadeId) return;
+    setExportando(true);
+    const res = await exportarPainelPdf({
+      unidadeId,
+      unidadeNome: unidadeNome || 'Unidade',
+      operacao,
+      perfil,
+      gargalos,
+      tendencia,
+    });
+    setExportando(false);
+    if (res.ok) {
+      toast({ title: 'PDF gerado', description: `Concluído em ${(res.tempoMs / 1000).toFixed(1)}s` });
+    } else {
+      toast({
+        title: 'Falha ao gerar PDF',
+        description: res.error || 'Erro inesperado',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="px-6 py-8 lg:px-10">
       {/* Header */}
-      <div className="mb-6">
-        <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
-          <Building2 className="h-4 w-4" />
-          <span>{contextoCarregado ? unidadeNome || '—' : 'Carregando...'}</span>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
+            <Building2 className="h-4 w-4" />
+            <span>{contextoCarregado ? unidadeNome || '—' : 'Carregando...'}</span>
+          </div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">
+            Painel da unidade
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Visão estratégica da operação clínica
+          </p>
         </div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">
-          Painel da unidade
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Visão estratégica da operação clínica
-        </p>
+        {podeExportar && (
+          <button
+            onClick={handleExportar}
+            disabled={exportando}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#7C4DBA] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6A3FA0] disabled:opacity-60"
+          >
+            {exportando ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Gerando...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" /> Exportar PDF
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Seletor de unidade — só aparece para gestor geral */}
