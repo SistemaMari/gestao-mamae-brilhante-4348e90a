@@ -367,6 +367,46 @@ export default function GestaoEquipePage() {
           </Button>
         </div>
 
+        {/* Cards de resumo */}
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <CardResumoEquipe
+            titulo="Profissionais ativos"
+            valor={totalAtivos}
+            sublabel="incluindo você"
+            tooltip="Total de profissionais ativos vinculados à sua unidade, incluindo você. Profissionais com acesso revogado não são contabilizados."
+            icon={Users}
+            loading={loading}
+            erro={errosCards.ativos}
+          />
+          <CardResumoEquipe
+            titulo="Convites pendentes"
+            valor={totalPendentes}
+            sublabel="aguardando aceite"
+            tooltip="Convites enviados que ainda não foram aceitos pelo profissional convidado e estão dentro do prazo de validade."
+            icon={UserPlus}
+            loading={loading}
+            erro={errosCards.pendentes}
+          />
+          <CardResumoEquipe
+            titulo="Convites expirados"
+            valor={totalExpirados}
+            sublabel="reenviar disponível"
+            tooltip="Convites cujo prazo de aceitação já expirou. Você pode reenviar o convite a partir da lista de convites pendentes."
+            icon={MailWarning}
+            loading={loading}
+            erro={errosCards.expirados}
+          />
+          <CardResumoEquipe
+            titulo="Laudos gerados pela equipe"
+            valor={totalLaudos}
+            sublabel="total histórico"
+            tooltip="Total de laudos de DMG já emitidos pela equipe da sua unidade desde o início. Para laudos recentes, veja o painel principal."
+            icon={FileCheck}
+            loading={loading}
+            erro={errosCards.laudos}
+          />
+        </div>
+
         {/* Table */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
