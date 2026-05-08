@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.resetar_laudos_aniversario() FROM PUBLIC, anon, authenticated;
