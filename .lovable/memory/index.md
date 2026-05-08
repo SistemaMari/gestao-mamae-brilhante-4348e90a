@@ -1,10 +1,7 @@
-# Memory: index.md
-Updated: now
-
 # Project Memory
 
 ## Core
-Dra. Mari DMG Diagnóstica — sistema de apoio diagnóstico para DMG.
+MARI — sistema de apoio diagnóstico para DMG. Nome oficial é apenas "MARI" (sem "DMG Diagnóstica" ou "Dra. Mari").
 Paleta: lilás #9b87f5, verde-água #99F6E4, roxo #7E69AB, fundo #F8FAFC. Nunca azul/coral/laranja de marca.
 Fontes: Sora (títulos), Plus Jakarta Sans (corpo), DM Serif Display (destaques editoriais).
 5 perfis: consultório, institucional, gestor, gestor geral, admin. Redirect por perfil.
