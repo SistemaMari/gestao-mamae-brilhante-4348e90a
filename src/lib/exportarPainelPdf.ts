@@ -336,7 +336,7 @@ export async function exportarPainelPdf(
 
     addFootersAllPages(pdf, input.unidadeNome, geradoEm);
 
-    const filename = `painel-${slugify(input.unidadeNome)}-${geradoEm.toISOString().slice(0, 10)}.pdf`;
+    const filename = `painel-${slugify(input.unidadeNome)}-${formatDateISO(geradoEm)}.pdf`;
     const blob = pdf.output('blob');
     const b64 = pdf.output('datauristring').replace(/^data:.*?;base64,/, '');
     (window as unknown as Record<string, unknown>).__painelPdfB64 = b64;
