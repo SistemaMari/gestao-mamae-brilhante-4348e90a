@@ -51,6 +51,7 @@ interface UnidadeSpec {
   nome: string;
   criadaDiasAtras: number;
   status: "ativa" | "atencao" | "inativa" | "nao_iniciada";
+  gestor?: { email: string; nome: string; crm: string };
   profissionais: { email: string; nome: string; crm: string }[];
   pacientes: number;
   laudos: number;
@@ -70,6 +71,7 @@ const UNIDADES: UnidadeSpec[] = [
     nome: "UBS Demo Pinheiros",
     criadaDiasAtras: 90,
     status: "ativa",
+    gestor: { email: "gestor.pinheiros.demo@mari.health", nome: "Dra. Ana Pinheiros", crm: "CRM-SP G-10000" },
     profissionais: [
       { email: "prof.pinheiros1.demo@mari.health", nome: "Dra. Demo Pinheiros 1", crm: "CRM-SP D-10001" },
       { email: "prof.pinheiros2.demo@mari.health", nome: "Dra. Demo Pinheiros 2", crm: "CRM-SP D-10002" },
@@ -87,6 +89,7 @@ const UNIDADES: UnidadeSpec[] = [
     nome: "UBS Demo Moema",
     criadaDiasAtras: 80,
     status: "atencao",
+    gestor: { email: "gestor.moema.demo@mari.health", nome: "Dr. Bruno Moema", crm: "CRM-SP G-20000" },
     profissionais: [
       { email: "prof.moema1.demo@mari.health", nome: "Dra. Demo Moema 1", crm: "CRM-SP D-20001" },
       { email: "prof.moema2.demo@mari.health", nome: "Dra. Demo Moema 2", crm: "CRM-SP D-20002" },
@@ -103,6 +106,7 @@ const UNIDADES: UnidadeSpec[] = [
     nome: "UBS Demo Lapa",
     criadaDiasAtras: 70,
     status: "inativa",
+    gestor: { email: "gestor.lapa.demo@mari.health", nome: "Dra. Carla Lapa", crm: "CRM-SP G-30000" },
     profissionais: [
       { email: "prof.lapa1.demo@mari.health", nome: "Dra. Demo Lapa 1", crm: "CRM-SP D-30001" },
     ],
@@ -336,6 +340,49 @@ Deno.serve(async (req) => {
         profIds.push(profId);
       }
       log.push(`  ${profIds.length} profissionais`);
+
+      // ---------- gestor da unidade (perfil_institucional='gestor') ----------
+      if (u.gestor) {
+        const g = u.gestor;
+        let gUserId: string;
+        const { data: gCreated } = await supabase.auth.admin.createUser({
+          email: g.email, password: SENHA_PROF, email_confirm: true,
+          user_metadata: { nome: g.nome },
+        });
+        if (gCreated?.user) {
+          gUserId = gCreated.user.id;
+        } else {
+          const { data: list } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+          const ex = list?.users?.find((x) => x.email === g.email);
+          if (ex) {
+            gUserId = ex.id;
+            await supabase.auth.admin.updateUserById(ex.id, { password: SENHA_PROF });
+          } else {
+            log.push(`  ✗ não criou gestor ${g.email}`);
+            gUserId = "";
+          }
+        }
+        if (gUserId) {
+          const dadosGestor = {
+            user_id: gUserId, nome: g.nome, crm: g.crm,
+            especialidade: "Ginecologia e Obstetrícia",
+            plano: "free", plano_id: planoInicialId, plano_status: "ativo",
+            laudos_limite: 200, laudos_usados: 0,
+            cidade: "São Paulo", estado: "SP",
+            unidade_id: unidadeId,
+            perfil_institucional: "gestor" as const,
+            acesso_revogado: false,
+          };
+          const { data: gEx } = await supabase
+            .from("profissionais").select("id").eq("user_id", gUserId).maybeSingle();
+          if (gEx) {
+            await supabase.from("profissionais").update(dadosGestor).eq("id", gEx.id);
+          } else {
+            await supabase.from("profissionais").insert(dadosGestor);
+          }
+          log.push(`  + gestor da unidade: ${g.nome}`);
+        }
+      }
 
       if (profIds.length === 0 && u.pacientes === 0) continue;
 
