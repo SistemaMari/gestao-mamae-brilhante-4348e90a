@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import { Info } from 'lucide-react';
 import {
   Tooltip,
@@ -5,6 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { PdfModeContext } from './PdfModeContext';
 
 interface Props {
   text: string;
@@ -13,6 +15,8 @@ interface Props {
 }
 
 export default function CardInfoTooltip({ text, side = 'top', ariaLabel }: Props) {
+  const isPdf = useContext(PdfModeContext);
+  if (isPdf) return null;
   return (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
