@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { gerarResumoExecutivo } from './gerarResumoExecutivo';
 import { slugify } from './slugify';
+import { formatDateISO } from './dateUtils';
 import { fetchDadosEquipe } from './fetchDadosEquipe';
 import { PdfModeContext } from '@/components/gestao/PdfModeContext';
 import BlocoOperacao from '@/components/gestao/BlocoOperacao';
