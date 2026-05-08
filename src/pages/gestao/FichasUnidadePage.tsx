@@ -99,6 +99,7 @@ export default function FichasUnidadePage() {
   const [loading, setLoading] = useState(!isVitrine);
   const [busca, setBusca] = useState('');
   const [buscaDebounced, setBuscaDebounced] = useState('');
+  const [statusFiltro, setStatusFiltro] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
   const [searchParams, setSearchParams] = useSearchParams();
