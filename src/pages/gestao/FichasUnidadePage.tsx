@@ -11,6 +11,16 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import { STATUS_CONFIG, calcIdadeGestacional } from '@/lib/fichaUtils';
+import { slugify } from '@/lib/slugify';
+
+const STATUS_CHIP_KEYS = [
+  'aguardando_gj',
+  'aguardando_gtt',
+  'dmg_confirmado',
+  'dmg_afastado',
+  'resultado_parto',
+  'encaminhada_endocrino',
+] as const;
 
 interface Ficha {
   id: string;
@@ -89,6 +99,7 @@ export default function FichasUnidadePage() {
   const [loading, setLoading] = useState(!isVitrine);
   const [busca, setBusca] = useState('');
   const [buscaDebounced, setBuscaDebounced] = useState('');
+  const [statusFiltro, setStatusFiltro] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -179,13 +190,41 @@ export default function FichasUnidadePage() {
     })();
   }, [isVitrine, user]);
 
+  const contagensStatus = useMemo(() => {
+    const acc: Record<string, number> = {};
+    for (const f of fichas) {
+      acc[f.status_ficha] = (acc[f.status_ficha] || 0) + 1;
+    }
+    return acc;
+  }, [fichas]);
+
+  const kpiTotal = fichas.length;
+  const kpiAguardandoGj = contagensStatus['aguardando_gj'] || 0;
+  const kpiAcompanhamento =
+    (contagensStatus['aguardando_gtt'] || 0) +
+    (contagensStatus['dmg_confirmado'] || 0) +
+    (contagensStatus['encaminhada_endocrino'] || 0);
+  const kpiConcluidas =
+    (contagensStatus['dmg_afastado'] || 0) +
+    (contagensStatus['resultado_parto'] || 0);
+
   const filtradas = useMemo(() => {
     let base = fichas;
     if (idsFiltro) base = base.filter(f => idsFiltro.has(f.id));
+    if (statusFiltro) base = base.filter(f => f.status_ficha === statusFiltro);
     if (!buscaDebounced.trim()) return base;
     const q = stripAccents(buscaDebounced.trim());
     return base.filter(f => stripAccents(f.nome).includes(q));
-  }, [fichas, buscaDebounced, idsFiltro]);
+  }, [fichas, buscaDebounced, idsFiltro, statusFiltro]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFiltro]);
+
+  const limparTodosFiltros = () => {
+    setStatusFiltro(null);
+    setBusca('');
+  };
 
   const totalPages = Math.max(1, Math.ceil(filtradas.length / PAGE_SIZE));
   const pageSafe = Math.min(page, totalPages);
@@ -194,7 +233,8 @@ export default function FichasUnidadePage() {
   const fim = Math.min(pageSafe * PAGE_SIZE, filtradas.length);
 
   const fmtBR = (v: string | null) => v ? new Date(v).toLocaleDateString('pt-BR') : '—';
-  const fileBase = `fichas_${(unidadeNome || 'unidade').replace(/\s+/g, '')}_${format(new Date(), 'yyyy-MM-dd')}`;
+  const slugFiltro = statusFiltro ? slugify(STATUS_CONFIG[statusFiltro]?.label || statusFiltro) : 'todas';
+  const fileBase = `fichas-unidade-${slugFiltro}_${(unidadeNome || 'unidade').replace(/\s+/g, '')}_${format(new Date(), 'yyyy-MM-dd')}`;
 
   const exportCSV = () => {
     if (isVitrine) {
@@ -300,6 +340,57 @@ export default function FichasUnidadePage() {
         <p className="mt-1 text-sm text-muted-foreground">Lista completa de pacientes em acompanhamento.</p>
       </div>
 
+      {/* Header de KPIs operacionais */}
+      <div className="mb-4 grid grid-cols-2 divide-x divide-border rounded-xl border border-border bg-card p-5 sm:grid-cols-4">
+        {[
+          { label: 'Total', valor: kpiTotal },
+          { label: 'Aguardando GJ', valor: kpiAguardandoGj },
+          { label: 'Em acompanhamento', valor: kpiAcompanhamento },
+          { label: 'Concluídas', valor: kpiConcluidas },
+        ].map((kpi, i) => (
+          <div key={kpi.label} className={`flex flex-col px-4 ${i === 0 ? 'sm:pl-0' : ''}`}>
+            <span className="font-heading text-3xl font-bold text-foreground">{kpi.valor}</span>
+            <span className="mt-1 text-xs text-muted-foreground">{kpi.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Chips de filtro por tag */}
+      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+        <button
+          type="button"
+          onClick={() => statusFiltro !== null && setStatusFiltro(null)}
+          className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm whitespace-nowrap transition ${
+            statusFiltro === null
+              ? 'bg-[#EDE7F6] border-[#7C4DBA] text-[#5B3A8C] font-medium'
+              : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] cursor-pointer'
+          }`}
+        >
+          Todos ({kpiTotal})
+        </button>
+        {STATUS_CHIP_KEYS.map(key => {
+          const cfg = STATUS_CONFIG[key];
+          if (!cfg) return null;
+          const ativo = statusFiltro === key;
+          const count = contagensStatus[key] || 0;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => !ativo && setStatusFiltro(key)}
+              className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm whitespace-nowrap transition ${
+                ativo
+                  ? 'bg-[#EDE7F6] border-[#7C4DBA] text-[#5B3A8C] font-medium'
+                  : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] cursor-pointer'
+              }`}
+            >
+              <span className={`inline-block h-2 w-2 rounded-full ${cfg.color}`} />
+              {cfg.label} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:w-[400px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -366,13 +457,22 @@ export default function FichasUnidadePage() {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-12">
                   <FileText className="h-10 w-10 text-muted-foreground/30 mb-3 mx-auto" />
-                  <p className="text-sm text-muted-foreground">
-                    {filtroAtivo
-                      ? 'Sem pacientes neste gargalo no momento.'
-                      : fichas.length === 0
-                      ? 'Nenhuma ficha cadastrada nesta unidade ainda.'
-                      : 'Nenhuma paciente encontrada com esse nome. Tente outra busca.'}
-                  </p>
+                  {(statusFiltro || buscaDebounced.trim()) && fichas.length > 0 ? (
+                    <>
+                      <p className="text-sm text-muted-foreground">Nenhuma ficha corresponde aos filtros aplicados.</p>
+                      <Button variant="outline" size="sm" className="mt-4" onClick={limparTodosFiltros}>
+                        Limpar filtros
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {filtroAtivo
+                        ? 'Sem pacientes neste gargalo no momento.'
+                        : fichas.length === 0
+                        ? 'Nenhuma ficha cadastrada nesta unidade ainda.'
+                        : 'Nenhuma paciente encontrada com esse nome. Tente outra busca.'}
+                    </p>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
