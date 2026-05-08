@@ -340,6 +340,57 @@ export default function FichasUnidadePage() {
         <p className="mt-1 text-sm text-muted-foreground">Lista completa de pacientes em acompanhamento.</p>
       </div>
 
+      {/* Header de KPIs operacionais */}
+      <div className="mb-4 grid grid-cols-2 divide-x divide-border rounded-xl border border-border bg-card p-5 sm:grid-cols-4">
+        {[
+          { label: 'Total', valor: kpiTotal },
+          { label: 'Aguardando GJ', valor: kpiAguardandoGj },
+          { label: 'Em acompanhamento', valor: kpiAcompanhamento },
+          { label: 'Concluídas', valor: kpiConcluidas },
+        ].map((kpi, i) => (
+          <div key={kpi.label} className={`flex flex-col px-4 ${i === 0 ? 'sm:pl-0' : ''}`}>
+            <span className="font-heading text-3xl font-bold text-foreground">{kpi.valor}</span>
+            <span className="mt-1 text-xs text-muted-foreground">{kpi.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Chips de filtro por tag */}
+      <div className="mb-6 flex gap-2 overflow-x-auto pb-1">
+        <button
+          type="button"
+          onClick={() => statusFiltro !== null && setStatusFiltro(null)}
+          className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm whitespace-nowrap transition ${
+            statusFiltro === null
+              ? 'bg-[#EDE7F6] border-[#7C4DBA] text-[#5B3A8C] font-medium'
+              : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] cursor-pointer'
+          }`}
+        >
+          Todos ({kpiTotal})
+        </button>
+        {STATUS_CHIP_KEYS.map(key => {
+          const cfg = STATUS_CONFIG[key];
+          if (!cfg) return null;
+          const ativo = statusFiltro === key;
+          const count = contagensStatus[key] || 0;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => !ativo && setStatusFiltro(key)}
+              className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm whitespace-nowrap transition ${
+                ativo
+                  ? 'bg-[#EDE7F6] border-[#7C4DBA] text-[#5B3A8C] font-medium'
+                  : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] cursor-pointer'
+              }`}
+            >
+              <span className={`inline-block h-2 w-2 rounded-full ${cfg.color}`} />
+              {cfg.label} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:w-[400px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
