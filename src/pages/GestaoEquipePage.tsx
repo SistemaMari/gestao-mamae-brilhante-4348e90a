@@ -595,7 +595,7 @@ export default function GestaoEquipePage() {
               <Info className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#7C4DBA' }} />
               <span>
                 Cada e-mail só pode ter um perfil no sistema. Se a pessoa já usa a MARI
-                Diagnóstica como administrador, gestor de outra unidade ou gestor geral, ela
+                como administrador, gestor de outra unidade ou gestor geral, ela
                 precisará usar um e-mail diferente. Se ela já tem uma conta no modelo consultório
                 (sem unidade vinculada), o sistema oferecerá a opção de vincular a conta existente
                 à sua unidade.
