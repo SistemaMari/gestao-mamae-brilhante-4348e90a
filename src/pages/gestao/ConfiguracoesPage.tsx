@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Building2, Users, ArrowRight, CalendarCheck, Check, Clock, LifeBuoy } from 'lucide-react';
+import { Building2, Users, ArrowRight, CalendarCheck, Check, Clock, LifeBuoy, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
