@@ -359,11 +359,30 @@ export default function FichasUnidadePage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={exportCSV} disabled={loading || filtradas.length === 0}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCSV}
+            disabled={loading || filtradas.length === 0 || gerandoExcel}
+          >
             <FileDown className="h-4 w-4" /> Exportar CSV
           </Button>
-          <Button variant="outline" size="sm" onClick={exportPDF} disabled={loading || filtradas.length === 0}>
-            <FileDown className="h-4 w-4" /> Exportar PDF
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportExcel}
+            disabled={loading || filtradas.length === 0 || gerandoExcel}
+            title={filtradas.length === 0 ? 'Nenhuma ficha para exportar com os filtros atuais.' : undefined}
+          >
+            {gerandoExcel ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Gerando...
+              </>
+            ) : (
+              <>
+                <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
+              </>
+            )}
           </Button>
         </div>
       </div>
