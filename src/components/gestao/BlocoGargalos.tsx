@@ -83,7 +83,7 @@ export default function BlocoGargalos({ data, loading, error }: Props) {
   const total = itens.reduce((s, i) => s + i.data.count, 0);
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" data-pdf-section="gargalos">
       <h2 className="font-heading text-lg font-semibold text-foreground">
         Gargalos de cuidado
       </h2>
