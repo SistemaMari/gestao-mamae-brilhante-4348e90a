@@ -180,23 +180,33 @@ export default function CadastroConvitePage() {
   if (status === 'email_existente') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-[500px] rounded-xl border border-border bg-card p-8 shadow-sm text-center">
+        <div className="w-full max-w-[560px] rounded-xl border border-border bg-card p-8 shadow-sm text-center">
           <AlertTriangle className="mx-auto h-12 w-12 text-amber-500" />
           <h2 className="mt-4 font-heading text-xl font-bold text-foreground">
-            Você já tem uma conta MARI
+            Este e-mail já está em uso no MARI
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Deseja vincular-se a <strong>{convite?.unidade_nome}</strong>?
-          </p>
-          <div className="mt-6 flex flex-col gap-3">
-            <Button onClick={handleVincular} disabled={vinculando}>
-              {vinculando && <Loader2 className="h-4 w-4 animate-spin" />}
-              Sim, vincular-me
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/login')}>
-              Não, manter minha conta individual
-            </Button>
+          <div className="mt-3 space-y-3 text-left text-sm text-muted-foreground">
+            <p>
+              Você já tem uma conta MARI usando este e-mail (provavelmente como
+              profissional de consultório particular). No MARI, cada e-mail
+              pertence a um único modelo de uso — consultório OU unidade
+              institucional.
+            </p>
+            <p>
+              <strong className="text-foreground">Como prosseguir:</strong> peça
+              à pessoa que enviou o convite para reenviá-lo usando um e-mail
+              diferente — pode ser um e-mail profissional secundário ou pessoal.
+              Você poderá ter as duas contas em paralelo, cada uma com seu
+              modelo de atendimento.
+            </p>
           </div>
+          <Button
+            variant="outline"
+            className="mt-6"
+            onClick={() => navigate('/login')}
+          >
+            Voltar ao login
+          </Button>
         </div>
       </div>
     );
