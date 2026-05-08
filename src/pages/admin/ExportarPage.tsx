@@ -141,7 +141,7 @@ export default function ExportarPage() {
         queryClient,
         view,
         previewMode,
-        nomeArquivo: `${conteudo}_${new Date().toISOString().slice(0, 10)}.csv`,
+        nomeArquivo: `${conteudo}_${todayLocalISO()}.csv`,
         onLoading: (l) => setEstado(l ? "carregando" : "gerando"),
       });
       if (res.ok) {
