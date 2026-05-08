@@ -233,7 +233,8 @@ export default function FichasUnidadePage() {
   const fim = Math.min(pageSafe * PAGE_SIZE, filtradas.length);
 
   const fmtBR = (v: string | null) => v ? new Date(v).toLocaleDateString('pt-BR') : '—';
-  const fileBase = `fichas_${(unidadeNome || 'unidade').replace(/\s+/g, '')}_${format(new Date(), 'yyyy-MM-dd')}`;
+  const slugFiltro = statusFiltro ? slugify(STATUS_CONFIG[statusFiltro]?.label || statusFiltro) : 'todas';
+  const fileBase = `fichas-unidade-${slugFiltro}_${(unidadeNome || 'unidade').replace(/\s+/g, '')}_${format(new Date(), 'yyyy-MM-dd')}`;
 
   const exportCSV = () => {
     if (isVitrine) {
