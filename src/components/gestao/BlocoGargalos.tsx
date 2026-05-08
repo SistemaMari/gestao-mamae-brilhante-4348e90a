@@ -16,6 +16,7 @@ interface Props {
   data: PainelGargalos;
   loading?: boolean;
   error?: string | null;
+  hideVerPacientesLink?: boolean;
 }
 
 type Severidade = 'amarelo' | 'laranja' | 'vermelho';
@@ -41,7 +42,7 @@ const PALETA: Record<Severidade, { border: string; bg: string; iconBg: string; i
   },
 };
 
-export default function BlocoGargalos({ data, loading, error }: Props) {
+export default function BlocoGargalos({ data, loading, error, hideVerPacientesLink }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const basePath = pathname.startsWith('/vitrine') ? '/vitrine/gestao' : '/gestao';
