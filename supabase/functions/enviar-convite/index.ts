@@ -117,8 +117,10 @@ Deno.serve(async (req) => {
           }
           return json({ status: "email_em_uso_outra_unidade" });
         }
-        // Has account but no unidade => consultorio: oferece vinculação
-        fluxo = "vinculacao";
+        // Has account but no unidade => conta consultório.
+        // Regra atual: 1 e-mail = 1 modelo (consultório OU institucional).
+        // Vinculação cruzada está descontinuada.
+        return json({ status: "email_em_uso_consultorio" });
       } else {
         // Auth user exists but no profissional row — treat as outro perfil em uso
         return json({ status: "email_em_uso_outro" });
