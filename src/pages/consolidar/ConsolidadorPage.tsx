@@ -187,6 +187,7 @@ function BlocoGargalosConsolidado() {
       loading={isLoading}
       error={isError ? "Falha ao carregar gargalos." : null}
       hideVerPacientesLink
+      subtitle="Onde há falha de rastreamento na sua rede."
     />
   );
 }
