@@ -257,6 +257,32 @@ export default function ConfiguracoesPage() {
         } catch (eqErr) {
           console.warn('[ConfiguracoesPage] erro ao carregar equipe:', eqErr);
         }
+
+        // Card 3 — status do relatório automático do mês anterior
+        try {
+          const hoje = new Date();
+          const inicioMesAnt = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+          const isoMesAnt = `${inicioMesAnt.getFullYear()}-${String(inicioMesAnt.getMonth() + 1).padStart(2, '0')}-01`;
+          const { data: rel, error: relErr } = await supabase
+            .from('relatorios_unidade')
+            .select('id')
+            .eq('unidade_id', unidadeId)
+            .eq('origem', 'automatico')
+            .eq('periodo_inicio', isoMesAnt)
+            .limit(1)
+            .maybeSingle();
+          if (relErr) throw relErr;
+          if (rel) {
+            setStatusMesAnterior('gerado');
+          } else if (hoje.getDate() === 1) {
+            setStatusMesAnterior('aguardando');
+          } else {
+            setStatusMesAnterior('falha');
+          }
+        } catch (relErr) {
+          console.warn('[ConfiguracoesPage] erro ao consultar relatório do mês anterior:', relErr);
+          setStatusMesAnterior(new Date().getDate() === 1 ? 'aguardando' : 'falha');
+        }
       } finally {
         setLoading(false);
       }
