@@ -86,9 +86,12 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
 
   return (
     <section className="space-y-3" data-pdf-section="gargalos">
-      <h2 className="font-heading text-lg font-semibold text-foreground">
-        Gargalos de cuidado
-      </h2>
+      <div>
+        <h2 className="font-heading text-lg font-semibold text-foreground">
+          Gargalos de cuidado
+        </h2>
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+      </div>
       {error ? (
         <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
           {error}
