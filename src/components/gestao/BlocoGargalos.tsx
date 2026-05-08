@@ -17,6 +17,7 @@ interface Props {
   loading?: boolean;
   error?: string | null;
   hideVerPacientesLink?: boolean;
+  subtitle?: string;
 }
 
 type Severidade = 'amarelo' | 'laranja' | 'vermelho';
