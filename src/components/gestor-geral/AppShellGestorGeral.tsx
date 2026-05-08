@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { FileBarChart, Settings, LogOut, Briefcase, Loader2 } from "lucide-react";
+import { LayoutGrid, FileBarChart, Activity, BarChart3, Settings, LogOut, Briefcase, Loader2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,7 +18,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const buildItems = (base: string) => [
-  { title: "Consolidador", path: base, icon: FileBarChart, exact: true },
+  { title: "Visão geral", path: `${base}/visao-geral`, icon: LayoutGrid, exact: false },
+  { title: "Consolidador", path: `${base}/consolidador`, icon: FileBarChart, exact: false },
+  { title: "Diagnóstico", path: `${base}/diagnostico`, icon: Activity, exact: false },
+  { title: "Comparador", path: `${base}/comparador`, icon: BarChart3, exact: false },
   { title: "Configurações", path: `${base}/configuracoes`, icon: Settings, exact: false },
 ];
 

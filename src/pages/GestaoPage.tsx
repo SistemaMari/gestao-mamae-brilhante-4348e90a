@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useReadOnly } from '@/contexts/ReadOnlyContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -41,21 +42,27 @@ interface UnidadeOpt {
   nome: string;
 }
 
-export default function GestaoPage() {
+interface GestaoPageProps {
+  forcedUnidadeId?: string;
+}
+
+export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
   const { user } = useAuth();
+  const { readonly } = useReadOnly();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isVitrine = pathname.startsWith('/vitrine');
   const basePath = isVitrine ? '/vitrine/gestao' : '/gestao';
+  const isForced = !!forcedUnidadeId;
 
   const [unidadeNome, setUnidadeNome] = useState(isVitrine ? 'Hospital Demo MARI' : '');
   const [unidadeId, setUnidadeId] = useState<string | null>(
-    isVitrine ? 'vitrine-unidade' : null,
+    forcedUnidadeId ?? (isVitrine ? 'vitrine-unidade' : null),
   );
   const [isGestorGeral, setIsGestorGeral] = useState(false);
   const [unidadesDisponiveis, setUnidadesDisponiveis] = useState<UnidadeOpt[]>([]);
   const [gestorSemUnidade, setGestorSemUnidade] = useState(false);
-  const [contextoCarregado, setContextoCarregado] = useState(isVitrine);
+  const [contextoCarregado, setContextoCarregado] = useState(isVitrine || isForced);
 
   const [operacao, setOperacao] = useState<PainelOperacao | null>(
     isVitrine ? mockOperacao : null,
@@ -74,9 +81,10 @@ export default function GestaoPage() {
 
   useEffect(() => {
     if (isVitrine) return;
+    if (isForced) return;
     if (!user) return;
     initContext();
-  }, [user, isVitrine]);
+  }, [user, isVitrine, isForced]);
 
   useEffect(() => {
     if (isVitrine) return;
@@ -212,7 +220,7 @@ export default function GestaoPage() {
             Visão estratégica da operação clínica
           </p>
         </div>
-        {podeExportar && (
+        {podeExportar && !readonly && (
           <button
             onClick={handleExportar}
             disabled={exportando}
@@ -231,8 +239,8 @@ export default function GestaoPage() {
         )}
       </div>
 
-      {/* Seletor de unidade — só aparece para gestor geral */}
-      {isGestorGeral && unidadesDisponiveis.length > 0 && (
+      {/* Seletor de unidade — só aparece para gestor geral, nunca em modo forçado/readonly */}
+      {isGestorGeral && !isForced && !readonly && unidadesDisponiveis.length > 0 && (
         <div className="mb-6 flex items-center gap-2 rounded-xl border border-border bg-card p-4">
           <span className="text-sm text-muted-foreground">Unidade:</span>
           <Select value={unidadeId || ''} onValueChange={v => setUnidadeId(v)}>
@@ -262,42 +270,44 @@ export default function GestaoPage() {
 
         {tendencia && <BlocoTendencia data={tendencia} loading={loadingBlocos} error={erroBlocos} />}
 
-        {/* Quick actions */}
-        <div>
-          <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">
-            Gestão
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <button
-              onClick={() => navigate(`${basePath}/equipe`)}
-              className="group flex items-center gap-4 rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-primary/30 hover:shadow-sm"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-foreground">Gerenciar equipe</p>
-                <p className="text-sm text-muted-foreground">
-                  Ver membros, convidar e remover profissionais
-                </p>
-              </div>
-              <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-            </button>
-            <button
-              onClick={() => navigate(`${basePath}/fichas`)}
-              className="group flex items-center gap-4 rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-primary/30 hover:shadow-sm"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary/20 transition-colors group-hover:bg-secondary/30">
-                <FileText className="h-6 w-6 text-secondary-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-foreground">Fichas da unidade</p>
-                <p className="text-sm text-muted-foreground">Visualizar e exportar fichas</p>
-              </div>
-              <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-            </button>
+        {/* Quick actions — escondidas em modo readonly (drill-down do gestor geral) */}
+        {!readonly && (
+          <div>
+            <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">
+              Gestão
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                onClick={() => navigate(`${basePath}/equipe`)}
+                className="group flex items-center gap-4 rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-primary/30 hover:shadow-sm"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+                  <Users className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">Gerenciar equipe</p>
+                  <p className="text-sm text-muted-foreground">
+                    Ver membros, convidar e remover profissionais
+                  </p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+              </button>
+              <button
+                onClick={() => navigate(`${basePath}/fichas`)}
+                className="group flex items-center gap-4 rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-primary/30 hover:shadow-sm"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary/20 transition-colors group-hover:bg-secondary/30">
+                  <FileText className="h-6 w-6 text-secondary-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">Fichas da unidade</p>
+                  <p className="text-sm text-muted-foreground">Visualizar e exportar fichas</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
     </div>

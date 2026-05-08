@@ -21,7 +21,13 @@ import ExportarPage from "./pages/admin/ExportarPage";
 import AdminsPage from "./pages/admin/AdminsPage";
 import InstitucionaisPage from "./pages/admin/InstitucionaisPage";
 import ProfissionaisConsultorioPage from "./pages/admin/ProfissionaisConsultorioPage";
-import ConsolidarPage from "./pages/ConsolidarPage";
+import ConsolidarLayout from "./pages/consolidar/ConsolidarLayout";
+import VisaoGeralRedePage from "./pages/consolidar/VisaoGeralRedePage";
+import ConsolidadorPage from "./pages/consolidar/ConsolidadorPage";
+import DiagnosticoPage from "./pages/consolidar/DiagnosticoPage";
+import ComparadorPage from "./pages/consolidar/ComparadorPage";
+import ConfiguracoesGestorGeralPage from "./pages/consolidar/ConfiguracoesGestorGeralPage";
+import UnidadeDrillDownPage from "./pages/consolidar/UnidadeDrillDownPage";
 import PlanosPage from "./pages/PlanosPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
 import GestaoEquipePage from "./pages/GestaoEquipePage";
@@ -29,7 +35,7 @@ import CadastroConvitePage from "./pages/CadastroConvitePage";
 
 import AppShellGestor from "@/components/gestor/AppShellGestor";
 import AppShellGestorGeral from "@/components/gestor-geral/AppShellGestorGeral";
-import StubEmConstrucao from "@/components/StubEmConstrucao";
+
 import FichasUnidadePage from "./pages/gestao/FichasUnidadePage";
 import ConfiguracoesPage from "./pages/gestao/ConfiguracoesPage";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -81,8 +87,15 @@ const App = () => (
               <Route path="/vitrine/gestao/configuracoes" element={<ConfiguracoesPage />} />
             </Route>
             <Route element={<AppShellGestorGeral />}>
-              <Route path="/vitrine/consolidar" element={<ConsolidarPage />} />
-              <Route path="/vitrine/consolidar/configuracoes" element={<StubEmConstrucao titulo="Configurações" />} />
+              <Route element={<ConsolidarLayout />}>
+                <Route path="/vitrine/consolidar" element={<Navigate to="/vitrine/consolidar/visao-geral" replace />} />
+                <Route path="/vitrine/consolidar/visao-geral" element={<VisaoGeralRedePage />} />
+                <Route path="/vitrine/consolidar/consolidador" element={<ConsolidadorPage />} />
+                <Route path="/vitrine/consolidar/diagnostico" element={<DiagnosticoPage />} />
+                <Route path="/vitrine/consolidar/comparador" element={<ComparadorPage />} />
+                <Route path="/vitrine/consolidar/configuracoes" element={<ConfiguracoesGestorGeralPage />} />
+              </Route>
+              <Route path="/vitrine/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />
             </Route>
             <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
             <Route path="/vitrine/ficha-carimbada" element={<FichaCarimbadaDemo />} />
@@ -181,8 +194,15 @@ const App = () => (
             {/* Gestor Geral — shell dedicado. /consolidar é exclusivo de gestor_geral.
                 Dívida técnica: criar /admin/consolidar futuramente para suporte/debug do admin. */}
             <Route element={<ProtectedRoute allowedProfiles={['gestor_geral']}><AppShellGestorGeral /></ProtectedRoute>}>
-              <Route path="/consolidar" element={<ConsolidarPage />} />
-              <Route path="/consolidar/configuracoes" element={<StubEmConstrucao titulo="Configurações" />} />
+              <Route element={<ConsolidarLayout />}>
+                <Route path="/consolidar" element={<Navigate to="/consolidar/visao-geral" replace />} />
+                <Route path="/consolidar/visao-geral" element={<VisaoGeralRedePage />} />
+                <Route path="/consolidar/consolidador" element={<ConsolidadorPage />} />
+                <Route path="/consolidar/diagnostico" element={<DiagnosticoPage />} />
+                <Route path="/consolidar/comparador" element={<ComparadorPage />} />
+                <Route path="/consolidar/configuracoes" element={<ConfiguracoesGestorGeralPage />} />
+              </Route>
+              <Route path="/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />
             </Route>
 
             {/* POC dev — Etapa 0 PDF gráfico */}
