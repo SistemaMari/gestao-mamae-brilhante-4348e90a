@@ -21,6 +21,8 @@ import BlocoOperacao from '@/components/gestao/BlocoOperacao';
 import BlocoPerfilClinico from '@/components/gestao/BlocoPerfilClinico';
 import BlocoGargalos from '@/components/gestao/BlocoGargalos';
 import BlocoTendencia from '@/components/gestao/BlocoTendencia';
+import { exportarPainelPdf } from '@/lib/exportarPainelPdf';
+import { toast } from '@/hooks/use-toast';
 import {
   mockOperacao,
   mockPerfilClinico,
