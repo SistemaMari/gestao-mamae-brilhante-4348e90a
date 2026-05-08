@@ -190,13 +190,41 @@ export default function FichasUnidadePage() {
     })();
   }, [isVitrine, user]);
 
+  const contagensStatus = useMemo(() => {
+    const acc: Record<string, number> = {};
+    for (const f of fichas) {
+      acc[f.status_ficha] = (acc[f.status_ficha] || 0) + 1;
+    }
+    return acc;
+  }, [fichas]);
+
+  const kpiTotal = fichas.length;
+  const kpiAguardandoGj = contagensStatus['aguardando_gj'] || 0;
+  const kpiAcompanhamento =
+    (contagensStatus['aguardando_gtt'] || 0) +
+    (contagensStatus['dmg_confirmado'] || 0) +
+    (contagensStatus['encaminhada_endocrino'] || 0);
+  const kpiConcluidas =
+    (contagensStatus['dmg_afastado'] || 0) +
+    (contagensStatus['resultado_parto'] || 0);
+
   const filtradas = useMemo(() => {
     let base = fichas;
     if (idsFiltro) base = base.filter(f => idsFiltro.has(f.id));
+    if (statusFiltro) base = base.filter(f => f.status_ficha === statusFiltro);
     if (!buscaDebounced.trim()) return base;
     const q = stripAccents(buscaDebounced.trim());
     return base.filter(f => stripAccents(f.nome).includes(q));
-  }, [fichas, buscaDebounced, idsFiltro]);
+  }, [fichas, buscaDebounced, idsFiltro, statusFiltro]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFiltro]);
+
+  const limparTodosFiltros = () => {
+    setStatusFiltro(null);
+    setBusca('');
+  };
 
   const totalPages = Math.max(1, Math.ceil(filtradas.length / PAGE_SIZE));
   const pageSafe = Math.min(page, totalPages);
