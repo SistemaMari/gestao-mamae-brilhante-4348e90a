@@ -12,13 +12,7 @@ import {
 } from "recharts";
 import { Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
 import { useDiagnosticoRanking } from "@/hooks/usePainelDataGestorGeral";
 import EmptyStateSemSelecao from "@/components/gestor-geral/EmptyStateSemSelecao";
@@ -28,168 +22,228 @@ type MetricaKey =
   | "pacientes_ativos"
   | "laudos_emitidos"
   | "taxa_dmg_positivo_pct"
-  | "tempo_medio_fechamento_dias";
+  | "tempo_medio_fechamento_dias"
+  | "profissionais_ativos";
 
-const METRICAS: {
+interface MetricaCfg {
   key: MetricaKey;
   label: string;
+  labelLong: string;
   direcao: "maior" | "menor";
   format: (v: number) => string;
-  unidade: string;
   tooltip: string;
-}[] = [
+}
+
+const METRICAS: MetricaCfg[] = [
   {
     key: "pacientes_ativos",
     label: "Pacientes ativos",
+    labelLong: "número de pacientes ativos",
     direcao: "maior",
-    format: (v) => v.toLocaleString("pt-BR"),
-    unidade: "pacientes",
+    format: (v) => Math.round(v).toLocaleString("pt-BR"),
     tooltip: "Maior é melhor: indica volume de atendimento da unidade.",
   },
   {
     key: "laudos_emitidos",
     label: "Laudos emitidos",
+    labelLong: "número de laudos emitidos",
     direcao: "maior",
-    format: (v) => v.toLocaleString("pt-BR"),
-    unidade: "laudos",
+    format: (v) => Math.round(v).toLocaleString("pt-BR"),
     tooltip: "Maior é melhor: produtividade de diagnóstico no período.",
   },
   {
     key: "taxa_dmg_positivo_pct",
-    label: "Taxa DMG positivo",
+    label: "Taxa DMG",
+    labelLong: "taxa de DMG positivo",
     direcao: "maior",
     format: (v) => `${v.toFixed(1)}%`,
-    unidade: "% positivos",
     tooltip:
       "Comparação direta entre unidades. Faixa esperada Febrasgo: 7-18% — interprete com contexto.",
   },
   {
     key: "tempo_medio_fechamento_dias",
-    label: "Tempo médio de fechamento",
+    label: "Tempo médio desde DUM",
+    labelLong: "tempo médio entre DUM e parto",
     direcao: "menor",
     format: (v) => `${v.toFixed(1)} d`,
-    unidade: "dias até fechamento",
-    tooltip: "Menor é melhor: tempo entre confirmação e desfecho.",
+    tooltip: "Menor é melhor: tempo entre DUM e parto.",
+  },
+  {
+    key: "profissionais_ativos",
+    label: "Profissionais ativos",
+    labelLong: "número de profissionais ativos",
+    direcao: "maior",
+    format: (v) => Math.round(v).toLocaleString("pt-BR"),
+    tooltip: "Profissionais com pelo menos uma gestante ativa.",
   },
 ];
+
+const DEFAULT_ATIVAS: MetricaKey[] = ["pacientes_ativos", "laudos_emitidos"];
+
+interface Row {
+  nome: string;
+  valor: number;
+}
+
+function buildRows(data: any[] | undefined, m: MetricaCfg): Row[] {
+  if (!data) return [];
+  const rows = data
+    .map((r) => ({ nome: r.unidade_nome as string, valor: r[m.key] as number | null }))
+    .filter((r) => r.valor !== null && r.valor !== undefined) as Row[];
+  rows.sort((a, b) => (m.direcao === "maior" ? b.valor - a.valor : a.valor - b.valor));
+  return rows;
+}
+
+function buildInsight(rows: Row[], m: MetricaCfg): string | null {
+  if (rows.length === 0) return null;
+  const top = rows[0];
+  const media = rows.reduce((s, r) => s + r.valor, 0) / rows.length;
+  const diff = top.valor - media;
+  const diffPct = media === 0 ? 0 : (Math.abs(diff) / media) * 100;
+  const palavraSup = m.direcao === "maior" ? "maior" : "menor";
+  const acimaAbaixo = m.direcao === "maior" ? "acima" : "abaixo";
+  return `${top.nome} tem o ${palavraSup} ${m.labelLong} (${m.format(top.valor)}), ${diffPct.toFixed(0)}% ${acimaAbaixo} da média da rede (${m.format(media)}).`;
+}
+
+function GraficoMetrica({ m, rows, isLoading }: { m: MetricaCfg; rows: Row[]; isLoading: boolean }) {
+  return (
+    <div className="rounded-xl border border-border bg-white p-5 shadow-sm">
+      <div className="mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
+          {m.label}
+        </h3>
+        <TooltipInfo text={m.tooltip} />
+        <span className="ml-auto text-[11px] uppercase tracking-wide text-[#94A3B8]">
+          {m.direcao === "maior" ? "Maior é melhor" : "Menor é melhor"}
+        </span>
+      </div>
+      {isLoading ? (
+        <Skeleton className="h-64 w-full rounded-md" />
+      ) : rows.length === 0 ? (
+        <p className="py-8 text-center text-sm text-[#64748B]">Sem dados para esta métrica.</p>
+      ) : (
+        <div style={{ width: "100%", height: Math.max(180, rows.length * 44) }}>
+          <ResponsiveContainer>
+            <BarChart data={rows} layout="vertical" margin={{ top: 6, right: 60, left: 10, bottom: 6 }}>
+              <CartesianGrid stroke="#F1F5F9" horizontal={false} />
+              <XAxis type="number" stroke="#64748B" tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#E2E8F0" }} />
+              <YAxis
+                type="category"
+                dataKey="nome"
+                stroke="#64748B"
+                tick={{ fontSize: 12 }}
+                tickLine={false}
+                axisLine={{ stroke: "#E2E8F0" }}
+                width={170}
+              />
+              <RTooltip
+                formatter={(v: number) => m.format(v)}
+                labelStyle={{ color: "#1E293B" }}
+                contentStyle={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, fontSize: 13 }}
+              />
+              <Bar dataKey="valor" radius={[0, 4, 4, 0]}>
+                {rows.map((_, i) => (
+                  <Cell key={i} fill={i === 0 ? "#7E69AB" : "#9b87f5"} />
+                ))}
+                <LabelList
+                  dataKey="valor"
+                  position="right"
+                  formatter={(v: number) => m.format(v)}
+                  style={{ fontSize: 12, fill: "#475569", fontWeight: 600 }}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ComparadorPage() {
   const { semSelecao } = useFiltrosGestorGeral();
   const { data, isLoading, isError } = useDiagnosticoRanking();
-  const [metrica, setMetrica] = useState<MetricaKey>("pacientes_ativos");
+  const [ativas, setAtivas] = useState<MetricaKey[]>(DEFAULT_ATIVAS);
 
-  const cfg = METRICAS.find((m) => m.key === metrica)!;
+  const togglePill = (k: MetricaKey) => {
+    setAtivas((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
+  };
 
-  const rows = useMemo(() => {
-    if (!data) return [];
-    const filtered = data
-      .map((r) => ({
-        nome: r.unidade_nome,
-        valor: r[metrica] as number | null,
-      }))
-      .filter((r) => r.valor !== null && r.valor !== undefined) as { nome: string; valor: number }[];
-    filtered.sort((a, b) => (cfg.direcao === "maior" ? b.valor - a.valor : a.valor - b.valor));
-    return filtered;
-  }, [data, metrica, cfg.direcao]);
+  const ativasOrdenadas = useMemo(
+    () => METRICAS.filter((m) => ativas.includes(m.key)),
+    [ativas],
+  );
 
-  const insight = useMemo(() => {
-    if (rows.length === 0) return null;
-    const top = rows[0];
-    const media = rows.reduce((s, r) => s + r.valor, 0) / rows.length;
-    const diff = top.valor - media;
-    const diffPct = media === 0 ? 0 : (diff / media) * 100;
-    const palavra = cfg.direcao === "maior" ? "maior" : "menor";
-    return `${top.nome} tem o ${palavra} ${cfg.label.toLowerCase()} (${cfg.format(top.valor)}), ${Math.abs(diffPct).toFixed(0)}% ${cfg.direcao === "maior" ? "acima" : "abaixo"} da média da rede (${cfg.format(media)}).`;
-  }, [rows, cfg]);
+  const insights = useMemo(() => {
+    return ativasOrdenadas
+      .map((m) => buildInsight(buildRows(data, m), m))
+      .filter((x): x is string => Boolean(x));
+  }, [ativasOrdenadas, data]);
 
   if (semSelecao) return <EmptyStateSemSelecao />;
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
-            Comparador de unidades
-          </h1>
-          <p className="mt-1 text-sm text-[#64748B]">
-            Ranqueamento direto por uma métrica de cada vez. Mais é melhor para volumes; menos é melhor para tempo.
-          </p>
-        </div>
-        <div className="flex items-end gap-2">
-          <div className="w-64">
-            <label className="mb-1 block text-xs font-medium text-[#64748B]">Métrica</label>
-            <Select value={metrica} onValueChange={(v) => setMetrica(v as MetricaKey)}>
-              <SelectTrigger className="bg-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {METRICAS.map((m) => (
-                  <SelectItem key={m.key} value={m.key}>
-                    {m.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <TooltipInfo text={cfg.tooltip} />
-        </div>
+      <div>
+        <h1 className="text-xl font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
+          Comparador de unidades
+        </h1>
+        <p className="mt-1 text-sm text-[#64748B]">
+          Selecione uma ou mais métricas para comparar as unidades lado a lado.
+        </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-white p-5 shadow-sm">
-        {isError ? (
+      <div className="flex flex-wrap gap-2">
+        {METRICAS.map((m) => {
+          const isActive = ativas.includes(m.key);
+          return (
+            <button
+              key={m.key}
+              type="button"
+              onClick={() => togglePill(m.key)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                isActive
+                  ? "border-[#7E69AB] bg-[#7E69AB] text-white shadow-sm"
+                  : "border-[#E2E8F0] bg-white text-[#475569] hover:border-[#9b87f5] hover:text-[#7E69AB]",
+              )}
+              aria-pressed={isActive}
+            >
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {isError ? (
+        <div className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] p-5">
           <p className="text-sm text-[#991B1B]">Falha ao carregar dados.</p>
-        ) : isLoading || !data ? (
-          <Skeleton className="h-80 w-full rounded-md" />
-        ) : rows.length === 0 ? (
-          <p className="text-center text-sm text-[#64748B] py-8">
-            Sem dados nesta métrica para as unidades e período selecionados.
-          </p>
-        ) : (
-          <div style={{ width: "100%", height: Math.max(220, rows.length * 48) }}>
-            <ResponsiveContainer>
-              <BarChart data={rows} layout="vertical" margin={{ top: 10, right: 60, left: 10, bottom: 10 }}>
-                <CartesianGrid stroke="#F1F5F9" horizontal={false} />
-                <XAxis type="number" stroke="#64748B" tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#E2E8F0" }} />
-                <YAxis
-                  type="category"
-                  dataKey="nome"
-                  stroke="#64748B"
-                  tick={{ fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={{ stroke: "#E2E8F0" }}
-                  width={180}
-                />
-                <RTooltip
-                  formatter={(v: number) => cfg.format(v)}
-                  labelStyle={{ color: "#1E293B" }}
-                  contentStyle={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, fontSize: 13 }}
-                />
-                <Bar dataKey="valor" radius={[0, 4, 4, 0]}>
-                  {rows.map((_, i) => (
-                    <Cell key={i} fill={i === 0 ? "#7E69AB" : "#9b87f5"} />
-                  ))}
-                  <LabelList
-                    dataKey="valor"
-                    position="right"
-                    formatter={(v: number) => cfg.format(v)}
-                    style={{ fontSize: 12, fill: "#475569", fontWeight: 600 }}
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : ativasOrdenadas.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-[#E2E8F0] bg-white p-10 text-center text-sm text-[#64748B]">
+          Selecione ao menos uma métrica acima para comparar as unidades.
+        </div>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {ativasOrdenadas.map((m) => (
+            <GraficoMetrica key={m.key} m={m} rows={buildRows(data, m)} isLoading={isLoading || !data} />
+          ))}
+        </div>
+      )}
 
-      {insight && (
-        <div className="rounded-lg border-l-4 border-[#9b87f5] border border-border bg-[#FAF8FF] p-4">
+      {insights.length > 0 && (
+        <div className="rounded-lg border border-border border-l-4 border-l-[#9b87f5] bg-[#FAF8FF] p-4">
           <div className="flex items-start gap-2">
-            <Sparkles className="h-4 w-4 text-[#7E69AB] mt-0.5 shrink-0" />
-            <div>
-              <p className="text-xs font-semibold text-[#7E69AB] uppercase tracking-wide">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#7E69AB]" />
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#7E69AB]">
                 Insight automático
               </p>
-              <p className="mt-1 text-sm text-[#1E293B]">{insight}</p>
+              {insights.map((t, i) => (
+                <p key={i} className="text-sm text-[#1E293B]">
+                  {t}
+                </p>
+              ))}
             </div>
           </div>
         </div>
