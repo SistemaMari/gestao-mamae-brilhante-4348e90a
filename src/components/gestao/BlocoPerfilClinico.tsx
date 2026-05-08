@@ -37,7 +37,7 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
   const dentroDoBenchmark = status === 'esperado';
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" data-pdf-section="perfil">
       <h2 className="font-heading text-lg font-semibold text-foreground">
         Perfil clínico das pacientes
       </h2>
