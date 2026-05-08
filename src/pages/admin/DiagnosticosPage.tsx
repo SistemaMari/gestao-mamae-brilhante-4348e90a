@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import { useLocation } from "react-router-dom";
 import {
   ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell,
 } from "recharts";
-import { Loader2, Info } from "lucide-react";
+import { Loader2, Info, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { mockMetricasDiagnosticos } from "@/lib/mockMetricasDiagnosticos";
 import { useAdminFiltros } from "@/contexts/AdminFiltrosContext";
@@ -247,17 +247,57 @@ function FunilTratamento({ funil }: { funil: Metricas["funil"] }) {
   );
 }
 
-function TabelaRegional({
+type Coluna = {
+  key: string;
+  label: string;
+  numerica?: boolean;
+  format?: (v: unknown, row: Record<string, unknown>) => React.ReactNode;
+};
+
+function TabelaOrdenavel({
   titulo,
-  cabecalhos,
+  colunas,
   linhas,
   vazioMsg,
+  expandivel,
+  renderDetalhe,
 }: {
   titulo: string;
-  cabecalhos: string[];
-  linhas: Array<Array<string | number>>;
+  colunas: Coluna[];
+  linhas: Array<Record<string, unknown>>;
   vazioMsg: string;
+  expandivel?: boolean;
+  renderDetalhe?: (row: Record<string, unknown>) => React.ReactNode;
 }) {
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return linhas;
+    return [...linhas].sort((a, b) => {
+      const va = a[sortKey];
+      const vb = b[sortKey];
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (typeof va === "number" && typeof vb === "number") {
+        return sortDir === "asc" ? va - vb : vb - va;
+      }
+      return sortDir === "asc"
+        ? String(va).localeCompare(String(vb), "pt-BR")
+        : String(vb).localeCompare(String(va), "pt-BR");
+    });
+  }, [linhas, sortKey, sortDir]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  };
+
   return (
     <CardContainer>
       <h4
@@ -266,7 +306,7 @@ function TabelaRegional({
       >
         {titulo}
       </h4>
-      {linhas.length === 0 ? (
+      {sorted.length === 0 ? (
         <p className="text-sm" style={{ color: COR_CINZA, fontFamily: FONT_CORPO }}>
           {vazioMsg}
         </p>
@@ -275,34 +315,65 @@ function TabelaRegional({
           <table className="w-full text-sm" style={{ fontFamily: FONT_CORPO }}>
             <thead>
               <tr style={{ background: "#5B2C9C" }}>
-                {cabecalhos.map((c) => (
-                  <th
-                    key={c}
-                    className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide"
-                    style={{ color: "#FFFFFF" }}
-                  >
-                    {c}
-                  </th>
-                ))}
+                {expandivel && <th className="w-8 px-2 py-2" />}
+                {colunas.map((c) => {
+                  const ativo = sortKey === c.key;
+                  const Icone = !ativo ? ArrowUpDown : sortDir === "asc" ? ArrowUp : ArrowDown;
+                  return (
+                    <th
+                      key={c.key}
+                      onClick={() => handleSort(c.key)}
+                      className="cursor-pointer select-none px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide hover:bg-[#6B3CB0]"
+                      style={{ color: "#FFFFFF" }}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {c.label}
+                        <Icone className="h-3 w-3 opacity-80" />
+                      </span>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
-              {linhas.map((linha, idx) => (
-                <tr
-                  key={idx}
-                  style={{ background: idx % 2 === 0 ? "#FFFFFF" : "#F8FAFC" }}
-                >
-                  {linha.map((celula, j) => (
-                    <td
-                      key={j}
-                      className="px-3 py-2"
-                      style={{ color: "#1E293B", borderTop: "1px solid #E2E8F0" }}
+              {sorted.map((linha, idx) => {
+                const isOpen = expanded === idx;
+                return (
+                  <Fragment key={idx}>
+                    <tr
+                      onClick={() => expandivel && setExpanded(isOpen ? null : idx)}
+                      style={{ background: idx % 2 === 0 ? "#FFFFFF" : "#F8FAFC" }}
+                      className={expandivel ? "cursor-pointer hover:bg-[#F1F0FB]" : ""}
                     >
-                      {celula}
-                    </td>
-                  ))}
-                </tr>
-              ))}
+                      {expandivel && (
+                        <td className="px-2 py-2" style={{ borderTop: "1px solid #E2E8F0" }}>
+                          {isOpen ? (
+                            <ChevronDown className="h-4 w-4" style={{ color: COR_LILAS }} />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" style={{ color: COR_CINZA }} />
+                          )}
+                        </td>
+                      )}
+                      {colunas.map((c) => (
+                        <td
+                          key={c.key}
+                          className="px-3 py-2"
+                          style={{ color: "#1E293B", borderTop: "1px solid #E2E8F0" }}
+                        >
+                          {c.format ? c.format(linha[c.key], linha) : String(linha[c.key] ?? "—")}
+                        </td>
+                      ))}
+                    </tr>
+                    {expandivel && isOpen && renderDetalhe && (
+                      <tr style={{ background: "#F1F0FB" }}>
+                        <td colSpan={colunas.length + 1} className="px-4 py-3" style={{ borderTop: "1px solid #D6BCFA" }}>
+                          {renderDetalhe(linha)}
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -404,7 +475,7 @@ export default function DiagnosticosPage() {
       <NotaLgpd />
 
       {/* 1. Cards de resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricaCard label="Total de gestantes" valor={resumo.total_gestantes} />
         <MetricaCard
           label="DMG confirmado"
@@ -417,6 +488,14 @@ export default function DiagnosticosPage() {
           valor={resumo.overt}
           sublabel={pctSobreTotal(resumo.overt) + " do total"}
           cor={COR_VERMELHO}
+        />
+        <MetricaCard
+          label="DMG + Overt combinados"
+          valor={resumo.dmg_overt_total}
+          sublabel={pctSobreTotal(resumo.dmg_overt_total) + " do total"}
+          cor={COR_ROXO}
+          destaque
+          tooltip="Soma automática de pacientes com DMG ou Overt Diabete."
         />
         <MetricaCard
           label="Taxa de controle adequado"
@@ -608,27 +687,57 @@ export default function DiagnosticosPage() {
       {/* 13–14. Quebras regionais */}
       <div className="space-y-6">
         <SecaoTitulo>Quebra por região</SecaoTitulo>
-        <TabelaRegional
-          titulo="Por estado"
-          cabecalhos={["Estado", "Gestantes", "DMG", "Taxa de DMG"]}
-          linhas={regionalFiltrado.por_estado.map((r) => [r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`])}
+        <TabelaOrdenavel
+          titulo="Taxa de DMG por estado"
+          colunas={[
+            { key: "estado", label: "Estado" },
+            { key: "gestantes", label: "Gestantes", numerica: true },
+            { key: "dmg", label: "DMG", numerica: true },
+            { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
+          ]}
+          linhas={regionalFiltrado.por_estado as unknown as Array<Record<string, unknown>>}
           vazioMsg="Sem dados regionais ainda."
         />
-        <TabelaRegional
-          titulo="Top 20 cidades"
-          cabecalhos={["Cidade", "Estado", "Gestantes", "DMG", "Taxa de DMG"]}
-          linhas={regionalFiltrado.por_cidade.map((r) => [
-            r.cidade, r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`,
-          ])}
-          vazioMsg="Sem dados de cidade ainda."
+        <TabelaOrdenavel
+          titulo="Top 20 cidades (mín. 10 pacientes)"
+          colunas={[
+            { key: "cidade", label: "Cidade" },
+            { key: "estado", label: "Estado" },
+            { key: "gestantes", label: "Gestantes", numerica: true },
+            { key: "dmg", label: "DMG", numerica: true },
+            { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
+          ]}
+          linhas={
+            regionalFiltrado.por_cidade
+              .filter((c) => c.gestantes >= 10)
+              .slice(0, 20) as unknown as Array<Record<string, unknown>>
+          }
+          vazioMsg="Sem cidades com 10+ pacientes ainda."
         />
-        <TabelaRegional
-          titulo="Por unidade"
-          cabecalhos={["Unidade", "Cidade", "Estado", "Gestantes", "DMG", "Taxa de DMG"]}
-          linhas={regionalFiltrado.por_unidade.map((r) => [
-            r.unidade, r.cidade, r.estado, r.gestantes, r.dmg, `${r.taxa_dmg}%`,
-          ])}
+        <TabelaOrdenavel
+          titulo="Métricas por unidade"
+          colunas={[
+            { key: "unidade", label: "Unidade" },
+            { key: "cidade", label: "Cidade" },
+            { key: "estado", label: "Estado" },
+            { key: "gestantes", label: "Gestantes", numerica: true },
+            { key: "dmg", label: "DMG", numerica: true },
+            { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
+          ]}
+          linhas={regionalFiltrado.por_unidade as unknown as Array<Record<string, unknown>>}
           vazioMsg="Nenhuma unidade com pacientes vinculadas."
+          expandivel
+          renderDetalhe={(row) => {
+            const r = row as { unidade: string; cidade: string; estado: string; gestantes: number; dmg: number; taxa_dmg: number };
+            return (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm" style={{ fontFamily: FONT_CORPO, color: "#475569" }}>
+                <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Localização</span>{r.cidade} / {r.estado}</div>
+                <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Gestantes</span>{r.gestantes}</div>
+                <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">DMG</span>{r.dmg} ({r.taxa_dmg}%)</div>
+                <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Sem DMG</span>{Math.max(0, r.gestantes - r.dmg)}</div>
+              </div>
+            );
+          }}
         />
       </div>
     </div>
