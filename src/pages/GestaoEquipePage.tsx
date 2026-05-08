@@ -590,11 +590,10 @@ export default function GestaoEquipePage() {
             >
               <Info className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#7C4DBA' }} />
               <span>
-                Cada e-mail só pode ter um perfil no sistema. Se a pessoa já usa a MARI
-                como administrador, gestor de outra unidade ou gestor geral, ela
-                precisará usar um e-mail diferente. Se ela já tem uma conta no modelo consultório
-                (sem unidade vinculada), o sistema oferecerá a opção de vincular a conta existente
-                à sua unidade.
+                Cada e-mail só pode ter um perfil no sistema. Se a pessoa já usa a MARI em
+                outro contexto — como administrador, gestor de outra unidade, gestor geral,
+                profissional de outra unidade institucional, ou profissional de consultório
+                particular — ela precisará usar um e-mail diferente para esta unidade.
               </span>
             </div>
 
