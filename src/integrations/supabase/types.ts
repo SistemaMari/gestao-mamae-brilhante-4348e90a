@@ -1753,6 +1753,14 @@ export type Database = {
       }
     }
     Functions: {
+      _pode_ver_unidade: {
+        Args: { _unidade: string; _user: string }
+        Returns: boolean
+      }
+      _unidades_gg: {
+        Args: { _unidades: string[]; _user: string }
+        Returns: string[]
+      }
       belongs_to_unidade: {
         Args: { _unidade_id: string; _user_id: string }
         Returns: boolean
@@ -1790,6 +1798,34 @@ export type Database = {
           unidade_nome: string
         }[]
       }
+      get_consolidador_gargalos_gestor_geral: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
+      get_consolidador_operacao_gestor_geral: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
+      get_consolidador_perfil_clinico_gestor_geral: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
+      get_consolidador_tendencia_gestor_geral: {
+        Args: { p_unidades?: string[] }
+        Returns: Json
+      }
       get_metricas_consolidadas_gestor_geral: {
         Args: {
           p_data_fim: string
@@ -1823,6 +1859,23 @@ export type Database = {
           taxa_dmg_positivo_pct: number
           tempo_medio_fechamento_dias: number
           ultima_atividade: string
+          unidade_id: string
+          unidade_nome: string
+        }[]
+      }
+      get_visao_geral_gestor_geral: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_unidades?: string[]
+        }
+        Returns: {
+          gestor_nome: string
+          laudos_emitidos: number
+          pacientes_ativos: number
+          partos_registrados: number
+          profissionais_ativos: number
+          taxa_dmg_positivo_pct: number
           unidade_id: string
           unidade_nome: string
         }[]
