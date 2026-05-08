@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Building2, Users, Sparkles, Image as ImageIcon, FileText, Mail, ArrowRight } from 'lucide-react';
+import { Building2, Users, ArrowRight, CalendarCheck, Check, Clock, LifeBuoy } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ interface EquipeData {
 }
 
 const SUPORTE_EMAIL = 'SuporteMari@novodmg.com.br';
+const HONORIFICOS = /^(dr|dra|prof|profa|sr|sra)\.?$/i;
 
 const formatCNPJ = (raw: string | null) => {
   if (!raw) return null;
@@ -34,6 +35,17 @@ const capitalize = (s: string | null) => s ? s.charAt(0).toUpperCase() + s.slice
 
 const formatDateBR = (iso: string) => {
   try { return new Date(iso).toLocaleDateString('pt-BR'); } catch { return ''; }
+};
+
+/** Iniciais ignorando honoríficos. "Dr. Gestor Demo" → "GD"; "João" → "J"; "Dra. Ana Maria Costa" → "AC" */
+const obterIniciais = (nome: string): string => {
+  const partes = nome
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p && !HONORIFICOS.test(p));
+  if (partes.length === 0) return '?';
+  if (partes.length === 1) return partes[0].charAt(0).toUpperCase();
+  return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
 };
 
 function CardShell({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -71,6 +83,55 @@ function SkeletonLine({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-muted ${className}`} />;
 }
 
+function IdentidadeGestor({
+  loading,
+  nome,
+  email,
+  unidadeNome,
+}: {
+  loading: boolean;
+  nome: string | null;
+  email: string | null;
+  unidadeNome: string | null;
+}) {
+  return (
+    <div className="mb-6 flex items-center gap-4 rounded-xl border border-[#E9E3F2] bg-[#F5F3FA] p-4">
+      {loading ? (
+        <>
+          <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
+          <div className="flex flex-1 flex-col gap-2">
+            <SkeletonLine className="h-4 w-40" />
+            <SkeletonLine className="h-3 w-56" />
+            <SkeletonLine className="h-3 w-48" />
+          </div>
+        </>
+      ) : (
+        <>
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#7C4DBA] text-sm font-semibold text-white"
+            aria-hidden="true"
+          >
+            {obterIniciais(nome || '?')}
+          </div>
+          <div className="flex min-w-0 flex-col">
+            <span
+              className="font-heading font-bold text-[#5B3A8C] text-[14px] md:text-[16px] leading-tight truncate"
+            >
+              {nome || '—'}
+            </span>
+            {email && (
+              <span className="text-[12px] md:text-[13px] text-[#475569] truncate">{email}</span>
+            )}
+            <span className="text-[11px] md:text-[12px] text-[#64748B] truncate">
+              Gestor de Unidade{unidadeNome ? ` · ${unidadeNome}` : ''}
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function ConfiguracoesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -83,16 +144,19 @@ export default function ConfiguracoesPage() {
   const [unidade, setUnidade] = useState<UnidadeData | null>(null);
   const [contratante, setContratante] = useState<ContratanteData | null>(null);
   const [equipe, setEquipe] = useState<EquipeData>({ total: 0, ultimaInclusao: null });
+  const [gestorNome, setGestorNome] = useState<string | null>(null);
+  const [gestorEmail, setGestorEmail] = useState<string | null>(null);
 
   useEffect(() => {
     if (isVitrine) {
-      // Mock vitrine — nome final do produto em definição, não fixar.
       setUnidade({ nome: 'Hospital Demo', tipo: 'hospital', cnes: '1234567', cidade: 'São Paulo', estado: 'SP' });
       setContratante({ nome: 'Rede Demo de Saúde', cnpj: '12345678000190' });
       setEquipe({
         total: 3,
         ultimaInclusao: { nome: 'Dra. Bia Mello', created_at: new Date(Date.now() - 12 * 86400000).toISOString() },
       });
+      setGestorNome('Dr. Gestor Demo');
+      setGestorEmail('gestor.demo@novodmg.com.br');
       setLoading(false);
       return;
     }
@@ -103,9 +167,12 @@ export default function ConfiguracoesPage() {
       try {
         const { data: prof } = await supabase
           .from('profissionais')
-          .select('unidade_id')
+          .select('nome, unidade_id')
           .eq('user_id', user.id)
           .maybeSingle();
+
+        setGestorNome(prof?.nome ?? null);
+        setGestorEmail(user.email ?? null);
 
         const unidadeId = prof?.unidade_id;
         if (!unidadeId) {
@@ -114,7 +181,6 @@ export default function ConfiguracoesPage() {
           return;
         }
 
-        // Card 1 — tenta JOIN com contratantes; se falhar, fallback sem JOIN.
         let unidadeOk = false;
         try {
           const { data, error } = await supabase
@@ -168,7 +234,6 @@ export default function ConfiguracoesPage() {
           }
         }
 
-        // Card 2 — equipe (independente do Card 1)
         try {
           const { data: profs } = await supabase
             .from('profissionais')
@@ -205,13 +270,34 @@ export default function ConfiguracoesPage() {
     return '—';
   })();
 
+  // Cronograma de relatórios — 3 meses anteriores + mês corrente (próximo).
+  // Borda do dia 1: se hoje for dia 1, "próximo" = dia 1 do mês corrente (a geração ainda ocorre/ocorreu hoje).
+  const cronograma = useMemo(() => {
+    const hoje = new Date();
+    const base = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    return [-3, -2, -1, 0].map((off) => {
+      const d = new Date(base.getFullYear(), base.getMonth() + off, 1);
+      return {
+        label: d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+        proximo: off === 0,
+      };
+    });
+  }, []);
+
   return (
     <div className="px-6 py-8 lg:px-10">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="font-heading text-2xl font-bold text-foreground">Configurações da unidade</h1>
           <p className="mt-1 text-sm text-muted-foreground">Visão geral dos dados, equipe e preferências da sua unidade.</p>
         </div>
+
+        <IdentidadeGestor
+          loading={loading}
+          nome={gestorNome}
+          email={gestorEmail}
+          unidadeNome={unidade?.nome ?? null}
+        />
 
         <div className="flex flex-col gap-6">
           {/* Card 1 — Dados da Unidade */}
@@ -242,7 +328,7 @@ export default function ConfiguracoesPage() {
                     <Field label="Contratante" value={contratante.nome} />
                   )}
                   {contratante && contratante.cnpj && (
-                    <Field label="CNPJ" value={formatCNPJ(contratante.cnpj)} />
+                    <Field label="CNPJ do contratante" value={formatCNPJ(contratante.cnpj)} />
                   )}
                 </div>
                 <p className="mt-4 text-xs text-[#64748B]">
@@ -250,13 +336,6 @@ export default function ConfiguracoesPage() {
                 </p>
               </>
             )}
-
-            <div className="mt-5 border-t border-[#E2E8F0] pt-4 text-xs text-muted-foreground">
-              Para corrigir ou atualizar estes dados, entre em contato com o suporte:{' '}
-              <a href={`mailto:${SUPORTE_EMAIL}`} className="font-medium text-[#7C4DBA] hover:underline">
-                {SUPORTE_EMAIL}
-              </a>
-            </div>
           </CardShell>
 
           {/* Card 2 — Equipe */}
@@ -293,29 +372,53 @@ export default function ConfiguracoesPage() {
             </div>
           </CardShell>
 
-          {/* Card 3 — Preferências da Unidade */}
+          {/* Card 3 — Relatório Automático Mensal */}
           <CardShell>
-            <CardHeader Icon={Sparkles} title="Preferências da Unidade" subtitle="Em breve." />
+            <CardHeader
+              Icon={CalendarCheck}
+              title="Relatório Automático Mensal"
+              subtitle="Gerado automaticamente todo dia 1º para abastecer o painel do Gestor Geral."
+            />
 
-            <div className="rounded-lg bg-[#F5F3FA] p-4">
-              <p className="text-sm text-foreground">
-                Em breve, sua unidade poderá personalizar laudos com identidade própria — logo, dados de contato no rodapé e e-mail alternativo de notificações.
-              </p>
-              <ul className="mt-4 space-y-3 text-sm text-foreground">
-                <li className="flex items-start gap-2">
-                  <ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#64748B]" />
-                  <span><span className="font-medium">Logo da unidade nos laudos</span> — substituir o logo padrão da MARI por um da sua unidade.</span>
+            <ul className="space-y-3">
+              {cronograma.map((item) => (
+                <li key={item.label} className="flex items-center gap-3 text-sm">
+                  {item.proximo ? (
+                    <Clock className="h-4 w-4 shrink-0 text-[#9b87f5]" />
+                  ) : (
+                    <Check className="h-4 w-4 shrink-0 text-green-600" />
+                  )}
+                  <span
+                    className={
+                      item.proximo
+                        ? 'font-semibold text-[#5B3A8C]'
+                        : 'text-[#475569]'
+                    }
+                  >
+                    {item.label}
+                    {item.proximo && <span className="ml-1 font-semibold">(próximo)</span>}
+                  </span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <FileText className="mt-0.5 h-4 w-4 shrink-0 text-[#64748B]" />
-                  <span><span className="font-medium">Rodapé customizado</span> — adicionar CNPJ, endereço e telefone da unidade ao final do laudo.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Mail className="mt-0.5 h-4 w-4 shrink-0 text-[#64748B]" />
-                  <span><span className="font-medium">E-mail alternativo de notificações</span> — receber avisos do sistema em endereço diferente do login.</span>
-                </li>
-              </ul>
-            </div>
+              ))}
+            </ul>
+
+            <p className="mt-5 text-xs text-[#64748B]">
+              Estes relatórios alimentam o painel consolidado do Gestor Geral. Você não precisa fazer nada — o sistema gera automaticamente.
+            </p>
+          </CardShell>
+
+          {/* Card 4 — Suporte */}
+          <CardShell>
+            <CardHeader Icon={LifeBuoy} title="Suporte" subtitle="Precisa de ajuda? Fale com a gente." />
+            <p className="text-sm text-foreground">
+              Falar com o suporte:{' '}
+              <a
+                href={`mailto:${SUPORTE_EMAIL}`}
+                className="font-medium text-[#7C4DBA] hover:underline"
+              >
+                {SUPORTE_EMAIL}
+              </a>
+            </p>
           </CardShell>
         </div>
       </div>
