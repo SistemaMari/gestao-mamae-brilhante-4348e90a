@@ -38,7 +38,7 @@ export default function FiltrosGlobais() {
   const [draft, setDraft] = useState<FiltrosState>(filtros);
   const [custom, setCustom] = useState<DateRange | undefined>(
     filtros.preset === "custom"
-      ? { from: new Date(filtros.dataInicio), to: new Date(filtros.dataFim) }
+      ? { from: parseDateLocal(filtros.dataInicio) ?? undefined, to: parseDateLocal(filtros.dataFim) ?? undefined }
       : undefined,
   );
   const [openUnidades, setOpenUnidades] = useState(false);
