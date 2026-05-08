@@ -3,6 +3,12 @@ project_id = "ywldvotfgbxufcyjdvnq"
 [functions.seed-test-accounts]
 verify_jwt = false
 
+[functions.seed-demo-gestor-geral]
+verify_jwt = false
+
+[functions.seed-demo-gestor-geral-cleanup]
+verify_jwt = false
+
 [functions.limpar-exportacoes-admin]
 verify_jwt = false
 
