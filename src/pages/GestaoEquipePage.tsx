@@ -84,9 +84,9 @@ export default function GestaoEquipePage() {
       .maybeSingle();
     setUnidadeNome(unidade?.nome || '');
 
-    // Get active members
+    // Get active members (via view segura — sem campos sensíveis)
     const { data: profissionais } = await supabase
-      .from('profissionais')
+      .from('equipe_unidade_view' as any)
       .select('id, nome, crm, especialidade, created_at')
       .eq('unidade_id', prof.unidade_id);
 
