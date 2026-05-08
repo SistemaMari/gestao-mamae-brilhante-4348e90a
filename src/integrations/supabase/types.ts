@@ -1844,6 +1844,7 @@ export type Database = {
       pode_gerar_laudo: { Args: { p_profissional_id: string }; Returns: Json }
       refresh_mv_metricas_unidade_manual: { Args: never; Returns: Json }
       refresh_mv_metricas_unidade_seed: { Args: never; Returns: Json }
+      resetar_laudos_aniversario: { Args: never; Returns: Json }
     }
     Enums: {
       app_role:
