@@ -43,7 +43,7 @@ const PALETA: Record<Severidade, { border: string; bg: string; iconBg: string; i
   },
 };
 
-export default function BlocoGargalos({ data, loading, error, hideVerPacientesLink }: Props) {
+export default function BlocoGargalos({ data, loading, error, hideVerPacientesLink, subtitle }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const basePath = pathname.startsWith('/vitrine') ? '/vitrine/gestao' : '/gestao';
