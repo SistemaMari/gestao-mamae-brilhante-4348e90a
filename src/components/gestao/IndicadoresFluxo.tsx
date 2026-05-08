@@ -33,7 +33,7 @@ export default function IndicadoresFluxo({
           <h3 className="font-heading text-base font-semibold text-foreground">
             Tempo médio até 1º laudo
           </h3>
-          <CardInfoTooltip text="Tempo médio (em dias) entre a primeira consulta de uma paciente da unidade e a emissão do primeiro laudo dela. Mede a agilidade da equipe em chegar ao diagnóstico. Tempos muito longos podem indicar gargalo no fluxo de rastreamento." />
+          <CardInfoTooltip text="Tempo médio (em dias) entre a primeira consulta de uma paciente e a emissão do primeiro laudo, considerando pacientes diagnosticadas nos últimos 90 dias. Tempo ideal: até 14 dias. Acima de 30 dias indica diagnóstico tardio — paciente pode chegar à 28ª semana sem rastreamento adequado." />
         </div>
         {loading ? (
           <Skeleton />
@@ -44,14 +44,36 @@ export default function IndicadoresFluxo({
             <div className="text-3xl font-semibold text-foreground">—</div>
             <p className="mt-1 text-xs text-muted-foreground">Sem dados no período</p>
           </>
-        ) : (
-          <>
-            <div className="text-3xl font-semibold text-foreground tabular-nums">
-              {tempoMedioDias.toFixed(1).replace('.', ',')} dias
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">desde 1ª consulta da paciente</p>
-          </>
-        )}
+        ) : (() => {
+          const status =
+            tempoMedioDias <= 14 ? 'ideal' : tempoMedioDias <= 30 ? 'atencao' : 'critico';
+          const cor =
+            status === 'atencao' ? '#BA7517' : status === 'critico' ? '#A32D2D' : undefined;
+          const sublabel =
+            status === 'atencao'
+              ? 'Acima do tempo ideal — revisar fluxo'
+              : status === 'critico'
+              ? 'Diagnóstico muito tardio — atenção urgente'
+              : 'desde 1ª consulta da paciente';
+          return (
+            <>
+              <div
+                className="text-3xl font-semibold tabular-nums"
+                style={cor ? { color: cor } : undefined}
+              >
+                <span className={cor ? '' : 'text-foreground'}>
+                  {tempoMedioDias.toFixed(1).replace('.', ',')} dias
+                </span>
+              </div>
+              <p
+                className="mt-1 text-xs"
+                style={cor ? { color: cor } : undefined}
+              >
+                <span className={cor ? '' : 'text-muted-foreground'}>{sublabel}</span>
+              </p>
+            </>
+          );
+        })()}
       </div>
 
       {/* Profissional sobrecarregado */}
