@@ -569,6 +569,14 @@ export default function FichaPacientePage() {
         </div>
       )}
 
+      {/* Banner "Atendendo como" — apenas para institucional/gestor/gestor geral */}
+      {!isPreview && paciente?.id && (
+        <CarimboAtendimento
+          variant="banner"
+          unidadeContextoId={(paciente as any).unidade_id ?? null}
+        />
+      )}
+
       {/* DMG anterior banner */}
       {(editing ? editDmgAnterior : paciente.dmg_gestacao_anterior) && (
         <div className="flex items-start gap-3 rounded-xl border-2 border-orange-400 bg-orange-50 p-4">
