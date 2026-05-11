@@ -10,9 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { downloadLaudoPdf, laudoConteudoToText } from '@/lib/laudoPdf';
@@ -23,18 +20,13 @@ interface LaudoRow {
   id: string;
   paciente_id: string;
   paciente_nome: string;
-  cenario_clinico: string | null;
   conteudo_laudo: string | null;
   status: string;
   created_at: string;
+  profissional_id: string | null;
+  medico_nome: string | null;
+  medico_crm: string | null;
 }
-
-const STATUS_LABEL: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  pronto: { label: 'Pronto', variant: 'default' },
-  gerando: { label: 'Gerando', variant: 'secondary' },
-  pendente: { label: 'Pendente', variant: 'outline' },
-  erro: { label: 'Erro', variant: 'destructive' },
-};
 
 function fmtData(iso: string) {
   try {
@@ -44,14 +36,19 @@ function fmtData(iso: string) {
   }
 }
 
+function formatMedico(nome: string | null, crm: string | null): string {
+  if (!nome) return '—';
+  const partes = [`Dr(a). ${nome}`];
+  if (crm) partes.push(`CRM ${crm}`);
+  return partes.join(' — ');
+}
+
 export default function HistoricoLaudosPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [laudos, setLaudos] = useState<LaudoRow[]>([]);
   const [busca, setBusca] = useState('');
-  const [filtroStatus, setFiltroStatus] = useState<string>('todos');
-  const [filtroCenario, setFiltroCenario] = useState<string>('todos');
 
   const fetchLaudos = useCallback(async () => {
     if (!user) return;
@@ -70,7 +67,7 @@ export default function HistoricoLaudosPage() {
 
     const { data, error } = await supabase
       .from('laudos')
-      .select('id, paciente_id, cenario_clinico, status, conteudo_laudo, created_at, pacientes:paciente_id(nome)')
+      .select('id, paciente_id, profissional_id, status, conteudo_laudo, created_at, pacientes:paciente_id(nome)')
       .order('created_at', { ascending: false })
       .limit(200);
 
@@ -80,15 +77,35 @@ export default function HistoricoLaudosPage() {
       return;
     }
 
-    const rows: LaudoRow[] = (data ?? []).map((l: any) => ({
-      id: l.id,
-      paciente_id: l.paciente_id,
-      paciente_nome: l.pacientes?.nome ?? '—',
-      cenario_clinico: l.cenario_clinico,
-      conteudo_laudo: l.conteudo_laudo,
-      status: l.status,
-      created_at: l.created_at,
-    }));
+    const profissionalIds = Array.from(
+      new Set((data ?? []).map((l: any) => l.profissional_id).filter(Boolean)),
+    );
+
+    const medicoById = new Map<string, { nome: string | null; crm: string | null }>();
+    if (profissionalIds.length > 0) {
+      const { data: equipe } = await supabase
+        .from('equipe_unidade_view' as any)
+        .select('id, nome, crm')
+        .in('id', profissionalIds);
+      (equipe ?? []).forEach((m: any) => {
+        medicoById.set(m.id, { nome: m.nome ?? null, crm: m.crm ?? null });
+      });
+    }
+
+    const rows: LaudoRow[] = (data ?? []).map((l: any) => {
+      const med = l.profissional_id ? medicoById.get(l.profissional_id) : null;
+      return {
+        id: l.id,
+        paciente_id: l.paciente_id,
+        paciente_nome: l.pacientes?.nome ?? '—',
+        conteudo_laudo: l.conteudo_laudo,
+        status: l.status,
+        created_at: l.created_at,
+        profissional_id: l.profissional_id,
+        medico_nome: med?.nome ?? null,
+        medico_crm: med?.crm ?? null,
+      };
+    });
 
     setLaudos(rows);
     setLoading(false);
@@ -107,21 +124,11 @@ export default function HistoricoLaudosPage() {
     channelName: 'historico-laudos',
   });
 
-  const cenariosDisponiveis = useMemo(() => {
-    const set = new Set<string>();
-    laudos.forEach((l) => { if (l.cenario_clinico) set.add(l.cenario_clinico); });
-    return Array.from(set).sort();
-  }, [laudos]);
-
   const filtrados = useMemo(() => {
     const q = busca.trim().toLowerCase();
-    return laudos.filter((l) => {
-      if (filtroStatus !== 'todos' && l.status !== filtroStatus) return false;
-      if (filtroCenario !== 'todos' && l.cenario_clinico !== filtroCenario) return false;
-      if (q && !l.paciente_nome.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [laudos, busca, filtroStatus, filtroCenario]);
+    if (!q) return laudos;
+    return laudos.filter((l) => l.paciente_nome.toLowerCase().includes(q));
+  }, [laudos, busca]);
 
   return (
     <div>
@@ -149,37 +156,14 @@ export default function HistoricoLaudosPage() {
           <h2 className="text-sm font-semibold text-foreground">Filtros</h2>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-[1fr_200px_200px]">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por paciente..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-
-          <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os status</SelectItem>
-              <SelectItem value="pronto">Pronto</SelectItem>
-              <SelectItem value="gerando">Gerando</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="erro">Erro</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={filtroCenario} onValueChange={setFiltroCenario}>
-            <SelectTrigger><SelectValue placeholder="Cenário" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os cenários</SelectItem>
-              {cenariosDisponiveis.map((c) => (
-                <SelectItem key={c} value={c}>Cenário {c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por paciente..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="pl-9"
+          />
         </div>
       </section>
 
@@ -206,16 +190,18 @@ export default function HistoricoLaudosPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Paciente</TableHead>
-                <TableHead className="w-[140px]">Cenário</TableHead>
-                <TableHead className="w-[120px]">Status</TableHead>
+                <TableHead>Médico</TableHead>
                 <TableHead className="w-[200px]">Gerado em</TableHead>
-                <TableHead className="w-[180px] text-right">Ações</TableHead>
+                <TableHead className="w-[200px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtrados.map((l) => {
-                const status = STATUS_LABEL[l.status] ?? { label: l.status, variant: 'outline' as const };
-                const pronto = l.status === 'pronto' && !!l.conteudo_laudo;
+                const podeBaixar =
+                  (l.status === 'gerado' || l.status === 'concluido') && !!l.conteudo_laudo;
+                const emProcessamento = l.status === 'processando' || l.status === 'pendente' || l.status === 'gerando';
+                const comErro = l.status === 'erro';
+
                 const handleDownload = () => {
                   if (!l.conteudo_laudo) {
                     toast.error('Este laudo ainda não tem conteúdo para baixar.');
@@ -223,11 +209,13 @@ export default function HistoricoLaudosPage() {
                   }
                   downloadLaudoPdf({
                     pacienteNome: l.paciente_nome,
-                    cenario: l.cenario_clinico,
+                    medicoNome: l.medico_nome,
+                    medicoCrm: l.medico_crm,
                     geradoEm: fmtData(l.created_at),
                     conteudo: laudoConteudoToText(l.conteudo_laudo),
                   });
                 };
+
                 return (
                   <TableRow key={l.id} className="hover:bg-muted/40">
                     <TableCell>
@@ -235,36 +223,44 @@ export default function HistoricoLaudosPage() {
                         {l.paciente_nome}
                       </Link>
                     </TableCell>
-                    <TableCell>
-                      {l.cenario_clinico ? `Cenário ${l.cenario_clinico}` : '—'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={status.variant}>{status.label}</Badge>
+                    <TableCell className="text-sm text-foreground">
+                      {formatMedico(l.medico_nome, l.medico_crm)}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {fmtData(l.created_at)}
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => navigate(`/laudo/${l.id}`)}
-                          title="Visualizar laudo"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="sr-only md:not-sr-only md:ml-2">Ver</span>
-                        </Button>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={handleDownload}
-                          disabled={!pronto}
-                          title={pronto ? 'Baixar PDF' : 'Laudo ainda não está pronto'}
-                        >
-                          <Download className="h-4 w-4" />
-                          <span className="sr-only md:not-sr-only md:ml-2">PDF</span>
-                        </Button>
+                        {emProcessamento ? (
+                          <Badge variant="secondary" className="gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Gerando...
+                          </Badge>
+                        ) : comErro ? (
+                          <Badge variant="destructive">Falha na geração</Badge>
+                        ) : (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/laudo/${l.id}`)}
+                              title="Visualizar laudo"
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only md:not-sr-only md:ml-2">Ver</span>
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={handleDownload}
+                              disabled={!podeBaixar}
+                              title={podeBaixar ? 'Baixar PDF' : 'Laudo ainda não está pronto'}
+                            >
+                              <Download className="h-4 w-4" />
+                              <span className="sr-only md:not-sr-only md:ml-2">PDF</span>
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
