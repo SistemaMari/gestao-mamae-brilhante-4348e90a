@@ -208,26 +208,51 @@ Deno.serve(async (req) => {
     const userContent: any[] = [
       { type: "text", text: `Gere os Blocos 2 e 3 do laudo conforme suas regras. Dados clínicos:\n\n\`\`\`json\n${JSON.stringify(dadosClinicosPayload, null, 2)}\n\`\`\`` },
     ];
-    for (const arq of arquivosBaixados) {
-      userContent.push({ type: "image_url", image_url: { url: arq.dataUrl } });
+    // Monta mensagem multimodal: texto + PDFs como image_url (Gemini aceita PDF assim no gateway)
+    const textPart = { type: "text", text: `Gere os Blocos 2 e 3 do laudo conforme suas regras. Dados clínicos:\n\n\`\`\`json\n${JSON.stringify(dadosClinicosPayload, null, 2)}\n\`\`\`` };
+    const buildContent = (arquivos: Array<{ name: string; dataUrl: string }>) => {
+      const c: any[] = [textPart];
+      for (const arq of arquivos) c.push({ type: "image_url", image_url: { url: arq.dataUrl } });
+      return c;
+    };
+
+    const callAI = async (arquivos: Array<{ name: string; dataUrl: string }>) => {
+      return await fetch(AI_GATEWAY_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT_MARI_V52 },
+            { role: "user", content: buildContent(arquivos) },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      });
+    };
+
+    // 1ª tentativa: todos os arquivos
+    let aiResp = await callAI(arquivosBaixados);
+    let errText = "";
+
+    // Retry escalonado quando Gemini rejeita PDFs (ex: "document has no pages")
+    if (!aiResp.ok && aiResp.status >= 400 && aiResp.status < 500) {
+      errText = await aiResp.text();
+      const isPdfErr = /no pages|invalid.*document|INVALID_ARGUMENT/i.test(errText);
+      if (isPdfErr) {
+        // 2ª: só PROTOCOLO
+        const soProtocolo = arquivosBaixados.filter((a) => a.name === "PROTOCOLO_DMG_Brasil_2016.pdf");
+        aiResp = await callAI(soProtocolo);
+        if (!aiResp.ok) {
+          errText = await aiResp.text();
+          // 3ª: sem PDFs
+          aiResp = await callAI([]);
+        }
+      }
     }
 
-    // Chamada Lovable AI Gateway (não-streaming, queremos JSON completo)
-    const aiResp = await fetch(AI_GATEWAY_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT_MARI_V52 },
-          { role: "user", content: userContent },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
-
     if (!aiResp.ok) {
-      const errText = await aiResp.text();
+      if (!errText) errText = await aiResp.text();
       await supabaseAdmin.from("laudos").update({ status: "erro", metadata: { ...laudo.metadata, erro: `AI ${aiResp.status}: ${errText.slice(0, 500)}` } }).eq("id", laudo.id);
       if (aiResp.status === 429) return jsonResp({ error: "Limite de requisições à IA excedido. Tente novamente em instantes." }, 429);
       if (aiResp.status === 402) return jsonResp({ error: "Créditos da IA esgotados. Adicione fundos em Settings → Workspace → Usage." }, 402);
