@@ -7,6 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import mariLogo from '@/assets/mari-logo.png';
+
+const MARKETING_GRADIENT =
+  'linear-gradient(135deg, #7C4DBA 0%, #6B5BB5 45%, #2C7A8C 100%)';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -22,12 +26,10 @@ export default function LoginPage() {
 
   const isFormValid = email.trim() !== '' && password.length >= 6;
 
-  // Once AuthContext has resolved the profile after a successful sign-in, redirect.
   useEffect(() => {
     if (!submitted || loading) return;
-    if (!user) return; // ainda propagando
+    if (!user) return;
     if (profile === null) {
-      // sem perfil vinculado → onboarding
       navigate('/onboarding', { replace: true });
       return;
     }
@@ -54,118 +56,126 @@ export default function LoginPage() {
       return;
     }
 
-    // signIn ok — AuthContext vai resolver o profile e o useEffect acima redireciona
     setSubmitted(true);
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="absolute right-4 top-4">
-        <LanguageSwitcher />
-      </div>
-      <div className="w-full max-w-[400px] animate-fade-in">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-            <span className="font-heading text-2xl font-bold text-primary">DM</span>
-          </div>
-          <h1 className="font-heading text-xl font-semibold text-foreground">
-            {t('auth.appName')}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('auth.appTagline')}
-          </p>
+    <div className="min-h-screen bg-background lg:grid lg:grid-cols-2">
+      {/* Coluna do degradê — em mobile vira faixa superior */}
+      <aside
+        className="relative flex flex-col items-center justify-center px-6 py-10 text-white lg:py-12"
+        style={{ background: MARKETING_GRADIENT }}
+        aria-hidden="true"
+      >
+        <img
+          src={mariLogo}
+          alt="MARI — Maternal ARtificial Intelligence"
+          className="w-full max-w-[260px] lg:max-w-[360px] drop-shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+        />
+        <p className="mt-6 max-w-sm text-center font-heading text-sm font-medium leading-relaxed text-white/90 lg:mt-8 lg:text-base">
+          {t('auth.appTagline')}
+        </p>
+        <p className="absolute bottom-4 text-[10px] uppercase tracking-[0.2em] text-white/50 hidden lg:block">
+          © 2026 MARI · Maternal ARtificial Intelligence
+        </p>
+      </aside>
+
+      {/* Coluna do formulário */}
+      <main className="relative flex items-center justify-center px-4 py-10 lg:py-12">
+        <div className="absolute right-4 top-4">
+          <LanguageSwitcher />
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h2 className="mb-6 font-heading text-lg font-semibold text-foreground">
-            {t('auth.loginTitle')}
-          </h2>
+        <div className="w-full max-w-[400px] animate-fade-in">
+          <div className="rounded-2xl border border-border bg-card p-7 shadow-[0_8px_32px_-12px_rgba(124,77,186,0.18)]">
+            <h1 className="mb-1 font-heading text-2xl font-semibold text-foreground">
+              {t('auth.loginTitle')}
+            </h1>
+            <p className="mb-6 text-sm text-muted-foreground">
+              {t('auth.appName')} · {t('auth.appTagline').split('.')[0]}
+            </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                {t('auth.emailLabel')}
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder={t('auth.emailPlaceholder')}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                {t('auth.passwordLabel')}
-              </Label>
-              <div className="relative">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                  {t('auth.emailLabel')}
+                </Label>
                 <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder={t('auth.passwordPlaceholder')}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
+                  id="email"
+                  type="email"
+                  placeholder={t('auth.emailPlaceholder')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
                   required
-                  minLength={6}
-                  className="pr-10"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  tabIndex={-1}
-                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
               </div>
-            </div>
 
-            {error && (
-              <div className="rounded-lg bg-destructive/10 p-3">
-                <p className="text-sm text-destructive">{error}</p>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                  {t('auth.passwordLabel')}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder={t('auth.passwordPlaceholder')}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                    minLength={6}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                    tabIndex={-1}
+                    aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
-            )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={!isFormValid || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {t('auth.loggingIn')}
-                </>
-              ) : (
-                t('auth.loginButton')
+              {error && (
+                <div className="rounded-lg bg-destructive/10 p-3">
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
               )}
-            </Button>
 
-            <div className="text-center">
-              <Link
-                to="/recuperar-senha"
-                className="text-sm text-primary hover:underline transition-colors"
+              <Button
+                type="submit"
+                className="w-full bg-primary text-primary-foreground transition-all hover:bg-[linear-gradient(135deg,#9b87f5_0%,#7E69AB_100%)] hover:shadow-md"
+                disabled={!isFormValid || isLoading}
               >
-                {t('auth.forgotPassword')}
-              </Link>
-            </div>
-          </form>
-        </div>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t('auth.loggingIn')}
+                  </>
+                ) : (
+                  t('auth.loginButton')
+                )}
+              </Button>
 
-        <div className="mt-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            {t('auth.previewCta')}{' '}
-            <Link to="/vitrine" className="font-medium text-primary transition-colors hover:opacity-80">
-              {t('auth.previewLink')}
-            </Link>
+              <div className="text-center">
+                <Link
+                  to="/recuperar-senha"
+                  className="text-sm text-primary transition-colors hover:underline"
+                >
+                  {t('auth.forgotPassword')}
+                </Link>
+              </div>
+            </form>
+          </div>
+
+          <p className="mt-6 text-center text-[11px] uppercase tracking-[0.18em] text-muted-foreground lg:hidden">
+            © 2026 MARI
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
