@@ -44,6 +44,8 @@ import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import { mapearCenario } from '@/lib/laudoMapping';
 import { useLaudoIA } from '@/hooks/useLaudoIA';
+import { useAutoriaFicha } from '@/hooks/useAutoriaFicha';
+import AutoriaRodape from '@/components/clinico/AutoriaRodape';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
