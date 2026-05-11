@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import UsageWarningBanner from '@/components/UsageWarningBanner';
 import { useRealtimeRefresh } from '@/hooks/useRealtimeRefresh';
