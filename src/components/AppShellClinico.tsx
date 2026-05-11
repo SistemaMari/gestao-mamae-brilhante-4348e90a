@@ -126,9 +126,11 @@ export default function AppShellClinico() {
 
   const planoNome = profissionalData?.planos?.nome ?? '';
   const planoLimite = profissionalData?.planos?.laudos_por_mes ?? profissionalData?.laudos_limite ?? 0;
-  const planoLabel = profissionalData
-    ? `${t('nav.plans')} ${planoNome} — ${profissionalData.laudos_usados}/${planoLimite} ${t('nav.reports').toLowerCase()}`
-    : '';
+  const laudosUsados = profissionalData?.laudos_usados ?? 0;
+  const consumoPct = planoLimite > 0
+    ? Math.min(100, Math.round((laudosUsados / planoLimite) * 100))
+    : 0;
+  const consumoCor = consumoPct >= 100 ? '#EF4444' : consumoPct >= 80 ? '#F59E0B' : '#7E69AB';
 
   const handleNavClick = async (item: NavItem) => {
     if (item.checkLimit && profissionalData) {
