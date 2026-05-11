@@ -1,58 +1,50 @@
-## Reorganizar fluxo de "peso → dose → justificativa" na Ficha A/C inadequada
+# Sidebar fixa com botão Sair sempre visível
 
-Escopo único: `src/components/FichaACResultCard.tsx`. Sem mexer em Ficha B/D, GTT, laudo ou backend.
+## Objetivo
+Em todas as telas do sistema (todos os perfis), a sidebar lateral deve permanecer fixa na viewport. O conteúdo de navegação rola internamente quando necessário, mas o **botão "Sair"** (rodapé da sidebar) fica sempre ancorado e visível, independente da posição de scroll da página.
 
-### Estado atual (screenshot)
+## Escopo — apenas frontend/layout
+Ajustar as quatro shells de sidebar existentes para usar altura de viewport fixa + nav com overflow interno + rodapé sticky. Nenhuma mudança de lógica, rotas, permissões ou dados.
 
-1. Card "CONTROLE INADEQUADO" (amarelo)
-2. Card amarelo com input de peso + botão **"Confirmar peso e gerar laudo"** + preview inline pequeno da dose
-3. Após confirmar: linha pequena `Peso registrado: X kg — dose inicial de NPH: Y UI/dia`
-4. Mais abaixo na página: Justificativa clínica (laudo)
+### Arquivos afetados
+1. `src/components/AppShellClinico.tsx` — consultório, institucional, e fallback clínico (gestor/gestor_geral acessando ficha)
+2. `src/components/gestor/AppShellGestor.tsx` — gestor de unidade
+3. `src/components/gestor-geral/AppShellGestorGeral.tsx` — gestor geral
+4. `src/pages/admin/AdminLayout.tsx` + `src/components/admin/AdminSidebar.tsx` — admin
 
-A dose aparece em fonte pequena, sem destaque, e o botão promete "gerar laudo" mas o laudo já vem em sequência de qualquer jeito.
+## Padrão de implementação
 
-### Mudanças
+Para cada shell, a `<aside>`/`<Sidebar>` passa a ter:
 
-**1. Renomear botão.** `Confirmar peso e gerar laudo` → `Confirmar peso`.
-
-**2. Substituir o resumo discreto pós-confirmação por um card de destaque.** Hoje (linhas 202-214) é uma linha de texto pequena. Vira um card grande logo abaixo do botão, com:
-
-- Título: `Dose inicial de insulina NPH`
-- Número grande (estilo `font-heading text-4xl font-bold`): `{doseTotal} UI/dia`
-- Linha de apoio com a distribuição: `{doseManha} UI manhã + {doseNoite} UI 22h`
-- Linha pequena com o peso registrado e a fórmula `(0,5 UI/kg/dia)`
-- Cor: paleta lilás/roxo do projeto (`#7E69AB` / `bg-primary/10 border-primary/30`) — destaque clínico sem usar laranja/amarelo (o card de alerta acima já é amarelo).
-
-**3. Remover o preview inline pequeno da dose (linhas 179-188).** Como agora vai existir o card de destaque grande **abaixo do botão**, mostrar a mesma informação duas vezes (uma em preview, outra em destaque) é ruído. Manter apenas o destaque grande, que aparece em ambos os estados:
-- Antes de salvar: usa `calcDoseTotal` calculado em runtime (preview ao vivo enquanto digita).
-- Depois de salvar: usa `doseTotal` persistido.
-
-Assim a dose já "salta aos olhos" enquanto a médica digita o peso, e segue visível depois.
-
-**4. Ordem final no card:**
-
-```text
-┌─ CONTROLE INADEQUADO — 0.0% ... (amarelo)
-├─ Conduta: iniciar insulina. Dose e orientações no laudo completo abaixo.
-│
-├─ Card amarelo: Controle glicêmico abaixo da meta
-│   ├─ Input: Peso atual (kg) ⓘ
-│   └─ Botão: [Confirmar peso]
-│
-└─ ★ Card destaque (lilás): Dose inicial de insulina NPH
-    ├─ {doseTotal} UI/dia  (grande)
-    ├─ {doseManha} UI manhã + {doseNoite} UI 22h
-    └─ Peso: {peso} kg • 0,5 UI/kg/dia
-
-(em seguida, fora deste card, vem a Justificativa clínica do laudo)
+```
+sticky top-0  h-screen  flex flex-col  overflow-hidden
 ```
 
-### Fora do escopo
+Estrutura interna em três faixas:
 
-`FichaBDResultCard`, `GttResultCard`, geração/conteúdo do laudo, `gerar-laudo`, regras de cálculo da dose (0,5 UI/kg/dia • 2/3 manhã • 1/3 noite — mantidas). Sem queries novas, sem migration.
+```text
+┌─────────────────────────┐
+│ Header/identidade       │  shrink-0
+├─────────────────────────┤
+│ Nav (rola se preciso)   │  flex-1 overflow-y-auto
+├─────────────────────────┤
+│ Rodapé com Sair         │  shrink-0  (sempre visível)
+└─────────────────────────┘
+```
 
-### Entrega
+### Detalhes por shell
 
-- Diff de `FichaACResultCard.tsx`.
-- Print do fluxo: (a) antes de digitar peso, (b) digitando peso 70 com destaque vivo, (c) após confirmar.
-- Confirmação de build.
+**AppShellClinico** — no `SidebarContent`, o `<nav>` recebe `flex-1 overflow-y-auto` e o bloco do logout permanece como bloco `shrink-0` no final. A `<aside>` desktop ganha `sticky top-0 h-[calc(100vh-4rem)]` (descontando o header de 64px) e `overflow-hidden`. O drawer mobile já cobre a tela toda, mas vamos garantir o mesmo padrão (nav rola, Sair fixo no rodapé do drawer).
+
+**AppShellGestor / AppShellGestorGeral / AdminSidebar (shadcn)** — esses usam o componente `Sidebar` do shadcn dentro de `SidebarProvider`. O próprio `Sidebar` já fica fixo; o ajuste é garantir que **dentro** do `SidebarContent`:
+- O grupo de navegação use `flex-1 overflow-y-auto min-h-0`
+- O bloco do rodapé (`mt-auto` com botão Sair) seja `shrink-0` e fique fora da área scrollável
+
+No `AppShellGestor` hoje o rodapé já usa `mt-auto`, mas o `SidebarContent` é `flex flex-col` sem `overflow-hidden` no contêiner; quando o menu é grande, o rodapé "empurra" e some. Vamos adicionar `h-screen overflow-hidden` no wrapper e `overflow-y-auto min-h-0` no grupo de menu.
+
+`AdminSidebar` hoje **não tem rodapé com Sair** — o Sair vive no `AdminHeader` (dropdown no topo). Não precisa de mudança no rodapé, mas igual aplicamos `overflow-hidden`/`overflow-y-auto` para consistência caso o menu cresça.
+
+## Verificação
+- Build limpa.
+- Testar visualmente em `/dashboard` (consultório), `/gestao` (gestor), `/consolidar` (gestor geral), `/admin` (admin), e numa ficha longa (`/paciente/:id`) — em todos os casos, scrollar a página principal mantém o botão Sair visível na lateral.
+- Conferir que em telas baixas (ex.: 600px de altura) o nav rola internamente e o Sair continua ancorado.

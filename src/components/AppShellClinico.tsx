@@ -214,7 +214,7 @@ export default function AppShellClinico() {
 
   const SidebarContent = () => (
     <>
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 min-h-0 overflow-y-auto space-y-1 px-3 py-4">
         {itensClinicos.map(renderNavButton)}
         {itensClinicos.length > 0 && (
           <div className="my-2 border-t" style={{ borderColor: '#E2E8F0' }} />
@@ -222,7 +222,7 @@ export default function AppShellClinico() {
         {itensRodape.map(renderNavButton)}
       </nav>
 
-      <div className="border-t border-border px-3 py-3">
+      <div className="shrink-0 border-t border-border px-3 py-3 bg-card">
         <button
           onClick={signOut}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
@@ -301,7 +301,7 @@ export default function AppShellClinico() {
 
       <div className="flex flex-1 overflow-hidden print:block print:overflow-visible print:h-auto">
         {/* Desktop sidebar */}
-        <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-card print:hidden">
+        <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-card print:hidden sticky top-16 self-start h-[calc(100vh-4rem)] overflow-hidden">
           <SidebarContent />
         </aside>
 
@@ -312,7 +312,7 @@ export default function AppShellClinico() {
               className="fixed inset-0 z-40 bg-foreground/20 md:hidden print:hidden"
               onClick={() => setMobileOpen(false)}
             />
-            <aside className="fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-card shadow-xl md:hidden print:hidden animate-fade-in"
+            <aside className="fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-card shadow-xl md:hidden print:hidden animate-fade-in overflow-hidden"
               style={{ top: '64px' }}
             >
               <SidebarContent />

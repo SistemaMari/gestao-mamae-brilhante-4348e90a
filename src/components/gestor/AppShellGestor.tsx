@@ -53,7 +53,7 @@ function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: strin
         ["--sidebar-accent-foreground" as string]: "260 25% 54%",
       }}
     >
-      <SidebarContent className="bg-white border-r border-[#E2E8F0] flex flex-col">
+      <SidebarContent className="bg-white border-r border-[#E2E8F0] flex flex-col overflow-hidden">
         {/* Identidade */}
         <div className="border-b border-[#E2E8F0] p-4">
           <div className="flex items-center gap-3">
@@ -80,7 +80,7 @@ function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: strin
           )}
         </div>
 
-        <SidebarGroup>
+        <SidebarGroup className="flex-1 min-h-0 overflow-y-auto">
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
@@ -109,7 +109,7 @@ function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: strin
         </SidebarGroup>
 
         {/* Rodapé */}
-        <div className="mt-auto border-t border-[#E2E8F0] p-3 space-y-2">
+        <div className="shrink-0 border-t border-[#E2E8F0] p-3 space-y-2 bg-white">
           {!collapsed && email && (
             <p className="truncate px-2 text-xs text-[#94A3B8]">{email}</p>
           )}
