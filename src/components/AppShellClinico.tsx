@@ -184,9 +184,9 @@ export default function AppShellClinico() {
       >
         <Icon className="h-5 w-5 shrink-0" />
         <span className="flex-1 text-left">{t(item.labelKey)}</span>
-        {item.path === '/planos' && profissionalData && (
-          <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
-            {profissionalData.planos?.slug ?? '—'}
+        {item.path === '/planos' && profissionalData?.planos?.nome && (
+          <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground capitalize">
+            {profissionalData.planos.nome}
           </span>
         )}
       </button>
