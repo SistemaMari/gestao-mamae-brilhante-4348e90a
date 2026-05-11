@@ -1,5 +1,5 @@
-// Edge function: gerar-laudo
-// Gera Blocos 2 e 3 do laudo de DMG via Lovable AI Gateway (Gemini 2.5 Pro)
+// Edge function: gerar-laudo (v2 - getUser fix)
+// Gera Blocos 2 e 3 do laudo de DMG via Lovable AI Gateway (Gemini 2.5 Flash)
 // usando o System Prompt MARI v5.2 + arquivos da Base de Conhecimento como anexos.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
