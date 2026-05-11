@@ -211,11 +211,15 @@ Deno.serve(async (req) => {
     const igAtual = calcularIG(paciente.dum, paciente.usg_data, paciente.usg_ig_semanas, paciente.usg_ig_dias);
     const proximaConsulta = calcularProximaConsulta(cenarioId, igAtual?.semanas ?? null);
 
-    // Roteamento de módulos: baixa do bucket os PDFs pertinentes ANTES de criar o laudo
+    // Roteamento de módulos: confere disponibilidade sem anexar PDFs grandes à IA.
+    // PDFs em base64 estouravam CPU/contexto e causavam respostas JSON truncadas.
     const arquivosAlvo = modulosParaCenario(cenarioId);
-    const arquivosBaixados = (await Promise.all(arquivosAlvo.map((p) => bucketFileToDataUrl(supabaseAdmin, p))))
-      .filter(Boolean) as Array<{ name: string; dataUrl: string }>;
-    const arquivosFaltantes = arquivosAlvo.filter((p) => !arquivosBaixados.find((a) => a.name === p));
+    const { data: storageItems } = await supabaseAdmin.storage.from("base-conhecimento").list("", { limit: 100 });
+    const nomesDisponiveis = new Set((storageItems ?? []).map((item: any) => item.name));
+    const arquivosBaixados = arquivosAlvo
+      .filter((name) => nomesDisponiveis.has(name))
+      .map((name) => ({ name, dataUrl: "" }));
+    const arquivosFaltantes = arquivosAlvo.filter((p) => !nomesDisponiveis.has(p));
 
     // Bloqueia se PROTOCOLO ausente (Bloco 2 é impossível sem ele)
     if (!arquivosBaixados.find((a) => a.name === "PROTOCOLO_DMG_Brasil_2016.pdf")) {
@@ -297,7 +301,7 @@ Dados clínicos:\n\n\`\`\`json\n${JSON.stringify(dadosClinicosPayload, null, 2)}
     };
 
     // 1ª tentativa: todos os arquivos
-    let aiResp = await callAI(arquivosBaixados);
+    let aiResp = await callAI([]);
     let errText = "";
 
     // Retry escalonado quando Gemini rejeita PDFs (ex: "document has no pages")
