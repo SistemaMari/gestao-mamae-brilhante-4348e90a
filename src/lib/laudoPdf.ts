@@ -2,7 +2,10 @@ import jsPDF from 'jspdf';
 
 export interface LaudoPdfData {
   pacienteNome: string;
-  cenario: string | null;
+  medicoNome?: string | null;
+  medicoCrm?: string | null;
+  /** @deprecated mantido por compatibilidade; não é mais exibido no header */
+  cenario?: string | null;
   geradoEm: string; // formatted
   conteudo: string;
 }
@@ -11,7 +14,7 @@ export interface LaudoPdfData {
  * Gera um PDF simples a partir do conteúdo textual do laudo
  * (que pode vir como JSON estruturado ou texto puro).
  */
-export function downloadLaudoPdf({ pacienteNome, cenario, geradoEm, conteudo }: LaudoPdfData) {
+export function downloadLaudoPdf({ pacienteNome, medicoNome, medicoCrm, geradoEm, conteudo }: LaudoPdfData) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -28,21 +31,28 @@ export function downloadLaudoPdf({ pacienteNome, cenario, geradoEm, conteudo }: 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.setTextColor(110);
-  doc.text(`Paciente: ${pacienteNome}`, marginX, marginTop + 18);
-  doc.text(
-    `${cenario ? `Cenário ${cenario}  •  ` : ''}Gerado em ${geradoEm}`,
-    marginX,
-    marginTop + 32,
-  );
+  let headerY = marginTop + 18;
+  doc.text(`Paciente: ${pacienteNome}`, marginX, headerY);
+  headerY += 14;
+  if (medicoNome) {
+    const crmTxt = medicoCrm ? ` — CRM ${medicoCrm}` : '';
+    doc.text(`Médico responsável: Dr(a). ${medicoNome}${crmTxt}`, marginX, headerY);
+    headerY += 14;
+  }
+  doc.text(`Gerado em ${geradoEm}`, marginX, headerY);
+  headerY += 10;
   doc.setDrawColor(220);
-  doc.line(marginX, marginTop + 42, pageWidth - marginX, marginTop + 42);
+  doc.line(marginX, headerY, pageWidth - marginX, headerY);
+
+  // Body start
+  const bodyStartY = headerY + 20;
 
   // Body
   doc.setTextColor(20);
   doc.setFontSize(11);
   const lines = doc.splitTextToSize(conteudo || '(laudo vazio)', usableWidth);
 
-  let y = marginTop + 62;
+  let y = bodyStartY;
   const lineHeight = 14;
   for (const line of lines) {
     if (y > pageHeight - marginBottom) {
