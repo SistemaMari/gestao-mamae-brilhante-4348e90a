@@ -43,6 +43,7 @@ import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import { mapearCenario } from '@/lib/laudoMapping';
+import { useLaudoIA } from '@/hooks/useLaudoIA';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
