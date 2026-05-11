@@ -300,104 +300,101 @@ Dados clínicos:\n\n\`\`\`json\n${JSON.stringify(dadosClinicosPayload, null, 2)}
       });
     };
 
-    // 1ª tentativa: todos os arquivos
-    let aiResp = await callAI([]);
-    let errText = "";
+    // Processa IA em BACKGROUND para evitar WORKER_RESOURCE_LIMIT.
+    // Frontend faz polling no registro `laudos` pelo status.
+    const processarLaudoEmBackground = async () => {
+      try {
+        let aiResp = await callAI([]);
+        let errText = "";
 
-    // Retry escalonado quando Gemini rejeita PDFs (ex: "document has no pages")
-    if (!aiResp.ok && aiResp.status >= 400 && aiResp.status < 500) {
-      errText = await aiResp.text();
-      const isPdfErr = /no pages|invalid.*document|INVALID_ARGUMENT/i.test(errText);
-      if (isPdfErr) {
-        // 2ª: só PROTOCOLO
-        const soProtocolo = arquivosBaixados.filter((a) => a.name === "PROTOCOLO_DMG_Brasil_2016.pdf");
-        aiResp = await callAI(soProtocolo);
-        if (!aiResp.ok) {
+        if (!aiResp.ok && aiResp.status >= 400 && aiResp.status < 500) {
           errText = await aiResp.text();
-          // 3ª: sem PDFs
-          aiResp = await callAI([]);
         }
+
+        if (!aiResp.ok) {
+          if (!errText) errText = await aiResp.text();
+          await supabaseAdmin.from("laudos").update({
+            status: "erro",
+            metadata: { ...laudo.metadata, erro: `AI ${aiResp.status}: ${errText.slice(0, 500)}` },
+          }).eq("id", laudo.id);
+          return;
+        }
+
+        const lerConteudo = async (resp: Response) => {
+          const json = await resp.json();
+          return json.choices?.[0]?.message?.content ?? "";
+        };
+
+        let conteudoStr = await lerConteudo(aiResp);
+        let parsed: any = parseLaudoJson(conteudoStr);
+
+        if (!laudoTemBlocosValidos(parsed)) {
+          const fallbackResp = await callAI([], "texto");
+          if (fallbackResp.ok) {
+            const fallbackText = limparTextoIA(await lerConteudo(fallbackResp));
+            const bloco2Match = fallbackText.match(/BLOCO_2:\s*([\s\S]*?)(?=\n\s*BLOCO_3:|$)/i);
+            const bloco3Match = fallbackText.match(/BLOCO_3:\s*([\s\S]*)$/i);
+            if (bloco2Match?.[1]?.trim() && bloco3Match?.[1]?.trim()) {
+              conteudoStr = fallbackText;
+              parsed = {
+                bloco_2_justificativa: bloco2Match[1].trim(),
+                bloco_3_conduta: bloco3Match[1].trim(),
+                referencias_citadas: [{ fonte: "Protocolo Brasileiro de DMG (2016) e módulos clínicos entregues", relevancia: "Base de conhecimento usada para geração dos Blocos 2 e 3" }],
+                metadados_do_laudo: { fallback_texto_sem_json: true, cenario_processado: cenarioId },
+              };
+            }
+          }
+        }
+
+        if (!laudoTemBlocosValidos(parsed)) {
+          await supabaseAdmin.from("laudos").update({
+            status: "erro",
+            metadata: { ...laudo.metadata, erro: "JSON inválido retornado pela IA", raw: conteudoStr.slice(0, 2000) },
+          }).eq("id", laudo.id);
+          return;
+        }
+
+        await supabaseAdmin.from("laudos").update({
+          conteudo_laudo: JSON.stringify(parsed),
+          status: "gerado",
+          metadata: { ...laudo.metadata, modelo: MODEL, arquivos_enviados: arquivosBaixados.map((a) => a.name), referencias: parsed.referencias_citadas, metadados_do_laudo: parsed.metadados_do_laudo },
+        }).eq("id", laudo.id);
+
+        if (profissional.unidade_id) {
+          await supabaseAdmin.from("registros_atendimento").insert({
+            paciente_id,
+            profissional_id: profissional.id,
+            unidade_id: profissional.unidade_id,
+            tipo_operacao: "gerar_laudo",
+            recurso_id: laudo.id,
+            recurso_tipo: "laudo",
+            profissional_nome: profissional.nome,
+            profissional_crm: profissional.crm,
+            profissional_especialidade: profissional.especialidade,
+          });
+        }
+      } catch (e) {
+        await supabaseAdmin.from("laudos").update({
+          status: "erro",
+          metadata: { ...laudo.metadata, erro: `Exceção: ${(e as Error).message}` },
+        }).eq("id", laudo.id);
       }
-    }
-
-    if (!aiResp.ok) {
-      if (!errText) errText = await aiResp.text();
-      await supabaseAdmin.from("laudos").update({ status: "erro", metadata: { ...laudo.metadata, erro: `AI ${aiResp.status}: ${errText.slice(0, 500)}` } }).eq("id", laudo.id);
-      if (aiResp.status === 429) return jsonResp({ error: "Limite de requisições à IA excedido. Tente novamente em instantes." }, 429);
-      if (aiResp.status === 402) return jsonResp({ error: "Créditos da IA esgotados. Adicione fundos em Settings → Workspace → Usage." }, 402);
-      return jsonResp({ error: "Erro na IA", status: aiResp.status, details: errText.slice(0, 500) }, 502);
-    }
-
-    const lerConteudo = async (resp: Response) => {
-      const json = await resp.json();
-      return json.choices?.[0]?.message?.content ?? "";
     };
 
-    let conteudoStr = await lerConteudo(aiResp);
-    let parsed: any = parseLaudoJson(conteudoStr);
+    // @ts-ignore EdgeRuntime existe no runtime Supabase
+    EdgeRuntime.waitUntil(processarLaudoEmBackground());
 
-    // Se o JSON vier truncado/malformado, refaz sem anexos e sem response_format.
-    if (!laudoTemBlocosValidos(parsed)) {
-      const fallbackResp = await callAI([], "texto");
-      if (fallbackResp.ok) {
-        const fallbackText = limparTextoIA(await lerConteudo(fallbackResp));
-        const bloco2Match = fallbackText.match(/BLOCO_2:\s*([\s\S]*?)(?=\n\s*BLOCO_3:|$)/i);
-        const bloco3Match = fallbackText.match(/BLOCO_3:\s*([\s\S]*)$/i);
-        if (bloco2Match?.[1]?.trim() && bloco3Match?.[1]?.trim()) {
-          conteudoStr = fallbackText;
-          parsed = {
-            bloco_2_justificativa: bloco2Match[1].trim(),
-            bloco_3_conduta: bloco3Match[1].trim(),
-            referencias_citadas: [{ fonte: "Protocolo Brasileiro de DMG (2016) e módulos clínicos entregues", relevancia: "Base de conhecimento usada para geração dos Blocos 2 e 3" }],
-            metadados_do_laudo: { fallback_texto_sem_json: true, cenario_processado: cenarioId },
-          };
-        }
-      }
-    }
-
-    if (!laudoTemBlocosValidos(parsed)) {
-      await supabaseAdmin.from("laudos").update({
-        status: "erro",
-        metadata: { ...laudo.metadata, erro: "JSON inválido retornado pela IA", raw: conteudoStr.slice(0, 2000) },
-      }).eq("id", laudo.id);
-      return jsonResp({ error: "Resposta da IA inválida", raw: conteudoStr.slice(0, 500) }, 502);
-    }
-
-    // Salva o laudo final (conteudo_laudo = JSON serializado para preservar estrutura)
-    await supabaseAdmin.from("laudos").update({
-      conteudo_laudo: JSON.stringify(parsed),
-      status: "gerado",
-      metadata: { ...laudo.metadata, modelo: MODEL, arquivos_enviados: arquivosBaixados.map((a) => a.name), referencias: parsed.referencias_citadas, metadados_do_laudo: parsed.metadados_do_laudo },
-    }).eq("id", laudo.id);
-
-    // Carimbo CFM — só profissional institucional (com unidade_id)
-    if (profissional.unidade_id) {
-      const { error: carimboErr } = await supabaseAdmin.from("registros_atendimento").insert({
-        paciente_id,
-        profissional_id: profissional.id,
-        unidade_id: profissional.unidade_id,
-        tipo_operacao: "gerar_laudo",
-        recurso_id: laudo.id,
-        recurso_tipo: "laudo",
-        profissional_nome: profissional.nome,
-        profissional_crm: profissional.crm,
-        profissional_especialidade: profissional.especialidade,
-      });
-      if (carimboErr) console.error("Falha ao carimbar atendimento:", carimboErr);
-    }
-
+    // Resposta imediata — frontend faz polling pelo laudo_id
     return jsonResp({
       success: true,
+      processing: true,
       laudo_id: laudo.id,
       cenario: cenarioId,
       ficha_tipo: fichaTipo,
       proxima_consulta: proximaConsulta,
-      bloco_2: parsed.bloco_2_justificativa,
-      bloco_3: parsed.bloco_3_conduta,
-      referencias: parsed.referencias_citadas,
       arquivos_usados: arquivosBaixados.map((a) => a.name),
       arquivos_faltantes: arquivosAlvo.filter((p) => !arquivosBaixados.find((a) => a.name === p)),
-    });
+    }, 202);
 
   } catch (error) {
     return jsonResp({ error: "Erro interno", details: (error as Error).message }, 500);
