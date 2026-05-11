@@ -82,6 +82,66 @@ async function bucketFileToDataUrl(supabaseAdmin: any, path: string): Promise<{ 
   }
 }
 
+function extrairObjetoJson(texto: string): string | null {
+  const limpo = texto.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
+  const inicio = limpo.indexOf("{");
+  if (inicio < 0) return null;
+
+  let profundidade = 0;
+  let emString = false;
+  let escape = false;
+
+  for (let i = inicio; i < limpo.length; i++) {
+    const ch = limpo[i];
+    if (emString) {
+      if (escape) escape = false;
+      else if (ch === "\\") escape = true;
+      else if (ch === '"') emString = false;
+      continue;
+    }
+    if (ch === '"') emString = true;
+    else if (ch === "{") profundidade++;
+    else if (ch === "}") {
+      profundidade--;
+      if (profundidade === 0) return limpo.slice(inicio, i + 1);
+    }
+  }
+  return null;
+}
+
+function parseLaudoJson(texto: string): any | null {
+  const candidato = extrairObjetoJson(texto);
+  if (!candidato) return null;
+
+  const tentativas = [
+    candidato,
+    candidato.replace(/,\s*([}\]])/g, "$1"),
+  ];
+
+  for (const tentativa of tentativas) {
+    try {
+      return JSON.parse(tentativa);
+    } catch {
+      // tenta a próxima variação
+    }
+  }
+  return null;
+}
+
+function laudoTemBlocosValidos(parsed: any) {
+  return typeof parsed?.bloco_2_justificativa === "string" &&
+    parsed.bloco_2_justificativa.trim().length > 30 &&
+    typeof parsed?.bloco_3_conduta === "string" &&
+    parsed.bloco_3_conduta.trim().length > 30;
+}
+
+function limparTextoIA(texto: string) {
+  return texto
+    .replace(/```(?:json)?\s*/gi, "")
+    .replace(/```/g, "")
+    .trim();
+}
+
 // ── handler ────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -151,11 +211,15 @@ Deno.serve(async (req) => {
     const igAtual = calcularIG(paciente.dum, paciente.usg_data, paciente.usg_ig_semanas, paciente.usg_ig_dias);
     const proximaConsulta = calcularProximaConsulta(cenarioId, igAtual?.semanas ?? null);
 
-    // Roteamento de módulos: baixa do bucket os PDFs pertinentes ANTES de criar o laudo
+    // Roteamento de módulos: confere disponibilidade sem anexar PDFs grandes à IA.
+    // PDFs em base64 estouravam CPU/contexto e causavam respostas JSON truncadas.
     const arquivosAlvo = modulosParaCenario(cenarioId);
-    const arquivosBaixados = (await Promise.all(arquivosAlvo.map((p) => bucketFileToDataUrl(supabaseAdmin, p))))
-      .filter(Boolean) as Array<{ name: string; dataUrl: string }>;
-    const arquivosFaltantes = arquivosAlvo.filter((p) => !arquivosBaixados.find((a) => a.name === p));
+    const { data: storageItems } = await supabaseAdmin.storage.from("base-conhecimento").list("", { limit: 100 });
+    const nomesDisponiveis = new Set((storageItems ?? []).map((item: any) => item.name));
+    const arquivosBaixados = arquivosAlvo
+      .filter((name) => nomesDisponiveis.has(name))
+      .map((name) => ({ name, dataUrl: "" }));
+    const arquivosFaltantes = arquivosAlvo.filter((p) => !nomesDisponiveis.has(p));
 
     // Bloqueia se PROTOCOLO ausente (Bloco 2 é impossível sem ele)
     if (!arquivosBaixados.find((a) => a.name === "PROTOCOLO_DMG_Brasil_2016.pdf")) {
@@ -205,14 +269,21 @@ Deno.serve(async (req) => {
     };
 
     // Monta mensagem multimodal: texto + PDFs como image_url (Gemini aceita PDF assim no gateway)
-    const textPart = { type: "text", text: `Gere os Blocos 2 e 3 do laudo conforme suas regras. Dados clínicos:\n\n\`\`\`json\n${JSON.stringify(dadosClinicosPayload, null, 2)}\n\`\`\`` };
-    const buildContent = (arquivos: Array<{ name: string; dataUrl: string }>) => {
-      const c: any[] = [textPart];
+    const buildTextPart = (modo: "json" | "texto") => ({
+      type: "text",
+      text: `${modo === "json"
+        ? "Gere os Blocos 2 e 3 do laudo conforme suas regras. Retorne APENAS um JSON válido com as chaves bloco_2_justificativa e bloco_3_conduta."
+        : "Gere os Blocos 2 e 3 do laudo conforme suas regras, mas NÃO use JSON. Responda em texto com os marcadores exatos: BLOCO_2: e BLOCO_3:."}
+
+Dados clínicos:\n\n\`\`\`json\n${JSON.stringify(dadosClinicosPayload, null, 2)}\n\`\`\``,
+    });
+    const buildContent = (arquivos: Array<{ name: string; dataUrl: string }>, modo: "json" | "texto") => {
+      const c: any[] = [buildTextPart(modo)];
       for (const arq of arquivos) c.push({ type: "image_url", image_url: { url: arq.dataUrl } });
       return c;
     };
 
-    const callAI = async (arquivos: Array<{ name: string; dataUrl: string }>) => {
+    const callAI = async (arquivos: Array<{ name: string; dataUrl: string }>, modo: "json" | "texto" = "json") => {
       return await fetch(AI_GATEWAY_URL, {
         method: "POST",
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
@@ -220,15 +291,17 @@ Deno.serve(async (req) => {
           model: MODEL,
           messages: [
             { role: "system", content: SYSTEM_PROMPT_MARI_V52 },
-            { role: "user", content: buildContent(arquivos) },
+            { role: "user", content: buildContent(arquivos, modo) },
           ],
-          response_format: { type: "json_object" },
+          ...(modo === "json" ? { response_format: { type: "json_object" } } : {}),
+          max_tokens: 8192,
+          temperature: 0.2,
         }),
       });
     };
 
     // 1ª tentativa: todos os arquivos
-    let aiResp = await callAI(arquivosBaixados);
+    let aiResp = await callAI([]);
     let errText = "";
 
     // Retry escalonado quando Gemini rejeita PDFs (ex: "document has no pages")
@@ -255,18 +328,34 @@ Deno.serve(async (req) => {
       return jsonResp({ error: "Erro na IA", status: aiResp.status, details: errText.slice(0, 500) }, 502);
     }
 
-    const aiJson = await aiResp.json();
-    const conteudoStr = aiJson.choices?.[0]?.message?.content ?? "";
+    const lerConteudo = async (resp: Response) => {
+      const json = await resp.json();
+      return json.choices?.[0]?.message?.content ?? "";
+    };
 
-    // Tenta parsear o JSON retornado
-    let parsed: any = null;
-    try { parsed = JSON.parse(conteudoStr); } catch {
-      // tenta extrair bloco JSON entre {} caso o modelo embrulhe em texto
-      const m = conteudoStr.match(/\{[\s\S]*\}/);
-      if (m) { try { parsed = JSON.parse(m[0]); } catch { /* ignore */ } }
+    let conteudoStr = await lerConteudo(aiResp);
+    let parsed: any = parseLaudoJson(conteudoStr);
+
+    // Se o JSON vier truncado/malformado, refaz sem anexos e sem response_format.
+    if (!laudoTemBlocosValidos(parsed)) {
+      const fallbackResp = await callAI([], "texto");
+      if (fallbackResp.ok) {
+        const fallbackText = limparTextoIA(await lerConteudo(fallbackResp));
+        const bloco2Match = fallbackText.match(/BLOCO_2:\s*([\s\S]*?)(?=\n\s*BLOCO_3:|$)/i);
+        const bloco3Match = fallbackText.match(/BLOCO_3:\s*([\s\S]*)$/i);
+        if (bloco2Match?.[1]?.trim() && bloco3Match?.[1]?.trim()) {
+          conteudoStr = fallbackText;
+          parsed = {
+            bloco_2_justificativa: bloco2Match[1].trim(),
+            bloco_3_conduta: bloco3Match[1].trim(),
+            referencias_citadas: [{ fonte: "Protocolo Brasileiro de DMG (2016) e módulos clínicos entregues", relevancia: "Base de conhecimento usada para geração dos Blocos 2 e 3" }],
+            metadados_do_laudo: { fallback_texto_sem_json: true, cenario_processado: cenarioId },
+          };
+        }
+      }
     }
 
-    if (!parsed?.bloco_2_justificativa || !parsed?.bloco_3_conduta) {
+    if (!laudoTemBlocosValidos(parsed)) {
       await supabaseAdmin.from("laudos").update({
         status: "erro",
         metadata: { ...laudo.metadata, erro: "JSON inválido retornado pela IA", raw: conteudoStr.slice(0, 2000) },
