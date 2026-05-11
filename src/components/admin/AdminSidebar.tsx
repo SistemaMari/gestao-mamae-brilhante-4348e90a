@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const baseItems = [
-  { title: "Visão Geral", path: "", icon: BarChart3, exact: true },
+  { title: "Painel", path: "", icon: BarChart3, exact: true },
   { title: "Diagnósticos", path: "/diagnosticos", icon: Map, exact: false },
   { title: "Filtros e Exportação", path: "/exportar", icon: Download, exact: false },
   { title: "Administradores", path: "/admins", icon: Users, exact: false },
