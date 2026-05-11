@@ -98,10 +98,9 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) return jsonResp({ error: "Unauthorized" }, 401);
-    const userId = claimsData.claims.sub;
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) return jsonResp({ error: "Unauthorized" }, 401);
+    const userId = userData.user.id;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) return jsonResp({ error: "LOVABLE_API_KEY não configurada" }, 500);
