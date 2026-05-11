@@ -45,9 +45,12 @@ function calcularDiagnostico(valor: number): DiagnosticoResult {
   };
 }
 
-function parseValorFromObs(obs: string): number {
-  const match = obs.match(/GJ:\s*(\d+)\s*mg\/dL/);
-  return match ? parseInt(match[1], 10) : 0;
+function getValor(c: PreviewConsulta): number {
+  if (typeof c.retorno1_valor_gj === 'number' && c.retorno1_valor_gj > 0) {
+    return c.retorno1_valor_gj;
+  }
+  const m = (c.observacoes || '').match(/GJ:\s*(\d+)\s*mg\/dL/);
+  return m ? parseInt(m[1], 10) : 0;
 }
 
 interface Retorno1ResultCardProps {
@@ -59,7 +62,7 @@ interface Retorno1ResultCardProps {
 export default function Retorno1ResultCard({
   consulta,
 }: Retorno1ResultCardProps) {
-  const valor = parseValorFromObs(consulta.observacoes || '');
+  const valor = getValor(consulta);
   if (valor === 0) {
     return (
       <p className="text-xs text-muted-foreground italic">
@@ -78,9 +81,13 @@ export default function Retorno1ResultCard({
         ) : (
           <AlertTriangle className={`h-6 w-6 shrink-0 ${resultado.iconColor}`} />
         )}
-        <div>
+        <div className="flex-1">
           <h2 className={`text-base font-bold ${resultado.cor}`}>{resultado.label}</h2>
-          <p className={`mt-1 text-sm ${resultado.cor}`}>{resultado.texto}</p>
+          <p className={`mt-2 font-heading text-4xl font-bold leading-none ${resultado.cor}`}>
+            {valor}
+            <span className="ml-1 text-base font-medium opacity-80">mg/dL</span>
+          </p>
+          <p className={`mt-2 text-sm ${resultado.cor}`}>{resultado.texto}</p>
         </div>
       </div>
     </div>
