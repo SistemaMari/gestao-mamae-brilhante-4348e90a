@@ -93,7 +93,7 @@ function GestorGeralSidebar({
           )}
         </div>
 
-        <SidebarGroup>
+        <SidebarGroup className="flex-1 min-h-0 overflow-y-auto">
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
@@ -121,7 +121,7 @@ function GestorGeralSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto border-t border-[#E2E8F0] p-3 space-y-2">
+        <div className="shrink-0 border-t border-[#E2E8F0] p-3 space-y-2 bg-white">
           {!collapsed && email && (
             <p className="truncate px-2 text-xs text-[#94A3B8]">{email}</p>
           )}
