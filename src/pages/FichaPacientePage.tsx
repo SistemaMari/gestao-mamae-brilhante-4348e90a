@@ -1038,6 +1038,14 @@ export default function FichaPacientePage() {
                                     setConsultas(p.consultas || []);
                                   }
                                 }
+                                // Dispara geração da IA agora que o peso/dose foram confirmados
+                                const cenarioPeso = mapearCenario({
+                                  tipo: c.tipo,
+                                  status_gerado: c.status_gerado,
+                                  decisao: (c as any).decisao,
+                                  percentual_meta: (c as any).percentual_meta,
+                                });
+                                laudoIA.tentarNovamente(paciente.id, c.id, cenarioPeso);
                               }}
                             />
                           </>
