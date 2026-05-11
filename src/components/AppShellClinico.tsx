@@ -124,8 +124,10 @@ export default function AppShellClinico() {
     ? profissionalData.nome.split(' ')[0]
     : user?.email?.split('@')[0] || '';
 
+  const planoNome = profissionalData?.planos?.nome ?? '';
+  const planoLimite = profissionalData?.planos?.laudos_por_mes ?? profissionalData?.laudos_limite ?? 0;
   const planoLabel = profissionalData
-    ? `${t('nav.plans')} ${profissionalData.plano.charAt(0).toUpperCase() + profissionalData.plano.slice(1)} — ${profissionalData.laudos_usados}/${profissionalData.laudos_limite} ${t('nav.reports').toLowerCase()}`
+    ? `${t('nav.plans')} ${planoNome} — ${profissionalData.laudos_usados}/${planoLimite} ${t('nav.reports').toLowerCase()}`
     : '';
 
   const handleNavClick = async (item: NavItem) => {
@@ -157,7 +159,7 @@ export default function AppShellClinico() {
   };
 
   // Métricas: bloqueada para planos abaixo de Profissional → exibe cadeado.
-  const planoAtual = profissionalData?.plano ?? 'inicial';
+  const planoAtual = profissionalData?.planos?.slug ?? 'inicial';
   const metricasBloqueada = planoAtual !== 'profissional';
 
   const renderNavButton = (item: NavItem) => {
@@ -182,7 +184,7 @@ export default function AppShellClinico() {
         <span className="flex-1 text-left">{t(item.labelKey)}</span>
         {item.path === '/planos' && profissionalData && (
           <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
-            {profissionalData.plano}
+            {profissionalData.planos?.slug ?? '—'}
           </span>
         )}
       </button>
@@ -350,7 +352,7 @@ export default function AppShellClinico() {
       <BlockingModal
         open={showBlockingModal}
         onClose={() => setShowBlockingModal(false)}
-        tipo="pacientes"
+        planoNome={profissionalData?.planos?.nome}
       />
     </div>
   );

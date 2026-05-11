@@ -179,7 +179,7 @@ export default function DashboardPage() {
           <div className="mb-6 rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-medium text-foreground">
-                {isPreview ? 'Plano Teste' : `Plano ${profissionalData?.plano ?? ''}`}
+                {isPreview ? 'Plano Teste' : `Plano ${profissionalData?.planos?.nome ?? ''}`}
               </span>
               <button
                 onClick={() => navigate(`${isPreview ? '/vitrine' : ''}/planos`)}
@@ -458,7 +458,7 @@ export default function DashboardPage() {
       <BlockingModal
         open={showBlockingModal}
         onClose={() => setShowBlockingModal(false)}
-        tipo="pacientes"
+        planoNome={profissionalData?.planos?.nome}
       />
     </div>
   );
