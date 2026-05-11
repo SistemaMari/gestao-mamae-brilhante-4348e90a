@@ -165,7 +165,7 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Usage warning banner */}
-      {profissionalData && (
+      {profissionalData && !ehInstitucional && (
         <UsageWarningBanner
           laudosUsados={profissionalData.laudos_usados}
           laudosLimite={profissionalData.laudos_limite}
@@ -175,7 +175,7 @@ export default function DashboardPage() {
       <div>
 
         {/* Plan usage bar */}
-        {(profissionalData || isPreview) && (
+        {(profissionalData || isPreview) && !ehInstitucional && (
           <div className="mb-6 rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-medium text-foreground">
