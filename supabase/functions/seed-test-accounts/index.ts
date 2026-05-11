@@ -15,7 +15,7 @@ const SENHA_PADRAO = "Teste@2026";
 interface ContaSpec {
   email: string;
   nome: string;
-  perfil: "consultorio_pro" | "consultorio_free" | "institucional" | "gestor" | "gestor_geral" | "admin";
+  perfil: "consultorio_pro" | "consultorio_free" | "institucional" | "institucional2" | "gestor" | "gestor_geral" | "admin";
 }
 
 const CONTAS: ContaSpec[] = [
