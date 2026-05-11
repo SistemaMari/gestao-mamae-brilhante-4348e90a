@@ -18,7 +18,7 @@ const corsHeaders = {
 };
 
 const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-2.5-pro"; // contexto longo + raciocínio para laudo clínico
+const MODEL = "google/gemini-2.5-flash"; // rápido e econômico para geração de laudos
 
 // ── helpers ────────────────────────────────────────────────────────
 
