@@ -262,14 +262,29 @@ export default function AppShellClinico() {
 
         <div className="flex-1" />
 
-        {/* Plan badge */}
-        {planoLabel && ehConsultorio && (
+        {/* Plan badge with consumption bar */}
+        {profissionalData && ehConsultorio && (
           <button
             onClick={() => navigate('/planos')}
-            className="hidden lg:inline-flex items-center rounded-full px-3 py-1 text-xs font-medium mr-4"
+            className="hidden lg:flex items-center gap-3 rounded-full pl-3 pr-4 py-1.5 text-xs font-medium mr-4 hover:opacity-90 transition"
             style={{ backgroundColor: '#F1F0FB', color: '#7E69AB' }}
+            title={`${laudosUsados} de ${planoLimite} ${t('nav.reports').toLowerCase()} este mês`}
           >
-            {planoLabel}
+            <span className="font-semibold">{t('nav.plans')} {planoNome}</span>
+            <span className="flex items-center gap-2">
+              <span
+                className="relative block h-1.5 w-24 rounded-full overflow-hidden"
+                style={{ backgroundColor: '#E2DEF5' }}
+              >
+                <span
+                  className="absolute left-0 top-0 h-full rounded-full transition-all"
+                  style={{ width: `${consumoPct}%`, backgroundColor: consumoCor }}
+                />
+              </span>
+              <span className="tabular-nums" style={{ color: consumoCor }}>
+                {laudosUsados}/{planoLimite}
+              </span>
+            </span>
           </button>
         )}
 
