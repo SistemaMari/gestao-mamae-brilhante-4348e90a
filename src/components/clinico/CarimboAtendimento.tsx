@@ -17,6 +17,8 @@ interface RegistroLista {
 interface PropsBanner {
   variant: "banner";
   mockProfissional?: { nome: string; crm: string | null; unidade_nome: string | null };
+  /** Quando informado, mostra essa unidade no banner (ex.: gestor geral atuando em N unidades). */
+  unidadeContextoId?: string | null;
 }
 interface PropsInline {
   variant: "inline";
@@ -32,12 +34,16 @@ type Props = PropsBanner | PropsInline | PropsLista;
 
 /**
  * Carimbo CFM do profissional atendente. Só renderiza para usuários
- * institucionais (profissional vinculado a uma unidade ou gestor).
+ * com acesso ao histórico cross-profissional (institucional, gestor de
+ * unidade ou gestor geral). Admin é excluído por política de LGPD —
+ * admin não acessa fichas clínicas individuais.
  */
 export default function CarimboAtendimento(props: Props) {
   const { user, profile } = useAuth();
   const [meuProf, setMeuProf] = useState<{ nome: string; crm: string | null; unidade_nome: string | null } | null>(null);
-  const ehInstitucional = profile === "institucional" || profile === "gestor";
+  const [unidadeContextoNome, setUnidadeContextoNome] = useState<string | null>(null);
+  const ehInstitucional =
+    profile === "institucional" || profile === "gestor" || profile === "gestor_geral";
 
   useEffect(() => {
     if (!user || !ehInstitucional || props.variant !== "banner") return;
@@ -57,17 +63,36 @@ export default function CarimboAtendimento(props: Props) {
     })();
   }, [user, ehInstitucional, props.variant]);
 
+  // Quando a página passa explicitamente a unidade da paciente, prefere essa
+  // (gestor geral pode atuar em múltiplas unidades).
+  const unidadeContextoId = props.variant === "banner" ? props.unidadeContextoId : null;
+  useEffect(() => {
+    if (!unidadeContextoId) {
+      setUnidadeContextoNome(null);
+      return;
+    }
+    (async () => {
+      const { data } = await supabase
+        .from("unidades")
+        .select("nome")
+        .eq("id", unidadeContextoId)
+        .maybeSingle();
+      setUnidadeContextoNome((data as any)?.nome ?? null);
+    })();
+  }, [unidadeContextoId]);
+
   if (props.variant === "banner") {
     const dados = props.mockProfissional ?? meuProf;
     if (!dados) return null;
     if (!props.mockProfissional && !ehInstitucional) return null;
+    const unidadeMostrada = unidadeContextoNome ?? dados.unidade_nome;
     return (
       <div className="rounded-md border border-[#99F6E4] bg-[#F0FDFA] px-4 py-2 text-sm">
         <span className="text-muted-foreground">Atendendo como: </span>
         <strong className="text-[#0F766E]">{dados.nome}</strong>
         {dados.crm && <span className="text-[#0F766E]"> — CRM {dados.crm}</span>}
-        {dados.unidade_nome && (
-          <span className="text-muted-foreground"> | {dados.unidade_nome}</span>
+        {unidadeMostrada && (
+          <span className="text-muted-foreground"> | {unidadeMostrada}</span>
         )}
       </div>
     );
@@ -87,7 +112,7 @@ export default function CarimboAtendimento(props: Props) {
   if (props.registros) {
     return <ListaHistoricoMock registros={props.registros} />;
   }
-  return <ListaHistorico pacienteId={props.pacienteId!} ehInstitucional={props.forceVisible || ehInstitucional || profile === "admin" || profile === "gestor_geral"} />;
+  return <ListaHistorico pacienteId={props.pacienteId!} ehInstitucional={props.forceVisible || ehInstitucional || profile === "admin"} />;
 }
 
 function ListaHistoricoMock({ registros }: { registros: RegistroLista[] }) {

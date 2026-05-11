@@ -44,6 +44,8 @@ import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import { mapearCenario } from '@/lib/laudoMapping';
 import { useLaudoIA } from '@/hooks/useLaudoIA';
+import { useAutoriaFicha } from '@/hooks/useAutoriaFicha';
+import AutoriaRodape from '@/components/clinico/AutoriaRodape';
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
@@ -309,6 +311,7 @@ export default function FichaPacientePage() {
 
   // === IA: Blocos 2 e 3 (Justificativa + Conduta) ===
   const laudoIA = useLaudoIA({ isPreview });
+  const autoriaFicha = useAutoriaFicha(paciente?.id);
 
   // Reset estado IA ao trocar de paciente
   useEffect(() => {
@@ -564,6 +567,14 @@ export default function FichaPacientePage() {
             Modo visualização
           </Badge>
         </div>
+      )}
+
+      {/* Banner "Atendendo como" — apenas para institucional/gestor/gestor geral */}
+      {!isPreview && paciente?.id && (
+        <CarimboAtendimento
+          variant="banner"
+          unidadeContextoId={(paciente as any).unidade_id ?? null}
+        />
       )}
 
       {/* DMG anterior banner */}
@@ -844,6 +855,14 @@ export default function FichaPacientePage() {
       {consultas.length === 1 && paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && primeiraConsulta && (() => {
         const cenarioStandalone = mapearCenario({ tipo: 'consulta_1', status_gerado: paciente.status_ficha });
         const estadoStandalone = laudoIA.getEstado(primeiraConsulta.id);
+        const autoriaC1 = autoriaFicha.getAutoria({
+          recursoId: primeiraConsulta.id,
+          tipoOperacao: 'consulta_inicial',
+        });
+        const autoriaLaudoStandalone = autoriaFicha.getAutoria({
+          recursoId: estadoStandalone.laudoId ?? null,
+          tipoOperacao: 'gerar_laudo',
+        });
         return (
         <LaudoCompleto
           paciente={{ nome: paciente.nome }}
@@ -859,6 +878,10 @@ export default function FichaPacientePage() {
           proximaFichaTexto={janelaGTT ? `GTT 75g entre ${format(janelaGTT.inicio, 'dd/MM/yyyy')} e ${format(janelaGTT.fim, 'dd/MM/yyyy')}.` : null}
         >
           <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
+          <AutoriaRodape registro={autoriaC1} label="Atendimento registrado por" />
+          {estadoStandalone.statusIA === 'pronto' && (
+            <AutoriaRodape registro={autoriaLaudoStandalone} label="Laudo gerado por" />
+          )}
         </LaudoCompleto>
         );
       })()}
@@ -1115,6 +1138,22 @@ export default function FichaPacientePage() {
 
                         {(() => {
                           const estadoC = laudoIA.getEstado(c.id);
+                          const tipoOpConsulta =
+                            c.tipo === 'consulta_1' ? 'consulta_inicial'
+                            : c.tipo === 'retorno_1' ? 'retorno'
+                            : c.tipo === 'retorno_gtt' ? 'preencher_gtt'
+                            : (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') ? 'preencher_ficha_ac'
+                            : (c.tipo === 'ficha_b' || c.tipo === 'ficha_d') ? 'preencher_ficha_bd'
+                            : c.tipo === 'registro_parto' ? 'registrar_parto'
+                            : null;
+                          const autoriaConsulta = autoriaFicha.getAutoria({
+                            recursoId: c.id,
+                            tipoOperacao: tipoOpConsulta,
+                          });
+                          const autoriaLaudo = autoriaFicha.getAutoria({
+                            recursoId: estadoC.laudoId ?? null,
+                            tipoOperacao: 'gerar_laudo',
+                          });
                           return (
                             <LaudoCompleto
                               paciente={{ nome: paciente.nome }}
@@ -1131,6 +1170,10 @@ export default function FichaPacientePage() {
                               igMaior24={igMaior24}
                             >
                               {renderCardBloco1()}
+                              <AutoriaRodape registro={autoriaConsulta} label="Atendimento registrado por" />
+                              {estadoC.statusIA === 'pronto' && (
+                                <AutoriaRodape registro={autoriaLaudo} label="Laudo gerado por" />
+                              )}
                             </LaudoCompleto>
                           );
                         })()}

@@ -2,7 +2,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Users, Settings, LogOut, ChevronLeft, ChevronRight,
-  Building2, BarChart3, ShieldCheck, Activity, BookOpen, GraduationCap, Map, Download, Stethoscope
+  Building2, BarChart3, ShieldCheck, Activity, BookOpen, GraduationCap, Map, Download, Stethoscope,
+  UserPlus, History, CreditCard, UserCircle
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -15,16 +16,18 @@ interface NavItem {
 
 const navByProfile: Record<string, NavItem[]> = {
   consultorio: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { label: 'Fichas', icon: FileText, path: '/dashboard' },
-    { label: 'Configurações', icon: Settings, path: '/dashboard' },
-    { label: 'Meus Cursos', icon: GraduationCap, path: '/meus-cursos' },
+    { label: 'Pacientes', icon: Users, path: '/dashboard' },
+    { label: 'Nova paciente', icon: UserPlus, path: '/paciente/nova' },
+    { label: 'Meus cursos', icon: GraduationCap, path: '/meus-cursos' },
+    { label: 'Métricas', icon: BarChart3, path: '/dashboard/metricas' },
+    { label: 'Planos', icon: CreditCard, path: '/planos' },
+    { label: 'Perfil', icon: UserCircle, path: '/perfil' },
   ],
   institucional: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { label: 'Fichas', icon: FileText, path: '/dashboard' },
-    { label: 'Configurações', icon: Settings, path: '/dashboard' },
-    { label: 'Meus Cursos', icon: GraduationCap, path: '/meus-cursos' },
+    { label: 'Pacientes', icon: Users, path: '/dashboard' },
+    { label: 'Nova paciente', icon: UserPlus, path: '/paciente/nova' },
+    { label: 'Históricos', icon: History, path: '/laudos' },
+    { label: 'Perfil', icon: UserCircle, path: '/perfil' },
   ],
   gestor: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/gestao' },
