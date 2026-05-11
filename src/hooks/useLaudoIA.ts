@@ -128,7 +128,7 @@ export function useLaudoIA({ isPreview }: UseLaudoIAOptions) {
 
       try {
         const { data, error } = await supabase.functions.invoke('gerar-laudo', {
-          body: { paciente_id: pacienteId, consulta_id: consultaId },
+          body: { paciente_id: pacienteId, consulta_id: consultaId, cenario_clinico: cenario ?? null },
         });
 
         if (error) {
