@@ -166,6 +166,58 @@ export function useLaudoIA({ isPreview }: UseLaudoIAOptions) {
           return;
         }
 
+        // Se backend retornou em modo processing, faz polling no registro de laudos
+        if (data?.processing && data?.laudo_id) {
+          const laudoId = data.laudo_id as string;
+          setEstado((prev) => ({
+            ...prev,
+            [consultaId]: { statusIA: 'gerando', bloco2: null, bloco3: null, laudoId },
+          }));
+
+          const maxTentativas = 60; // ~3 min com 3s
+          for (let i = 0; i < maxTentativas; i++) {
+            await new Promise((r) => setTimeout(r, 3000));
+            const { data: row } = await supabase
+              .from('laudos')
+              .select('status, conteudo_laudo, metadata')
+              .eq('id', laudoId)
+              .maybeSingle();
+            if (!row) continue;
+            if (row.status === 'gerado' && row.conteudo_laudo) {
+              try {
+                const parsed = JSON.parse(row.conteudo_laudo);
+                const b2 = parsed?.bloco_2_justificativa;
+                const b3 = parsed?.bloco_3_conduta;
+                const b2s = typeof b2 === 'string' ? b2 : b2 ? JSON.stringify(b2, null, 2) : null;
+                const b3s = typeof b3 === 'string' ? b3 : b3 ? JSON.stringify(b3, null, 2) : null;
+                setEstado((prev) => ({
+                  ...prev,
+                  [consultaId]: { statusIA: 'pronto', bloco2: b2s, bloco3: b3s, laudoId },
+                }));
+              } catch {
+                setEstado((prev) => ({
+                  ...prev,
+                  [consultaId]: { statusIA: 'erro', bloco2: null, bloco3: null, erroIA: { mensagem: 'Laudo gerado mas com formato inválido.' } },
+                }));
+              }
+              return;
+            }
+            if (row.status === 'erro') {
+              const meta: any = row.metadata ?? {};
+              setEstado((prev) => ({
+                ...prev,
+                [consultaId]: { statusIA: 'erro', bloco2: null, bloco3: null, erroIA: { mensagem: meta?.erro || 'Erro ao gerar laudo.' } },
+              }));
+              return;
+            }
+          }
+          setEstado((prev) => ({
+            ...prev,
+            [consultaId]: { statusIA: 'erro', bloco2: null, bloco3: null, erroIA: { mensagem: 'Tempo esgotado aguardando a IA. Tente novamente.' } },
+          }));
+          return;
+        }
+
         const bloco2 = data?.bloco_2 ?? null;
         const bloco3 = data?.bloco_3 ?? null;
         const b2str = typeof bloco2 === 'string' ? bloco2 : bloco2 ? JSON.stringify(bloco2, null, 2) : null;
