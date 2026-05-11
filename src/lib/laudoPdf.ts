@@ -2,7 +2,10 @@ import jsPDF from 'jspdf';
 
 export interface LaudoPdfData {
   pacienteNome: string;
-  cenario: string | null;
+  medicoNome?: string | null;
+  medicoCrm?: string | null;
+  /** @deprecated mantido por compatibilidade; não é mais exibido no header */
+  cenario?: string | null;
   geradoEm: string; // formatted
   conteudo: string;
 }
