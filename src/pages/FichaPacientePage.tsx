@@ -855,6 +855,14 @@ export default function FichaPacientePage() {
       {consultas.length === 1 && paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && primeiraConsulta && (() => {
         const cenarioStandalone = mapearCenario({ tipo: 'consulta_1', status_gerado: paciente.status_ficha });
         const estadoStandalone = laudoIA.getEstado(primeiraConsulta.id);
+        const autoriaC1 = autoriaFicha.getAutoria({
+          recursoId: primeiraConsulta.id,
+          tipoOperacao: 'consulta_inicial',
+        });
+        const autoriaLaudoStandalone = autoriaFicha.getAutoria({
+          recursoId: estadoStandalone.laudoId ?? null,
+          tipoOperacao: 'gerar_laudo',
+        });
         return (
         <LaudoCompleto
           paciente={{ nome: paciente.nome }}
@@ -870,6 +878,10 @@ export default function FichaPacientePage() {
           proximaFichaTexto={janelaGTT ? `GTT 75g entre ${format(janelaGTT.inicio, 'dd/MM/yyyy')} e ${format(janelaGTT.fim, 'dd/MM/yyyy')}.` : null}
         >
           <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
+          <AutoriaRodape registro={autoriaC1} label="Atendimento registrado por" />
+          {estadoStandalone.statusIA === 'pronto' && (
+            <AutoriaRodape registro={autoriaLaudoStandalone} label="Laudo gerado por" />
+          )}
         </LaudoCompleto>
         );
       })()}
