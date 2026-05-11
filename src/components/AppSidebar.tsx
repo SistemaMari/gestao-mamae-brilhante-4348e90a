@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Users, Settings, LogOut, ChevronLeft, ChevronRight,
-  Building2, BarChart3, ShieldCheck, UserPlus, Activity, BookOpen, GraduationCap
+  Building2, BarChart3, ShieldCheck, Activity, BookOpen, GraduationCap, Map, Download, Stethoscope
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
