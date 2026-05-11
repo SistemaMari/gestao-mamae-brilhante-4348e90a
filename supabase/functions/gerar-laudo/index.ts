@@ -324,18 +324,34 @@ Dados clínicos:\n\n\`\`\`json\n${JSON.stringify(dadosClinicosPayload, null, 2)}
       return jsonResp({ error: "Erro na IA", status: aiResp.status, details: errText.slice(0, 500) }, 502);
     }
 
-    const aiJson = await aiResp.json();
-    const conteudoStr = aiJson.choices?.[0]?.message?.content ?? "";
+    const lerConteudo = async (resp: Response) => {
+      const json = await resp.json();
+      return json.choices?.[0]?.message?.content ?? "";
+    };
 
-    // Tenta parsear o JSON retornado
-    let parsed: any = null;
-    try { parsed = JSON.parse(conteudoStr); } catch {
-      // tenta extrair bloco JSON entre {} caso o modelo embrulhe em texto
-      const m = conteudoStr.match(/\{[\s\S]*\}/);
-      if (m) { try { parsed = JSON.parse(m[0]); } catch { /* ignore */ } }
+    let conteudoStr = await lerConteudo(aiResp);
+    let parsed: any = parseLaudoJson(conteudoStr);
+
+    // Se o JSON vier truncado/malformado, refaz sem anexos e sem response_format.
+    if (!laudoTemBlocosValidos(parsed)) {
+      const fallbackResp = await callAI([], "texto");
+      if (fallbackResp.ok) {
+        const fallbackText = limparTextoIA(await lerConteudo(fallbackResp));
+        const bloco2Match = fallbackText.match(/BLOCO_2:\s*([\s\S]*?)(?=\n\s*BLOCO_3:|$)/i);
+        const bloco3Match = fallbackText.match(/BLOCO_3:\s*([\s\S]*)$/i);
+        if (bloco2Match?.[1]?.trim() && bloco3Match?.[1]?.trim()) {
+          conteudoStr = fallbackText;
+          parsed = {
+            bloco_2_justificativa: bloco2Match[1].trim(),
+            bloco_3_conduta: bloco3Match[1].trim(),
+            referencias_citadas: [{ fonte: "Protocolo Brasileiro de DMG (2016) e módulos clínicos entregues", relevancia: "Base de conhecimento usada para geração dos Blocos 2 e 3" }],
+            metadados_do_laudo: { fallback_texto_sem_json: true, cenario_processado: cenarioId },
+          };
+        }
+      }
     }
 
-    if (!parsed?.bloco_2_justificativa || !parsed?.bloco_3_conduta) {
+    if (!laudoTemBlocosValidos(parsed)) {
       await supabaseAdmin.from("laudos").update({
         status: "erro",
         metadata: { ...laudo.metadata, erro: "JSON inválido retornado pela IA", raw: conteudoStr.slice(0, 2000) },
