@@ -80,7 +80,7 @@ function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: strin
           )}
         </div>
 
-        <SidebarGroup>
+        <SidebarGroup className="flex-1 min-h-0 overflow-y-auto">
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
