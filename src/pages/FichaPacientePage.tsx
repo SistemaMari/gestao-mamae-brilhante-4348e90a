@@ -41,6 +41,7 @@ import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
 
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
+import UsgManagerCard from '@/components/UsgManagerCard';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import { mapearCenario } from '@/lib/laudoMapping';
 import { useLaudoIA } from '@/hooks/useLaudoIA';
