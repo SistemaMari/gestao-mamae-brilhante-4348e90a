@@ -275,6 +275,20 @@ export default function Consulta1Form() {
       }
     }
 
+    // Persistir 1ª USG na tabela exames_usg (se informada)
+    if (usgFlow.jaFezUsg === 'sim' && usgFlow.dataExame && usgFlow.igSemanas !== '') {
+      const { error: usgErr } = await supabase.from('exames_usg').insert({
+        paciente_id: pacienteId!,
+        data_exame: usgFlow.dataExame,
+        ig_semanas: Number(usgFlow.igSemanas),
+        ig_dias: Number(usgFlow.igDias || 0),
+        ordem: 1,
+        criado_por: user?.id ?? null,
+      } as any);
+      if (usgErr) console.error('[exames_usg] insert falhou:', usgErr);
+    }
+
+
     const consultaPayload = {
       paciente_id: pacienteId,
       profissional_id: profissionalData.id,
