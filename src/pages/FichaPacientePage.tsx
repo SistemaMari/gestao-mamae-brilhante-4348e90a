@@ -67,7 +67,7 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
   if (c.tipo === 'registro_parto') {
     return 'REGISTRO DO PARTO';
   }
-  const prefix = index === 0 ? 'CONSULTA 1' : `RETORNO ${index}`;
+  const prefix = index === 0 ? 'CASO NOVO' : `RETORNO ${index}`;
 
   switch (c.tipo) {
     case 'consulta_1':
@@ -693,7 +693,7 @@ export default function FichaPacientePage() {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-foreground">Data da consulta 1</label>
+                <label className="text-xs font-medium text-foreground">Data da caso novo</label>
                 <Input
                   type="date"
                   value={editDataConsulta}
@@ -783,7 +783,7 @@ export default function FichaPacientePage() {
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <span className="font-medium text-foreground">IG na consulta 1:</span>{' '}
+                  <span className="font-medium text-foreground">IG na caso novo:</span>{' '}
                   {igNaConsulta1
                     ? `${igNaConsulta1.semanas}s ${igNaConsulta1.dias}d`
                     : '—'}
@@ -799,7 +799,7 @@ export default function FichaPacientePage() {
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <span className="font-medium text-foreground">Data da consulta 1:</span>{' '}
+                  <span className="font-medium text-foreground">Data da caso novo:</span>{' '}
                   {primeiraConsulta ? formatDateBR(primeiraConsulta.data) : '—'}
                 </span>
               </div>

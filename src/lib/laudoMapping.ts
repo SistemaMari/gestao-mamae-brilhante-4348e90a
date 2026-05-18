@@ -1,6 +1,6 @@
 /**
  * Mapeamento de cenários do laudo (Prompt 15 / 16)
- * 1  – Consulta 1 → DMG afastado / aguardando GTT
+ * 1  – Caso Novo → DMG afastado / aguardando GTT
  * 2  – Ficha A/C controle adequado (≥70%, 4 pontos)
  * 3  – Ficha A/C controle inadequado (<70%, 4 pontos)
  * 4  – Ficha B/D controle adequado (≥70%, 6 pontos)

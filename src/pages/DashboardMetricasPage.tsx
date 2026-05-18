@@ -592,7 +592,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 /*
  * Paciente 1 - Moara de Carvalho:       DMG confirmado (GJ ≥92, cenário 1) — Mar/26
- * Paciente 2 - Maria Luísa Ferreira:    Aguardando GJ (consulta 1 registrada) — Abr/26
+ * Paciente 2 - Maria Luísa Ferreira:    Aguardando GJ (caso novo registrada) — Abr/26
  * Paciente 3 - Ana Carolina Souza:      Aguardando GTT (GJ <92 no retorno 1) — Mar/26
  * Paciente 4 - Juliana de Oliveira:     DMG afastado (GTT normal, IG 25sem) — Fev/26
  * Paciente 5 - Patrícia Almeida Santos: DMG confirmado (GTT alterado, IG 26sem, cenário 6) — Fev/26
@@ -623,18 +623,18 @@ function generatePreviewData(): Paciente[] {
 
 function generatePreviewConsultas(): Consulta[] {
   return [
-    // Moara (p1): Consulta 1 → Retorno 1 com GJ ≥92 → cenário 1
+    // Moara (p1): Caso Novo → Retorno 1 com GJ ≥92 → cenário 1
     { id: 'c1a', paciente_id: 'p1', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-10T10:00:00Z' },
     { id: 'c1b', paciente_id: 'p1', cenario_clinico: 'cenario_1', tipo: 'retorno_1', created_at: '2026-03-17T10:00:00Z' },
 
-    // Maria Luísa (p2): Apenas consulta 1
+    // Maria Luísa (p2): Apenas caso novo
     { id: 'c2a', paciente_id: 'p2', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-04-05T10:00:00Z' },
 
-    // Ana Carolina (p3): Consulta 1 → Retorno 1 GJ <92 → aguardando GTT
+    // Ana Carolina (p3): Caso Novo → Retorno 1 GJ <92 → aguardando GTT
     { id: 'c3a', paciente_id: 'p3', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-15T10:00:00Z' },
     { id: 'c3b', paciente_id: 'p3', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-03-22T10:00:00Z' },
 
-    // Juliana (p4): Consulta 1 → Retorno 1 GJ <92 → GTT normal → cenário 5 (afastado)
+    // Juliana (p4): Caso Novo → Retorno 1 GJ <92 → GTT normal → cenário 5 (afastado)
     { id: 'c4a', paciente_id: 'p4', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-02-12T10:00:00Z' },
     { id: 'c4b', paciente_id: 'p4', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-02-19T10:00:00Z' },
     { id: 'c4c', paciente_id: 'p4', cenario_clinico: 'cenario_5', tipo: 'retorno_2', created_at: '2026-03-05T10:00:00Z' },

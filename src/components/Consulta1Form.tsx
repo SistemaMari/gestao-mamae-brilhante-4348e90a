@@ -193,7 +193,7 @@ export default function Consulta1Form() {
         ],
       });
       window.dispatchEvent(new Event('preview-pacientes-updated'));
-      toast.success('Consulta 1 registrada com sucesso!');
+      toast.success('Caso Novo registrada com sucesso!');
       navigate(`/vitrine/paciente/${newPaciente.id}`);
       return;
     }
@@ -300,7 +300,7 @@ export default function Consulta1Form() {
       toast.error('Paciente criada, mas erro ao registrar consulta.');
       console.error(consErr);
     } else {
-      toast.success('Consulta 1 registrada com sucesso!');
+      toast.success('Caso Novo registrada com sucesso!');
       const { carimbarAtendimento } = await import('@/lib/carimbar');
       await carimbarAtendimento({
         pacienteId: pacienteId!,
@@ -327,7 +327,7 @@ export default function Consulta1Form() {
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            CONSULTA 1 — Dados da Paciente
+            CASO NOVO — Dados da Paciente
           </h1>
           {!isPreview && <AutosaveIndicator status={autosaveStatus} />}
         </div>
