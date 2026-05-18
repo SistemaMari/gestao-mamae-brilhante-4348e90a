@@ -43,6 +43,7 @@ import {
 import { Info, Loader2, AlertTriangle, CheckCircle2, XCircle, Printer, Pencil, FileText } from 'lucide-react';
 import { differenceInDays, addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
+import UsgFlowSection, { emptyUsgFlow, UsgFlowValue } from '@/components/UsgFlowSection';
 
 function todayISO() {
   return todayLocalISO();
