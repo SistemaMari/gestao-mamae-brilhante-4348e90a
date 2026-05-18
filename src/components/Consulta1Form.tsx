@@ -74,12 +74,17 @@ export default function Consulta1Form() {
   const { cidades: cityList } = useCidadesIBGE(pais, estado);
 
   const whatsappValidacao = validarWhatsappBR(whatsapp);
+  const dumValido = dumDesconhecida || !!dum;
+  // Se "sim" para USG, exige data + semanas + dias + referência
+  const usgValida =
+    usgFlow.jaFezUsg !== 'sim' ||
+    (!!usgFlow.dataExame && usgFlow.igSemanas !== '' && usgFlow.igDias !== '' && !!usgFlow.referenciaIg);
   const isValid =
-    nome.trim() && dataNascimento && dum && dataConsulta && dmgAnterior !== null && whatsappValidacao.ok;
+    nome.trim() && dataNascimento && dumValido && dataConsulta && dmgAnterior !== null && whatsappValidacao.ok && usgValida && usgFlow.jaFezUsg !== null;
 
-  // Mínimo para começar a salvar rascunho: nome + DUM
+  // Mínimo para começar a salvar rascunho: nome + (DUM ou DUM desconhecida)
   const canAutosave =
-    !isPreview && !!profissionalData && !!user && !!nome.trim() && !!dum && !saving;
+    !isPreview && !!profissionalData && !!user && !!nome.trim() && dumValido && !saving;
 
   const autosaveData = useMemo(
     () => ({
@@ -88,7 +93,7 @@ export default function Consulta1Form() {
       tipoIdentificacao,
       numeroId: numeroId.trim(),
       whatsapp: paraFormatoCanonico(whatsapp),
-      dum,
+      dum: dumDesconhecida ? null : (dum || null),
       dataConsulta,
       observacoes: observacoes.trim(),
       dmgAnterior,
@@ -96,7 +101,7 @@ export default function Consulta1Form() {
       estado,
       cidade,
     }),
-    [nome, dataNascimento, tipoIdentificacao, numeroId, whatsapp, dum, dataConsulta, observacoes, dmgAnterior, pais, estado, cidade],
+    [nome, dataNascimento, tipoIdentificacao, numeroId, whatsapp, dum, dumDesconhecida, dataConsulta, observacoes, dmgAnterior, pais, estado, cidade],
   );
 
   const { status: autosaveStatus } = useAutosave({
