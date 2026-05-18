@@ -133,6 +133,14 @@ export default function Retorno1Form({
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
 
+  // Bloco 2: capturar USG se ainda não há referência de IG definida.
+  const precisaUsgRef = !(paciente as any).referencia_ig && !editingConsulta;
+  const [usgFlow, setUsgFlow] = useState<UsgFlowValue>(emptyUsgFlow);
+  const usgValida = !precisaUsgRef || usgFlow.jaFezUsg === 'nao' || (
+    usgFlow.jaFezUsg === 'sim' &&
+    !!usgFlow.dataExame && usgFlow.igSemanas !== '' && !!usgFlow.referenciaIg
+  );
+
   // Result state
   const [resultado, setResultado] = useState<DiagnosticoResult | null>(null);
   const [showPopup, setShowPopup] = useState(false);
