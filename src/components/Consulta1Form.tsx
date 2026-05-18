@@ -516,10 +516,37 @@ export default function Consulta1Form() {
               type="date"
               value={dum}
               onChange={(e) => setDum(e.target.value)}
-              className={fieldError(!!dum)}
+              disabled={dumDesconhecida}
+              className={fieldError(dumValido)}
             />
-            {errorMsg(!!dum)}
+            <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+              <Checkbox
+                checked={dumDesconhecida}
+                onCheckedChange={(c) => {
+                  const v = c === true;
+                  setDumDesconhecida(v);
+                  if (v) {
+                    setDum('');
+                    // se referência era DUM, limpa
+                    if (usgFlow.referenciaIg === 'dum') {
+                      setUsgFlow({ ...usgFlow, referenciaIg: null });
+                    }
+                  }
+                }}
+              />
+              Não sei a data da última menstruação
+            </label>
+            {errorMsg(dumValido)}
           </div>
+
+          {/* USG flow: 1ª USG + referência de IG */}
+          <UsgFlowSection
+            value={usgFlow}
+            onChange={setUsgFlow}
+            dum={dum}
+            dumDesconhecida={dumDesconhecida}
+          />
+
 
           {/* Data da consulta */}
           <div className="space-y-2">
