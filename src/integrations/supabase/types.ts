@@ -989,6 +989,7 @@ export type Database = {
           pais: string | null
           profissional_id: string
           referencia_ig: string | null
+          referencia_usg_id: string | null
           status_ficha: string
           tipo_identificacao: string | null
           tipo_retorno: string | null
@@ -1015,6 +1016,7 @@ export type Database = {
           pais?: string | null
           profissional_id: string
           referencia_ig?: string | null
+          referencia_usg_id?: string | null
           status_ficha?: string
           tipo_identificacao?: string | null
           tipo_retorno?: string | null
@@ -1041,6 +1043,7 @@ export type Database = {
           pais?: string | null
           profissional_id?: string
           referencia_ig?: string | null
+          referencia_usg_id?: string | null
           status_ficha?: string
           tipo_identificacao?: string | null
           tipo_retorno?: string | null
@@ -1064,6 +1067,13 @@ export type Database = {
             columns: ["profissional_id"]
             isOneToOne: false
             referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pacientes_referencia_usg_id_fkey"
+            columns: ["referencia_usg_id"]
+            isOneToOne: false
+            referencedRelation: "exames_usg"
             referencedColumns: ["id"]
           },
           {
