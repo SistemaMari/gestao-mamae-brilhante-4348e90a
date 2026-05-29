@@ -42,6 +42,7 @@ import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import UsgManagerCard from '@/components/UsgManagerCard';
+import { calcIdadeGestacionalStruct, type UsgRefInput } from '@/lib/fichaUtils';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import { mapearCenario } from '@/lib/laudoMapping';
 import { useLaudoIA } from '@/hooks/useLaudoIA';
@@ -204,6 +205,7 @@ export default function FichaPacientePage() {
 
   const [paciente, setPaciente] = useState<PreviewPaciente | null>(null);
   const [consultas, setConsultas] = useState<PreviewConsulta[]>([]);
+  const [usgs, setUsgs] = useState<UsgRefInput[]>([]);
   const [loading, setLoading] = useState(true);
   const [showRetorno1, setShowRetorno1] = useState(false);
   const [retorno1Completed, setRetorno1Completed] = useState(false);
@@ -261,6 +263,14 @@ export default function FichaPacientePage() {
             .in('consulta_id', consultaIds)
         : { data: [] as any[] };
 
+      // 33B: carrega USGs do paciente para resolver a referência ativa em runtime.
+      const { data: usgsData } = await supabase
+        .from('exames_usg' as any)
+        .select('id, data_exame, ig_semanas, ig_dias, ordem')
+        .eq('paciente_id', id)
+        .order('ordem', { ascending: true });
+      setUsgs((usgsData ?? []) as unknown as UsgRefInput[]);
+
       const exameByConsulta = new Map<string, any>(
         (exames ?? []).map((e: any) => [e.consulta_id, e]),
       );
@@ -299,6 +309,9 @@ export default function FichaPacientePage() {
       if (p) {
         setPaciente(p);
         setConsultas(p.consultas || []);
+        // 33B: preview não popula exames_usg — listagem dinâmica fica vazia,
+        // o cálculo de IG cai pro snapshot/DUM (comportamento legado).
+        setUsgs([]);
       }
       setLoading(false);
       return;
@@ -402,14 +415,20 @@ export default function FichaPacientePage() {
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente?.dum, primeiraConsulta]);
 
+  // 33B: respeita referência de IG ativa (DUM ou USG selecionada por referencia_usg_id).
+  // Fallback silencioso: referencia_ig='usg' + referencia_usg_id=NULL → USG ordem=1.
   const igAtual = useMemo(() => {
-    if (!paciente?.dum) return null;
-    const dum = parseDateLocal(paciente.dum);
-    if (!dum) return null;
-    const dias = differenceInDays(new Date(), dum);
-    if (dias < 0) return null;
-    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
-  }, [paciente?.dum]);
+    if (!paciente) return null;
+    return calcIdadeGestacionalStruct({
+      dum: paciente.dum,
+      usg_data: paciente.usg_data,
+      usg_ig_semanas: paciente.usg_ig_semanas,
+      usg_ig_dias: paciente.usg_ig_dias,
+      referencia_ig: paciente.referencia_ig ?? null,
+      referencia_usg_id: paciente.referencia_usg_id ?? null,
+      usgs,
+    });
+  }, [paciente, usgs]);
 
   const dumDate = useMemo(() => {
     if (!paciente?.dum) return null;
@@ -823,12 +842,13 @@ export default function FichaPacientePage() {
         )}
       </div>
 
-      {/* Bloco 3 + 4: gestor de USGs e referência de IG */}
+      {/* Bloco 3 + 4 + 33B: gestor de USGs e referência de IG (qualquer USG selecionável) */}
       {!isReadOnly && paciente && (
         <UsgManagerCard
           pacienteId={paciente.id}
           dum={paciente.dum}
-          referenciaIg={(paciente as any).referencia_ig ?? null}
+          referenciaIg={paciente.referencia_ig ?? null}
+          referenciaUsgId={paciente.referencia_usg_id ?? null}
           isPreview={isPreview}
           onChanged={fetchPaciente}
         />

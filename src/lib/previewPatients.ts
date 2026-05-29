@@ -48,6 +48,8 @@ export interface PreviewPaciente {
   usg_ig_semanas: number | null;
   usg_ig_dias: number | null;
   referencia_ig?: 'dum' | 'usg' | null;
+  /** id da USG ativa em exames_usg. NULL = fallback para USG ordem=1 (33B). */
+  referencia_usg_id?: string | null;
   status_ficha: string;
   dmg_gestacao_anterior: boolean | null;
   data_ultima_consulta: string | null;

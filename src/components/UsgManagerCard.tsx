@@ -18,20 +18,36 @@ type UsgRow = {
   ordem: number;
 };
 
+/**
+ * Estado do rascunho de referência de IG (33B).
+ * - { tipo: 'dum' }: usar DUM
+ * - { tipo: 'usg', usgId }: usar USG identificada por usgId
+ * - null: nenhuma selecionada ainda
+ */
+type RefDraft =
+  | { tipo: 'dum' }
+  | { tipo: 'usg'; usgId: string }
+  | null;
+
 interface Props {
   pacienteId: string;
   dum: string | null;
   referenciaIg: 'dum' | 'usg' | null | undefined;
+  /**
+   * id da USG ativa em exames_usg. NULL com referenciaIg='usg' significa
+   * fallback silencioso para USG ordem=1.
+   */
+  referenciaUsgId?: string | null;
   isPreview: boolean;
   onChanged?: () => void;
 }
 
 /**
- * Bloco 3 + 4: exibe lista de USGs registradas, referência de IG ativa,
- * permite trocar a referência e adicionar nova USG.
+ * Bloco 3 + 4 + 33B: exibe lista de USGs registradas, referência de IG ativa,
+ * permite trocar a referência (qualquer USG ou DUM) e adicionar nova USG.
  */
 export default function UsgManagerCard({
-  pacienteId, dum, referenciaIg, isPreview, onChanged,
+  pacienteId, dum, referenciaIg, referenciaUsgId, isPreview, onChanged,
 }: Props) {
   const [usgs, setUsgs] = useState<UsgRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +55,7 @@ export default function UsgManagerCard({
   const [openEdit, setOpenEdit] = useState(false);
   const [usgFlow, setUsgFlow] = useState<UsgFlowValue>({ ...emptyUsgFlow, jaFezUsg: 'sim' });
   const [saving, setSaving] = useState(false);
-  const [refDraft, setRefDraft] = useState<'dum' | 'usg' | null>(referenciaIg ?? null);
+  const [refDraft, setRefDraft] = useState<RefDraft>(null);
 
   const load = useCallback(async () => {
     if (isPreview) {
@@ -59,15 +75,39 @@ export default function UsgManagerCard({
 
   useEffect(() => { void load(); }, [load]);
 
-  useEffect(() => { setRefDraft(referenciaIg ?? null); }, [referenciaIg]);
+  // Sincroniza refDraft com props quando elas mudam (ex.: novo paciente carregado).
+  useEffect(() => {
+    if (referenciaIg === 'dum') {
+      setRefDraft({ tipo: 'dum' });
+    } else if (referenciaIg === 'usg') {
+      // Se vier id, usa; senão fallback ordem=1 quando estiver disponível.
+      if (referenciaUsgId) {
+        setRefDraft({ tipo: 'usg', usgId: referenciaUsgId });
+      } else {
+        const ordem1 = usgs.find(u => u.ordem === 1);
+        setRefDraft(ordem1 ? { tipo: 'usg', usgId: ordem1.id } : null);
+      }
+    } else {
+      setRefDraft(null);
+    }
+  }, [referenciaIg, referenciaUsgId, usgs]);
 
-  // IG hoje considerando referência ativa
-  const primeiraUsg = usgs[0];
+  // IG hoje considerando referência ativa.
+  // Aplica fallback (33B): ref='usg' + usgId=NULL → usa USG ordem=1.
+  const usgAtiva: UsgRow | null = (() => {
+    if (referenciaIg !== 'usg') return null;
+    if (referenciaUsgId) {
+      const found = usgs.find(u => u.id === referenciaUsgId);
+      if (found) return found;
+    }
+    return usgs.find(u => u.ordem === 1) ?? null;
+  })();
+
   let igHoje: { semanas: number; dias: number } | null = null;
   let refBase: Date | null = null;
-  if (referenciaIg === 'usg' && primeiraUsg) {
-    const exam = new Date(primeiraUsg.data_exame + 'T00:00:00');
-    refBase = addDays(exam, -(primeiraUsg.ig_semanas * 7 + primeiraUsg.ig_dias));
+  if (usgAtiva) {
+    const exam = new Date(usgAtiva.data_exame + 'T00:00:00');
+    refBase = addDays(exam, -(usgAtiva.ig_semanas * 7 + usgAtiva.ig_dias));
   } else if (dum) {
     refBase = new Date(dum + 'T00:00:00');
   }
@@ -77,7 +117,9 @@ export default function UsgManagerCard({
   }
 
   const refLabel = referenciaIg === 'usg'
-    ? '1ª USG'
+    ? (usgAtiva
+        ? (usgAtiva.ordem === 1 ? '1ª USG' : `USG #${usgAtiva.ordem}`)
+        : '1ª USG')
     : referenciaIg === 'dum'
       ? 'DUM'
       : 'não definida';
@@ -110,10 +152,13 @@ export default function UsgManagerCard({
   };
 
   const handleSaveRef = async () => {
+    if (!refDraft) return;
     setSaving(true);
-    const { error } = await supabase.from('pacientes').update({
-      referencia_ig: refDraft,
-    } as any).eq('id', pacienteId);
+    const payload: { referencia_ig: 'dum' | 'usg'; referencia_usg_id: string | null } =
+      refDraft.tipo === 'dum'
+        ? { referencia_ig: 'dum', referencia_usg_id: null }
+        : { referencia_ig: 'usg', referencia_usg_id: refDraft.usgId };
+    const { error } = await supabase.from('pacientes').update(payload as any).eq('id', pacienteId);
     setSaving(false);
     if (error) {
       toast.error('Erro ao atualizar referência.');
@@ -123,6 +168,8 @@ export default function UsgManagerCard({
     setOpenEdit(false);
     onChanged?.();
   };
+
+  const proximaOrdem = (usgs[usgs.length - 1]?.ordem ?? 0) + 1;
 
   return (
     <div className="rounded-xl border border-[#7C4DBA]/30 bg-card p-4 space-y-3">
@@ -191,6 +238,38 @@ export default function UsgManagerCard({
               Registre os dados do laudo. A 1ª USG é a referência preferencial.
             </DialogDescription>
           </DialogHeader>
+
+          {/* Bloco 1 (33B): histórico de USGs já cadastradas */}
+          <div className="rounded-xl border border-[#7C4DBA]/30 bg-[#F8F6FC] p-3 space-y-2">
+            <h4 className="text-xs font-semibold text-[#5B21B6]">USGs já cadastradas</h4>
+            {usgs.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">Nenhuma USG anterior registrada.</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {usgs.map((u) => (
+                  <li
+                    key={u.id}
+                    className="flex items-center justify-between gap-2 rounded-md border border-border bg-white px-3 py-2 text-xs"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">
+                        {u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`}
+                      </span>
+                      {u.ordem === 1 && (
+                        <span className="text-[10px] font-medium bg-[#7C4DBA] text-white px-2 py-0.5 rounded-full">
+                          referência preferencial
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-muted-foreground">
+                      {formatDateBR(u.data_exame)} — IG: {u.ig_semanas}s {u.ig_dias}d
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           <UsgFlowSection
             value={usgFlow}
             onChange={setUsgFlow}
@@ -198,6 +277,7 @@ export default function UsgManagerCard({
             dumDesconhecida={!dum}
             jaPossuiUsg={usgs.length > 0}
             ehPrimeiraUsg={usgs.length === 0}
+            numeroOrdem={proximaOrdem}
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenAdd(false)}>Cancelar</Button>
@@ -213,7 +293,7 @@ export default function UsgManagerCard({
         </DialogContent>
       </Dialog>
 
-      {/* Modal: editar referência de IG */}
+      {/* Modal: editar referência de IG — lista dinâmica (Bloco 2, 33B) */}
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent>
           <DialogHeader>
@@ -223,40 +303,64 @@ export default function UsgManagerCard({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <label className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer ${
-              refDraft === 'dum' ? 'border-[#7C4DBA] bg-[#7C4DBA]/5' : 'border-border'
-            } ${!dum ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <label
+              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer ${
+                refDraft?.tipo === 'dum' ? 'border-[#7C4DBA] bg-[#7C4DBA]/5' : 'border-border'
+              } ${!dum ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
               <input
                 type="radio"
                 name="ref-ig-edit"
                 disabled={!dum}
-                checked={refDraft === 'dum'}
-                onChange={() => setRefDraft('dum')}
+                checked={refDraft?.tipo === 'dum'}
+                onChange={() => setRefDraft({ tipo: 'dum' })}
               />
               <span>DUM {dum ? `— ${formatDateBR(dum)}` : '(não informada)'}</span>
             </label>
-            <label className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer ${
-              refDraft === 'usg' ? 'border-[#7C4DBA] bg-[#7C4DBA]/5' : 'border-border'
-            } ${!primeiraUsg ? 'opacity-50 cursor-not-allowed' : ''}`}>
-              <input
-                type="radio"
-                name="ref-ig-edit"
-                disabled={!primeiraUsg}
-                checked={refDraft === 'usg'}
-                onChange={() => setRefDraft('usg')}
-              />
-              <span>
-                1ª USG {primeiraUsg
-                  ? `— ${primeiraUsg.ig_semanas}s ${primeiraUsg.ig_dias}d em ${formatDateBR(primeiraUsg.data_exame)}`
-                  : '(nenhuma registrada)'}
-              </span>
-            </label>
+
+            {usgs.length === 0 ? (
+              <div className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground italic">
+                Nenhuma USG registrada ainda. Adicione uma USG para liberar a opção.
+              </div>
+            ) : (
+              usgs.map((u) => {
+                const checked = refDraft?.tipo === 'usg' && refDraft.usgId === u.id;
+                return (
+                  <label
+                    key={u.id}
+                    className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer ${
+                      checked ? 'border-[#7C4DBA] bg-[#7C4DBA]/5' : 'border-border'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="ref-ig-edit"
+                      checked={checked}
+                      onChange={() => setRefDraft({ tipo: 'usg', usgId: u.id })}
+                    />
+                    <span className="flex-1">
+                      {u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`} — {u.ig_semanas}s {u.ig_dias}d
+                      {' '}em {formatDateBR(u.data_exame)}
+                    </span>
+                    {u.ordem === 1 && (
+                      <span className="text-[10px] font-medium bg-[#7C4DBA] text-white px-2 py-0.5 rounded-full">
+                        referência preferencial
+                      </span>
+                    )}
+                  </label>
+                );
+              })
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancelar</Button>
             <Button
               onClick={handleSaveRef}
-              disabled={saving || !refDraft}
+              disabled={
+                saving ||
+                !refDraft ||
+                (refDraft.tipo === 'usg' && !refDraft.usgId)
+              }
               className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
