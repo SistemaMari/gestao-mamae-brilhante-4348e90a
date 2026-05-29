@@ -29,6 +29,29 @@ interface Props {
   jaPossuiUsg?: boolean;
   /** Mostra apenas o badge "1ª USG — referência preferencial". */
   ehPrimeiraUsg?: boolean;
+  /**
+   * Número ordinal desta USG (1, 2, 3...). Quando informado, controla o título dinâmico
+   * ("Dados da 1ª/2ª/3ª... Ultrassonografia") e o badge de referência preferencial.
+   * Se omitido, usa `ehPrimeiraUsg` para retrocompat.
+   */
+  numeroOrdem?: number;
+}
+
+const ORDINAIS: Record<number, string> = {
+  1: '1ª',
+  2: '2ª',
+  3: '3ª',
+  4: '4ª',
+  5: '5ª',
+  6: '6ª',
+  7: '7ª',
+  8: '8ª',
+  9: '9ª',
+  10: '10ª',
+};
+
+function ordinalDeOrdem(n: number): string {
+  return ORDINAIS[n] ?? `${n}ª`;
 }
 
 export default function UsgFlowSection({
@@ -38,7 +61,14 @@ export default function UsgFlowSection({
   dumDesconhecida,
   jaPossuiUsg = false,
   ehPrimeiraUsg = true,
+  numeroOrdem,
 }: Props) {
+  // Se numeroOrdem foi passado, ele sobrescreve ehPrimeiraUsg.
+  const ordemEfetiva = numeroOrdem;
+  const ehPrimeira = ordemEfetiva != null ? ordemEfetiva === 1 : ehPrimeiraUsg;
+  const tituloOrdinal = ordemEfetiva != null
+    ? `${ordinalDeOrdem(ordemEfetiva)} `
+    : (ehPrimeiraUsg ? '1ª ' : '');
   const set = (patch: Partial<UsgFlowValue>) => onChange({ ...value, ...patch });
 
   const igPreenchida =
@@ -93,9 +123,9 @@ export default function UsgFlowSection({
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-[#7C4DBA]" />
             <h3 className="text-sm font-semibold text-[#5B21B6]">
-              Dados da {ehPrimeiraUsg ? '1ª ' : ''}Ultrassonografia
+              Dados da {tituloOrdinal}Ultrassonografia
             </h3>
-            {ehPrimeiraUsg && (
+            {ehPrimeira && (
               <span className="ml-auto text-[10px] font-medium bg-[#7C4DBA] text-white px-2 py-0.5 rounded-full">
                 1ª USG — referência preferencial
               </span>
@@ -166,7 +196,9 @@ export default function UsgFlowSection({
                     onChange={() => set({ referenciaIg: 'usg' })}
                   />
                   <span>
-                    {ehPrimeiraUsg ? '1ª USG' : 'USG'} — {value.igSemanas || 0}s {value.igDias || 0}d
+                    {ordemEfetiva != null
+                      ? (ordemEfetiva === 1 ? '1ª USG' : `USG #${ordemEfetiva}`)
+                      : (ehPrimeiraUsg ? '1ª USG' : 'USG')} — {value.igSemanas || 0}s {value.igDias || 0}d
                     {value.dataExame ? ` em ${formatDateBR(value.dataExame)}` : ''}
                   </span>
                 </label>
