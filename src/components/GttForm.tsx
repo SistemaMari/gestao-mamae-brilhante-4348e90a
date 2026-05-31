@@ -3,6 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
+import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
+import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import {
   updatePreviewPaciente,
   getPreviewPacienteById,
@@ -174,6 +176,20 @@ export default function GttForm({
 
   const isValid = jejumValido && h1Valido && h2Valido && dataExame && dataConsulta;
 
+  // 34B.2 — status + pendentes.
+  const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
+  const camposPendentes = useMemo<string[]>(() => {
+    const f: string[] = [];
+    if (!jejumValido) f.push('Glicemia em jejum');
+    if (!recursoLimitado) {
+      if (!h1Valido) f.push('Glicemia 1h');
+      if (!h2Valido) f.push('Glicemia 2h');
+    }
+    if (!dataExame) f.push('Data do exame');
+    if (!dataConsulta) f.push('Data da consulta');
+    return f;
+  }, [jejumValido, h1Valido, h2Valido, recursoLimitado, dataExame, dataConsulta]);
+
   const igFinal = useMemo(() => {
     const s = parseInt(igSemanas, 10);
     if (!isNaN(s)) return { semanas: s, dias: parseInt(igDias, 10) || 0 };
@@ -292,6 +308,8 @@ export default function GttForm({
       status_gerado: diag.statusFicha,
       cenario_clinico: diag.cenario,
       is_rascunho: false,
+      // 34B.2 — finaliza ficha. Default do banco era 'rascunho' até este save.
+      status_ficha: 'completa',
     };
 
     let consErr: unknown = null;
@@ -498,9 +516,16 @@ export default function GttForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-5">
-        <h2 className="text-base font-bold text-foreground">
-          GTT 75g — Teste de Tolerância à Glicose
-        </h2>
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="text-base font-bold text-foreground">
+            GTT 75g — Teste de Tolerância à Glicose
+          </h2>
+          <StatusFichaBadge status={statusFichaLocal} />
+        </div>
+        <CamposPendentesBanner
+          pendentes={camposPendentes}
+          ativo={statusFichaLocal === 'rascunho'}
+        />
 
         {/* Recurso limitado checkbox */}
         <div className={`rounded-lg border-2 p-4 transition-colors ${recursoLimitado ? 'border-amber-400 bg-amber-50/50' : 'border-border bg-card'}`}>

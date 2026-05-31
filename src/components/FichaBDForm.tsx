@@ -5,6 +5,8 @@ import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
+import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
+import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import {
   updatePreviewPaciente,
   type PreviewPaciente,
@@ -277,6 +279,19 @@ export default function FichaBDForm({
     return true;
   }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
 
+  // 34B.2 — status + pendentes.
+  const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
+  const camposPendentes = useMemo<string[]>(() => {
+    const f: string[] = [];
+    if (!dataInicio) f.push('Data de início do perfil');
+    if (!dataFim) f.push('Data de fim do perfil');
+    if (!dataConsulta) f.push('Data da consulta');
+    if (!igSemanas) f.push('Idade gestacional (semanas)');
+    if (totalPreenchidos === 0) f.push('Pelo menos 1 valor de glicemia preenchido');
+    if (hasNegativeValues) f.push('Corrigir valores negativos na grade');
+    return f;
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
+
   const [showHighValueConfirm, setShowHighValueConfirm] = useState(false);
 
   // 34B.1 — Bug A: useAutosave removido. Save explícito via botão (handleSave abaixo).
@@ -366,6 +381,8 @@ export default function FichaBDForm({
         status_gerado: newStatus,
         cenario_clinico: cenario,
         is_rascunho: false,
+        // 34B.2 — finaliza ficha. Default do banco era 'rascunho' até este save.
+        status_ficha: 'completa',
       };
 
       let consultaId = draftConsultaIdRef.current;
@@ -463,7 +480,7 @@ export default function FichaBDForm({
             <FileText className="h-5 w-5" />
             {headerTitle}
           </h2>
-          {/* 34B.1 — AutosaveIndicator removido junto com o autosave. */}
+          <StatusFichaBadge status={statusFichaLocal} />
         </div>
         <p className="text-xs text-[#6D28D9]">
           Preencha a grade com as glicemias capilares registradas pela paciente.
@@ -473,6 +490,11 @@ export default function FichaBDForm({
           Ficha {fichaType === 'ficha_b' ? 'B' : 'D'} — com insulina — IG {igSemNum} sem
         </div>
       </div>
+
+      <CamposPendentesBanner
+        pendentes={camposPendentes}
+        ativo={statusFichaLocal === 'rascunho'}
+      />
 
       {/* Dynamic message */}
       <div className="rounded-lg border border-[#D6BCFA] bg-[#E8E0FF] p-3 flex items-center gap-2">

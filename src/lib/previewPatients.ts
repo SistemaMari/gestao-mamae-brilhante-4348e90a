@@ -7,6 +7,12 @@ export interface PreviewConsulta {
   ig_dias: number | null;
   observacoes: string | null;
   status_gerado: string | null;
+  /**
+   * Status da ficha (34B seção 3.1):
+   *   'rascunho' | 'completa' | 'laudo_gerado' | 'finalizada'
+   * Opcional para fichas legadas onde a coluna ainda não foi populada.
+   */
+  status_ficha?: string | null;
   // Ficha A/C profile data (optional)
   percentual_meta?: number | null;
   total_preenchidos?: number | null;

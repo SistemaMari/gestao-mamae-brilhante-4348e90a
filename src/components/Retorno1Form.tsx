@@ -12,6 +12,8 @@ import {
 } from '@/hooks/useDraftStorage';
 import RascunhoStatus, { type RascunhoVisualState } from '@/components/ficha/RascunhoStatus';
 import DraftRecoveryModal from '@/components/ficha/DraftRecoveryModal';
+import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
+import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import {
   updatePreviewPaciente,
   getPreviewPacienteById,
@@ -254,6 +256,25 @@ export default function Retorno1Form({
   const valorNum = parseInt(valorGJ, 10);
   const valorValido = !isNaN(valorNum) && valorNum >= 1 && valorNum <= 400;
   const isValid = valorValido && tipoExame && dataExame && dataConsultaRetorno && usgValida;
+
+  // 34B.2 — Status visual da ficha (badge + banner de pendentes).
+  // Enquanto não finalizou no servidor, exibe 'rascunho'. Após finalizar (handleSubmit),
+  // serverDraftState='salvo' indica que a ficha virou 'completa' no banco.
+  const statusFichaLocal: string =
+    editingConsulta?.status_ficha
+    ?? (serverDraftState === 'salvo' ? 'completa' : 'rascunho');
+
+  // 34B.2 — Lista de campos obrigatórios pendentes, calculada em tempo real.
+  // Mesma fonte de verdade usada pelo isValid acima — sem duplicar validação.
+  const camposPendentes = useMemo<string[]>(() => {
+    const faltam: string[] = [];
+    if (!valorValido) faltam.push('Resultado da glicemia de jejum');
+    if (!tipoExame) faltam.push('Tipo de exame (plasmática/capilar)');
+    if (!dataExame) faltam.push('Data do exame');
+    if (!dataConsultaRetorno) faltam.push('Data da consulta de retorno');
+    if (!usgValida) faltam.push('USG ou referência de IG');
+    return faltam;
+  }, [valorValido, tipoExame, dataExame, dataConsultaRetorno, usgValida]);
 
   const igFinal = useMemo(() => {
     const s = parseInt(igSemanas, 10);
@@ -576,6 +597,8 @@ export default function Retorno1Form({
       status_gerado: newStatus,
       cenario_clinico: isDiagApplicable && diag?.cenario ? String(diag.cenario) : null,
       is_rascunho: false,
+      // 34B.2 — finaliza ficha. Default do banco era 'rascunho' até este save.
+      status_ficha: 'completa',
     };
 
     let consultaId = draftConsultaIdRef.current;
@@ -876,16 +899,25 @@ export default function Retorno1Form({
             <FileText className="h-5 w-5" />
             RETORNO 1 — Resultado da Glicemia de Jejum
           </h2>
-          <RascunhoStatus
-            state={visualState}
-            savedAt={visualSavedAt}
-            onRetry={visualState === 'erro' ? handleSalvarRascunho : undefined}
-          />
+          <div className="flex items-center gap-2">
+            <StatusFichaBadge status={statusFichaLocal} />
+            <RascunhoStatus
+              state={visualState}
+              savedAt={visualSavedAt}
+              onRetry={visualState === 'erro' ? handleSalvarRascunho : undefined}
+            />
+          </div>
         </div>
         <p className="text-xs text-[#6D28D9]">
           Insira o resultado da glicemia de jejum para diagnóstico automático.
         </p>
       </div>
+
+      {/* 34B.2 seção 3.1.3 — banner de campos pendentes quando ficha em rascunho */}
+      <CamposPendentesBanner
+        pendentes={camposPendentes}
+        ativo={statusFichaLocal === 'rascunho'}
+      />
 
       {/* Capilar alert */}
       {isCapilar && (

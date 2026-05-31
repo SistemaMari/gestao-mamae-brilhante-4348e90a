@@ -6,6 +6,8 @@ import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { FileText, Info, Loader2, Baby } from 'lucide-react';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
+import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
+import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -220,6 +222,30 @@ export default function RegistroPartoForm({
 
   const isValid = Object.keys(errors).length === 0;
 
+  // 34B.2 — status + pendentes. Registro de Parto não tem fluxo de edição inline,
+  // então o status é sempre 'rascunho' até que o save no servidor o mude pra 'completa'.
+  const statusFichaLocal: string = 'rascunho';
+  const ROTULOS_REGISTRO_PARTO: Record<string, string> = {
+    viaParto: 'Via do parto',
+    motivoCesarea: 'Motivo da cesárea',
+    igSemanas: 'Idade gestacional (semanas)',
+    igDias: 'Idade gestacional (dias)',
+    dataParto: 'Data do parto',
+    pesoRn: 'Peso do recém-nascido',
+    sexoRn: 'Sexo do recém-nascido',
+    classRn: 'Classificação do recém-nascido',
+    apgar1: 'Apgar 1º minuto',
+    apgar5: 'Apgar 5º minuto',
+    intercorrMat: 'Intercorrências maternas (sim/não)',
+    descIntercorrMat: 'Descrição das intercorrências maternas',
+    intercorrNeo: 'Intercorrências neonatais (sim/não)',
+    descIntercorrNeo: 'Descrição das intercorrências neonatais',
+    aleitamento: 'Aleitamento na sala de parto (sim/não)',
+  };
+  const camposPendentes = Object.keys(errors).map(
+    (k) => ROTULOS_REGISTRO_PARTO[k] ?? k,
+  );
+
   // ── Salvar ──
   async function handleSave() {
     if (!isValid) {
@@ -308,6 +334,8 @@ export default function RegistroPartoForm({
       cenario_clinico: '5',
       status_gerado: 'resultado_parto',
       is_rascunho: false,
+      // 34B.2 — finaliza ficha. Default do banco era 'rascunho' até este save.
+      status_ficha: 'completa',
     };
 
     let cErr: any = null;
@@ -381,7 +409,7 @@ export default function RegistroPartoForm({
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {/* 34B.1 — AutosaveIndicator removido. */}
+            <StatusFichaBadge status={statusFichaLocal} />
             {igAtual && (
               <span className="inline-flex rounded-md bg-[#E8E0FF] px-2 py-1 text-[11px] font-medium text-[#7E69AB]">
                 IG atual — {igAtual.semanas} sem + {igAtual.dias} dias
@@ -400,6 +428,11 @@ export default function RegistroPartoForm({
           </p>
         </div>
       </div>
+
+      <CamposPendentesBanner
+        pendentes={camposPendentes}
+        ativo={statusFichaLocal === 'rascunho'}
+      />
 
       {/* ── Formulário ── */}
       <form
