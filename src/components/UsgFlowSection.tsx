@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info, Activity, AlertTriangle } from 'lucide-react';
 import { formatDateBR } from '@/lib/dateUtils';
+import { calcIgHojeFromDum, calcIgHojeFromUsg, formatIgCurto } from '@/lib/fichaUtils';
 
 export type UsgFlowValue = {
   jaFezUsg: 'sim' | 'nao' | null;
@@ -183,7 +184,9 @@ export default function UsgFlowSection({
                     onChange={() => set({ referenciaIg: 'dum' })}
                   />
                   <span>
-                    DUM {dum ? `— ${formatDateBR(dum)}` : '(não informada)'}
+                    {dum
+                      ? `DUM — ${formatDateBR(dum)} - ${formatIgCurto(calcIgHojeFromDum(dum))}`
+                      : 'DUM (não informada)'}
                   </span>
                 </label>
                 <label className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer transition ${
@@ -196,10 +199,25 @@ export default function UsgFlowSection({
                     onChange={() => set({ referenciaIg: 'usg' })}
                   />
                   <span>
-                    {ordemEfetiva != null
-                      ? (ordemEfetiva === 1 ? '1ª USG' : `USG #${ordemEfetiva}`)
-                      : (ehPrimeiraUsg ? '1ª USG' : 'USG')} — {value.igSemanas || 0}s {value.igDias || 0}d
-                    {value.dataExame ? ` em ${formatDateBR(value.dataExame)}` : ''}
+                    {(() => {
+                      const nomeUsg = ordemEfetiva != null
+                        ? (ordemEfetiva === 1 ? '1ª USG' : `USG #${ordemEfetiva}`)
+                        : (ehPrimeiraUsg ? '1ª USG' : 'USG');
+                      // Calcula a IG hoje a partir da USG sendo digitada agora,
+                      // se data + IG do laudo estão preenchidas.
+                      const semNum = parseInt(value.igSemanas, 10);
+                      const diasNum = parseInt(value.igDias || '0', 10);
+                      const igHoje = (value.dataExame && !Number.isNaN(semNum))
+                        ? calcIgHojeFromUsg({
+                            data_exame: value.dataExame,
+                            ig_semanas: semNum,
+                            ig_dias: Number.isNaN(diasNum) ? 0 : diasNum,
+                          })
+                        : null;
+                      const dataParte = value.dataExame ? ` — ${formatDateBR(value.dataExame)}` : '';
+                      const igParte = igHoje ? ` - ${formatIgCurto(igHoje)}` : '';
+                      return `${nomeUsg}${dataParte}${igParte}`;
+                    })()}
                   </span>
                 </label>
               </div>

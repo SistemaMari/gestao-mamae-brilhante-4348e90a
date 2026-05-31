@@ -9,6 +9,7 @@ import UsgFlowSection, { emptyUsgFlow, UsgFlowValue } from '@/components/UsgFlow
 import { formatDateBR } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { addDays, differenceInDays } from 'date-fns';
+import { calcIgHojeFromDum, calcIgHojeFromUsg, formatIgCurto } from '@/lib/fichaUtils';
 
 type UsgRow = {
   id: string;
@@ -222,7 +223,7 @@ export default function UsgManagerCard({
                 {u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`}
               </span>
               <span className="text-muted-foreground">
-                {formatDateBR(u.data_exame)} — IG: {u.ig_semanas}s {u.ig_dias}d
+                {formatDateBR(u.data_exame)} - {formatIgCurto(calcIgHojeFromUsg(u))}
               </span>
             </li>
           ))}
@@ -262,7 +263,7 @@ export default function UsgManagerCard({
                       )}
                     </div>
                     <span className="text-muted-foreground">
-                      {formatDateBR(u.data_exame)} — IG: {u.ig_semanas}s {u.ig_dias}d
+                      {formatDateBR(u.data_exame)} - {formatIgCurto(calcIgHojeFromUsg(u))}
                     </span>
                   </li>
                 ))}
@@ -315,7 +316,11 @@ export default function UsgManagerCard({
                 checked={refDraft?.tipo === 'dum'}
                 onChange={() => setRefDraft({ tipo: 'dum' })}
               />
-              <span>DUM {dum ? `— ${formatDateBR(dum)}` : '(não informada)'}</span>
+              <span>
+                {dum
+                  ? `DUM — ${formatDateBR(dum)} - ${formatIgCurto(calcIgHojeFromDum(dum))}`
+                  : 'DUM (não informada)'}
+              </span>
             </label>
 
             {usgs.length === 0 ? (
@@ -339,8 +344,7 @@ export default function UsgManagerCard({
                       onChange={() => setRefDraft({ tipo: 'usg', usgId: u.id })}
                     />
                     <span className="flex-1">
-                      {u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`} — {u.ig_semanas}s {u.ig_dias}d
-                      {' '}em {formatDateBR(u.data_exame)}
+                      {u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`} — {formatDateBR(u.data_exame)} - {formatIgCurto(calcIgHojeFromUsg(u))}
                     </span>
                     {u.ordem === 1 && (
                       <span className="text-[10px] font-medium bg-[#7C4DBA] text-white px-2 py-0.5 rounded-full">

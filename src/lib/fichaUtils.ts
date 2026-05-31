@@ -46,6 +46,53 @@ export interface UsgRefInput {
   ordem: number;
 }
 
+/**
+ * Calcula a IG HOJE a partir de uma data de DUM (yyyy-MM-dd).
+ * Retorna { semanas, dias } ou null se a DUM é inválida / futura.
+ *
+ * Pensada para uso em listas/labels onde o usuário precisa comparar
+ * a IG hoje gerada pela DUM com a IG hoje gerada por cada USG.
+ * A ferramenta NÃO emite julgamento clínico — só devolve os números.
+ */
+export function calcIgHojeFromDum(
+  dum: string | null | undefined,
+): { semanas: number; dias: number } | null {
+  if (!dum) return null;
+  const base = parseDateLocal(dum);
+  if (!base) return null;
+  const totalDias = differenceInDays(new Date(), base);
+  if (totalDias < 0) return null;
+  return { semanas: Math.floor(totalDias / 7), dias: totalDias % 7 };
+}
+
+/**
+ * Calcula a IG HOJE a partir de uma USG (data do exame + IG do laudo).
+ * Retorna { semanas, dias } ou null se a USG tem data inválida / futura.
+ */
+export function calcIgHojeFromUsg(
+  usg: Pick<UsgRefInput, 'data_exame' | 'ig_semanas' | 'ig_dias'> | null | undefined,
+): { semanas: number; dias: number } | null {
+  if (!usg) return null;
+  const examDate = parseDateLocal(usg.data_exame);
+  if (!examDate) return null;
+  const diasNaUsg = (usg.ig_semanas * 7) + (usg.ig_dias || 0);
+  const base = addDays(examDate, -diasNaUsg);
+  const totalDias = differenceInDays(new Date(), base);
+  if (totalDias < 0) return null;
+  return { semanas: Math.floor(totalDias / 7), dias: totalDias % 7 };
+}
+
+/**
+ * Formata uma IG como "Xs Yd" (ex.: "21s 3d"). Retorna "—" quando null.
+ * Padrão visual unificado das listas de DUM e USGs.
+ */
+export function formatIgCurto(
+  ig: { semanas: number; dias: number } | null | undefined,
+): string {
+  if (!ig) return '—';
+  return `${ig.semanas}s ${ig.dias}d`;
+}
+
 export interface IGInputs {
   dum?: string | null;
   /**
