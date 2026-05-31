@@ -399,7 +399,12 @@ export default function FichaPacientePage() {
   // Only show form while actively filling — not after completion
   const canShowRetorno1Form = showRetorno1 && !!primeiraConsulta;
 
-  // P3: Reload patient data without hiding the retorno form
+  // P3: Reload patient data without hiding the retorno form.
+  //
+  // 34B.1 follow-up: antes do 34B.1, o useRealtimeRefresh disparava fetchPaciente
+  // automaticamente quando o banco mudava, mascarando o fato de que reloadPaciente
+  // em modo real só mexia em flags de UI. Com Realtime desligado nesta tela
+  // (Fonte 4 do Bug B), o refetch precisa ser explícito.
   const reloadPaciente = () => {
     if (!id) return;
     if (isPreview) {
@@ -408,8 +413,9 @@ export default function FichaPacientePage() {
         setPaciente(p);
         setConsultas(p.consultas || []);
       }
+    } else {
+      void fetchPaciente();
     }
-    // Mark retorno1 as completed (result card stays visible)
     setRetorno1Completed(true);
     setShowRetorno1(false);
   };
@@ -1023,6 +1029,9 @@ export default function FichaPacientePage() {
                           setPaciente(p);
                           setConsultas(p.consultas || []);
                         }
+                      } else {
+                        // 34B.1 follow-up: refetch explícito (Realtime desligado nesta tela)
+                        void fetchPaciente();
                       }
                     };
 
@@ -1288,6 +1297,8 @@ export default function FichaPacientePage() {
                   }
                 }
               } else {
+                // 34B.1 follow-up: refetch explícito (Realtime desligado nesta tela)
+                void fetchPaciente();
                 setFichaACCompleted(true);
               }
             }}
@@ -1316,6 +1327,8 @@ export default function FichaPacientePage() {
                   }
                 }
               } else {
+                // 34B.1 follow-up: refetch explícito (Realtime desligado nesta tela)
+                void fetchPaciente();
                 setFichaBDCompleted(true);
               }
             }}
@@ -1339,6 +1352,9 @@ export default function FichaPacientePage() {
                   setPaciente(p);
                   setConsultas(p.consultas || []);
                 }
+              } else {
+                // 34B.1 follow-up: refetch explícito (Realtime desligado nesta tela)
+                void fetchPaciente();
               }
             }}
             onCancel={() => setShowGtt(false)}
@@ -1361,6 +1377,9 @@ export default function FichaPacientePage() {
                   setPaciente(p);
                   setConsultas(p.consultas || []);
                 }
+              } else {
+                // 34B.1 follow-up: refetch explícito (Realtime desligado nesta tela)
+                void fetchPaciente();
               }
             }}
             onCancel={() => setShowRegistroParto(false)}
