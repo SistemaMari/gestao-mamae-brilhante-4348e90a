@@ -44,8 +44,7 @@ import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import UsgManagerCard from '@/components/UsgManagerCard';
-import { calcIdadeGestacionalStruct, resolveUsgAtiva, type UsgRefInput } from '@/lib/fichaUtils';
-import IgOrigemTooltip from '@/components/ficha/IgOrigemTooltip';
+import { calcIdadeGestacionalStruct, type UsgRefInput } from '@/lib/fichaUtils';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import { mapearCenario } from '@/lib/laudoMapping';
 import { useLaudoIA } from '@/hooks/useLaudoIA';
@@ -825,51 +824,13 @@ export default function FichaPacientePage() {
           </div>
         ) : (
           <>
+            {/* 34C.1 (3.2.1): campos clínicos primários — sempre visíveis */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                <User className="h-3.5 w-3.5 shrink-0" />
-                <span>
-                  <span className="font-medium text-foreground">Nascimento:</span>{' '}
-                  {paciente.data_nascimento ? formatDateBR(paciente.data_nascimento) : '—'}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <FileText className="h-3.5 w-3.5 shrink-0" />
-                <span>
-                  <span className="font-medium text-foreground">Identificação:</span>{' '}
-                  {paciente.numero_identificacao
-                    ? `${(paciente as any).tipo_identificacao?.toUpperCase() || ''}: ${paciente.numero_identificacao}`
-                    : '—'}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <MessageCircle className="h-3.5 w-3.5 shrink-0" />
-                <span>
-                  <span className="font-medium text-foreground">WhatsApp:</span>{' '}
-                  {(paciente as any).whatsapp
-                    ? `+55 ${deCanonicoParaInput((paciente as any).whatsapp)}`
-                    : '—'}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <span className="font-medium text-foreground">IG na caso novo:</span>{' '}
-                  {igNaConsulta1
-                    ? `${igNaConsulta1.semanas}s ${igNaConsulta1.dias}d`
-                    : '—'}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Calendar className="h-3.5 w-3.5 shrink-0" />
-                <span className="inline-flex items-center gap-1">
-                  <span className="font-medium text-foreground">IG hoje:</span>{' '}
-                  {igAtual ? `${igAtual.semanas} sem + ${igAtual.dias} dias` : '—'}
-                  <IgOrigemTooltip
-                    referenciaIg={paciente.referencia_ig ?? null}
-                    dum={paciente.dum}
-                    usgAtiva={paciente.referencia_ig === 'usg' ? resolveUsgAtiva(usgs, paciente.referencia_usg_id ?? null) : null}
-                  />
+                  <span className="font-medium text-foreground">DUM:</span>{' '}
+                  {paciente.dum ? formatDateBR(paciente.dum) : '—'}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -882,11 +843,52 @@ export default function FichaPacientePage() {
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <span className="font-medium text-foreground">DUM:</span>{' '}
-                  {paciente.dum ? formatDateBR(paciente.dum) : '—'}
+                  <span className="font-medium text-foreground">IG na caso novo:</span>{' '}
+                  {igNaConsulta1
+                    ? `${igNaConsulta1.semanas}s ${igNaConsulta1.dias}d`
+                    : '—'}
                 </span>
               </div>
             </div>
+
+            {/* 34C.1 (3.2.2): dados administrativos em accordion colapsado por padrão.
+                Estado de expansão NÃO é persistido — remonta colapsado a cada visita. */}
+            <Accordion type="single" collapsible className="border-t border-border">
+              <AccordionItem value="dados-identificacao" className="border-none">
+                <AccordionTrigger className="py-2 text-xs font-medium text-foreground hover:no-underline">
+                  Dados de identificação
+                </AccordionTrigger>
+                <AccordionContent className="pb-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <User className="h-3.5 w-3.5 shrink-0" />
+                      <span>
+                        <span className="font-medium text-foreground">Nascimento:</span>{' '}
+                        {paciente.data_nascimento ? formatDateBR(paciente.data_nascimento) : '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <FileText className="h-3.5 w-3.5 shrink-0" />
+                      <span>
+                        <span className="font-medium text-foreground">Identificação:</span>{' '}
+                        {paciente.numero_identificacao
+                          ? `${(paciente as any).tipo_identificacao?.toUpperCase() || ''}: ${paciente.numero_identificacao}`
+                          : '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <MessageCircle className="h-3.5 w-3.5 shrink-0" />
+                      <span>
+                        <span className="font-medium text-foreground">WhatsApp:</span>{' '}
+                        {(paciente as any).whatsapp
+                          ? `+55 ${deCanonicoParaInput((paciente as any).whatsapp)}`
+                          : '—'}
+                      </span>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
             {primeiraConsulta?.observacoes && (
               <div className="rounded-lg border border-border bg-muted/30 p-3">
