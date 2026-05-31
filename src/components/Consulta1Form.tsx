@@ -25,6 +25,8 @@ import {
   paraFormatoCanonico,
 } from '@/lib/whatsapp';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
+import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
+import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import UsgFlowSection, { emptyUsgFlow, type UsgFlowValue } from '@/components/UsgFlowSection';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -80,6 +82,21 @@ export default function Consulta1Form() {
     (!!usgFlow.dataExame && usgFlow.igSemanas !== '' && usgFlow.igDias !== '' && !!usgFlow.referenciaIg);
   const isValid =
     nome.trim() && dataNascimento && dumValido && dataConsulta && dmgAnterior !== null && whatsappValidacao.ok && usgValida && usgFlow.jaFezUsg !== null;
+
+  // 34B.2 — Caso Novo. Status sempre 'rascunho' até o save (Consulta1Form sempre cria, não edita).
+  const statusFichaLocal: string = 'rascunho';
+  const camposPendentes = useMemo<string[]>(() => {
+    const f: string[] = [];
+    if (!nome.trim()) f.push('Nome da paciente');
+    if (!dataNascimento) f.push('Data de nascimento');
+    if (!dumValido) f.push('DUM (ou marcar como desconhecida)');
+    if (!dataConsulta) f.push('Data da consulta');
+    if (dmgAnterior === null) f.push('Histórico de DMG em gestação anterior');
+    if (!whatsappValidacao.ok) f.push('WhatsApp válido');
+    if (usgFlow.jaFezUsg === null) f.push('Informar se já fez 1ª USG');
+    if (!usgValida) f.push('Dados da 1ª USG ou referência de IG');
+    return f;
+  }, [nome, dataNascimento, dumValido, dataConsulta, dmgAnterior, whatsappValidacao.ok, usgFlow.jaFezUsg, usgValida]);
 
   // 34B.1 — Bug A: useAutosave removido. Caso Novo (paciente + consulta_1) só é criado no submit
   // explícito. Backup local de rascunho fica em useDraftStorage (ver Retorno1Form para o padrão).
@@ -151,6 +168,8 @@ export default function Consulta1Form() {
       data_ultima_consulta: dataConsulta,
       status_ficha: 'aguardando_gj',
       is_rascunho: false,
+      // 34B.2 — finaliza ficha. Backend default era 'rascunho' até este save explícito.
+      status_ficha: 'completa',
       referencia_ig: usgFlow.referenciaIg ?? (dumDesconhecida ? null : 'dum'),
     };
 
@@ -219,6 +238,8 @@ export default function Consulta1Form() {
       observacoes: observacoes.trim() || null,
       status_gerado: 'aguardando_gj',
       is_rascunho: false,
+      // 34B.2 — finaliza ficha. Backend default era 'rascunho' até este save explícito.
+      status_ficha: 'completa',
     };
 
     let consErr: unknown = null;
@@ -274,12 +295,17 @@ export default function Consulta1Form() {
             <FileText className="h-5 w-5" />
             CASO NOVO — Dados da Paciente
           </h1>
-          {/* 34B.1 — AutosaveIndicator removido. */}
+          <StatusFichaBadge status={statusFichaLocal} />
         </div>
         <p className="text-xs text-[#6D28D9]">
           Preencha os dados iniciais e abra a ficha clínica com pedido de exame.
         </p>
       </div>
+
+      <CamposPendentesBanner
+        pendentes={camposPendentes}
+        ativo={statusFichaLocal === 'rascunho'}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-5">
           {/* Nome completo */}

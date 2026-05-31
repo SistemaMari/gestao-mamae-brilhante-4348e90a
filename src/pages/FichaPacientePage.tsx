@@ -289,6 +289,7 @@ export default function FichaPacientePage() {
             ig_dias: c.ig_dias,
             observacoes: c.observacoes,
             status_gerado: c.status_gerado,
+            status_ficha: c.status_ficha ?? null,
             ...(c.tipo === 'retorno_1' && ex
               ? {
                   retorno1_valor_gj: ex.valor_mgdl ?? null,
@@ -375,9 +376,20 @@ export default function FichaPacientePage() {
 
   // Auto-trigger geração para cenários elegíveis sem laudo ainda.
   // Ficha A/C inadequado (cenário 3) só dispara após confirmação do peso.
+  //
+  // 34B.2 (critério 15): adicionado gate por status_ficha. O sistema não tem
+  // botão "Gerar laudo" clicável — o laudo é gerado automaticamente após salvar.
+  // Para honrar a regra "só gera quando status_ficha=completa", a geração só
+  // dispara para consultas com status_ficha === 'completa' ou 'laudo_gerado'.
+  // Fichas legadas sem status_ficha populado (null/undefined) seguem o
+  // comportamento anterior — assume-se que estão completas (backfill 34A).
   useEffect(() => {
     if (!paciente?.id) return;
     for (const c of consultas) {
+      const sf = c.status_ficha;
+      const aceitavel = sf == null || sf === 'completa' || sf === 'laudo_gerado';
+      if (!aceitavel) continue; // rascunho/finalizada → não dispara
+
       const cenario = mapearCenario({
         tipo: c.tipo,
         status_gerado: c.status_gerado,
