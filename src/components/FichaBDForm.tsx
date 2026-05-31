@@ -8,6 +8,8 @@ import { useProfissionalData } from '@/hooks/useProfissionalData';
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
+import ContextoClinicoCard from '@/components/ficha/ContextoClinicoCard';
+import { useContextoCasoNovo } from '@/hooks/useContextoCasoNovo';
 import {
   updatePreviewPaciente,
   type PreviewPaciente,
@@ -299,6 +301,14 @@ export default function FichaBDForm({
   const [dataConsultaValida, setDataConsultaValida] = useState(true);
   const todasDatasValidas = dataInicioValida && dataFimValida && dataConsultaValida;
 
+  // 34B.3 seção 3.8 — contexto clínico do Caso Novo (extendido às demais fichas de retorno).
+  const primeiraConsultaFicha = consultas.find((c) => c.tipo === 'consulta_1');
+  const { contexto: contextoCasoNovo, loading: contextoLoading } = useContextoCasoNovo(
+    paciente.id,
+    isPreview,
+    primeiraConsultaFicha ? { data: primeiraConsultaFicha.data, cenario_clinico: primeiraConsultaFicha.cenario_clinico } : null,
+  );
+
   const [showHighValueConfirm, setShowHighValueConfirm] = useState(false);
 
   // 34B.1 — Bug A: useAutosave removido. Save explícito via botão (handleSave abaixo).
@@ -502,6 +512,8 @@ export default function FichaBDForm({
         pendentes={camposPendentes}
         ativo={statusFichaLocal === 'rascunho'}
       />
+
+      <ContextoClinicoCard loading={contextoLoading} contexto={contextoCasoNovo} />
 
       {/* Dynamic message */}
       <div className="rounded-lg border border-[#D6BCFA] bg-[#E8E0FF] p-3 flex items-center gap-2">

@@ -131,6 +131,16 @@ export default function UsgManagerCard({
       toast.error('Preencha data e IG da USG.');
       return;
     }
+    // Validação local pré-INSERT: mesmo dia da paciente já cadastrado?
+    // A constraint UNIQUE(paciente_id, data_exame) no banco rejeita isso,
+    // mas detectar localmente dá mensagem amigável imediata.
+    const dataJaCadastrada = usgs.some((u) => u.data_exame === usgFlow.dataExame);
+    if (dataJaCadastrada) {
+      toast.error(
+        'Já existe uma USG registrada nesta data para esta paciente. Verifique o histórico ou edite a USG existente.',
+      );
+      return;
+    }
     setSaving(true);
     const nextOrdem = (usgs[usgs.length - 1]?.ordem ?? 0) + 1;
     // Bug fix: o INSERT retorna o id da nova USG para usar como referencia_usg_id
@@ -151,7 +161,23 @@ export default function UsgManagerCard({
     if (error || !novaUsg) {
       setSaving(false);
       console.error(error);
-      toast.error('Erro ao salvar USG.');
+      // Detecta erros comuns para mensagem mais útil
+      const err = error as { code?: string; message?: string } | null;
+      if (err?.code === '23505') {
+        // unique_violation — provavelmente data duplicada (paciente_id + data_exame)
+        toast.error(
+          'Já existe uma USG nesta data para esta paciente. Edite a existente ou use outra data.',
+        );
+      } else if (err?.code === '23514' || (err?.message ?? '').includes('check_violation')) {
+        // check_violation — provavelmente data futura (trigger exames_usg_valida_data)
+        toast.error('Data do exame não pode ser futura.');
+      } else {
+        toast.error(
+          err?.message
+            ? `Erro ao salvar USG: ${err.message}`
+            : 'Erro ao salvar USG. Verifique os dados e tente novamente.',
+        );
+      }
       return;
     }
 
