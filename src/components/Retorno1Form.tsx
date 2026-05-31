@@ -17,6 +17,7 @@ import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
 import ContextoClinicoCard from '@/components/ficha/ContextoClinicoCard';
 import DivergenciaIgBanner from '@/components/ficha/DivergenciaIgBanner';
+import { useContextoCasoNovo } from '@/hooks/useContextoCasoNovo';
 import {
   updatePreviewPaciente,
   getPreviewPacienteById,
@@ -151,16 +152,12 @@ export default function Retorno1Form({
   const [serverDraftState, setServerDraftState] = useState<'idle' | 'salvando' | 'salvo' | 'erro'>('idle');
   const [serverDraftSavedAt, setServerDraftSavedAt] = useState<string | null>(null);
 
-  // 34B.3 seção 3.8 — contexto clínico do Caso Novo (view v_ficha_retorno_contexto).
-  type ContextoCasoNovo = {
-    data_caso_novo: string | null;
-    glicemia_jejum_caso_novo: number | null;
-    tipo_exame_caso_novo: string | null;
-    data_exame_caso_novo: string | null;
-    cenario_caso_novo: string | null;
-  };
-  const [contextoCasoNovo, setContextoCasoNovo] = useState<ContextoCasoNovo | null>(null);
-  const [contextoLoading, setContextoLoading] = useState(true);
+  // 34B.3 seção 3.8 — contexto clínico do Caso Novo via hook reutilizável.
+  const { contexto: contextoCasoNovo, loading: contextoLoading } = useContextoCasoNovo(
+    paciente.id,
+    isPreview,
+    primeiraConsulta ? { data: primeiraConsulta.data, cenario_clinico: primeiraConsulta.cenario_clinico } : null,
+  );
 
   // 34B.3 seção 3.9.4 — alerta de divergência IG vindo da Edge Function
   // salvar-ficha-retorno (efêmero por sessão, não persistido).
@@ -234,53 +231,6 @@ export default function Retorno1Form({
    * colocou? Não — a expectativa do usuário (reportada) é que mudar a data do exame
    * recalcule IG. Quem quiser fixar IG manual deve digitá-la depois de definir a data.
    */
-  // 34B.3 seção 3.8 — carrega contexto do Caso Novo da view v_ficha_retorno_contexto.
-  // Roda uma vez por mount, gated por paciente.id. Em modo preview, deriva da primeiraConsulta.
-  useEffect(() => {
-    let cancelado = false;
-    async function carregar() {
-      setContextoLoading(true);
-      if (isPreview) {
-        // Em preview, monta um objeto vazio (sem GJ — só Caso Novo registrado, sem laudo).
-        // A primeiraConsulta tem a data, mas não a glicemia. Ficamos com placeholder vazio.
-        if (!cancelado) {
-          setContextoCasoNovo({
-            data_caso_novo: primeiraConsulta?.data ?? null,
-            glicemia_jejum_caso_novo: null,
-            tipo_exame_caso_novo: null,
-            data_exame_caso_novo: null,
-            cenario_caso_novo: primeiraConsulta?.cenario_clinico ?? null,
-          });
-          setContextoLoading(false);
-        }
-        return;
-      }
-      try {
-        const { data, error } = await supabase
-          .from('v_ficha_retorno_contexto' as never)
-          .select('data_caso_novo, glicemia_jejum_caso_novo, tipo_exame_caso_novo, data_exame_caso_novo, cenario_caso_novo')
-          .eq('paciente_id', paciente.id)
-          .limit(1)
-          .maybeSingle();
-        if (cancelado) return;
-        if (error || !data) {
-          setContextoCasoNovo(null);
-        } else {
-          setContextoCasoNovo(data as ContextoCasoNovo);
-        }
-      } catch {
-        if (!cancelado) setContextoCasoNovo(null);
-      } finally {
-        if (!cancelado) setContextoLoading(false);
-      }
-    }
-    void carregar();
-    return () => {
-      cancelado = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paciente.id, isPreview]);
-
   const handleDataExameChange = useCallback(
     (novaData: string) => {
       setDataExame(novaData);
