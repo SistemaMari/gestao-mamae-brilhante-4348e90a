@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -95,6 +95,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Refs estáveis com o último user.id e o último access_token persistidos.
+  // Usadas para evitar criar novas referências de user/session em eventos
+  // de TOKEN_REFRESHED quando nada relevante mudou — esse era um dos
+  // gatilhos do Bug B (refetch em cascata ao voltar foco de aba). Fonte 1, 34B.1.
+  const currentUserIdRef = useRef<string | null>(null);
+  const currentAccessTokenRef = useRef<string | null>(null);
+
   useEffect(() => {
     let cancelado = false;
 
@@ -109,18 +116,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
+    /**
+     * Atualiza user/session evitando referências novas quando o usuário é o mesmo
+     * E o access_token também não mudou.
+     *
+     * O Supabase Auth dispara onAuthStateChange ao voltar foco mesmo sem mudança
+     * de identidade (eventos SIGNED_IN/INITIAL_SESSION com a mesma sessão, ou
+     * TOKEN_REFRESHED com novo token mas mesmo user). Sem este guard, cada
+     * volta de foco criava novas refs de user/session, propagando refetches
+     * em cascata por toda a árvore (useProfissionalData, useAuthoriaFicha etc.).
+     */
+    const syncSession = (newSession: Session | null) => {
+      const newUserId = newSession?.user?.id ?? null;
+      const newAccessToken = newSession?.access_token ?? null;
+      const sameUser = currentUserIdRef.current === newUserId;
+      const sameToken = currentAccessTokenRef.current === newAccessToken;
+
+      currentUserIdRef.current = newUserId;
+      currentAccessTokenRef.current = newAccessToken;
+
+      // Se identidade E token são idênticos, não cria novas referências.
+      // (loading/profile também não precisam ser tocados.)
+      if (sameUser && sameToken) return { changed: false, sameUser };
+
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      return { changed: true, sameUser };
+    };
+
     // Listener primeiro — NUNCA usar await dentro do callback (deadlock conhecido do Supabase Auth)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      (_event, newSession) => {
+        const { changed, sameUser } = syncSession(newSession);
 
-        if (session?.user) {
-          // Mantém loading=true até o profile ser resolvido — evita flash de /onboarding
+        if (newSession?.user) {
+          // Se nada relevante mudou (mesmo user E mesmo token), mantém profile/loading.
+          if (!changed) return;
+          // Se mudou o token mas o user é o mesmo, NÃO derruba o profile — só atualiza session
+          // silenciosamente. O profile já resolvido continua válido.
+          if (sameUser) return;
+          // Caso real de mudança de identidade: re-resolve perfil.
           setLoading(true);
-          // Defer chamadas Supabase para fora do callback
           setTimeout(() => {
-            resolverPerfil(session.user.id);
+            resolverPerfil(newSession.user.id);
           }, 0);
         } else {
           setProfile(null);
@@ -130,12 +168,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     // Depois getSession
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      syncSession(initialSession);
 
-      if (session?.user) {
-        resolverPerfil(session.user.id);
+      if (initialSession?.user) {
+        resolverPerfil(initialSession.user.id);
       } else {
         setLoading(false);
       }

@@ -4,7 +4,9 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
-import { useRealtimeRefresh } from '@/hooks/useRealtimeRefresh';
+// Realtime intencionalmente removido nesta tela (34B.1 — Fonte 4 do Bug B).
+// O componente RealtimeIndicator continua importado: o status fica fixo em 'idle'
+// e o indicador deixa de aparecer (RealtimeIndicator esconde o estado idle).
 import RealtimeIndicator from '@/components/RealtimeIndicator';
 import {
   getPreviewPacienteById,
@@ -320,13 +322,21 @@ export default function FichaPacientePage() {
     fetchPaciente();
   }, [id, isPreview, fetchPaciente]);
 
-  // Realtime: mudanças em consultas, exames, perfis e laudos desta paciente
-  const rtStatus = useRealtimeRefresh({
-    tables: ['pacientes', 'consultas', 'exames_glicemia', 'perfis_glicemicos', 'laudos'],
-    onChange: fetchPaciente,
-    enabled: !!id && !isPreview,
-    channelName: id ? `ficha-${id}` : undefined,
-  });
+  // Realtime DESLIGADO nesta tela (Fonte 4, 34B.1).
+  //
+  // Antes: subscription em pacientes/consultas/exames/perfis/laudos chamava
+  // fetchPaciente a cada evento. Ao voltar foco de aba, o WS reconectava e
+  // entregava bursts de eventos catch-up — cada um disparava re-render que
+  // sobrescrevia state local dos forms (Bug B).
+  //
+  // Aqui o usuário está digitando dados clínicos. Frescor automático não compensa
+  // o risco de perda. Refresh acontece via:
+  //   1. Após salvar (fetchPaciente é chamado pelos callbacks onSaved dos forms)
+  //   2. Botão "atualizar" (TODO 34B.2) — quando o usuário decide pedir refresh manual
+  //
+  // Listagens (Dashboard, HistoricoLaudos) seguem usando Realtime normalmente.
+  // Indicador "Ao vivo" fica fixo em 'idle' nesta tela (não renderiza nada).
+  const rtStatus: 'idle' | 'connecting' | 'live' | 'error' = 'idle';
 
   const idade = useMemo(() => {
     if (!paciente?.data_nascimento) return null;

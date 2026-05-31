@@ -24,8 +24,7 @@ import {
   validarWhatsappBR,
   paraFormatoCanonico,
 } from '@/lib/whatsapp';
-import { useAutosave } from '@/hooks/useAutosave';
-import AutosaveIndicator from '@/components/AutosaveIndicator';
+// 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
 import UsgFlowSection, { emptyUsgFlow, type UsgFlowValue } from '@/components/UsgFlowSection';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -82,86 +81,8 @@ export default function Consulta1Form() {
   const isValid =
     nome.trim() && dataNascimento && dumValido && dataConsulta && dmgAnterior !== null && whatsappValidacao.ok && usgValida && usgFlow.jaFezUsg !== null;
 
-  // Mínimo para começar a salvar rascunho: nome + (DUM ou DUM desconhecida)
-  const canAutosave =
-    !isPreview && !!profissionalData && !!user && !!nome.trim() && dumValido && !saving;
-
-  const autosaveData = useMemo(
-    () => ({
-      nome: nome.trim(),
-      dataNascimento,
-      tipoIdentificacao,
-      numeroId: numeroId.trim(),
-      whatsapp: paraFormatoCanonico(whatsapp),
-      dum: dumDesconhecida ? null : (dum || null),
-      dataConsulta,
-      observacoes: observacoes.trim(),
-      dmgAnterior,
-      pais,
-      estado,
-      cidade,
-    }),
-    [nome, dataNascimento, tipoIdentificacao, numeroId, whatsapp, dum, dumDesconhecida, dataConsulta, observacoes, dmgAnterior, pais, estado, cidade],
-  );
-
-  const { status: autosaveStatus } = useAutosave({
-    data: autosaveData,
-    enabled: canAutosave,
-    onSave: async (d) => {
-      if (!profissionalData) return;
-      const payload: Record<string, unknown> = {
-        nome: d.nome,
-        profissional_id: profissionalData.id,
-        data_nascimento: d.dataNascimento || null,
-        numero_identificacao: d.numeroId || null,
-        tipo_identificacao: d.tipoIdentificacao,
-        whatsapp: d.whatsapp,
-        dum: d.dum,
-        pais: d.pais,
-        estado: d.estado || null,
-        cidade: d.cidade || null,
-        dmg_gestacao_anterior: d.dmgAnterior === true,
-        data_ultima_consulta: d.dataConsulta,
-        status_ficha: 'aguardando_gj',
-        is_rascunho: true,
-      };
-      if ('unidade_id' in profissionalData) {
-        payload.unidade_id = (profissionalData as any).unidade_id || null;
-      }
-
-      if (!draftPacienteIdRef.current) {
-        const { data: pac, error } = await supabase
-          .from('pacientes').insert(payload as any).select('id').single();
-        if (error || !pac) throw error ?? new Error('Falha ao criar rascunho');
-        draftPacienteIdRef.current = pac.id;
-      } else {
-        const { error } = await supabase
-          .from('pacientes').update(payload as any).eq('id', draftPacienteIdRef.current);
-        if (error) throw error;
-      }
-
-      const consultaPayload = {
-        paciente_id: draftPacienteIdRef.current,
-        profissional_id: profissionalData.id,
-        tipo: 'consulta_1',
-        numero_sequencial: 1,
-        data: d.dataConsulta,
-        observacoes: d.observacoes || null,
-        status_gerado: 'aguardando_gj',
-        is_rascunho: true,
-      };
-      if (!draftConsultaIdRef.current) {
-        const { data: cons, error } = await supabase
-          .from('consultas').insert(consultaPayload as any).select('id').single();
-        if (error || !cons) throw error ?? new Error('Falha ao criar consulta rascunho');
-        draftConsultaIdRef.current = cons.id;
-      } else {
-        const { error } = await supabase
-          .from('consultas').update(consultaPayload as any).eq('id', draftConsultaIdRef.current);
-        if (error) throw error;
-      }
-    },
-  });
+  // 34B.1 — Bug A: useAutosave removido. Caso Novo (paciente + consulta_1) só é criado no submit
+  // explícito. Backup local de rascunho fica em useDraftStorage (ver Retorno1Form para o padrão).
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -353,7 +274,7 @@ export default function Consulta1Form() {
             <FileText className="h-5 w-5" />
             CASO NOVO — Dados da Paciente
           </h1>
-          {!isPreview && <AutosaveIndicator status={autosaveStatus} />}
+          {/* 34B.1 — AutosaveIndicator removido. */}
         </div>
         <p className="text-xs text-[#6D28D9]">
           Preencha os dados iniciais e abra a ficha clínica com pedido de exame.

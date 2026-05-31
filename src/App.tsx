@@ -56,7 +56,22 @@ import ComponentesDemoPage from "./pages/_dev/ComponentesDemoPage";
 import FichaCarimbadaDemo from "./pages/_dev/FichaCarimbadaDemo";
 import PocPdfGraficoPage from "./pages/_dev/PocPdfGraficoPage";
 
-const queryClient = new QueryClient();
+/**
+ * Default global: refetch automático em window focus e reconnect DESLIGADO.
+ * Era um dos gatilhos do Bug B (perda de dados ao mudar de aba). Fonte 2, 34B.1.
+ *
+ * Telas de leitura que se beneficiem de dados frescos (Dashboard, FichasUnidade,
+ * HistoricoLaudos) podem reativar localmente passando { refetchOnWindowFocus: true }
+ * na chamada de useQuery, se necessário. Por enquanto seguem o default.
+ */
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

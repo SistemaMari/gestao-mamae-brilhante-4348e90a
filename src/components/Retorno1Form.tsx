@@ -1,9 +1,17 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
-import { useAutosave } from '@/hooks/useAutosave';
-import AutosaveIndicator from '@/components/AutosaveIndicator';
+// 34B.1 — useAutosave + AutosaveIndicator removidos. Persistência agora é explícita via
+// botão "Salvar rascunho" / "Salvar e finalizar" abaixo. Backup local fica em useDraftStorage.
+import {
+  useDraftStorage,
+  reconciliarRascunho,
+  readDraft,
+  removeDraft,
+} from '@/hooks/useDraftStorage';
+import RascunhoStatus, { type RascunhoVisualState } from '@/components/ficha/RascunhoStatus';
+import DraftRecoveryModal from '@/components/ficha/DraftRecoveryModal';
 import {
   updatePreviewPaciente,
   getPreviewPacienteById,
@@ -133,6 +141,11 @@ export default function Retorno1Form({
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
 
+  // 34B.1 — estado de rascunho em servidor: 'idle' antes do primeiro save;
+  // 'salvo' depois de salvar com sucesso; 'erro' quando última tentativa falhou.
+  const [serverDraftState, setServerDraftState] = useState<'idle' | 'salvando' | 'salvo' | 'erro'>('idle');
+  const [serverDraftSavedAt, setServerDraftSavedAt] = useState<string | null>(null);
+
   // Bloco 2: capturar USG se ainda não há referência de IG definida.
   const precisaUsgRef = !(paciente as any).referencia_ig && !editingConsulta;
   const [usgFlow, setUsgFlow] = useState<UsgFlowValue>(emptyUsgFlow);
@@ -162,13 +175,27 @@ export default function Retorno1Form({
     return { semanas: Math.floor(dias / 7), dias: dias % 7 };
   }, [paciente.dum, dataExame]);
 
-  // P1: Auto-fill IG fields when dataExame changes
+  // 34B.1 — Bug B Fonte 5: auto-fill da IG calculada acontece UMA VEZ por entrada do form.
+  // O useEffect original ([igCalculada, editingResult, editingConsulta]) re-disparava ao voltar
+  // de aba (paciente refetched → igCalculada referência nova) sobrescrevendo o input do médico.
+  //
+  // Agora: dispara só na primeira vez que igCalculada fica disponível para uma instância do form,
+  // e nunca mais. Trocar de paciente desmonta o componente, então a ref reseta naturalmente.
+  const igAutoFillFeitoRef = useRef(false);
   useEffect(() => {
-    if (igCalculada && !editingResult && !editingConsulta) {
+    if (
+      !igAutoFillFeitoRef.current &&
+      igCalculada &&
+      !editingResult &&
+      !editingConsulta &&
+      igSemanas === '' &&
+      igDias === ''
+    ) {
+      igAutoFillFeitoRef.current = true;
       setIgSemanas(String(igCalculada.semanas));
       setIgDias(String(igCalculada.dias));
     }
-  }, [igCalculada, editingResult, editingConsulta]);
+  }, [igCalculada, editingResult, editingConsulta, igSemanas, igDias]);
 
   // DUM-based GTT window calc for negative result
   const janelaGTT = useMemo(() => {
@@ -201,82 +228,215 @@ export default function Retorno1Form({
     return igCalculada;
   }, [igSemanas, igDias, igCalculada]);
 
-  // Autosave: rascunho de consulta + exame_glicemia (modo real, novo retorno)
-  const draftConsultaIdRef = useRef<string | null>(null);
+  // 34B.1 — Bug A: removido o useAutosave que persistia consulta+exame parcialmente em onChange.
+  // Substituído pelo fluxo explícito de "Salvar rascunho" / "Salvar e finalizar"
+  // (botões abaixo) + backup local em useDraftStorage (sem chamada de rede).
+  const draftConsultaIdRef = useRef<string | null>(editingConsulta?.id ?? null);
   const draftExameIdRef = useRef<string | null>(null);
 
-  const canAutosave =
-    !isPreview &&
-    !editingConsulta &&
-    !!profissionalData &&
-    !!user &&
-    valorValido &&
-    !!tipoExame &&
-    !saving;
+  // ── 34B.1 seção 3.3: backup local em localStorage ─────────────────────────
+  // Chave canônica do rascunho. Se há consultaId (editando), usa esse;
+  // senão, é uma ficha nova de retorno_1 para esta paciente.
+  const draftKey = useMemo(() => {
+    if (editingConsulta?.id) return `ficha:${editingConsulta.id}`;
+    return `nova:${paciente.id}:retorno_1`;
+  }, [editingConsulta?.id, paciente.id]);
 
-  const autosaveData = useMemo(
+  // Snapshot dos campos do form em memória — observado pelo useDraftStorage.
+  type FormDraft = {
+    valorGJ: string;
+    tipoExame: string;
+    dataExame: string;
+    dataConsultaRetorno: string;
+    observacoes: string;
+    igSemanas: string;
+    igDias: string;
+    usgFlow: UsgFlowValue;
+  };
+  const formDraft = useMemo<FormDraft>(
     () => ({
-      valorNum,
+      valorGJ,
       tipoExame,
       dataExame,
       dataConsultaRetorno,
-      observacoes: observacoes.trim(),
-      igSemanas: igFinal?.semanas ?? null,
-      igDias: igFinal?.dias ?? null,
+      observacoes,
+      igSemanas,
+      igDias,
+      usgFlow,
     }),
-    [valorNum, tipoExame, dataExame, dataConsultaRetorno, observacoes, igFinal],
+    [valorGJ, tipoExame, dataExame, dataConsultaRetorno, observacoes, igSemanas, igDias, usgFlow],
   );
 
-  const { status: autosaveStatus } = useAutosave({
-    data: autosaveData,
-    enabled: canAutosave,
-    onSave: async (d) => {
-      if (!profissionalData) return;
-      const consultaPayload = {
+  const {
+    saveDraft: saveLocalDraft,
+    clearDraft: clearLocalDraft,
+    status: localDraftStatus,
+    lastSavedAt: localDraftSavedAt,
+  } = useDraftStorage<FormDraft>({
+    key: draftKey,
+    current: formDraft,
+    debounceMs: 2000,
+    enabled: !isPreview,
+  });
+
+  // ── 34B.1 seção 3.3.3 + 3.5: reconciliação no mount ───────────────────────
+  // Decide entre usar dados do servidor, descartar silenciosamente o draft local,
+  // ou abrir o modal de recuperação. Só roda uma vez por mount.
+  const [recoveryModal, setRecoveryModal] = useState<{
+    open: boolean;
+    draft: FormDraft | null;
+    timestamp: string;
+  }>({ open: false, draft: null, timestamp: '' });
+  const reconciliacaoFeitaRef = useRef(false);
+
+  useEffect(() => {
+    if (reconciliacaoFeitaRef.current) return;
+    reconciliacaoFeitaRef.current = true;
+    if (isPreview) return;
+
+    // Servidor = snapshot dos valores iniciais (vindos de editingConsulta).
+    // Para fichas novas, server data é null.
+    const serverSnapshot: FormDraft | null = editingConsulta
+      ? {
+          valorGJ: editingConsulta.retorno1_valor_gj != null ? String(editingConsulta.retorno1_valor_gj) : '',
+          tipoExame: editingConsulta.retorno1_tipo_exame ?? '',
+          dataExame: editingConsulta.retorno1_data_exame ?? todayISO(),
+          dataConsultaRetorno: editingConsulta.data ?? todayISO(),
+          observacoes: '',
+          igSemanas: editingConsulta.ig_semanas != null ? String(editingConsulta.ig_semanas) : '',
+          igDias: editingConsulta.ig_dias != null ? String(editingConsulta.ig_dias) : '',
+          usgFlow: emptyUsgFlow,
+        }
+      : null;
+
+    const local = readDraft<FormDraft>(draftKey);
+    const reconciliation = reconciliarRascunho<FormDraft>(serverSnapshot, local);
+
+    if (reconciliation.decision === 'discard_silently') {
+      removeDraft(draftKey);
+    } else if (reconciliation.decision === 'show_recovery_modal') {
+      setRecoveryModal({
+        open: true,
+        draft: reconciliation.draft as FormDraft,
+        timestamp: reconciliation.draftTimestamp,
+      });
+    }
+    // 'use_server' → nada a fazer; form já está com initial state vindo de editingConsulta.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleRecoverDraft = useCallback(() => {
+    const d = recoveryModal.draft;
+    if (d) {
+      setValorGJ(d.valorGJ);
+      setTipoExame(d.tipoExame);
+      setDataExame(d.dataExame);
+      setDataConsultaRetorno(d.dataConsultaRetorno);
+      setObservacoes(d.observacoes);
+      setIgSemanas(d.igSemanas);
+      setIgDias(d.igDias);
+      setUsgFlow(d.usgFlow);
+    }
+    setRecoveryModal({ open: false, draft: null, timestamp: '' });
+  }, [recoveryModal.draft]);
+
+  const handleDiscardDraft = useCallback(() => {
+    clearLocalDraft();
+    setRecoveryModal({ open: false, draft: null, timestamp: '' });
+  }, [clearLocalDraft]);
+
+  // ── 34B.1 seção 3.4: estado visual derivado para o RascunhoStatus ──────────
+  // Precedência: erro > salvando > servidor (sem mudanças locais depois) > dirty > local > idle.
+  const visualState: RascunhoVisualState = useMemo(() => {
+    if (serverDraftState === 'erro') return 'erro';
+    if (saving || serverDraftState === 'salvando') return 'salvando';
+    if (serverDraftState === 'salvo' && localDraftStatus !== 'dirty') return 'servidor';
+    if (localDraftStatus === 'dirty') return 'dirty';
+    if (localDraftStatus === 'persisted') return 'local';
+    return 'idle';
+  }, [saving, serverDraftState, localDraftStatus]);
+
+  const visualSavedAt: string | null =
+    serverDraftState === 'salvo' && localDraftStatus !== 'dirty'
+      ? serverDraftSavedAt
+      : localDraftSavedAt;
+
+  // ── 34B.1 seção 3.2.2: "Salvar rascunho" via Edge Function salvar-ficha-retorno ──
+  // Aceita campos parciais (Edge Function usa COALESCE no servidor para não sobrescrever
+  // com NULL). Não exige validação de obrigatórios. Em sucesso: marca server state como
+  // "salvo" + limpa rascunho local (seção 3.3.4).
+  const handleSalvarRascunho = useCallback(async () => {
+    if (isPreview) {
+      // Em preview o "rascunho" é só o backup local. Forçamos uma gravação imediata.
+      const ts = saveLocalDraft();
+      setServerDraftState('idle');
+      setServerDraftSavedAt(null);
+      toast.success(`Rascunho local salvo às ${ts.slice(11, 16)}`);
+      return;
+    }
+    if (!profissionalData || !user) {
+      toast.error('Você precisa estar logado.');
+      return;
+    }
+
+    setSaving(true);
+    setServerDraftState('salvando');
+    try {
+      const numero_sequencial =
+        editingConsulta?.numero_sequencial ?? 2; // retornos começam em 2
+      const valorParcial = parseInt(valorGJ, 10);
+      const payload = {
+        consulta_id: draftConsultaIdRef.current ?? editingConsulta?.id ?? undefined,
         paciente_id: paciente.id,
-        profissional_id: profissionalData.id,
-        tipo: 'retorno_1',
-        numero_sequencial: 2,
-        data: d.dataConsultaRetorno,
-        ig_semanas: d.igSemanas,
-        ig_dias: d.igDias,
-        observacoes: d.observacoes || null,
-        status_gerado: paciente.status_ficha,
-        is_rascunho: true,
+        modo: 'rascunho' as const,
+        tipo: 'retorno_1' as const,
+        numero_sequencial,
+        campos: {
+          data: dataConsultaRetorno || undefined,
+          ig_semanas: igFinal?.semanas ?? null,
+          ig_dias: igFinal?.dias ?? null,
+          observacoes: observacoes.trim() || null,
+        },
+        exame_glicemia:
+          !isNaN(valorParcial) && valorParcial > 0
+            ? {
+                id: draftExameIdRef.current ?? undefined,
+                valor_mgdl: valorParcial,
+                tipo_exame: tipoExame || null,
+                data_exame: dataExame || null,
+                ig_semanas_na_data: igFinal?.semanas ?? null,
+                ig_dias_na_data: igFinal?.dias ?? null,
+              }
+            : null,
       };
-      if (!draftConsultaIdRef.current) {
-        const { data: cons, error } = await supabase
-          .from('consultas').insert(consultaPayload as any).select('id').single();
-        if (error || !cons) throw error ?? new Error('Falha rascunho consulta');
-        draftConsultaIdRef.current = cons.id;
-      } else {
-        const { error } = await supabase
-          .from('consultas').update(consultaPayload as any).eq('id', draftConsultaIdRef.current);
-        if (error) throw error;
+      const { data: response, error } = await supabase.functions.invoke(
+        'salvar-ficha-retorno',
+        { body: payload },
+      );
+      if (error) throw error;
+      const respConsultaId = (response as { consulta?: { id?: string } } | null)?.consulta?.id;
+      if (respConsultaId && !draftConsultaIdRef.current) {
+        draftConsultaIdRef.current = respConsultaId;
       }
 
-      const examePayload = {
-        consulta_id: draftConsultaIdRef.current,
-        paciente_id: paciente.id,
-        profissional_id: profissionalData.id,
-        valor_mgdl: d.valorNum,
-        tipo_exame: d.tipoExame,
-        data_exame: d.dataExame,
-        ig_semanas_na_data: d.igSemanas,
-        ig_dias_na_data: d.igDias,
-      };
-      if (!draftExameIdRef.current) {
-        const { data: ex, error } = await supabase
-          .from('exames_glicemia' as any).insert(examePayload as any).select('id').single();
-        if (error || !ex) throw error ?? new Error('Falha rascunho exame');
-        draftExameIdRef.current = (ex as any).id;
-      } else {
-        const { error } = await supabase
-          .from('exames_glicemia' as any).update(examePayload as any).eq('id', draftExameIdRef.current);
-        if (error) throw error;
-      }
-    },
-  });
+      const savedAt = new Date().toISOString();
+      setServerDraftState('salvo');
+      setServerDraftSavedAt(savedAt);
+      // Seção 3.3.4: após save no servidor com sucesso, limpa o backup local.
+      clearLocalDraft();
+      toast.success(`Rascunho salvo no servidor às ${savedAt.slice(11, 16)}`);
+    } catch (err) {
+      console.error('[salvar-ficha-retorno rascunho] erro', err);
+      setServerDraftState('erro');
+      toast.error('Erro ao salvar rascunho. Mudanças locais preservadas.');
+    } finally {
+      setSaving(false);
+    }
+  }, [
+    isPreview, profissionalData, user, paciente.id, editingConsulta,
+    valorGJ, dataConsultaRetorno, igFinal, observacoes, tipoExame, dataExame,
+    saveLocalDraft, clearLocalDraft,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -347,6 +507,8 @@ export default function Retorno1Form({
       }
 
       setSaving(false);
+      // 34B.1 seção 3.3.4: ao finalizar com sucesso, limpa rascunho local.
+      clearLocalDraft();
 
       if (isDiagApplicable && diag) {
         setResultado(diag);
@@ -455,6 +617,10 @@ export default function Retorno1Form({
     });
 
     setSaving(false);
+    // 34B.1 seção 3.3.4: ao finalizar com sucesso no servidor, limpa rascunho local.
+    clearLocalDraft();
+    setServerDraftState('salvo');
+    setServerDraftSavedAt(new Date().toISOString());
 
     if (isDiagApplicable && diag) {
       setResultado(diag);
@@ -677,7 +843,11 @@ export default function Retorno1Form({
             <FileText className="h-5 w-5" />
             RETORNO 1 — Resultado da Glicemia de Jejum
           </h2>
-          {!isPreview && !editingConsulta && <AutosaveIndicator status={autosaveStatus} />}
+          <RascunhoStatus
+            state={visualState}
+            savedAt={visualSavedAt}
+            onRetry={visualState === 'erro' ? handleSalvarRascunho : undefined}
+          />
         </div>
         <p className="text-xs text-[#6D28D9]">
           Insira o resultado da glicemia de jejum para diagnóstico automático.
@@ -828,21 +998,48 @@ export default function Retorno1Form({
           />
         </div>
 
-        {/* Buttons */}
+        {/* Buttons — 34B.1 seções 3.2.2 e 3.2.3 */}
         <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
             Cancelar
+          </Button>
+          {/* 3.2.2 — Salvar rascunho: sempre habilitado quando não está em flight.
+              Aceita campos parciais; backend protege com COALESCE. */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleSalvarRascunho}
+            disabled={saving}
+            className="border-[#7C4DBA] text-[#7C4DBA] hover:bg-[#E8E0FF]"
+          >
+            {saving && serverDraftState === 'salvando' && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Salvar rascunho
           </Button>
           <Button
             type="submit"
-            disabled={saving}
+            disabled={saving || !isValid}
             className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
+            title={!isValid ? 'Preencha todos os campos obrigatórios para finalizar' : undefined}
           >
-            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Salvar resultado
+            {saving && serverDraftState !== 'salvando' && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Salvar e finalizar
           </Button>
         </div>
       </form>
+
+      {/* 34B.1 seção 3.5 — modal de recuperação de rascunho local não salvo */}
+      {recoveryModal.draft && (
+        <DraftRecoveryModal
+          open={recoveryModal.open}
+          draftTimestamp={recoveryModal.timestamp}
+          onRecover={handleRecoverDraft}
+          onDiscard={handleDiscardDraft}
+        />
+      )}
     </div>
   );
 }
