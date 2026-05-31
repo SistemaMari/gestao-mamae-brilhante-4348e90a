@@ -637,7 +637,7 @@ export default function FichaPacientePage() {
     showRetorno1 || showFichaAC || showFichaBD || showGtt || showRegistroParto || editingConsultaId !== null;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-4">
       {isReadOnly && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-2 print:hidden">
           <div className="flex items-center gap-2 text-sm">
@@ -675,7 +675,7 @@ export default function FichaPacientePage() {
       )}
 
       {/* Header card */}
-      <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
+      <div className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             {editing ? (
@@ -852,7 +852,7 @@ export default function FichaPacientePage() {
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <span className="font-medium text-foreground">IG na caso novo:</span>{' '}
+                  <span className="font-medium text-foreground">IG no caso novo:</span>{' '}
                   {igNaConsulta1
                     ? `${igNaConsulta1.semanas}s ${igNaConsulta1.dias}d`
                     : '—'}
@@ -1142,11 +1142,11 @@ export default function FichaPacientePage() {
         <Collapsible
           defaultOpen={!hasFichaEmEdicao}
           key={`hist-collapse-${hasFichaEmEdicao}`}
-          className="rounded-xl border border-border bg-card p-5 shadow-sm print:shadow-none"
+          className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm print:shadow-none"
         >
           <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2">
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+              <Clock className="h-5 w-5 text-[#7C4DBA]" />
               Histórico de consultas ({consultasHistorico.length})
             </h2>
             <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
@@ -1196,7 +1196,7 @@ export default function FichaPacientePage() {
                     </div>
                     {igDisplay && (
                       <span className="inline-flex self-start rounded-md bg-[#E8E0FF] px-2 py-0.5 text-[10px] font-medium text-[#7C3AED]">
-                        IG: {igDisplay.semanas} semanas e {igDisplay.dias} dias
+                        IG: {igDisplay.semanas}s {igDisplay.dias}d
                       </span>
                     )}
                     {(c.data_inicio && c.data_fim) && (

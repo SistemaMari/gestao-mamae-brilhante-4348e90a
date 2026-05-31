@@ -28,7 +28,7 @@ export default function LaudoCabecalho({ paciente, igSemanas, igDias, dataLaudo 
         </div>
         <div>
           <dt className="inline font-semibold text-[#5B21B6]">IG: </dt>
-          <dd className="inline">{igSemanas} sem + {igDias} dias</dd>
+          <dd className="inline">{igSemanas}s {igDias}d</dd>
         </div>
         <div className="sm:text-right">
           <dt className="inline font-semibold text-[#5B21B6]">Data: </dt>

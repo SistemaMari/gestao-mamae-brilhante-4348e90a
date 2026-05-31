@@ -339,10 +339,10 @@ export default function UsgManagerCard({
   const proximaOrdem = (usgs[usgs.length - 1]?.ordem ?? 0) + 1;
 
   return (
-    <div className="rounded-xl border border-[#7C4DBA]/30 bg-card p-4 space-y-3">
+    <div className="rounded-xl border border-[#7C4DBA]/30 bg-card p-4 sm:p-6 space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4 text-[#7C4DBA]" />
+          <Activity className="h-5 w-5 text-[#7C4DBA]" />
           <h3 className="text-sm font-semibold text-[#5B21B6]">Ultrassonografias e referência de IG</h3>
         </div>
         <Button

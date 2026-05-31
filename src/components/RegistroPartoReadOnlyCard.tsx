@@ -64,7 +64,7 @@ export default function RegistroPartoReadOnlyCard({
 
   const ig =
     dados.ig_semanas != null
-      ? `${dados.ig_semanas} sem + ${dados.ig_dias ?? 0} dias`
+      ? `${dados.ig_semanas}s ${dados.ig_dias ?? 0}d`
       : '—';
 
   const peso =

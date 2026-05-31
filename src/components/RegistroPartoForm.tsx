@@ -415,7 +415,7 @@ export default function RegistroPartoForm({
             <StatusFichaBadge status={statusFichaLocal} />
             {igAtual && (
               <span className="inline-flex rounded-md bg-[#E8E0FF] px-2 py-1 text-[11px] font-medium text-[#7E69AB]">
-                IG atual — {igAtual.semanas} sem + {igAtual.dias} dias
+                IG atual — {igAtual.semanas}s {igAtual.dias}d
               </span>
             )}
           </div>
