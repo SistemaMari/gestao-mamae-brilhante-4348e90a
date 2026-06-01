@@ -52,6 +52,37 @@ export function mapearCenario(c: ConsultaParaMapear): Cenario {
   }
 }
 
+/**
+ * Deriva o `desfecho_clinico` (chave de `laudo_textos`) para uma consulta,
+ * usado como parâmetro da Edge Function `obter-textos-laudo` (34D-B).
+ *
+ * Fonte primária: `consulta.cenario_clinico` — gravado pelos forms na forma
+ * curta ('1'..'8', '6B', '5'), que é exatamente o que o backend (34D-A)
+ * normaliza via `normalizarCenario`.
+ *
+ * Fallback determinístico: `mapearCenario` — necessário para o Caso Novo
+ * (`consulta_1`), que não grava `cenario_clinico` mas tem desfecho definido
+ * (rastreio inicial = '1', ou 'negativo' se DMG afastado).
+ *
+ * Retorna `null` quando o desfecho ainda não foi calculado (ficha incompleta):
+ * nesse caso o 34D-B exige exibir a mensagem de orientação SEM chamar a Edge
+ * Function (critério 9).
+ */
+export function derivarDesfechoClinico(
+  c: ConsultaParaMapear & { cenario_clinico?: string | null },
+): string | null {
+  const raw = (c.cenario_clinico ?? '').trim();
+  if (raw) return raw;
+
+  const cen = mapearCenario(c);
+  if (cen === 'negativo') return 'negativo';
+  // Caso Novo é determinístico mesmo sem `cenario_clinico` gravado.
+  if (c.tipo === 'consulta_1') return String(cen);
+
+  // Demais tipos sem `cenario_clinico` → diagnóstico ainda não calculado.
+  return null;
+}
+
 export function cenarioLabel(cenario: Cenario): string {
   const map: Record<string, string> = {
     '1': 'Cenário 1 — Rastreio inicial',

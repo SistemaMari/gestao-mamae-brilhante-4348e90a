@@ -46,8 +46,8 @@ import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import UsgManagerCard from '@/components/UsgManagerCard';
 import { calcIdadeGestacionalStruct, type UsgRefInput } from '@/lib/fichaUtils';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
-import { mapearCenario } from '@/lib/laudoMapping';
-import { useLaudoIA } from '@/hooks/useLaudoIA';
+import { mapearCenario, derivarDesfechoClinico } from '@/lib/laudoMapping';
+import { useLaudoTextos } from '@/hooks/useLaudoTextos';
 import { useAutoriaFicha } from '@/hooks/useAutoriaFicha';
 import AutoriaRodape from '@/components/clinico/AutoriaRodape';
 import {
@@ -294,6 +294,7 @@ export default function FichaPacientePage() {
             observacoes: c.observacoes,
             status_gerado: c.status_gerado,
             status_ficha: c.status_ficha ?? null,
+            cenario_clinico: c.cenario_clinico ?? null,
             ...(c.tipo === 'retorno_1' && ex
               ? {
                   retorno1_valor_gj: ex.valor_mgdl ?? null,
@@ -360,33 +361,21 @@ export default function FichaPacientePage() {
     return [];
   }, [consultas]);
 
-  // === IA: Blocos 2 e 3 (Justificativa + Conduta) ===
-  const laudoIA = useLaudoIA({ isPreview });
+  // === Textos fixos do laudo (34D-B) — lidos de `obter-textos-laudo` ===
+  const laudoTextos = useLaudoTextos({ isPreview });
   const autoriaFicha = useAutoriaFicha(paciente?.id);
 
-  // Reset estado IA ao trocar de paciente
+  // Reset ao trocar de paciente
   useEffect(() => {
-    laudoIA.resetar();
+    laudoTextos.resetar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Carrega laudos persistidos para as consultas existentes (real mode)
-  useEffect(() => {
-    if (isPreview || !id || consultas.length === 0) return;
-    const consultaIds = consultas.map((c) => c.id);
-    void laudoIA.carregarLaudosExistentes(id, consultaIds);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isPreview, consultas]);
-
-  // Auto-trigger geração para cenários elegíveis sem laudo ainda.
-  // Ficha A/C inadequado (cenário 3) só dispara após confirmação do peso.
-  //
-  // 34B.2 (critério 15): adicionado gate por status_ficha. O sistema não tem
-  // botão "Gerar laudo" clicável — o laudo é gerado automaticamente após salvar.
-  // Para honrar a regra "só gera quando status_ficha=completa", a geração só
-  // dispara para consultas com status_ficha === 'completa' ou 'laudo_gerado'.
-  // Fichas legadas sem status_ficha populado (null/undefined) seguem o
-  // comportamento anterior — assume-se que estão completas (backfill 34A).
+  // Auto-carrega os textos das consultas elegíveis (leitura read-only — sem
+  // persistir laudo nem consumir quota; 34D-B). Mantém os gates do 34B.2:
+  //   - status_ficha rascunho/finalizada → não dispara;
+  //   - Ficha A/C inadequado só dispara após confirmação do peso.
+  // Fichas legadas sem status_ficha (null/undefined) seguem como completas.
   useEffect(() => {
     if (!paciente?.id) return;
     for (const c of consultas) {
@@ -394,19 +383,21 @@ export default function FichaPacientePage() {
       const aceitavel = sf == null || sf === 'completa' || sf === 'laudo_gerado';
       if (!aceitavel) continue; // rascunho/finalizada → não dispara
 
-      const cenario = mapearCenario({
-        tipo: c.tipo,
-        status_gerado: c.status_gerado,
-        decisao: (c as any).decisao,
-        percentual_meta: (c as any).percentual_meta,
-      });
       const isInadequadoAC =
-        (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') && ((c as any).percentual_meta ?? 0) < 70;
+        (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') && (c.percentual_meta ?? 0) < 70;
       if (isInadequadoAC) {
-        const peso = (c as any).peso_kg;
+        const peso = c.peso_kg;
         if (peso == null || peso <= 0) continue; // aguarda confirmação de peso
       }
-      laudoIA.garantirLaudo(paciente.id, c.id, cenario);
+
+      const desfecho = derivarDesfechoClinico({
+        tipo: c.tipo,
+        status_gerado: c.status_gerado,
+        decisao: c.decisao,
+        percentual_meta: c.percentual_meta,
+        cenario_clinico: c.cenario_clinico,
+      });
+      laudoTextos.garantir(c.id, c.tipo, desfecho);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paciente?.id, consultas]);
@@ -975,14 +966,15 @@ export default function FichaPacientePage() {
       {/* Standalone green card — only when 1 consultation (aguardando_gj), no retorno form */}
       {consultas.length === 1 && paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && primeiraConsulta && (() => {
         const cenarioStandalone = mapearCenario({ tipo: 'consulta_1', status_gerado: paciente.status_ficha });
-        const estadoStandalone = laudoIA.getEstado(primeiraConsulta.id);
+        const desfechoStandalone = derivarDesfechoClinico({
+          tipo: 'consulta_1',
+          status_gerado: paciente.status_ficha,
+          cenario_clinico: primeiraConsulta.cenario_clinico,
+        });
+        const estadoStandalone = laudoTextos.getEstado(primeiraConsulta.id);
         const autoriaC1 = autoriaFicha.getAutoria({
           recursoId: primeiraConsulta.id,
           tipoOperacao: 'consulta_inicial',
-        });
-        const autoriaLaudoStandalone = autoriaFicha.getAutoria({
-          recursoId: estadoStandalone.laudoId ?? null,
-          tipoOperacao: 'gerar_laudo',
         });
         return (
         <LaudoCompleto
@@ -991,18 +983,12 @@ export default function FichaPacientePage() {
           igDias={igNaConsulta1?.dias ?? 0}
           dataLaudo={parseDateLocal(primeiraConsulta.data) ?? new Date()}
           cenario={cenarioStandalone}
-          bloco2={estadoStandalone.bloco2}
-          bloco3={estadoStandalone.bloco3}
-          statusIA={estadoStandalone.statusIA}
-          erroIA={estadoStandalone.erroIA}
-          onTentarNovamente={() => laudoIA.tentarNovamente(paciente.id, primeiraConsulta.id, cenarioStandalone)}
+          estado={estadoStandalone}
+          onTentarNovamente={() => laudoTextos.tentarNovamente(primeiraConsulta.id, 'consulta_1', desfechoStandalone)}
           proximaFichaTexto={janelaGTT ? `GTT 75g entre ${format(janelaGTT.inicio, 'dd/MM/yyyy')} e ${format(janelaGTT.fim, 'dd/MM/yyyy')}.` : null}
         >
           <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
           <AutoriaRodape registro={autoriaC1} label="Atendimento registrado por" />
-          {estadoStandalone.statusIA === 'pronto' && (
-            <AutoriaRodape registro={autoriaLaudoStandalone} label="Laudo gerado por" />
-          )}
         </LaudoCompleto>
         );
       })()}
@@ -1327,14 +1313,15 @@ export default function FichaPacientePage() {
                                     setConsultas(p.consultas || []);
                                   }
                                 }
-                                // Dispara geração da IA agora que o peso/dose foram confirmados
-                                const cenarioPeso = mapearCenario({
+                                // Recarrega os textos agora que o peso/dose foram confirmados
+                                const desfechoPeso = derivarDesfechoClinico({
                                   tipo: c.tipo,
                                   status_gerado: c.status_gerado,
-                                  decisao: (c as any).decisao,
-                                  percentual_meta: (c as any).percentual_meta,
+                                  decisao: c.decisao,
+                                  percentual_meta: c.percentual_meta,
+                                  cenario_clinico: c.cenario_clinico,
                                 });
-                                laudoIA.tentarNovamente(paciente.id, c.id, cenarioPeso);
+                                laudoTextos.tentarNovamente(c.id, c.tipo, desfechoPeso);
                               }}
                             />
                           </>
@@ -1403,7 +1390,14 @@ export default function FichaPacientePage() {
                         )}
 
                         {(() => {
-                          const estadoC = laudoIA.getEstado(c.id);
+                          const estadoC = laudoTextos.getEstado(c.id);
+                          const desfechoC = derivarDesfechoClinico({
+                            tipo: c.tipo,
+                            status_gerado: c.status_gerado,
+                            decisao: c.decisao,
+                            percentual_meta: c.percentual_meta,
+                            cenario_clinico: c.cenario_clinico,
+                          });
                           const tipoOpConsulta =
                             c.tipo === 'consulta_1' ? 'consulta_inicial'
                             : c.tipo === 'retorno_1' ? 'retorno'
@@ -1416,10 +1410,6 @@ export default function FichaPacientePage() {
                             recursoId: c.id,
                             tipoOperacao: tipoOpConsulta,
                           });
-                          const autoriaLaudo = autoriaFicha.getAutoria({
-                            recursoId: estadoC.laudoId ?? null,
-                            tipoOperacao: 'gerar_laudo',
-                          });
                           return (
                             <LaudoCompleto
                               paciente={{ nome: paciente.nome }}
@@ -1427,19 +1417,13 @@ export default function FichaPacientePage() {
                               igDias={igLaudo.dias}
                               dataLaudo={dataLaudo}
                               cenario={cenario}
-                              bloco2={estadoC.bloco2}
-                              bloco3={estadoC.bloco3}
-                              statusIA={estadoC.statusIA}
-                              erroIA={estadoC.erroIA}
-                              onTentarNovamente={() => laudoIA.tentarNovamente(paciente.id, c.id, cenario)}
+                              estado={estadoC}
+                              onTentarNovamente={() => laudoTextos.tentarNovamente(c.id, c.tipo, desfechoC)}
                               janelaGTT={c.tipo === 'retorno_1' ? janelaGTT : null}
                               igMaior24={igMaior24}
                             >
                               {renderCardBloco1()}
                               <AutoriaRodape registro={autoriaConsulta} label="Atendimento registrado por" />
-                              {estadoC.statusIA === 'pronto' && (
-                                <AutoriaRodape registro={autoriaLaudo} label="Laudo gerado por" />
-                              )}
                             </LaudoCompleto>
                           );
                         })()}
