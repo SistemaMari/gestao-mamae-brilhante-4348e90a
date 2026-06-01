@@ -18,7 +18,7 @@ describe('validarDataClinica (Prompt 34B seção 3.10)', () => {
   it('rejeita 30/02 (fevereiro não tem 30 dias)', () => {
     const r = validarDataClinica('2026-02-30');
     expect(r.valida).toBe(false);
-    if (!r.valida) expect(r.motivo).toContain('inválida');
+    if (r.valida === false) expect(r.motivo).toContain('inválida');
   });
 
   it('rejeita 31/04 (abril tem 30 dias)', () => {

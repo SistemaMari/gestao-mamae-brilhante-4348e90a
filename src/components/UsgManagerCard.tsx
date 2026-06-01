@@ -197,7 +197,7 @@ export default function UsgManagerCard({
 
     // Se o usuário escolheu uma referência no fluxo de adicionar, persiste em pacientes.
     if (usgFlow.referenciaIg === 'usg') {
-      const novoId = (novaUsg as { id: string }).id;
+      const novoId = (novaUsg as unknown as { id: string }).id;
       const { error: refErr } = await supabase
         .from('pacientes')
         .update({ referencia_ig: 'usg', referencia_usg_id: novoId } as any)

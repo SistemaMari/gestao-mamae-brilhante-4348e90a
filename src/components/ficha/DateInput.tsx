@@ -93,9 +93,9 @@ const DateInput = forwardRef<HTMLInputElement, Props>(function DateInput(
         aria-describedby={inválido ? errorId : undefined}
         className={`${inválido ? 'border-destructive focus-visible:ring-destructive' : ''} ${className}`}
       />
-      {inválido && (
+      {inválido && resultado.valida === false && (
         <p id={errorId} className="text-xs text-destructive" role="alert">
-          {!resultado.valida ? resultado.motivo : ''}
+          {resultado.motivo}
         </p>
       )}
     </div>

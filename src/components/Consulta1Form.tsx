@@ -172,7 +172,6 @@ export default function Consulta1Form() {
       cidade: cidade || null,
       dmg_gestacao_anterior: dmgAnterior === true,
       data_ultima_consulta: dataConsulta,
-      status_ficha: 'aguardando_gj',
       is_rascunho: false,
       // 34B.2 — finaliza ficha. Backend default era 'rascunho' até este save explícito.
       status_ficha: 'completa',
