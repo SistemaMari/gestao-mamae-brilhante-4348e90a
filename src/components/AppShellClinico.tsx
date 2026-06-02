@@ -17,6 +17,7 @@ import {
 import BlockingModal from '@/components/BlockingModal';
 import BannerUsoLaudos from '@/components/BannerUsoLaudos';
 import BannerStatusPlano from '@/components/BannerStatusPlano';
+import TelaInadimplente from '@/components/TelaInadimplente';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { avaliarPlanoStatus } from '@/lib/planoStatus';
 import { toast } from '@/hooks/use-toast';
@@ -118,6 +119,24 @@ export default function AppShellClinico() {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // ── Gate de inadimplência: bloqueia acesso total quando plano_status ──
+  // não está ativo (inadimplente, suspenso, cancelado, expirado por data).
+  if (profissionalData) {
+    const planoInfo = avaliarPlanoStatus(
+      profissionalData.plano_status,
+      profissionalData.plano_expira_em,
+      profissionalData.proxima_renovacao,
+    );
+    if (planoInfo.bloqueado) {
+      return (
+        <TelaInadimplente
+          info={planoInfo}
+          planoSlug={profissionalData.planos?.slug}
+        />
+      );
+    }
   }
 
   const firstName = profissionalData?.nome

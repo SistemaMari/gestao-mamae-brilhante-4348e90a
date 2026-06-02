@@ -15,6 +15,7 @@ export interface ProfissionalData {
   planos: PlanoInfo | null;
   plano_status: string;
   plano_expira_em: string | null;
+  proxima_renovacao: string | null;
   laudos_limite: number;
   laudos_usados: number;
   crm: string | null;
@@ -38,7 +39,7 @@ export function useProfissionalData() {
       const { data: prof } = await supabase
         .from('profissionais')
         .select(
-          'id, plano_id, plano_status, plano_expira_em, laudos_limite, laudos_usados, crm, especialidade, nome, identificador_padrao, unidade_id, planos:plano_id(slug, nome, laudos_por_mes, preco_mensal)'
+          'id, plano_id, plano_status, plano_expira_em, proxima_renovacao, laudos_limite, laudos_usados, crm, especialidade, nome, identificador_padrao, unidade_id, planos:plano_id(slug, nome, laudos_por_mes, preco_mensal)'
         )
         .eq('user_id', user.id)
         .maybeSingle();
