@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, CheckCircle, Copy, QrCode, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Copy, QrCode, FileText, Loader2, AlertCircle, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ─── Máscaras ────────────────────────────────────────────────────────────────
@@ -20,6 +20,18 @@ function maskCpf(v: string) {
 function maskPhone(v: string) {
   return v.replace(/\D/g, '').slice(0, 11)
     .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2');
+}
+function maskCard(v: string) {
+  return v.replace(/\D/g, '').slice(0, 16)
+    .replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+}
+function maskExpiry(v: string) {
+  return v.replace(/\D/g, '').slice(0, 4)
+    .replace(/(\d{2})(\d)/, '$1/$2');
+}
+function maskCep(v: string) {
+  return v.replace(/\D/g, '').slice(0, 8)
     .replace(/(\d{5})(\d)/, '$1-$2');
 }
 
@@ -41,8 +53,9 @@ type FormData = z.infer<typeof schema>;
 
 // ─── Tipos de retorno da edge function ───────────────────────────────────────
 type PaymentResult =
-  | { billing_type: 'PIX';    pix_qr_code_image: string; pix_copia_cola: string; plano: { nome: string; preco: number } }
-  | { billing_type: 'BOLETO'; boleto_linha_digitavel: string; boleto_pdf_url: string; due_date: string; plano: { nome: string; preco: number } };
+  | { billing_type: 'PIX';         pix_qr_code_image: string; pix_copia_cola: string; plano: { nome: string; preco: number } }
+  | { billing_type: 'BOLETO';      boleto_linha_digitavel: string; boleto_pdf_url: string; due_date: string; plano: { nome: string; preco: number } }
+  | { billing_type: 'CREDIT_CARD'; subscription_id: string; plano: { nome: string; preco: number } };
 
 // ─── Componente principal ────────────────────────────────────────────────────
 export default function CheckoutPage() {
@@ -51,11 +64,16 @@ export default function CheckoutPage() {
   const planoInfo = PLANOS[slug];
 
   const [step, setStep] = useState<'dados' | 'pagamento' | 'confirmacao'>('dados');
-  const [billingType, setBillingType] = useState<'PIX' | 'BOLETO'>('PIX');
+  const [billingType, setBillingType] = useState<'PIX' | 'BOLETO' | 'CREDIT_CARD'>('PIX');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PaymentResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [formValues, setFormValues] = useState<FormData | null>(null);
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [cardCep, setCardCep] = useState('');
+  const [cardAddressNumber, setCardAddressNumber] = useState('');
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -80,8 +98,13 @@ export default function CheckoutPage() {
 
   const handleConfirmarPagamento = async () => {
     if (!formValues) return;
+    if (billingType === 'CREDIT_CARD' && (!cardNumber || !cardExpiry || !cardCvv || !cardCep)) {
+      toast.error('Preencha todos os dados do cartão.');
+      return;
+    }
     setLoading(true);
     try {
+      const [expiryMonth, expiryYear] = cardExpiry.split('/');
       const { data, error } = await supabase.functions.invoke('criar-assinatura-asaas', {
         body: {
           plano_slug: slug,
@@ -90,6 +113,14 @@ export default function CheckoutPage() {
           cpf: formValues.cpf.replace(/\D/g, ''),
           telefone: formValues.telefone?.replace(/\D/g, '') ?? '',
           billing_type: billingType,
+          ...(billingType === 'CREDIT_CARD' && {
+            credit_card_number: cardNumber.replace(/\s/g, ''),
+            credit_card_expiry_month: expiryMonth,
+            credit_card_expiry_year: `20${expiryYear}`,
+            credit_card_cvv: cardCvv,
+            cep: cardCep,
+            address_number: cardAddressNumber || 'S/N',
+          }),
         },
       });
       if (error) throw new Error(error.message);
@@ -210,8 +241,12 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-xl border border-border p-6 shadow-sm space-y-5">
               <h2 className="font-heading text-lg font-semibold text-foreground">Forma de pagamento</h2>
 
-              <div className="grid grid-cols-2 gap-3">
-                {(['PIX', 'BOLETO'] as const).map(bt => (
+              <div className="grid grid-cols-3 gap-3">
+                {([
+                  { bt: 'PIX',         icon: QrCode,      label: 'Pix',    sub: 'Aprovação imediata' },
+                  { bt: 'BOLETO',      icon: FileText,    label: 'Boleto', sub: 'Até 3 dias úteis'   },
+                  { bt: 'CREDIT_CARD', icon: CreditCard,  label: 'Cartão', sub: 'Crédito à vista'    },
+                ] as const).map(({ bt, icon: Icon, label, sub }) => (
                   <button
                     key={bt}
                     onClick={() => setBillingType(bt)}
@@ -221,19 +256,72 @@ export default function CheckoutPage() {
                         : 'border-border hover:border-primary/40'
                     }`}
                   >
-                    {bt === 'PIX'
-                      ? <QrCode className={`h-7 w-7 ${billingType === bt ? 'text-primary' : 'text-muted-foreground'}`} />
-                      : <FileText className={`h-7 w-7 ${billingType === bt ? 'text-primary' : 'text-muted-foreground'}`} />
-                    }
+                    <Icon className={`h-7 w-7 ${billingType === bt ? 'text-primary' : 'text-muted-foreground'}`} />
                     <span className={`font-semibold text-sm ${billingType === bt ? 'text-primary' : 'text-foreground'}`}>
-                      {bt === 'PIX' ? 'Pix' : 'Boleto'}
+                      {label}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      {bt === 'PIX' ? 'Aprovação imediata' : 'Até 3 dias úteis'}
-                    </span>
+                    <span className="text-xs text-muted-foreground text-center">{sub}</span>
                   </button>
                 ))}
               </div>
+
+              {/* Campos do cartão */}
+              {billingType === 'CREDIT_CARD' && (
+                <div className="space-y-3 pt-1">
+                  <div className="space-y-1">
+                    <Label>Número do cartão</Label>
+                    <Input
+                      placeholder="0000 0000 0000 0000"
+                      value={cardNumber}
+                      onChange={e => setCardNumber(maskCard(e.target.value))}
+                      maxLength={19}
+                      inputMode="numeric"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label>Validade</Label>
+                      <Input
+                        placeholder="MM/AA"
+                        value={cardExpiry}
+                        onChange={e => setCardExpiry(maskExpiry(e.target.value))}
+                        maxLength={5}
+                        inputMode="numeric"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>CVV</Label>
+                      <Input
+                        placeholder="123"
+                        value={cardCvv}
+                        onChange={e => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        maxLength={4}
+                        inputMode="numeric"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label>CEP</Label>
+                      <Input
+                        placeholder="00000-000"
+                        value={cardCep}
+                        onChange={e => setCardCep(maskCep(e.target.value))}
+                        maxLength={9}
+                        inputMode="numeric"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Número <span className="text-muted-foreground text-xs">(endereço)</span></Label>
+                      <Input
+                        placeholder="123"
+                        value={cardAddressNumber}
+                        onChange={e => setCardAddressNumber(e.target.value.slice(0, 10))}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
                 Após confirmar o pagamento, você receberá um <strong>e-mail para definir sua senha</strong> e acessar o sistema.
@@ -246,7 +334,9 @@ export default function CheckoutPage() {
               >
                 {loading
                   ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processando…</>
-                  : `Gerar ${billingType === 'PIX' ? 'QR Code Pix' : 'Boleto'}`
+                  : billingType === 'PIX' ? 'Gerar QR Code Pix'
+                  : billingType === 'BOLETO' ? 'Gerar Boleto'
+                  : 'Pagar com Cartão'
                 }
               </Button>
             </div>
@@ -258,9 +348,25 @@ export default function CheckoutPage() {
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-secondary" />
                 <h2 className="font-heading text-lg font-semibold text-foreground">
-                  {result.billing_type === 'PIX' ? 'QR Code Pix gerado!' : 'Boleto gerado!'}
+                  {result.billing_type === 'PIX' ? 'QR Code Pix gerado!'
+                  : result.billing_type === 'BOLETO' ? 'Boleto gerado!'
+                  : 'Pagamento confirmado!'}
                 </h2>
               </div>
+
+              {result.billing_type === 'CREDIT_CARD' && (
+                <div className="space-y-4">
+                  <div className="rounded-lg bg-secondary/10 border border-secondary/30 p-4 flex items-start gap-3">
+                    <CreditCard className="h-5 w-5 text-secondary mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-sm text-foreground">Assinatura ativa</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Plano <strong>{result.plano.nome}</strong> assinado com sucesso. A cobrança no cartão será processada em breve.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {result.billing_type === 'PIX' && (
                 <div className="space-y-4">

@@ -40,13 +40,20 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
 
-  const { plano_slug, nome, email, cpf, telefone, billing_type } = body;
+  const {
+    plano_slug, nome, email, cpf, telefone, billing_type,
+    credit_card_number, credit_card_expiry_month, credit_card_expiry_year,
+    credit_card_cvv, cep, address_number,
+  } = body;
 
   if (!plano_slug || !nome || !email || !cpf || !billing_type) {
     return json({ error: "Campos obrigatórios: plano_slug, nome, email, cpf, billing_type" }, 400);
   }
-  if (!["PIX", "BOLETO"].includes(billing_type)) {
-    return json({ error: "billing_type deve ser PIX ou BOLETO" }, 400);
+  if (!["PIX", "BOLETO", "CREDIT_CARD"].includes(billing_type)) {
+    return json({ error: "billing_type deve ser PIX, BOLETO ou CREDIT_CARD" }, 400);
+  }
+  if (billing_type === "CREDIT_CARD" && (!credit_card_number || !credit_card_expiry_month || !credit_card_expiry_year || !credit_card_cvv || !cep)) {
+    return json({ error: "Campos obrigatórios para cartão: credit_card_number, credit_card_expiry_month, credit_card_expiry_year, credit_card_cvv, cep" }, 400);
   }
 
   const supabase = createClient(
@@ -96,27 +103,57 @@ Deno.serve(async (req) => {
 
   // 3. Cria assinatura
   const hoje = new Date().toISOString().split("T")[0];
+
+  const subPayload: any = {
+    customer: customerId,
+    billingType: billing_type,
+    value: plano.preco_mensal,
+    nextDueDate: hoje,
+    cycle: "MONTHLY",
+    description: `${plano.nome} MARI | ${plano.laudos_por_mes} laudos/mês`,
+    externalReference: plano_slug,
+  };
+
+  if (billing_type === "CREDIT_CARD") {
+    subPayload.creditCard = {
+      holderName: nome.trim(),
+      number: credit_card_number.replace(/\D/g, ""),
+      expiryMonth: credit_card_expiry_month,
+      expiryYear: credit_card_expiry_year,
+      ccv: credit_card_cvv,
+    };
+    subPayload.creditCardHolderInfo = {
+      name: nome.trim(),
+      email: email.trim().toLowerCase(),
+      cpfCnpj: cpfLimpo,
+      postalCode: cep.replace(/\D/g, ""),
+      addressNumber: address_number?.trim() || "S/N",
+      ...(foneFormatado ? { phone: foneFormatado } : {}),
+    };
+  }
+
   const subResp = await asaasFetch("/subscriptions", {
     method: "POST",
-    body: JSON.stringify({
-      customer: customerId,
-      billingType: billing_type,
-      value: plano.preco_mensal,
-      nextDueDate: hoje,
-      cycle: "MONTHLY",
-      description: `${plano.nome} MARI | ${plano.laudos_por_mes} laudos/mês`,
-      externalReference: plano_slug,
-    }),
+    body: JSON.stringify(subPayload),
   });
   const subData = await subResp.json();
-  if (!subData?.id) {
+  if (subData?.errors || !subData?.id) {
     console.error("Erro ao criar assinatura Asaas:", subData);
     return json({ error: "Falha ao criar assinatura no Asaas", detail: subData }, 502);
   }
 
   const subscriptionId = subData.id;
 
-  // 4. Aguarda 1s e busca o primeiro pagamento da assinatura
+  // Cartão: cobrança processada na hora, retorna imediatamente
+  if (billing_type === "CREDIT_CARD") {
+    return json({
+      billing_type: "CREDIT_CARD",
+      subscription_id: subscriptionId,
+      plano: { nome: plano.nome, preco: plano.preco_mensal },
+    });
+  }
+
+  // 4. Aguarda 1s e busca o primeiro pagamento da assinatura (PIX / BOLETO)
   await new Promise((r) => setTimeout(r, 1200));
 
   const paymentsResp = await asaasFetch(`/payments?subscription=${subscriptionId}&limit=1`);
