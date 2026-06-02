@@ -29,6 +29,7 @@ import ComparadorPage from "./pages/consolidar/ComparadorPage";
 import ConfiguracoesGestorGeralPage from "./pages/consolidar/ConfiguracoesGestorGeralPage";
 import UnidadeDrillDownPage from "./pages/consolidar/UnidadeDrillDownPage";
 import PlanosPage from "./pages/PlanosPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
 import GestaoEquipePage from "./pages/GestaoEquipePage";
 import CadastroConvitePage from "./pages/CadastroConvitePage";
@@ -90,6 +91,7 @@ const App = () => (
             <Route path="/nova-senha" element={<NovaSenhaPage />} />
             <Route path="/reset-password" element={<Navigate to="/nova-senha" replace />} />
             <Route path="/convite/:token" element={<CadastroConvitePage />} />
+            <Route path="/checkout/:slug" element={<CheckoutPage />} />
 
             {/* Vitrine pública (sem login) — acessível por URL direta */}
             <Route path="/vitrine" element={<PreviewHubPage />} />

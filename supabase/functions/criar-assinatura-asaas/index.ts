@@ -1,0 +1,159 @@
+// Cria cliente + assinatura no Asaas e retorna dados de pagamento (PIX ou Boleto).
+// Público: verify_jwt = false (acesso sem login, pois o usuário ainda não tem conta).
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+function asaasBase() {
+  const env = (Deno.env.get("ASAAS_ENV") ?? "sandbox").toLowerCase();
+  return env === "production"
+    ? "https://api.asaas.com/v3"
+    : "https://api-sandbox.asaas.com/v3";
+}
+
+async function asaasFetch(path: string, opts: RequestInit = {}) {
+  const key = Deno.env.get("ASAAS_API_KEY")!;
+  return fetch(`${asaasBase()}${path}`, {
+    ...opts,
+    headers: {
+      "access_token": key,
+      "Content-Type": "application/json",
+      ...(opts.headers ?? {}),
+    },
+  });
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
+  let body: any;
+  try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
+
+  const { plano_slug, nome, email, cpf, telefone, billing_type } = body;
+
+  if (!plano_slug || !nome || !email || !cpf || !billing_type) {
+    return json({ error: "Campos obrigatórios: plano_slug, nome, email, cpf, billing_type" }, 400);
+  }
+  if (!["PIX", "BOLETO"].includes(billing_type)) {
+    return json({ error: "billing_type deve ser PIX ou BOLETO" }, 400);
+  }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  // 1. Busca plano no banco
+  const { data: plano } = await supabase
+    .from("planos")
+    .select("id, nome, preco_mensal, laudos_por_mes, suporte")
+    .eq("slug", plano_slug)
+    .eq("ativo", true)
+    .maybeSingle();
+
+  if (!plano) return json({ error: "Plano não encontrado" }, 404);
+
+  // 2. Cria ou recupera cliente no Asaas
+  const cpfLimpo = cpf.replace(/\D/g, "");
+  const foneFormatado = telefone ? telefone.replace(/\D/g, "") : undefined;
+
+  // Busca por CPF existente
+  const searchResp = await asaasFetch(`/customers?cpfCnpj=${cpfLimpo}&limit=1`);
+  const searchData = await searchResp.json();
+  let customerId: string;
+
+  if (searchData?.data?.length > 0) {
+    customerId = searchData.data[0].id;
+  } else {
+    const createCust = await asaasFetch("/customers", {
+      method: "POST",
+      body: JSON.stringify({
+        name: nome.trim(),
+        email: email.trim().toLowerCase(),
+        cpfCnpj: cpfLimpo,
+        ...(foneFormatado ? { mobilePhone: foneFormatado } : {}),
+        notificationDisabled: false,
+      }),
+    });
+    const custData = await createCust.json();
+    if (!custData?.id) {
+      console.error("Erro ao criar cliente Asaas:", custData);
+      return json({ error: "Falha ao criar cliente no Asaas", detail: custData }, 502);
+    }
+    customerId = custData.id;
+  }
+
+  // 3. Cria assinatura
+  const hoje = new Date().toISOString().split("T")[0];
+  const subResp = await asaasFetch("/subscriptions", {
+    method: "POST",
+    body: JSON.stringify({
+      customer: customerId,
+      billingType: billing_type,
+      value: plano.preco_mensal,
+      nextDueDate: hoje,
+      cycle: "MONTHLY",
+      description: `${plano.nome} MARI | ${plano.laudos_por_mes} laudos/mês`,
+      externalReference: plano_slug,
+    }),
+  });
+  const subData = await subResp.json();
+  if (!subData?.id) {
+    console.error("Erro ao criar assinatura Asaas:", subData);
+    return json({ error: "Falha ao criar assinatura no Asaas", detail: subData }, 502);
+  }
+
+  const subscriptionId = subData.id;
+
+  // 4. Aguarda 1s e busca o primeiro pagamento da assinatura
+  await new Promise((r) => setTimeout(r, 1200));
+
+  const paymentsResp = await asaasFetch(`/payments?subscription=${subscriptionId}&limit=1`);
+  const paymentsData = await paymentsResp.json();
+  const payment = paymentsData?.data?.[0];
+
+  if (!payment?.id) {
+    return json({ error: "Pagamento inicial não encontrado", subscription_id: subscriptionId }, 502);
+  }
+
+  const paymentId = payment.id;
+
+  // 5. Busca dados específicos do método de pagamento
+  if (billing_type === "PIX") {
+    const pixResp = await asaasFetch(`/payments/${paymentId}/pixQrCode`);
+    const pixData = await pixResp.json();
+    return json({
+      billing_type: "PIX",
+      subscription_id: subscriptionId,
+      payment_id: paymentId,
+      pix_qr_code_image: pixData.encodedImage ?? null,
+      pix_copia_cola: pixData.payload ?? null,
+      expiration: pixData.expirationDate ?? null,
+      plano: { nome: plano.nome, preco: plano.preco_mensal },
+    });
+  }
+
+  // BOLETO
+  const boletoResp = await asaasFetch(`/payments/${paymentId}/identificationField`);
+  const boletoData = await boletoResp.json();
+  return json({
+    billing_type: "BOLETO",
+    subscription_id: subscriptionId,
+    payment_id: paymentId,
+    boleto_linha_digitavel: boletoData.identificationField ?? null,
+    boleto_pdf_url: `${asaasBase()}/payments/${paymentId}/bankSlipPdf`,
+    due_date: payment.dueDate ?? hoje,
+    plano: { nome: plano.nome, preco: plano.preco_mensal },
+  });
+});

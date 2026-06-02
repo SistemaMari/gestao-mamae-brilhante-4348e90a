@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Crown, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { nomeAmigavelCurso } from '@/lib/nomesCursos';
 
 interface Plano {
@@ -71,12 +70,7 @@ export default function PlanosPage() {
     : null;
 
   const handleAssinar = (plano: Plano) => {
-    if (!plano.link_pagamento_asaas) {
-      toast.error('Link de pagamento indisponível. Contate o suporte.');
-      return;
-    }
-    window.open(plano.link_pagamento_asaas, '_blank', 'noopener,noreferrer');
-    toast.info('Após confirmar o pagamento, você receberá um e-mail para definir sua senha.');
+    navigate(`/checkout/${plano.slug}`);
   };
 
   const renderHeader = () => (

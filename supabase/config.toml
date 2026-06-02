@@ -3,6 +3,8 @@ project_id = "ywldvotfgbxufcyjdvnq"
 [functions]
   [functions.asaas-webhook]
     verify_jwt = false
+  [functions.criar-assinatura-asaas]
+    verify_jwt = false
   [functions.auth-email-hook]
     verify_jwt = false
   [functions.limpar-exportacoes-admin]
