@@ -145,12 +145,16 @@ Deno.serve(async (req) => {
       consultaId = novaConsulta.id;
     } else {
       // UPDATE COALESCE: lê valores atuais, faz merge no servidor
+      // 🔒 verifica que a consulta pertence à paciente do body
       const { data: atual } = await admin
         .from("consultas")
-        .select("data, ig_semanas, ig_dias, cenario_clinico, observacoes, status_ficha")
+        .select("data, ig_semanas, ig_dias, cenario_clinico, observacoes, status_ficha, paciente_id, profissional_id")
         .eq("id", consultaId)
-        .single();
+        .maybeSingle();
       if (!atual) return jsonResp({ error: "Consulta não encontrada" }, 404);
+      if (atual.paciente_id !== body.paciente_id || atual.profissional_id !== prof.id) {
+        return jsonResp({ error: "Sem permissão para alterar esta consulta" }, 403);
+      }
 
       const updatePayload: Record<string, unknown> = {
         data: campos.data ?? atual.data,
@@ -168,9 +172,12 @@ Deno.serve(async (req) => {
       const { error: updErr } = await admin
         .from("consultas")
         .update(updatePayload)
-        .eq("id", consultaId);
+        .eq("id", consultaId)
+        .eq("paciente_id", body.paciente_id)
+        .eq("profissional_id", prof.id);
       if (updErr) return jsonResp({ error: "Erro ao atualizar consulta", details: updErr.message }, 500);
     }
+
 
     // ============================================================
     // Exame de glicemia (opcional)
@@ -178,19 +185,32 @@ Deno.serve(async (req) => {
     if (body.exame_glicemia) {
       const eg = body.exame_glicemia;
       if (eg.id) {
+        // 🔒 Verifica que o exame pertence à paciente do body E ao profissional autenticado
         const { data: atualEg } = await admin
           .from("exames_glicemia")
-          .select("valor_mgdl, tipo_exame, data_exame, ig_semanas_na_data, ig_dias_na_data")
+          .select("valor_mgdl, tipo_exame, data_exame, ig_semanas_na_data, ig_dias_na_data, paciente_id, profissional_id")
           .eq("id", eg.id)
-          .single();
+          .maybeSingle();
+        if (!atualEg) {
+          return jsonResp({ error: "Exame não encontrado" }, 404);
+        }
+        if (atualEg.paciente_id !== body.paciente_id || atualEg.profissional_id !== prof.id) {
+          return jsonResp({ error: "Sem permissão para alterar este exame" }, 403);
+        }
         const updEg: Record<string, unknown> = {
-          valor_mgdl: eg.valor_mgdl ?? atualEg?.valor_mgdl,
-          tipo_exame: eg.tipo_exame ?? atualEg?.tipo_exame,
-          data_exame: eg.data_exame ?? atualEg?.data_exame,
-          ig_semanas_na_data: eg.ig_semanas_na_data ?? atualEg?.ig_semanas_na_data,
-          ig_dias_na_data: eg.ig_dias_na_data ?? atualEg?.ig_dias_na_data,
+          valor_mgdl: eg.valor_mgdl ?? atualEg.valor_mgdl,
+          tipo_exame: eg.tipo_exame ?? atualEg.tipo_exame,
+          data_exame: eg.data_exame ?? atualEg.data_exame,
+          ig_semanas_na_data: eg.ig_semanas_na_data ?? atualEg.ig_semanas_na_data,
+          ig_dias_na_data: eg.ig_dias_na_data ?? atualEg.ig_dias_na_data,
         };
-        await admin.from("exames_glicemia").update(updEg).eq("id", eg.id);
+        await admin
+          .from("exames_glicemia")
+          .update(updEg)
+          .eq("id", eg.id)
+          .eq("paciente_id", body.paciente_id)
+          .eq("profissional_id", prof.id);
+
       } else if (eg.valor_mgdl != null) {
         await admin.from("exames_glicemia").insert({
           paciente_id: body.paciente_id,
