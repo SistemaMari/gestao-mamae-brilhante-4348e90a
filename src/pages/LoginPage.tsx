@@ -32,14 +32,35 @@ export default function LoginPage() {
 
   const isFormValid = email.trim() !== '' && password.length >= 6;
 
+  // Detecta retorno do OAuth Google ainda no carregamento inicial — antes do user resolver.
+  useEffect(() => {
+    if (sessionStorage.getItem(GOOGLE_FLAG_KEY) === '1') {
+      setSubmitted(true);
+    }
+  }, []);
+
   useEffect(() => {
     if (!submitted || loading) return;
     if (!user) return;
+
+    const viaGoogle = sessionStorage.getItem(GOOGLE_FLAG_KEY) === '1';
+
     if (profile === null) {
+      if (viaGoogle) {
+        // Conta Google não corresponde a nenhum usuário cadastrado — bloquear.
+        sessionStorage.removeItem(GOOGLE_FLAG_KEY);
+        supabase.auth.signOut().finally(() => {
+          setError('Este e-mail Google não está cadastrado. Solicite acesso ao administrador.');
+          setSubmitted(false);
+          setIsGoogleLoading(false);
+        });
+        return;
+      }
       navigate('/onboarding', { replace: true });
       return;
     }
     if (profile) {
+      sessionStorage.removeItem(GOOGLE_FLAG_KEY);
       navigate(getRedirectPath(profile), { replace: true });
     }
   }, [submitted, loading, user, profile, navigate]);
@@ -64,6 +85,31 @@ export default function LoginPage() {
 
     setSubmitted(true);
   };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setIsGoogleLoading(true);
+    sessionStorage.setItem(GOOGLE_FLAG_KEY, '1');
+    try {
+      const result = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin + '/login',
+      });
+      if (result.error) {
+        sessionStorage.removeItem(GOOGLE_FLAG_KEY);
+        setIsGoogleLoading(false);
+        setError('Não foi possível iniciar o login com Google. Tente novamente.');
+        return;
+      }
+      if (result.redirected) return; // Browser está redirecionando
+      // Tokens já setados — disparar fluxo de verificação
+      setSubmitted(true);
+    } catch {
+      sessionStorage.removeItem(GOOGLE_FLAG_KEY);
+      setIsGoogleLoading(false);
+      setError('Não foi possível iniciar o login com Google. Tente novamente.');
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-2">
