@@ -208,8 +208,8 @@ Deno.serve(async (req) => {
       payload: {
         message_id: messageId,
         to: email_convidado,
-        from: `MARI | Inteligência Clínica <noreply@info.mari.novodmg.com.br>`,
-        sender_domain: "info.mari.novodmg.com.br",
+        from: `Mari's Health Companion <noreply@maridmg.com.br>`,
+        sender_domain: "maridmg.com.br",
         subject: `Convite para ${nomeUnidade} — MARI`,
         html: htmlBody,
         text: textBody,
