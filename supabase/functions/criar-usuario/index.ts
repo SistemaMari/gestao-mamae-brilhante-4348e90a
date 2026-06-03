@@ -154,6 +154,22 @@ Deno.serve(async (req) => {
       try {
         // já existe?
         let userId = emailToUserId.get(item.email);
+        if (userId) {
+          // Usuário existe — verifica se nunca fez login (criado pelo fluxo antigo
+          // sem convite). Nesse caso é seguro deletar e re-convidar para que o email
+          // de convite seja enviado corretamente.
+          const existingAuthUser = authList?.users?.find((u) => u.id === userId);
+          const hasLoggedIn = existingAuthUser?.last_sign_in_at != null;
+          if (!hasLoggedIn) {
+            // Limpa registros de perfil (se existirem) e deleta o auth user
+            await supabaseAdmin.from("profissionais").delete().eq("user_id", userId);
+            await supabaseAdmin.from("admins").delete().eq("user_id", userId);
+            await supabaseAdmin.from("gestores_gerais").delete().eq("user_id", userId);
+            await supabaseAdmin.auth.admin.deleteUser(userId);
+            userId = undefined; // cai no bloco de criação abaixo
+          }
+        }
+
         if (!userId) {
           // inviteUserByEmail cria o usuário E dispara o auth-email-hook automaticamente,
           // que envia o email com o link para o profissional definir sua senha.
