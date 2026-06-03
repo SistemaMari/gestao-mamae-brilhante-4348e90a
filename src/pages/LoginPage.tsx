@@ -2,12 +2,17 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth, getRedirectPath } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import mariLogo from '@/assets/mari-logo.png';
+
+const GOOGLE_FLAG_KEY = 'mari_google_oauth_attempt';
+
 
 const MARKETING_GRADIENT =
   'linear-gradient(135deg, #7C4DBA 0%, #6B5BB5 45%, #2C7A8C 100%)';
