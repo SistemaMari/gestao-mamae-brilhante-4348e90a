@@ -133,6 +133,30 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // 🔒 Ownership check via cliente autenticado (respeita RLS).
+    // Garante que o profissional autenticado tem acesso à paciente e à consulta
+    // ANTES de qualquer leitura/escrita via service_role.
+    const { data: pacienteAcesso, error: pacAcessoErr } = await supabase
+      .from("pacientes")
+      .select("id")
+      .eq("id", paciente_id)
+      .maybeSingle();
+    if (pacAcessoErr || !pacienteAcesso) {
+      return jsonResp({ error: "Acesso negado à paciente" }, 403);
+    }
+
+    const { data: consultaAcesso, error: consAcessoErr } = await supabase
+      .from("consultas")
+      .select("id")
+      .eq("id", consulta_id)
+      .eq("paciente_id", paciente_id)
+      .maybeSingle();
+    if (consAcessoErr || !consultaAcesso) {
+      return jsonResp({ error: "Acesso negado à consulta" }, 403);
+    }
+
+
+
     // Carrega dados clínicos da paciente (continuam sendo injetados no PDF)
     const [
       { data: profissional },
