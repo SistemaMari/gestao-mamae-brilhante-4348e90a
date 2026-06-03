@@ -63,9 +63,23 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-    const isAutomatico = origem === 'automatico' && gestorIdRaw === SYSTEM_USER_UUID;
+
+    // Fluxo AUTOMATICO só é válido quando o caller apresenta a service_role key
+    // (cron job interno). O UUID de sistema sozinho NÃO é mais suficiente —
+    // ele era forjável por qualquer cliente autenticado.
+    const bearer = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const isServiceRole = bearer === SERVICE_ROLE;
+    const isAutomatico = origem === 'automatico' && isServiceRole;
+
+    if (origem === 'automatico' && !isServiceRole) {
+      return jsonResponse(
+        { status: 'erro', mensagem: 'origem=automatico requer credenciais de serviço.' },
+        403,
+      );
+    }
 
     let gestorId: string | null = gestorIdRaw;
+
 
     if (!isAutomatico) {
       // Fluxo MANUAL: valida sessão do gestor humano
