@@ -1,4 +1,4 @@
-// enviar-convite v2 — verificação ampliada de unicidade de e-mail
+// enviar-convite v3 — auto-limpeza de auth users órfãos
 // Status retornados:
 //   - enviado            (com fluxo: 'criacao' | 'vinculacao')
 //   - ja_vinculado
@@ -7,7 +7,7 @@
 //   - email_em_uso_gestor_unidade
 //   - email_em_uso_gestor_geral
 //   - email_em_uso_outra_unidade
-//   - email_em_uso_outro
+//   - email_em_uso_consultorio
 //   - erro
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -121,8 +121,16 @@ Deno.serve(async (req) => {
         // Vinculação cruzada está descontinuada.
         return json({ status: "email_em_uso_consultorio" });
       } else {
-        // Auth user exists but no profissional row — treat as outro perfil em uso
-        return json({ status: "email_em_uso_outro" });
+        // Auth user exists but has no role (no profissional, admin, or gestor_geral).
+        // This is an orphaned auth account (e.g. created directly via dashboard).
+        // Safe to delete so the invite can proceed.
+        const { error: deleteErr } = await supabaseAdmin.auth.admin.deleteUser(authUser.id);
+        if (deleteErr) {
+          console.error("[enviar-convite] failed to delete orphaned auth user:", deleteErr);
+          return json({ status: "erro", mensagem: "Não foi possível limpar o usuário órfão. Contate o suporte." }, 500);
+        }
+        console.log(`[enviar-convite] deleted orphaned auth user ${authUser.id} (${email_convidado})`);
+        // Fall through to create the invite normally.
       }
     }
 
