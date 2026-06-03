@@ -145,12 +145,16 @@ Deno.serve(async (req) => {
       consultaId = novaConsulta.id;
     } else {
       // UPDATE COALESCE: lê valores atuais, faz merge no servidor
+      // 🔒 verifica que a consulta pertence à paciente do body
       const { data: atual } = await admin
         .from("consultas")
-        .select("data, ig_semanas, ig_dias, cenario_clinico, observacoes, status_ficha")
+        .select("data, ig_semanas, ig_dias, cenario_clinico, observacoes, status_ficha, paciente_id, profissional_id")
         .eq("id", consultaId)
-        .single();
+        .maybeSingle();
       if (!atual) return jsonResp({ error: "Consulta não encontrada" }, 404);
+      if (atual.paciente_id !== body.paciente_id || atual.profissional_id !== prof.id) {
+        return jsonResp({ error: "Sem permissão para alterar esta consulta" }, 403);
+      }
 
       const updatePayload: Record<string, unknown> = {
         data: campos.data ?? atual.data,
@@ -168,9 +172,12 @@ Deno.serve(async (req) => {
       const { error: updErr } = await admin
         .from("consultas")
         .update(updatePayload)
-        .eq("id", consultaId);
+        .eq("id", consultaId)
+        .eq("paciente_id", body.paciente_id)
+        .eq("profissional_id", prof.id);
       if (updErr) return jsonResp({ error: "Erro ao atualizar consulta", details: updErr.message }, 500);
     }
+
 
     // ============================================================
     // Exame de glicemia (opcional)
