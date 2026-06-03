@@ -1,9 +1,10 @@
-// Edge function admin-only: cria conta de usuário SEM senha e dispara
-// e-mail de "definir senha" (recovery / invite link nativo do Supabase).
+// Edge function admin-only: cria conta de usuário SEM senha e envia
+// e-mail de convite direto via sendLovableEmail (sem depender do auth hook ou pg_cron).
 //
 // Suporta criação individual e em lote. Retorna por item: { ok, email, motivo? }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { sendLovableEmail } from "npm:@lovable.dev/email-js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -171,22 +172,23 @@ Deno.serve(async (req) => {
         }
 
         if (!userId) {
-          // inviteUserByEmail cria o usuário E dispara o auth-email-hook automaticamente,
-          // que envia o email com o link para o profissional definir sua senha.
-          const { data: invited, error: inviteErr } =
-            await supabaseAdmin.auth.admin.inviteUserByEmail(item.email, {
-              redirectTo: redirectFinal,
-              data: { nome: item.nome },
+          // Cria conta confirmada sem senha — o profissional define a senha
+          // clicando no link do email de convite que enviamos abaixo.
+          const { data: created, error: createErr } =
+            await supabaseAdmin.auth.admin.createUser({
+              email: item.email,
+              email_confirm: true,
+              user_metadata: { nome: item.nome },
             });
-          if (inviteErr || !invited?.user) {
+          if (createErr || !created?.user) {
             resultados.push({
               email: item.email,
               ok: false,
-              motivo: inviteErr?.message ?? "Falha ao convidar usuário.",
+              motivo: createErr?.message ?? "Falha ao criar usuário.",
             });
             continue;
           }
-          userId = invited.user.id;
+          userId = created.user.id;
         }
 
         // cria registros de perfil conforme tipo
@@ -247,9 +249,57 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Email de convite já foi enviado pelo inviteUserByEmail acima (via auth-email-hook).
-        // Para usuários que já existiam, o email não é reenviado — o admin deve
-        // usar a opção de reenvio no painel se necessário.
+        // Gera link de definição de senha e envia email de convite diretamente.
+        const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+          type: "recovery",
+          email: item.email,
+          options: { redirectTo: redirectFinal },
+        });
+        const actionLink = linkData?.properties?.action_link;
+
+        if (actionLink) {
+          const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+          if (lovableApiKey) {
+            const htmlBody = `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;background:#fff;padding:32px;color:#1e293b;">
+  <p style="font-size:14px;font-weight:bold;color:#9b87f5;letter-spacing:2px;margin:0 0 24px;">MARI</p>
+  <h2 style="font-family:Sora,Arial,sans-serif;font-size:22px;margin:0 0 20px;">Você foi convidado(a)</h2>
+  <p style="font-size:14px;color:#475569;line-height:1.6;margin:0 0 20px;">
+    Você recebeu um convite para acessar o <strong>MARI | Inteligência Clínica</strong>.
+    Clique no botão abaixo para criar sua senha e acessar o sistema.
+  </p>
+  <a href="${actionLink}" style="display:inline-block;background:#9b87f5;color:#fff;font-size:14px;font-weight:bold;border-radius:12px;padding:12px 24px;text-decoration:none;">
+    Criar minha senha
+  </a>
+  <p style="font-size:12px;color:#94a3b8;margin:32px 0 0;line-height:1.5;">
+    Se você não estava esperando este convite, pode ignorar este e-mail com segurança.
+  </p>
+</body></html>`;
+            const textBody = `Você foi convidado(a) para o MARI | Inteligência Clínica.\n\nCrie sua senha acessando:\n${actionLink}`;
+
+            try {
+              await sendLovableEmail(
+                {
+                  message_id: crypto.randomUUID(),
+                  to: item.email,
+                  from: "Mari's Health Companion <noreply@maridmg.com.br>",
+                  sender_domain: "maridmg.com.br",
+                  subject: "Seu convite para o MARI | Inteligência Clínica",
+                  html: htmlBody,
+                  text: textBody,
+                  purpose: "transactional",
+                  label: "admin_invite",
+                },
+                { apiKey: lovableApiKey },
+              );
+              console.log(`[criar-usuario] convite enviado para ${item.email}`);
+            } catch (emailErr) {
+              console.error(`[criar-usuario] falha ao enviar email para ${item.email}:`, emailErr);
+            }
+          }
+        }
+
         resultados.push({
           email: item.email,
           ok: true,
