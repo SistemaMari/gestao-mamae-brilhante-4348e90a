@@ -133,10 +133,8 @@ Deno.serve(async (req) => {
 
     const resultados: Resultado[] = [];
 
-    const redirectTo = `${Deno.env.get("SUPABASE_URL")!.replace(".supabase.co", ".lovable.app")}/nova-senha`;
-    // Fallback: se ambiente custom, deixa o frontend lidar via /nova-senha
     const projectAppUrl =
-      (body?.app_url as string | undefined) || "https://gestao-mamae-brilhante.lovable.app";
+      (body?.app_url as string | undefined) || "https://maridmg.com.br";
     const redirectFinal = `${projectAppUrl}/nova-senha`;
 
     for (const itemRaw of itens) {
@@ -157,21 +155,22 @@ Deno.serve(async (req) => {
         // já existe?
         let userId = emailToUserId.get(item.email);
         if (!userId) {
-          const { data: created, error: createErr } =
-            await supabaseAdmin.auth.admin.createUser({
-              email: item.email,
-              email_confirm: true, // confirma sem senha
-              user_metadata: { nome: item.nome },
+          // inviteUserByEmail cria o usuário E dispara o auth-email-hook automaticamente,
+          // que envia o email com o link para o profissional definir sua senha.
+          const { data: invited, error: inviteErr } =
+            await supabaseAdmin.auth.admin.inviteUserByEmail(item.email, {
+              redirectTo: redirectFinal,
+              data: { nome: item.nome },
             });
-          if (createErr || !created?.user) {
+          if (inviteErr || !invited?.user) {
             resultados.push({
               email: item.email,
               ok: false,
-              motivo: createErr?.message ?? "Falha ao criar usuário.",
+              motivo: inviteErr?.message ?? "Falha ao convidar usuário.",
             });
             continue;
           }
-          userId = created.user.id;
+          userId = invited.user.id;
         }
 
         // cria registros de perfil conforme tipo
@@ -232,30 +231,14 @@ Deno.serve(async (req) => {
           }
         }
 
-        // gera link "definir senha" (recovery)
-        const { data: linkData, error: linkErr } =
-          await supabaseAdmin.auth.admin.generateLink({
-            type: "recovery",
-            email: item.email,
-            options: { redirectTo: redirectFinal },
-          });
-
-        if (linkErr) {
-          // conta criada mas o link falhou — ainda assim retorna ok parcial
-          resultados.push({
-            email: item.email,
-            ok: true,
-            user_id: userId,
-            motivo: `Conta criada, mas falha ao gerar link: ${linkErr.message}`,
-          });
-        } else {
-          resultados.push({
-            email: item.email,
-            ok: true,
-            user_id: userId,
-            action_link: linkData.properties?.action_link,
-          });
-        }
+        // Email de convite já foi enviado pelo inviteUserByEmail acima (via auth-email-hook).
+        // Para usuários que já existiam, o email não é reenviado — o admin deve
+        // usar a opção de reenvio no painel se necessário.
+        resultados.push({
+          email: item.email,
+          ok: true,
+          user_id: userId,
+        });
       } catch (err) {
         resultados.push({
           email: item.email,

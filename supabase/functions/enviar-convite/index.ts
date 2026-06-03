@@ -170,9 +170,61 @@ Deno.serve(async (req) => {
       .eq("id", unidade_id)
       .single();
 
-    console.log(
-      `[CONVITE] Email would be sent to ${email_convidado} for unit ${unidade?.nome}`
-    );
+    const conviteUrl = `https://maridmg.com.br/cadastro-convite/${token_invite}`;
+    const nomeUnidade = unidade?.nome ?? "sua unidade";
+
+    const htmlBody = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"></head>
+<body style="font-family: Arial, sans-serif; background:#fff; color:#1e293b; padding:32px;">
+  <h2 style="color:#9b87f5;">MARI | Inteligência Clínica</h2>
+  <h3>Você foi convidado(a) para ${nomeUnidade}</h3>
+  <p>Clique no botão abaixo para aceitar o convite e criar sua conta de acesso.</p>
+  <a href="${conviteUrl}"
+     style="display:inline-block;background:#9b87f5;color:#fff;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:bold;">
+    Aceitar convite
+  </a>
+  <p style="margin-top:24px;font-size:12px;color:#94a3b8;">
+    Se você não estava esperando este convite, pode ignorar este e-mail.
+    O link expira em 7 dias.
+  </p>
+</body>
+</html>`;
+
+    const textBody = `Você foi convidado(a) para ${nomeUnidade} no MARI | Inteligência Clínica.\n\nAcesse o link abaixo para criar sua conta:\n${conviteUrl}\n\nO link expira em 7 dias.`;
+
+    const messageId = crypto.randomUUID();
+
+    await supabaseAdmin.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "convite_unidade",
+      recipient_email: email_convidado,
+      status: "pending",
+    });
+
+    const { error: enqueueError } = await supabaseAdmin.rpc("enqueue_email", {
+      queue_name: "auth_emails",
+      payload: {
+        message_id: messageId,
+        to: email_convidado,
+        from: `MARI | Inteligência Clínica <noreply@info.mari.novodmg.com.br>`,
+        sender_domain: "info.mari.novodmg.com.br",
+        subject: `Convite para ${nomeUnidade} — MARI`,
+        html: htmlBody,
+        text: textBody,
+        purpose: "transactional",
+        label: "convite_unidade",
+        queued_at: new Date().toISOString(),
+      },
+    });
+
+    if (enqueueError) {
+      console.error("[enviar-convite] falha ao enfileirar email:", enqueueError);
+      // Convite foi criado — retorna sucesso parcial; o email pode ser reenviado.
+    } else {
+      console.log(`[enviar-convite] email enfileirado para ${email_convidado}`);
+    }
 
     return json({ status: "enviado" });
   } catch (err) {
