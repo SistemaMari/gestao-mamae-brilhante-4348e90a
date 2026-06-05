@@ -376,6 +376,9 @@ export default function FichaACForm({
         decisao,
         data_inicio: dataInicio,
         data_fim: dataFim,
+        proxima_ficha_recomendada: decisaoFichaA?.proxima_ficha_recomendada ?? null,
+        regra_aplicada: decisaoFichaA?.regra_aplicada ?? null,
+        conduta_gerada: decisaoFichaA?.conduta_gerada ?? null,
       };
 
       let updatedConsultas: PreviewConsulta[];
