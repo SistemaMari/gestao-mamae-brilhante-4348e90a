@@ -250,6 +250,9 @@ export default function FichaPacientePage() {
   const [showFichaBD, setShowFichaBD] = useState(false);
   const [fichaBDCompleted, setFichaBDCompleted] = useState(false);
   const [_fichaBDResult, setFichaBDResult] = useState<PreviewConsulta | null>(null);
+  const [showFichaE, setShowFichaE] = useState(false);
+  const [fichaECompleted, setFichaECompleted] = useState(false);
+  const [_fichaEResult, setFichaEResult] = useState<PreviewConsulta | null>(null);
   const [showGtt, setShowGtt] = useState(false);
   const [gttCompleted, setGttCompleted] = useState(false);
   const [showRegistroParto, setShowRegistroParto] = useState(false);
