@@ -283,8 +283,8 @@ Deno.serve(async (req) => {
                 {
                   message_id: crypto.randomUUID(),
                   to: item.email,
-                  from: "Mari's Health Companion <noreply@maridmg.com.br>",
-                  sender_domain: "maridmg.com.br",
+                  from: "Mari's Health Companion <noreply@notify.maridmg.com.br>",
+                  sender_domain: "notify.maridmg.com.br",
                   subject: "Seu convite para o MARI | Inteligência Clínica",
                   html: htmlBody,
                   text: textBody,

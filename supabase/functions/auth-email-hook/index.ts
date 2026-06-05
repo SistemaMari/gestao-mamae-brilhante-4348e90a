@@ -37,9 +37,9 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 
 // Configuration
 const SITE_NAME = "Mari's Health Companion"
-const SENDER_DOMAIN = "maridmg.com.br"
+const SENDER_DOMAIN = "notify.maridmg.com.br"
 const ROOT_DOMAIN = "maridmg.com.br"
-const FROM_DOMAIN = "maridmg.com.br"
+const FROM_DOMAIN = "notify.maridmg.com.br"
 
 const SAMPLE_PROJECT_URL = "https://maridmg.com.br"
 const SAMPLE_EMAIL = "user@example.test"
