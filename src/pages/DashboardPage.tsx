@@ -19,7 +19,8 @@ import {
 } from 'lucide-react';
 import { differenceInDays, format } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
-import { STATUS_CONFIG, calcIdadeGestacional } from '@/lib/fichaUtils';
+import { STATUS_CONFIG } from '@/lib/fichaUtils';
+import { useIgBatch, formatIg } from '@/lib/getIg';
 
 interface Paciente extends PreviewPaciente {}
 
@@ -133,6 +134,13 @@ export default function DashboardPage() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // 34C-B: IG da listagem vem da função única `calcular_ig` (RPC) na data da
+  // última consulta da paciente — valor clínico estável, não "IG hoje".
+  // Pacientes sem âncora ou sem última consulta ficam com "—" (sem 0s 0d).
+  const { igs: igMap } = useIgBatch(
+    paginated.map(p => ({ key: p.id, pacienteId: p.id, dataAlvo: p.data_ultima_consulta })),
+  );
 
   const handleNovaPaciente = async () => {
     if (isPreview) {
@@ -325,7 +333,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">{calcIdadeGestacional(pac)}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{formatIg(igMap.get(pac.id) ?? null)}</td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {pac.data_ultima_consulta
                             ? formatDateBR(pac.data_ultima_consulta)
@@ -399,7 +407,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                      <span>IG: {calcIdadeGestacional(pac)}</span>
+                      <span>IG: {formatIg(igMap.get(pac.id) ?? null)}</span>
                       <span>
                         Última: {pac.data_ultima_consulta
                           ? formatDateBR(pac.data_ultima_consulta)

@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Search, FileDown, FileSpreadsheet, FileText, ChevronLeft, ChevronRight, AlertTriangle, AlertCircle, AlertOctagon, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { STATUS_CONFIG, calcIdadeGestacional } from '@/lib/fichaUtils';
+import { STATUS_CONFIG } from '@/lib/fichaUtils';
+import { useIgBatch, getIgBatch, formatIg } from '@/lib/getIg';
 import { slugify } from '@/lib/slugify';
 import { exportarFichasExcel } from '@/lib/exportarFichasExcel';
 import { formatDateISO, formatDateBR } from '@/lib/dateUtils';
@@ -228,24 +229,36 @@ export default function FichasUnidadePage() {
   };
 
   const totalPages = Math.max(1, Math.ceil(filtradas.length / PAGE_SIZE));
+
+  // 34C-B: IG vem da função única `calcular_ig` (RPC) na data da última
+  // consulta de cada paciente. Lista renderizada (pageItems) cacheada via
+  // React Query — se a lista filtrar/paginar, IGs já vistas reaproveitam o cache.
   const pageSafe = Math.min(page, totalPages);
   const pageItems = filtradas.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
   const inicio = filtradas.length === 0 ? 0 : (pageSafe - 1) * PAGE_SIZE + 1;
   const fim = Math.min(pageSafe * PAGE_SIZE, filtradas.length);
 
+  const { igs: igMap } = useIgBatch(
+    pageItems.map(f => ({ key: f.id, pacienteId: f.id, dataAlvo: f.data_ultima_consulta })),
+  );
+
   const fmtBR = (v: string | null) => v ? formatDateBR(v) : '—';
   const slugFiltro = statusFiltro ? slugify(STATUS_CONFIG[statusFiltro]?.label || statusFiltro) : 'todas';
   const fileBase = `fichas-unidade-${slugFiltro}_${(unidadeNome || 'unidade').replace(/\s+/g, '')}_${format(new Date(), 'yyyy-MM-dd')}`;
 
-  const exportCSV = () => {
+  const exportCSV = async () => {
     if (isVitrine) {
       toast.info('Exportar CSV disponível no ambiente real.');
       return;
     }
+    // 34C-B: busca todas as IGs em lote antes de montar o CSV (RPC paralela).
+    const igMapCsv = await getIgBatch(
+      filtradas.map(f => ({ key: f.id, pacienteId: f.id, dataAlvo: f.data_ultima_consulta })),
+    );
     const headers = ['Paciente', 'IG', 'Status', 'Profissional', 'Última consulta', 'Próxima consulta', 'Data diagnóstico (status)', 'Criada em'];
     const rows = filtradas.map(f => [
       f.nome,
-      calcIdadeGestacional(f),
+      formatIg(igMapCsv.get(f.id) ?? null),
       STATUS_CONFIG[f.status_ficha]?.label || f.status_ficha,
       f.profissional_nome,
       fmtBR(f.data_ultima_consulta),
@@ -462,7 +475,7 @@ export default function FichasUnidadePage() {
                     onClick={() => navigate(`${basePath}/fichas/${f.id}`)}
                   >
                     <TableCell className="font-medium">{f.nome}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{calcIdadeGestacional(f)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{formatIg(igMap.get(f.id) ?? null)}</TableCell>
                     <TableCell>
                       {cfg ? (
                         <Badge className={`${cfg.color} text-white border-0`}>{cfg.label}</Badge>

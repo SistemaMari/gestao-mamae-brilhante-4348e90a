@@ -117,14 +117,19 @@ export interface IGInputs {
 }
 
 /**
+ * @deprecated 34C-B: a fonte única de IG é agora a RPC `calcular_ig` (via
+ *   `getIg`/`useIg`/`useIgBatch` em `@/lib/getIg`). Esta função permanece
+ *   apenas para suportar testes legados e o caso específico de seleção de
+ *   USG (UsgManagerCard/UsgFlowSection), que pode precisar resolver a USG
+ *   "ativa" no client. Para qualquer cálculo de IG de consulta, NÃO use
+ *   isto — use `useIg(paciente_id, data_consulta)`.
+ *
  * Resolve qual USG usar como referência.
  *
  * Regras (Prompt 33B):
  *  1. Se `referencia_usg_id` está setado e existe na lista → usa essa USG.
  *  2. Se `referencia_usg_id` é NULL/undefined → fallback silencioso para USG de ordem = 1.
  *  3. Se nenhuma USG existir → retorna null (caller decide se cai pra DUM).
- *
- * IMPORTANTE: nunca lança erro. O fallback é parte do contrato.
  */
 export function resolveUsgAtiva(
   usgs: UsgRefInput[] | undefined,
@@ -141,14 +146,16 @@ export function resolveUsgAtiva(
 }
 
 /**
+ * @deprecated 34C-B: substituído por `useIg`/`getIg`/`formatIg` (em
+ *   `@/lib/getIg`), que consomem a função SQL única `calcular_ig`. Esta
+ *   função calculava "IG hoje" no client a partir de snapshot, divergindo
+ *   da âncora vigente sempre que a paciente trocava de DUM/USG. Mantida
+ *   apenas para os testes em `fichaUtils.test.ts` que cobrem o contrato
+ *   legado do fallback USG ordem=1 — NÃO use em código novo.
+ *
  * Idade gestacional calculada em runtime.
  * Prioriza USG (DUM corrigida) e cai pra DUM informada.
  * Retorna no formato "28 sem + 3 dias" ou "—" quando não calculável.
- *
- * Precedência (Prompt 33B):
- *  - Se `usgs` foi fornecido E `referencia_ig === 'usg'` → resolve via `resolveUsgAtiva`
- *    (com fallback ordem=1 quando referencia_usg_id=NULL).
- *  - Senão, mantém comportamento legado: snapshot `usg_data`/`usg_ig_semanas` ou DUM.
  */
 export function calcIdadeGestacional(p: IGInputs): string {
   let refDate: Date | null = null;
@@ -190,8 +197,10 @@ export function calcIdadeGestacional(p: IGInputs): string {
 }
 
 /**
+ * @deprecated 34C-B: ver `calcIdadeGestacional`. Use `useIg` em React e
+ *   `getIg` em código imperativo (export Excel etc).
+ *
  * Versão estruturada de `calcIdadeGestacional` — retorna { semanas, dias } ou null.
- * Útil quando o caller precisa do número (ex.: comparar com janelas clínicas, ifs).
  */
 export function calcIdadeGestacionalStruct(p: IGInputs): { semanas: number; dias: number } | null {
   let refDate: Date | null = null;

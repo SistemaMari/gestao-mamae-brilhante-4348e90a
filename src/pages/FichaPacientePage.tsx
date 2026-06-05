@@ -44,7 +44,8 @@ import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import UsgManagerCard from '@/components/UsgManagerCard';
-import { calcIdadeGestacionalStruct, type UsgRefInput } from '@/lib/fichaUtils';
+import { type UsgRefInput } from '@/lib/fichaUtils';
+import { useIg, useIgBatch } from '@/lib/getIg';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import { mapearCenario, derivarDesfechoClinico } from '@/lib/laudoMapping';
 import { useLaudoTextos } from '@/hooks/useLaudoTextos';
@@ -361,6 +362,16 @@ export default function FichaPacientePage() {
     return [];
   }, [consultas]);
 
+  // 34C-B: IG por consulta vem da função única `calcular_ig` (RPC) com
+  // p_data_alvo = data da própria consulta. Quando a âncora da paciente
+  // muda (nova USG/DUM), TODAS as IGs do histórico recalculam automaticamente
+  // — refletindo a âncora vigente, não snapshots antigos. Cobre tanto
+  // a IG exibida no header de cada accordion (`igDisplay`) quanto a IG
+  // usada no cabeçalho do laudo impresso (`igLaudo`) — fonte única.
+  const { igs: igConsultaMap } = useIgBatch(
+    consultas.map(c => ({ key: c.id, pacienteId: paciente?.id, dataAlvo: c.data })),
+  );
+
   // === Textos fixos do laudo (34D-B) — lidos de `obter-textos-laudo` ===
   const laudoTextos = useLaudoTextos({ isPreview });
   const autoriaFicha = useAutoriaFicha(paciente?.id);
@@ -427,31 +438,19 @@ export default function FichaPacientePage() {
     setShowRetorno1(false);
   };
 
-  // IG calculated from DUM
-  const igNaConsulta1 = useMemo(() => {
-    if (!paciente?.dum || !primeiraConsulta) return null;
-    const consulta = parseDateLocal(primeiraConsulta.data);
-    const dum = parseDateLocal(paciente.dum);
-    if (!consulta || !dum) return null;
-    const dias = differenceInDays(consulta, dum);
-    if (dias < 0) return null;
-    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
-  }, [paciente?.dum, primeiraConsulta]);
+  // 34C-B: IG na 1ª consulta vem da fonte única (calcular_ig), com data_alvo
+  // = data da própria Consulta 1. Antes era DUM-diff ad-hoc — agora respeita
+  // a âncora vigente da paciente, alinhado ao restante do app.
+  const igNaConsulta1Query = useIg(paciente?.id, primeiraConsulta?.data ?? null);
+  const igNaConsulta1 = igNaConsulta1Query.data ?? null;
 
-  // 33B: respeita referência de IG ativa (DUM ou USG selecionada por referencia_usg_id).
-  // Fallback silencioso: referencia_ig='usg' + referencia_usg_id=NULL → USG ordem=1.
-  const igAtual = useMemo(() => {
-    if (!paciente) return null;
-    return calcIdadeGestacionalStruct({
-      dum: paciente.dum,
-      usg_data: paciente.usg_data,
-      usg_ig_semanas: paciente.usg_ig_semanas,
-      usg_ig_dias: paciente.usg_ig_dias,
-      referencia_ig: paciente.referencia_ig ?? null,
-      referencia_usg_id: paciente.referencia_usg_id ?? null,
-      usgs,
-    });
-  }, [paciente, usgs]);
+  // 34C-B: IG "atual" da paciente (usada para janela GTT e flag igMaior24)
+  // é a IG NA DATA DE HOJE — esse é um dos poucos lugares onde "hoje" faz
+  // sentido (decisão clínica "ela está dentro da janela GTT AGORA?").
+  // Tudo vem da fonte única (RPC calcular_ig) respeitando a âncora vigente.
+  const hojeISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const igAtualQuery = useIg(paciente?.id, hojeISO);
+  const igAtual = igAtualQuery.data ?? null;
 
   const dumDate = useMemo(() => {
     if (!paciente?.dum) return null;
@@ -979,8 +978,8 @@ export default function FichaPacientePage() {
         return (
         <LaudoCompleto
           paciente={{ nome: paciente.nome }}
-          igSemanas={igNaConsulta1?.semanas ?? 0}
-          igDias={igNaConsulta1?.dias ?? 0}
+          igSemanas={igNaConsulta1?.semanas ?? null}
+          igDias={igNaConsulta1?.dias ?? null}
           dataLaudo={parseDateLocal(primeiraConsulta.data) ?? new Date()}
           cenario={cenarioStandalone}
           estado={estadoStandalone}
@@ -1149,18 +1148,11 @@ export default function FichaPacientePage() {
               const chronologicalIndex = consultas.findIndex(cx => cx.id === c.id);
               const displayName = getDisplayName(c, chronologicalIndex, consultas);
 
-              // Calculate IG for display — use stored value or calculate from DUM
-              let igDisplay: { semanas: number; dias: number } | null = null;
-              if (c.ig_semanas != null) {
-                igDisplay = { semanas: c.ig_semanas, dias: c.ig_dias || 0 };
-              } else if (paciente?.dum) {
-                const cData = parseDateLocal(c.data);
-                const cDum = parseDateLocal(paciente.dum);
-                const diasFromDum = (cData && cDum) ? differenceInDays(cData, cDum) : -1;
-                if (diasFromDum >= 0) {
-                  igDisplay = { semanas: Math.floor(diasFromDum / 7), dias: diasFromDum % 7 };
-                }
-              }
+              // 34C-B: IG do header da consulta vem da fonte única
+              // (calcular_ig na data da consulta). Sem fallback DUM-diff:
+              // se a paciente não tem âncora, igDisplay = null e o badge
+              // simplesmente não renderiza (em vez de mostrar 0s 0d falso).
+              const igDisplay = igConsultaMap.get(c.id) ?? null;
 
               return (
               <AccordionItem
@@ -1266,8 +1258,12 @@ export default function FichaPacientePage() {
                       }
                     }
 
-                    // Normal read-only view with edit button
-                    const igLaudo = igDisplay ?? igAtual ?? { semanas: 0, dias: 0 };
+                    // 34C-B: IG do laudo impresso vem da MESMA fonte que o
+                    // backend (calcular_ig na data da consulta) — garante
+                    // critério #6 (frontend ≡ metadado backend). Sem o antigo
+                    // fallback {0,0} silencioso: se a paciente não tem
+                    // âncora, igLaudo === null e marcaremos isso no header.
+                    const igLaudo = igDisplay;
                     const dataLaudo = parseDateLocal(c.data) ?? new Date();
                     const cenario = mapearCenario({
                       tipo: c.tipo,
@@ -1413,8 +1409,12 @@ export default function FichaPacientePage() {
                           return (
                             <LaudoCompleto
                               paciente={{ nome: paciente.nome }}
-                              igSemanas={igLaudo.semanas}
-                              igDias={igLaudo.dias}
+                              // 34C-B: igSemanas/igDias podem ser null quando
+                              // a paciente não tem âncora. LaudoCabecalho lida
+                              // com isso renderizando estado explícito em vez
+                              // de "0s 0d". Nada de fallback silencioso aqui.
+                              igSemanas={igLaudo?.semanas ?? null}
+                              igDias={igLaudo?.dias ?? null}
                               dataLaudo={dataLaudo}
                               cenario={cenario}
                               estado={estadoC}

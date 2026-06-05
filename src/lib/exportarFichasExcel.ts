@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import { format } from 'date-fns';
-import { STATUS_CONFIG, calcIdadeGestacional } from '@/lib/fichaUtils';
+import { STATUS_CONFIG } from '@/lib/fichaUtils';
+import { getIgBatch, formatIg } from '@/lib/getIg';
 
 export interface FichaExcel {
   id: string;
@@ -9,6 +10,8 @@ export interface FichaExcel {
   profissional_nome: string;
   data_ultima_consulta: string | null;
   data_proximo_retorno: string | null;
+  // 34C-B: snapshot dum/usg_* mantido para compat com outras chamadas;
+  // a IG do Excel passa a vir da RPC `calcular_ig`, não desses campos.
   dum: string | null;
   usg_data: string | null;
   usg_ig_semanas: number | null;
@@ -218,10 +221,17 @@ export async function exportarFichasExcel({
     cell.border = thinBorder();
   });
 
+  // 34C-B: IG vem da função única `calcular_ig` (RPC), com data_alvo = data
+  // da última consulta da paciente (estável — não muda a cada dia, ao contrário
+  // de "IG hoje"). Pacientes sem âncora ou sem última consulta ficam com "—".
+  const igMap = await getIgBatch(
+    fichas.map(f => ({ key: f.id, pacienteId: f.id, dataAlvo: f.data_ultima_consulta })),
+  );
+
   fichas.forEach(f => {
     const row = aba.addRow({
       paciente: f.nome,
-      ig: calcIdadeGestacional(f),
+      ig: formatIg(igMap.get(f.id) ?? null),
       status: STATUS_CONFIG[f.status_ficha]?.label || f.status_ficha,
       profissional: f.profissional_nome,
       ultima: fmtBR(f.data_ultima_consulta),

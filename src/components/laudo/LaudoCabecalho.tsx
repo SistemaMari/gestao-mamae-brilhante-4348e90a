@@ -3,13 +3,20 @@ import { type Cenario } from '@/lib/laudoMapping';
 
 interface Props {
   paciente: { nome: string };
-  igSemanas: number;
-  igDias: number;
+  // 34C-B: IG pode ser null quando a paciente não tem âncora definida
+  // (sem DUM e sem USG de referência). Estado explícito — sem fallback {0,0}.
+  igSemanas: number | null;
+  igDias: number | null;
   dataLaudo: Date;
   cenario: Cenario;
 }
 
 export default function LaudoCabecalho({ paciente, igSemanas, igDias, dataLaudo }: Props) {
+  const igTexto =
+    igSemanas != null && igDias != null
+      ? `${igSemanas}s ${igDias}d`
+      : 'Referência de IG não definida';
+
   return (
     <header className="laudo-cabecalho rounded-t-xl border-b-2 border-[#D6BCFA] bg-white px-5 py-4">
       <div>
@@ -28,7 +35,7 @@ export default function LaudoCabecalho({ paciente, igSemanas, igDias, dataLaudo 
         </div>
         <div>
           <dt className="inline font-semibold text-[#5B21B6]">IG: </dt>
-          <dd className="inline">{igSemanas}s {igDias}d</dd>
+          <dd className="inline">{igTexto}</dd>
         </div>
         <div className="sm:text-right">
           <dt className="inline font-semibold text-[#5B21B6]">Data: </dt>

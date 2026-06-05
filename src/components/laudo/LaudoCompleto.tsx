@@ -11,8 +11,10 @@ import type { EstadoTextos } from '@/hooks/useLaudoTextos';
 
 export interface LaudoCompletoProps {
   paciente: { nome: string };
-  igSemanas: number;
-  igDias: number;
+  // 34C-B: null quando a paciente não tem âncora — repassado para
+  // LaudoCabecalho, que exibe estado explícito em vez de "0s 0d".
+  igSemanas: number | null;
+  igDias: number | null;
   dataLaudo: Date;
   cenario: Cenario;
   /** Bloco 1 — conteúdo clínico determinístico (cards atuais) */
