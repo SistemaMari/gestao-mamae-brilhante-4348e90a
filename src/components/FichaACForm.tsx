@@ -30,6 +30,9 @@ import {
 import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
+import ChecklistRetorno2, { CHECKLIST_VAZIO, isChecklistCompleto, type ChecklistState } from '@/components/ficha/ChecklistRetorno2';
+import CondutaCard from '@/components/ficha/CondutaCard';
+import { aplicarRegrasFichaA, type DecisaoResultado } from '@/lib/fichaADecisao';
 
 const POINTS = ['jejum', 'pos_cafe', 'pos_almoco', 'pos_jantar'] as const;
 type Point = typeof POINTS[number];
