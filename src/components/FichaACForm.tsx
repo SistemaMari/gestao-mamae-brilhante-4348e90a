@@ -307,8 +307,11 @@ export default function FichaACForm({
     if (!igSemanas) f.push('Idade gestacional (semanas)');
     if (totalPreenchidos === 0) f.push('Pelo menos 1 valor de glicemia preenchido');
     if (hasNegativeValues) f.push('Corrigir valores negativos na grade');
+    if (isFichaA && !isChecklistCompleto(checklist)) f.push('Checklist clínico do Retorno 2 (6 itens)');
+    if (isFichaA && decisao?.pendencias.includes('pactuacao_adesao')) f.push('Pactuação com a paciente');
+    if (isFichaA && decisao?.pendencias.includes('memoria_glicosimetro')) f.push('Avaliação da memória do glicosímetro');
     return f;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisao]);
 
   // 34B.3 seção 3.10 — bloqueia submit quando alguma data clínica é inválida.
   const [dataInicioValida, setDataInicioValida] = useState(true);
