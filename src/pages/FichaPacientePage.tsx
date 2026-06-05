@@ -1180,6 +1180,35 @@ export default function FichaPacientePage() {
           />
         </div>
       )}
+      {/* Ficha E form */}
+      {showFichaE && paciente && (
+        <div className="print:hidden">
+          <FichaEForm
+            paciente={paciente}
+            consultas={consultas}
+            isPreview={isPreview}
+            onSaved={() => {
+              setShowFichaE(false);
+              if (isPreview && id) {
+                const p = getPreviewPacienteById(id);
+                if (p) {
+                  setPaciente(p);
+                  setConsultas(p.consultas || []);
+                  const lastFicha = [...(p.consultas || [])].reverse().find(c => c.tipo === 'ficha_e');
+                  if (lastFicha) {
+                    setFichaEResult(lastFicha);
+                    setFichaECompleted(true);
+                  }
+                }
+              } else {
+                void fetchPaciente();
+                setFichaECompleted(true);
+              }
+            }}
+            onCancel={() => setShowFichaE(false)}
+          />
+        </div>
+      )}
       {/* GTT form */}
       {showGtt && paciente && (
         <div className="print:hidden">
