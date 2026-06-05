@@ -1560,10 +1560,17 @@ export default function FichaPacientePage() {
           const isFichaBDButton = nextStep.formType === 'ficha_b' || nextStep.formType === 'ficha_d';
           if (isFichaBDButton && fichaBDCompleted && paciente.status_ficha === 'encaminhada_endocrino') return null;
 
+          const isFichaEButton = nextStep.formType === 'ficha_e';
+
           return (
             <Button
-              className="w-full text-left bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
+              className="w-full text-left bg-[#7C4DBA] hover:bg-[#7E69AB] text-white disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={isFichaEButton}
               onClick={() => {
+                if (isFichaEButton) {
+                  toast('Ficha E (6 pontos sem insulina) — disponível em breve.');
+                  return;
+                }
                 if (isRetorno1Button) {
                   setShowRetorno1(true);
                 } else if (isGttButton) {
