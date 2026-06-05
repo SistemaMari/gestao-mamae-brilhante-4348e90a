@@ -1324,7 +1324,7 @@ export default function FichaPacientePage() {
                   {(() => {
                     const isLastConsulta = c.id === consultasHistorico[0]?.id;
                     const isEditing = editingConsultaId === c.id;
-                    const noFormOpen = !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt;
+                    const noFormOpen = !showRetorno1 && !showFichaAC && !showFichaBD && !showFichaE && !showGtt;
                     const canEdit = isLastConsulta && noFormOpen && c.tipo !== 'consulta_1';
 
                     // Handle edit save — reload data and close editing
