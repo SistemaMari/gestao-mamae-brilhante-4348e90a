@@ -27,7 +27,7 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 // URL de produção / preview onde o usuário define a senha
 const APP_URL =
-  Deno.env.get("APP_PUBLIC_URL") ?? "https://gestao-mamae-brilhante.lovable.app";
+  Deno.env.get("APP_PUBLIC_URL") ?? "https://maridmg.com.br";
 
 const PLANO_INSTITUCIONAL_SLUG = "inicial"; // default; ajustável
 

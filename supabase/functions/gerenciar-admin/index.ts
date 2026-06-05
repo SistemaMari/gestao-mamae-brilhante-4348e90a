@@ -20,7 +20,7 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const APP_URL = Deno.env.get("APP_PUBLIC_URL") ?? "https://gestao-mamae-brilhante.lovable.app";
+const APP_URL = Deno.env.get("APP_PUBLIC_URL") ?? "https://maridmg.com.br";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

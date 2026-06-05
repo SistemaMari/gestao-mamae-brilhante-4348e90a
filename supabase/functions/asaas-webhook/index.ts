@@ -234,7 +234,7 @@ Deno.serve(async (req) => {
       }
 
       // Gera link de recovery (define senha) — Supabase envia o e-mail padrão
-      const redirectTo = "https://gestao-mamae-brilhante.lovable.app/nova-senha";
+      const redirectTo = `${Deno.env.get("APP_PUBLIC_URL") ?? "https://maridmg.com.br"}/nova-senha`;
       const { error: linkErr } = await supabase.auth.admin.generateLink({
         type: "recovery",
         email,

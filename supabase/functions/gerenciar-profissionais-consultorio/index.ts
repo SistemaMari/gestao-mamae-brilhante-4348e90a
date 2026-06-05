@@ -22,6 +22,11 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
+// URL pública do app onde o convidado define a senha após clicar no link.
+// Sem isto, o Supabase usa o Site URL default e o convidado cai no /login
+// sem session, vendo "E-mail ou senha incorretos".
+const APP_URL = Deno.env.get("APP_PUBLIC_URL") ?? "https://maridmg.com.br";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -175,10 +180,14 @@ Deno.serve(async (req) => {
       const exists = authUsers.find((u: any) => u.email?.toLowerCase() === emailLower);
       if (exists) return erro("email_ja_cadastrado", "Já existe um usuário cadastrado com este e-mail.");
 
-      // Convite
+      // Convite — redirectTo é obrigatório para o convidado cair em /nova-senha
+      // com session ativa em vez de /login.
       const { data: invited, error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         input.email,
-        { data: { nome: input.nome } }
+        {
+          data: { nome: input.nome },
+          redirectTo: `${APP_URL}/nova-senha`,
+        }
       );
       if (inviteErr || !invited?.user) {
         console.error("[cadastrar] invite err:", inviteErr);

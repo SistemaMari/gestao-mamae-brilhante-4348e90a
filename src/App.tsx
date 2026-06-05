@@ -91,6 +91,8 @@ const App = () => (
             <Route path="/nova-senha" element={<NovaSenhaPage />} />
             <Route path="/reset-password" element={<Navigate to="/nova-senha" replace />} />
             <Route path="/convite/:token" element={<CadastroConvitePage />} />
+            {/* Compat: links antigos de email apontam para /cadastro-convite/:token */}
+            <Route path="/cadastro-convite/:token" element={<CadastroConvitePage />} />
             <Route path="/checkout/:slug" element={<CheckoutPage />} />
 
             {/* Vitrine pública (sem login) — acessível por URL direta */}
