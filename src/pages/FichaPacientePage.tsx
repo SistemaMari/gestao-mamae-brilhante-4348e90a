@@ -148,13 +148,16 @@ function getNextStepInfo(
       const hasFichaBD = consultas.some(c => ['ficha_b', 'ficha_d'].includes(c.tipo));
       const nextRetornoNum = consultas.length;
 
-      // 36B REV3 — Roteamento por proxima_ficha_recomendada (vinda do motor da Ficha A)
-      const ultimaFichaAC = [...consultas].reverse().find(c => ['ficha_a', 'ficha_c'].includes(c.tipo));
-      const proxima = ultimaFichaAC?.proxima_ficha_recomendada ?? null;
+      // 36B REV3 / 36E-B — Roteamento por proxima_ficha_recomendada
+      // (motor da Ficha A ou da Ficha E, qualquer que seja a última com decisão).
+      const ultimaComDecisao = [...consultas].reverse().find(
+        c => ['ficha_a', 'ficha_c', 'ficha_e'].includes(c.tipo) && !!c.proxima_ficha_recomendada,
+      );
+      const proxima = ultimaComDecisao?.proxima_ficha_recomendada ?? null;
 
       if (proxima === 'ficha_e') {
         return {
-          label: `+ RETORNO ${nextRetornoNum} — Ficha E (6 pontos sem insulina) — disponível em breve`,
+          label: `+ RETORNO ${nextRetornoNum} — Perfil de 6 pontos (sem insulina) × 10 dias`,
           formType: 'ficha_e',
         };
       }
