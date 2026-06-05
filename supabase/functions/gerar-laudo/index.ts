@@ -32,27 +32,43 @@ function jsonResp(body: unknown, status = 200) {
   });
 }
 
-function calcularIG(
-  dum: string | null,
-  usgData: string | null,
-  usgSemanas: number | null,
-  usgDias: number | null,
-) {
-  const hoje = new Date();
-  if (usgData && (usgSemanas !== null || usgDias !== null)) {
-    const [y, m, d] = usgData.split("-").map(Number);
-    const dataUsg = new Date(y, m - 1, d);
-    const diff = Math.floor((hoje.getTime() - dataUsg.getTime()) / 86400000);
-    const totalDias = (usgSemanas ?? 0) * 7 + (usgDias ?? 0) + diff;
-    return { semanas: Math.floor(totalDias / 7), dias: totalDias % 7, total_dias: totalDias, fonte: "usg" };
+// 34C-A: IG é derivada AO VIVO pela função SQL `calcular_ig`, que é a fonte
+// única (lê pacientes.referencia_ig + referencia_usg_id|dum). Nenhum cálculo
+// local de IG deve coexistir aqui — qualquer divergência seria bug.
+// `p_data_alvo` é SEMPRE a data da consulta que gera o laudo, nunca `new Date()`,
+// para que o laudo reflita a IG correta na data da consulta (não a IG "de hoje").
+type IgCalculada = {
+  semanas: number;
+  dias: number;
+  origem: string;      // 'DUM' | 'USG #N'
+  base_data: string;   // 'YYYY-MM-DD'
+};
+
+async function calcularIgViaRpc(
+  supabaseAdmin: any,
+  paciente_id: string,
+  data_consulta: string,
+): Promise<{ ok: true; ig: IgCalculada } | { ok: false; motivo: string }> {
+  const { data, error } = await supabaseAdmin.rpc("calcular_ig", {
+    p_paciente_id: paciente_id,
+    p_data_alvo: data_consulta,
+  });
+  if (error) {
+    return { ok: false, motivo: `Erro ao calcular IG: ${error.message}` };
   }
-  if (dum) {
-    const [y, m, d] = dum.split("-").map(Number);
-    const dataDum = new Date(y, m - 1, d);
-    const diff = Math.floor((hoje.getTime() - dataDum.getTime()) / 86400000);
-    return { semanas: Math.floor(diff / 7), dias: diff % 7, total_dias: diff, fonte: "dum" };
+  const linha = Array.isArray(data) ? data[0] : data;
+  if (!linha || linha.semanas == null) {
+    return { ok: false, motivo: "Referência de IG não definida para esta paciente (sem USG de referência e sem DUM, ou data da consulta anterior à base)." };
   }
-  return null;
+  return {
+    ok: true,
+    ig: {
+      semanas: Number(linha.semanas),
+      dias: Number(linha.dias),
+      origem: String(linha.origem),
+      base_data: String(linha.base_data),
+    },
+  };
 }
 
 function calcularProximaConsulta(cenario: CenarioId, igSemanas: number | null) {
@@ -238,9 +254,24 @@ Deno.serve(async (req) => {
 
     const fichaTipo = derivarFichaTipo(consultaAtual.tipo);
 
-    // IG atual e próxima consulta (dados clínicos da paciente — para o template do PDF)
-    const igAtual = calcularIG(paciente.dum, paciente.usg_data, paciente.usg_ig_semanas, paciente.usg_ig_dias);
-    const proximaConsulta = calcularProximaConsulta(cenarioId, igAtual?.semanas ?? null);
+    // 34C-A: IG ao vivo a partir da função única `calcular_ig`, com a DATA DA
+    // CONSULTA como p_data_alvo (não "hoje"). Se não der pra calcular (sem âncora),
+    // bloqueia explicitamente — nada de fallback silencioso baseado em new Date().
+    if (!consultaAtual.data) {
+      return jsonResp({
+        error: "data_consulta_ausente",
+        details: "A consulta não tem data preenchida — impossível calcular a IG.",
+      }, 422);
+    }
+    const igResult = await calcularIgViaRpc(supabaseAdmin, paciente_id, consultaAtual.data);
+    if (!igResult.ok) {
+      return jsonResp({
+        error: "ig_indisponivel",
+        details: igResult.motivo,
+      }, 422);
+    }
+    const igAtual = igResult.ig;
+    const proximaConsulta = calcularProximaConsulta(cenarioId, igAtual.semanas);
 
     // ── Núcleo da refatoração: lê textos fixos em vez de chamar IA ──
     const tipoConsulta = String(consultaAtual.tipo);
@@ -313,8 +344,11 @@ Deno.serve(async (req) => {
             id: consultaAtual.id,
             tipo: consultaAtual.tipo,
             data: consultaAtual.data,
-            ig_semanas: consultaAtual.ig_semanas,
-            ig_dias: consultaAtual.ig_dias,
+            // 34C-A: alinhado à fonte única (calcular_ig na data_alvo = data da
+            // consulta). Não usar consultaAtual.ig_semanas/ig_dias, que podem
+            // ter sido escritos antes pela ficha e divergir da âncora atual.
+            ig_semanas: igAtual.semanas,
+            ig_dias: igAtual.dias,
           },
         },
       })
