@@ -84,25 +84,13 @@ export default function Consulta1Form() {
   const isValid =
     nome.trim() && dataNascimento && dumValido && dataConsulta && dmgAnterior !== null && whatsappValidacao.ok && usgValida && usgFlow.jaFezUsg !== null;
 
-  // 34B.2 — Caso Novo. Status sempre 'rascunho' até o save (Consulta1Form sempre cria, não edita).
-  const statusFichaLocal: string = 'rascunho';
+  // 34B-4 — Caso Novo SEM rascunho. Badge e banner de pendentes removidos.
+  // Validação de obrigatórios acontece apenas no submit (touched + isValid).
   // 34B.3 seção 3.10 — bloqueia submit se alguma data inválida.
   const [dataNascValida, setDataNascValida] = useState(true);
   const [dumValidaDate, setDumValidaDate] = useState(true);
   const [dataConsultaValida, setDataConsultaValida] = useState(true);
   const todasDatasValidas = dataNascValida && dumValidaDate && dataConsultaValida;
-  const camposPendentes = useMemo<string[]>(() => {
-    const f: string[] = [];
-    if (!nome.trim()) f.push('Nome da paciente');
-    if (!dataNascimento) f.push('Data de nascimento');
-    if (!dumValido) f.push('DUM (ou marcar como desconhecida)');
-    if (!dataConsulta) f.push('Data da consulta');
-    if (dmgAnterior === null) f.push('Histórico de DMG em gestação anterior');
-    if (!whatsappValidacao.ok) f.push('WhatsApp válido');
-    if (usgFlow.jaFezUsg === null) f.push('Informar se já fez 1ª USG');
-    if (!usgValida) f.push('Dados da 1ª USG ou referência de IG');
-    return f;
-  }, [nome, dataNascimento, dumValido, dataConsulta, dmgAnterior, whatsappValidacao.ok, usgFlow.jaFezUsg, usgValida]);
 
   // 34B.1 — Bug A: useAutosave removido. Caso Novo (paciente + consulta_1) só é criado no submit
   // explícito. Backup local de rascunho fica em useDraftStorage (ver Retorno1Form para o padrão).
