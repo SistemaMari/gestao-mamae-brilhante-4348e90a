@@ -1392,6 +1392,18 @@ export default function FichaPacientePage() {
                           />
                         );
                       }
+                      if (c.tipo === 'ficha_e') {
+                        return (
+                          <FichaEForm
+                            paciente={paciente}
+                            consultas={consultas}
+                            isPreview={isPreview}
+                            onSaved={handleEditSaved}
+                            onCancel={() => setEditingConsultaId(null)}
+                            editingConsulta={c}
+                          />
+                        );
+                      }
                     }
 
                     // 34C-B: IG do laudo impresso vem da MESMA fonte que o
