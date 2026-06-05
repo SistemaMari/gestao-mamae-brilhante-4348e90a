@@ -1505,6 +1505,7 @@ export default function FichaPacientePage() {
                             />
                           </>
                         );
+                      }
                       if (c.tipo === 'ficha_e') {
                         return (
                           <>
