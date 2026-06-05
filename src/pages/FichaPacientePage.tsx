@@ -40,6 +40,8 @@ import FichaACReadOnlyGrid from '@/components/FichaACReadOnlyGrid';
 import FichaBDForm from '@/components/FichaBDForm';
 import FichaBDResultCard from '@/components/FichaBDResultCard';
 import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
+import FichaEForm from '@/components/FichaEForm';
+import FichaEResultCard from '@/components/FichaEResultCard';
 
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
