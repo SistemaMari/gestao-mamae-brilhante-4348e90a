@@ -533,11 +533,115 @@ Deno.serve(async (req) => {
       }
     } catch (_e) { /* ignora */ }
 
+    // ============================================================
+    // 36A REV3 — Motor de decisão da Ficha A (Retorno 2)
+    // Roda APÓS persistência da grade (Erro 1 do 34A.2). Não decide com grade vazia (Erro 2).
+    // ============================================================
+    let decisaoOut: ResultadoDecisao | null = null;
+    let decisaoPersistida: Record<string, unknown> | null = null;
+
+    if (body.decisao_ficha_a && tipo === "ficha_a" && consultaId) {
+      const d = body.decisao_ficha_a;
+
+      // Busca perfil + valores para calcular percentual_meta (se não veio explícito)
+      const { data: perfilRow } = await admin
+        .from("perfis_glicemicos")
+        .select("id, peso_paciente_kg, percentual_meta")
+        .eq("consulta_id", consultaId)
+        .maybeSingle();
+
+      let pct: number | null = d.percentual_meta ?? null;
+      let temGrade = false;
+      if (perfilRow?.id) {
+        const { count } = await admin
+          .from("valores_perfil")
+          .select("perfil_id", { count: "exact", head: true })
+          .eq("perfil_id", perfilRow.id);
+        temGrade = (count ?? 0) > 0;
+        if (pct == null && perfilRow.percentual_meta != null) {
+          pct = Number(perfilRow.percentual_meta);
+        }
+      }
+
+      if (!temGrade) {
+        // Erro 2 — não emite conduta com grade vazia
+        decisaoOut = {
+          regra_aplicada: null,
+          conduta_gerada: null,
+          proxima_ficha_recomendada: null,
+          dose_total: null,
+          dose_manha: null,
+          dose_noite: null,
+          pendencias: ["grade_vazia"],
+        };
+      } else if (pct == null) {
+        decisaoOut = {
+          regra_aplicada: null,
+          conduta_gerada: null,
+          proxima_ficha_recomendada: null,
+          dose_total: null,
+          dose_manha: null,
+          dose_noite: null,
+          pendencias: ["percentual_meta"],
+        };
+      } else {
+        const peso = d.peso_paciente_kg ?? (perfilRow?.peso_paciente_kg ? Number(perfilRow.peso_paciente_kg) : null);
+        const igSem = (igRef?.semanas as number | null) ?? null;
+        decisaoOut = aplicarRegras(d, pct, peso, igSem);
+
+        // Persistência auditável (upsert por consulta_id)
+        const persistPayload = {
+          consulta_id: consultaId,
+          paciente_id: body.paciente_id,
+          profissional_id: prof.id,
+          checklist_dieta: d.checklist_dieta ?? null,
+          checklist_exercicio: d.checklist_exercicio ?? null,
+          checklist_ganho_peso: d.checklist_ganho_peso ?? null,
+          checklist_pfe_us: d.checklist_pfe_us ?? null,
+          checklist_ca: d.checklist_ca ?? null,
+          checklist_la: d.checklist_la ?? null,
+          percentual_meta: pct,
+          regra_aplicada: decisaoOut.regra_aplicada,
+          conduta_gerada: decisaoOut.conduta_gerada,
+          memoria_glicosimetro: d.memoria_glicosimetro ?? null,
+          pactuacao_adesao: d.pactuacao_adesao ?? null,
+          dose_insulina_total: decisaoOut.dose_total,
+          dose_insulina_manha: decisaoOut.dose_manha,
+          dose_insulina_noite: decisaoOut.dose_noite,
+          proxima_ficha_recomendada: decisaoOut.proxima_ficha_recomendada,
+          updated_at: new Date().toISOString(),
+        };
+
+        const { data: upserted, error: decErr } = await admin
+          .from("decisoes_ficha_a")
+          .upsert(persistPayload, { onConflict: "consulta_id" })
+          .select("*")
+          .single();
+        if (decErr) {
+          return jsonResp({ error: "Erro ao persistir decisão da Ficha A", details: decErr.message }, 500);
+        }
+        decisaoPersistida = upserted as Record<string, unknown>;
+
+        // Espelha dose e decisão no perfil glicêmico (compatível com 34A.2)
+        if (perfilRow?.id && decisaoOut.dose_total != null) {
+          await admin
+            .from("perfis_glicemicos")
+            .update({
+              decisao: decisaoOut.conduta_gerada,
+              dose_insulina_calculada: decisaoOut.dose_total,
+            })
+            .eq("id", perfilRow.id);
+        }
+      }
+    }
+
     return jsonResp({
       ok: true,
       consulta: consultaFinal,
       ig: igRef ?? null,
       alerta_divergencia_ig,
+      decisao_ficha_a: decisaoPersistida,
+      decisao: decisaoOut,
     });
   } catch (e) {
     console.error("salvar-ficha-retorno error", e);
