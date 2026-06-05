@@ -25,8 +25,8 @@ import {
   paraFormatoCanonico,
 } from '@/lib/whatsapp';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
-import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
-import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
+// 34B-4 — Caso Novo SEM rascunho: StatusFichaBadge e CamposPendentesBanner removidos.
+// Permanecem nas fichas de retorno (Retorno1/AC/BD/GTT).
 import DateInput from '@/components/ficha/DateInput';
 import UsgFlowSection, { emptyUsgFlow, type UsgFlowValue } from '@/components/UsgFlowSection';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -84,25 +84,13 @@ export default function Consulta1Form() {
   const isValid =
     nome.trim() && dataNascimento && dumValido && dataConsulta && dmgAnterior !== null && whatsappValidacao.ok && usgValida && usgFlow.jaFezUsg !== null;
 
-  // 34B.2 — Caso Novo. Status sempre 'rascunho' até o save (Consulta1Form sempre cria, não edita).
-  const statusFichaLocal: string = 'rascunho';
+  // 34B-4 — Caso Novo SEM rascunho. Badge e banner de pendentes removidos.
+  // Validação de obrigatórios acontece apenas no submit (touched + isValid).
   // 34B.3 seção 3.10 — bloqueia submit se alguma data inválida.
   const [dataNascValida, setDataNascValida] = useState(true);
   const [dumValidaDate, setDumValidaDate] = useState(true);
   const [dataConsultaValida, setDataConsultaValida] = useState(true);
   const todasDatasValidas = dataNascValida && dumValidaDate && dataConsultaValida;
-  const camposPendentes = useMemo<string[]>(() => {
-    const f: string[] = [];
-    if (!nome.trim()) f.push('Nome da paciente');
-    if (!dataNascimento) f.push('Data de nascimento');
-    if (!dumValido) f.push('DUM (ou marcar como desconhecida)');
-    if (!dataConsulta) f.push('Data da consulta');
-    if (dmgAnterior === null) f.push('Histórico de DMG em gestação anterior');
-    if (!whatsappValidacao.ok) f.push('WhatsApp válido');
-    if (usgFlow.jaFezUsg === null) f.push('Informar se já fez 1ª USG');
-    if (!usgValida) f.push('Dados da 1ª USG ou referência de IG');
-    return f;
-  }, [nome, dataNascimento, dumValido, dataConsulta, dmgAnterior, whatsappValidacao.ok, usgFlow.jaFezUsg, usgValida]);
 
   // 34B.1 — Bug A: useAutosave removido. Caso Novo (paciente + consulta_1) só é criado no submit
   // explícito. Backup local de rascunho fica em useDraftStorage (ver Retorno1Form para o padrão).
@@ -295,22 +283,16 @@ export default function Consulta1Form() {
   return (
     <div className="mx-auto max-w-lg space-y-5">
       <div className="rounded-xl border border-[#7C4DBA] bg-[#F1F0FB] p-4 space-y-1">
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            CASO NOVO — Dados da Paciente
-          </h1>
-          <StatusFichaBadge status={statusFichaLocal} />
-        </div>
+        <h1 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          CASO NOVO — Dados da Paciente
+        </h1>
         <p className="text-xs text-[#6D28D9]">
           Preencha os dados iniciais e abra a ficha clínica com pedido de exame.
         </p>
       </div>
 
-      <CamposPendentesBanner
-        pendentes={camposPendentes}
-        ativo={statusFichaLocal === 'rascunho'}
-      />
+
 
       <form onSubmit={handleSubmit} className="space-y-5">
           {/* Nome completo */}
