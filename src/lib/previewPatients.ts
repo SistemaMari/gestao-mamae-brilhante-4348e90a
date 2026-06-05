@@ -38,6 +38,10 @@ export interface PreviewConsulta {
   retorno1_valor_gj?: number | null;
   retorno1_tipo_exame?: string | null;
   retorno1_data_exame?: string | null;
+  // 36A REV3 / 36B REV3 — decisão do motor da Ficha A e roteamento
+  proxima_ficha_recomendada?: 'ficha_a' | 'ficha_b' | 'ficha_c' | 'ficha_d' | 'ficha_e' | null;
+  regra_aplicada?: string | null;
+  conduta_gerada?: string | null;
 }
 
 export interface PreviewPaciente {
