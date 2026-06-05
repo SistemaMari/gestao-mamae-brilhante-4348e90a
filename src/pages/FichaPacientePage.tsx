@@ -105,6 +105,8 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
       const dias = (c.ig_semanas ?? 0) > 30 ? 7 : 15;
       return `${prefix} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × ${dias} dias)`;
     }
+    case 'ficha_e':
+      return `${prefix} — Perfil de 6 pontos (sem insulina) × 10 dias`;
     case 'registro_parto':
       return `${prefix} — Registro do parto`;
     default:
