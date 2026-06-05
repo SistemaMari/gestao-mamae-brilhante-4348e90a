@@ -143,10 +143,36 @@ function getNextStepInfo(
       const igSem = igAtual?.semanas ?? 0;
       const hasFichaAC = consultas.some(c => ['ficha_a', 'ficha_c'].includes(c.tipo));
       const hasFichaBD = consultas.some(c => ['ficha_b', 'ficha_d'].includes(c.tipo));
+      const nextRetornoNum = consultas.length;
+
+      // 36B REV3 — Roteamento por proxima_ficha_recomendada (vinda do motor da Ficha A)
+      const ultimaFichaAC = [...consultas].reverse().find(c => ['ficha_a', 'ficha_c'].includes(c.tipo));
+      const proxima = ultimaFichaAC?.proxima_ficha_recomendada ?? null;
+
+      if (proxima === 'ficha_e') {
+        return {
+          label: `+ RETORNO ${nextRetornoNum} — Ficha E (6 pontos sem insulina) — disponível em breve`,
+          formType: 'ficha_e',
+        };
+      }
+      if (proxima === 'ficha_a' || proxima === 'ficha_c') {
+        const dias = proxima === 'ficha_a' ? 15 : 7;
+        return {
+          label: `+ RETORNO ${nextRetornoNum} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × ${dias} dias)`,
+          formType: proxima,
+        };
+      }
+      if (proxima === 'ficha_b' || proxima === 'ficha_d') {
+        return {
+          label: `+ RETORNO ${nextRetornoNum} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`,
+          formType: proxima,
+        };
+      }
+
+      // Fallback (sem decisão registrada ainda)
       const hasInsulin = consultas.some(c =>
         ['ficha_a', 'ficha_c'].includes(c.tipo) && c.decisao === 'controle_inadequado'
       );
-      const nextRetornoNum = consultas.length;
 
       if (!hasFichaAC && !hasFichaBD) {
         return {
