@@ -295,7 +295,7 @@ export default function FichaACForm({
       if (decisaoFichaA && decisaoFichaA.pendencias.some(p => p === 'pactuacao_adesao' || p === 'memoria_glicosimetro')) return false;
     }
     return true;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisao]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisaoFichaA]);
 
   // 34B.2 — status + pendentes (badge e banner).
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
@@ -311,7 +311,7 @@ export default function FichaACForm({
     if (isFichaA && decisaoFichaA?.pendencias.includes("pactuacao_adesao")) f.push('Pactuação com a paciente');
     if (isFichaA && decisaoFichaA?.pendencias.includes("memoria_glicosimetro")) f.push('Avaliação da memória do glicosímetro');
     return f;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisao]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisaoFichaA]);
 
   // 34B.3 seção 3.10 — bloqueia submit quando alguma data clínica é inválida.
   const [dataInicioValida, setDataInicioValida] = useState(true);
