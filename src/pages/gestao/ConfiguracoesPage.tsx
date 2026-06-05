@@ -238,7 +238,7 @@ export default function ConfiguracoesPage() {
 
         try {
           const { data: profs } = await supabase
-            .from('profissionais')
+            .from('profissionais_equipe' as any)
             .select('nome, created_at, acesso_revogado, perfil_institucional')
             .eq('unidade_id', unidadeId);
           const ativos = (profs || []).filter((p: any) =>
