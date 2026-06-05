@@ -93,6 +93,8 @@ interface Payload {
   grade?: GradeInput | null;
   // 36A REV3 — checklist + pactuação + memória da Ficha A
   decisao_ficha_a?: DecisaoFichaAInput | null;
+  // 36E-A — overrides opcionais para o veredito da Ficha E (peso/percentual)
+  decisao_ficha_e?: { peso_paciente_kg?: number | null; percentual_meta?: number | null } | null;
 }
 
 // ============================================================
@@ -635,6 +637,105 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ============================================================
+    // 36E-A — Motor de decisão da Ficha E (6 pontos SEM insulina)
+    // Veredito determinístico, SEM checklist. ≥70% → manter_e; <70% → insulina + B/D por IG.
+    // Não decide com grade vazia (Erro 2). Não migra para B/D sem dose calculada.
+    // ============================================================
+    let decisaoFichaE:
+      | {
+          conduta_e: "manter_e" | "insulina" | null;
+          proxima_ficha_recomendada: "ficha_e" | "ficha_b" | "ficha_d" | null;
+          percentual_meta: number | null;
+          dose_total: number | null;
+          dose_manha: number | null;
+          dose_noite: number | null;
+          pendencias: string[];
+        }
+      | null = null;
+
+    if (tipo === "ficha_e" && consultaId) {
+      const ovr = body.decisao_ficha_e ?? {};
+      const { data: perfilRow } = await admin
+        .from("perfis_glicemicos")
+        .select("id, peso_paciente_kg, percentual_meta")
+        .eq("consulta_id", consultaId)
+        .maybeSingle();
+
+      const pendencias: string[] = [];
+      let pct: number | null = ovr.percentual_meta ?? null;
+      let temGrade = false;
+      if (perfilRow?.id) {
+        const { count } = await admin
+          .from("valores_perfil")
+          .select("perfil_id", { count: "exact", head: true })
+          .eq("perfil_id", perfilRow.id);
+        temGrade = (count ?? 0) > 0;
+        if (pct == null && perfilRow.percentual_meta != null) {
+          pct = Number(perfilRow.percentual_meta);
+        }
+      }
+
+      if (!temGrade) pendencias.push("grade_vazia");
+      if (temGrade && pct == null) pendencias.push("percentual_meta");
+
+      let conduta: "manter_e" | "insulina" | null = null;
+      let proxima: "ficha_e" | "ficha_b" | "ficha_d" | null = null;
+      let dose_total: number | null = null;
+      let dose_manha: number | null = null;
+      let dose_noite: number | null = null;
+
+      if (pendencias.length === 0 && pct != null) {
+        if (pct >= 70) {
+          conduta = "manter_e";
+          proxima = "ficha_e";
+        } else {
+          conduta = "insulina";
+          const peso = ovr.peso_paciente_kg ?? (perfilRow?.peso_paciente_kg ? Number(perfilRow.peso_paciente_kg) : null);
+          if (!peso || peso <= 0) {
+            pendencias.push("peso_para_dose");
+          } else {
+            dose_total = Math.round(0.5 * peso * 10) / 10;
+            dose_manha = Math.round((dose_total * 2) / 3 * 10) / 10;
+            dose_noite = Math.round((dose_total / 3) * 10) / 10;
+          }
+          const igSem = (igRef?.semanas as number | null) ?? null;
+          if (igSem == null) {
+            pendencias.push("ig_para_roteamento");
+          } else {
+            proxima = igSem <= 30 ? "ficha_b" : "ficha_d";
+          }
+          // Não migra para B/D sem a dose calculada
+          if (dose_total == null) proxima = null;
+        }
+      }
+
+      decisaoFichaE = {
+        conduta_e: conduta,
+        proxima_ficha_recomendada: proxima,
+        percentual_meta: pct,
+        dose_total,
+        dose_manha,
+        dose_noite,
+        pendencias,
+      };
+
+      // Persistência auditável nos campos do perfil
+      if (perfilRow?.id && conduta) {
+        await admin
+          .from("perfis_glicemicos")
+          .update({
+            conduta_e: conduta,
+            proxima_ficha_recomendada: proxima,
+            dose_insulina_calculada: dose_total,
+            dose_insulina_manha: dose_manha,
+            dose_insulina_noite: dose_noite,
+            decisao: conduta,
+          })
+          .eq("id", perfilRow.id);
+      }
+    }
+
     return jsonResp({
       ok: true,
       consulta: consultaFinal,
@@ -642,6 +743,7 @@ Deno.serve(async (req) => {
       alerta_divergencia_ig,
       decisao_ficha_a: decisaoPersistida,
       decisao: decisaoOut,
+      decisao_ficha_e: decisaoFichaE,
     });
   } catch (e) {
     console.error("salvar-ficha-retorno error", e);
