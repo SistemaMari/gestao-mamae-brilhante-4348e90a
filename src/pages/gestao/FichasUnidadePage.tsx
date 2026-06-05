@@ -166,7 +166,7 @@ export default function FichasUnidadePage() {
         supabase.from('profissionais_equipe' as any).select('id, nome').eq('unidade_id', prof.unidade_id),
       ]);
       setUnidadeNome(unidadeRes.data?.nome || '');
-      const profsMap = new Map((profsRes.data || []).map(p => [p.id, p.nome]));
+      const profsMap = new Map(((profsRes.data as any[]) || []).map((p: any) => [p.id, p.nome]));
 
       const { data: pacs } = await supabase
         .from('pacientes')
