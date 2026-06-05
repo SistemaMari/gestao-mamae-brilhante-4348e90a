@@ -19,6 +19,15 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Auth guard: only allow calls bearing the service-role key (pg_cron / admin).
+  const bearer = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
+  if (!SERVICE_ROLE || bearer !== SERVICE_ROLE) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: { persistSession: false },
   });

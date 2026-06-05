@@ -24,9 +24,15 @@ const json = (body: unknown, status = 200) =>
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const bearer = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
+  if (!SERVICE_ROLE_KEY || bearer !== SERVICE_ROLE_KEY) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    SERVICE_ROLE_KEY,
   );
 
   const agora = new Date().toISOString();

@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SEED_SECRET = "dramari-seed-2026";
+const SEED_SECRET = Deno.env.get("SEED_SECRET") ?? "";
 const SENHA_PADRAO = "Teste@2026";
 
 interface ContaSpec {
@@ -72,7 +72,7 @@ TOTG 75g realizado entre 24-28 semanas com valores normais: jejum 78 mg/dL, 1h 1
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  if (req.headers.get("x-seed-secret") !== SEED_SECRET) {
+  if (!SEED_SECRET || req.headers.get("x-seed-secret") !== SEED_SECRET) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
