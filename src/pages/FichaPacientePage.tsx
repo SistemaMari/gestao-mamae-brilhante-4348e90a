@@ -728,7 +728,7 @@ export default function FichaPacientePage() {
   // histórico por padrão. Nesta tela não há status_ficha de rascunho; o estado
   // real de edição é dado pelos flags de formulário ativo / consulta em edição.
   const hasFichaEmEdicao =
-    showRetorno1 || showFichaAC || showFichaBD || showGtt || showRegistroParto || editingConsultaId !== null;
+    showRetorno1 || showFichaAC || showFichaBD || showFichaE || showGtt || showRegistroParto || editingConsultaId !== null;
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
