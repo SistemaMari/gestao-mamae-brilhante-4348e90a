@@ -295,22 +295,16 @@ export default function Consulta1Form() {
   return (
     <div className="mx-auto max-w-lg space-y-5">
       <div className="rounded-xl border border-[#7C4DBA] bg-[#F1F0FB] p-4 space-y-1">
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            CASO NOVO — Dados da Paciente
-          </h1>
-          <StatusFichaBadge status={statusFichaLocal} />
-        </div>
+        <h1 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          CASO NOVO — Dados da Paciente
+        </h1>
         <p className="text-xs text-[#6D28D9]">
           Preencha os dados iniciais e abra a ficha clínica com pedido de exame.
         </p>
       </div>
 
-      <CamposPendentesBanner
-        pendentes={camposPendentes}
-        ativo={statusFichaLocal === 'rascunho'}
-      />
+
 
       <form onSubmit={handleSubmit} className="space-y-5">
           {/* Nome completo */}
