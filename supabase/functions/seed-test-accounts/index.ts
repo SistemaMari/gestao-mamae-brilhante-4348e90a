@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SEED_SECRET = "dramari-seed-2026";
+const SEED_SECRET = Deno.env.get("SEED_SECRET") ?? "";
 const SENHA_PADRAO = "Teste@2026";
 
 interface ContaSpec {

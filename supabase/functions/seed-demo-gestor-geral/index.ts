@@ -12,7 +12,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SEED_SECRET = "dramari-seed-2026";
+const SEED_SECRET = Deno.env.get("SEED_SECRET") ?? "";
 const SENHA_GESTOR = "MariDemo2026!";
 const SENHA_PROF = "MariDemo2026!";
 
