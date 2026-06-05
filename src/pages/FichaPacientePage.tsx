@@ -270,6 +270,29 @@ export default function FichaPacientePage() {
             .in('consulta_id', consultaIds)
         : { data: [] as any[] };
 
+      // 36B REV3 — Carrega perfis_glicemicos + valores + decisões da Ficha A para hidratar o histórico
+      const { data: perfis } = consultaIds.length
+        ? await supabase
+            .from('perfis_glicemicos' as any)
+            .select('id, consulta_id, tipo_perfil, peso_paciente_kg, percentual_meta, decisao, dose_insulina_calculada, dose_insulina_manha, dose_insulina_noite, data_inicio, data_fim, proxima_ficha_recomendada')
+            .in('consulta_id', consultaIds)
+        : { data: [] as any[] };
+
+      const perfilIds = ((perfis ?? []) as any[]).map((p: any) => p.id);
+      const { data: valores } = perfilIds.length
+        ? await supabase
+            .from('valores_perfil' as any)
+            .select('perfil_id, dia, ponto, valor_mgdl')
+            .in('perfil_id', perfilIds)
+        : { data: [] as any[] };
+
+      const { data: decisoes } = consultaIds.length
+        ? await supabase
+            .from('decisoes_ficha_a' as any)
+            .select('consulta_id, regra_aplicada, conduta_gerada, proxima_ficha_recomendada, dose_insulina_total, dose_insulina_manha, dose_insulina_noite')
+            .in('consulta_id', consultaIds)
+        : { data: [] as any[] };
+
       // 33B: carrega USGs do paciente para resolver a referência ativa em runtime.
       const { data: usgsData } = await supabase
         .from('exames_usg' as any)
@@ -281,10 +304,45 @@ export default function FichaPacientePage() {
       const exameByConsulta = new Map<string, any>(
         (exames ?? []).map((e: any) => [e.consulta_id, e]),
       );
+      const perfilByConsulta = new Map<string, any>(
+        ((perfis ?? []) as any[]).map((p: any) => [p.consulta_id, p]),
+      );
+      const decisaoByConsulta = new Map<string, any>(
+        ((decisoes ?? []) as any[]).map((d: any) => [d.consulta_id, d]),
+      );
+      const valoresByPerfil = new Map<string, any[]>();
+      ((valores ?? []) as any[]).forEach((v: any) => {
+        const arr = valoresByPerfil.get(v.perfil_id) ?? [];
+        arr.push(v);
+        valoresByPerfil.set(v.perfil_id, arr);
+      });
 
       setConsultas(
         (cons || []).map((c: any) => {
           const ex = exameByConsulta.get(c.id);
+          const perfil = perfilByConsulta.get(c.id);
+          const decisao = decisaoByConsulta.get(c.id);
+
+          // Reconstrói grid_valores a partir de valores_perfil (ponto × dia)
+          let gridValores: Record<string, string>[] | null = null;
+          if (perfil?.id) {
+            const linhas = valoresByPerfil.get(perfil.id) ?? [];
+            if (linhas.length > 0) {
+              const maxDia = Math.max(...linhas.map((l: any) => l.dia ?? 1), 1);
+              gridValores = Array.from({ length: maxDia }, () => ({} as Record<string, string>));
+              linhas.forEach((l: any) => {
+                if (l.dia >= 1 && l.dia <= maxDia) {
+                  gridValores![l.dia - 1][l.ponto] = String(l.valor_mgdl ?? '');
+                }
+              });
+            }
+          }
+
+          // Dose: prioriza a decisão da Ficha A; fallback no perfil
+          const doseTotal = decisao?.dose_insulina_total ?? perfil?.dose_insulina_calculada ?? null;
+          const doseManha = decisao?.dose_insulina_manha ?? perfil?.dose_insulina_manha ?? null;
+          const doseNoite = decisao?.dose_insulina_noite ?? perfil?.dose_insulina_noite ?? null;
+
           return {
             id: c.id,
             tipo: c.tipo,
@@ -296,6 +354,20 @@ export default function FichaPacientePage() {
             status_gerado: c.status_gerado,
             status_ficha: c.status_ficha ?? null,
             cenario_clinico: c.cenario_clinico ?? null,
+            // Ficha A/C profile hydration
+            percentual_meta: perfil?.percentual_meta != null ? Number(perfil.percentual_meta) : null,
+            peso_kg: perfil?.peso_paciente_kg != null ? Number(perfil.peso_paciente_kg) : null,
+            dose_total: doseTotal != null ? Number(doseTotal) : null,
+            dose_manha: doseManha != null ? Number(doseManha) : null,
+            dose_noite: doseNoite != null ? Number(doseNoite) : null,
+            decisao: perfil?.decisao ?? null,
+            data_inicio: perfil?.data_inicio ?? null,
+            data_fim: perfil?.data_fim ?? null,
+            grid_valores: gridValores,
+            // 36B REV3 — roteamento/decisão
+            proxima_ficha_recomendada: decisao?.proxima_ficha_recomendada ?? perfil?.proxima_ficha_recomendada ?? null,
+            regra_aplicada: decisao?.regra_aplicada ?? null,
+            conduta_gerada: decisao?.conduta_gerada ?? null,
             ...(c.tipo === 'retorno_1' && ex
               ? {
                   retorno1_valor_gj: ex.valor_mgdl ?? null,
