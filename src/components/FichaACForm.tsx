@@ -264,7 +264,7 @@ export default function FichaACForm({
   const [pactuacao, setPactuacao] = useState<'aceita' | 'recusa' | null>(null);
   const [memoria, setMemoria] = useState<'confirma' | 'nao_confirma' | null>(null);
 
-  const decisao = useMemo<DecisaoResultado | null>(() => {
+  const decisaoFichaA = useMemo<DecisaoResultado | null>(() => {
     if (!isFichaA || !isChecklistCompleto(checklist) || percentual == null) return null;
     return aplicarRegrasFichaA(
       {
@@ -292,7 +292,7 @@ export default function FichaACForm({
     // 36B REV3 — Ficha A exige checklist completo + caminho clínico fechado (sem pendências de pactuação/memória)
     if (isFichaA) {
       if (!isChecklistCompleto(checklist)) return false;
-      if (decisao && decisao.pendencias.some(p => p === 'pactuacao_adesao' || p === 'memoria_glicosimetro')) return false;
+      if (decisaoFichaA && decisaoFichaA.pendencias.some(p => p === 'pactuacao_adesao' || p === 'memoria_glicosimetro')) return false;
     }
     return true;
   }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisao]);
@@ -308,8 +308,8 @@ export default function FichaACForm({
     if (totalPreenchidos === 0) f.push('Pelo menos 1 valor de glicemia preenchido');
     if (hasNegativeValues) f.push('Corrigir valores negativos na grade');
     if (isFichaA && !isChecklistCompleto(checklist)) f.push('Checklist clínico do Retorno 2 (6 itens)');
-    if (isFichaA && decisao?.pendencias.includes('pactuacao_adesao')) f.push('Pactuação com a paciente');
-    if (isFichaA && decisao?.pendencias.includes('memoria_glicosimetro')) f.push('Avaliação da memória do glicosímetro');
+    if (isFichaA && decisaoFichaA?.pendencias.includes("pactuacao_adesao")) f.push('Pactuação com a paciente');
+    if (isFichaA && decisaoFichaA?.pendencias.includes("memoria_glicosimetro")) f.push('Avaliação da memória do glicosímetro');
     return f;
   }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisao]);
 
