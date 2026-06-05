@@ -33,7 +33,7 @@ const UNIDADES_DEMO = [
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (req.headers.get("x-seed-secret") !== SEED_SECRET) {
+  if (!SEED_SECRET || req.headers.get("x-seed-secret") !== SEED_SECRET) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
