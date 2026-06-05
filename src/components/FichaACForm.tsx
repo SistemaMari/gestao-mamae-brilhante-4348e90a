@@ -30,6 +30,9 @@ import {
 import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
+import ChecklistRetorno2, { CHECKLIST_VAZIO, isChecklistCompleto, type ChecklistState } from '@/components/ficha/ChecklistRetorno2';
+import CondutaCard from '@/components/ficha/CondutaCard';
+import { aplicarRegrasFichaA, type DecisaoResultado } from '@/lib/fichaADecisao';
 
 const POINTS = ['jejum', 'pos_cafe', 'pos_almoco', 'pos_jantar'] as const;
 type Point = typeof POINTS[number];
@@ -255,14 +258,44 @@ export default function FichaACForm({
     }));
   }, [grid]);
 
+  // 36B REV3 — Checklist + pactuação + memória (somente Ficha A, ≤30 sem)
+  const isFichaA = igSemNum <= 30;
+  const [checklist, setChecklist] = useState<ChecklistState>(CHECKLIST_VAZIO);
+  const [pactuacao, setPactuacao] = useState<'aceita' | 'recusa' | null>(null);
+  const [memoria, setMemoria] = useState<'confirma' | 'nao_confirma' | null>(null);
+
+  const decisaoFichaA = useMemo<DecisaoResultado | null>(() => {
+    if (!isFichaA || !isChecklistCompleto(checklist) || percentual == null) return null;
+    return aplicarRegrasFichaA(
+      {
+        checklist_dieta: checklist.dieta,
+        checklist_exercicio: checklist.exercicio,
+        checklist_ganho_peso: checklist.ganho_peso,
+        checklist_pfe_us: checklist.pfe_us,
+        checklist_ca: checklist.ca,
+        checklist_la: checklist.la,
+        memoria_glicosimetro: memoria,
+        pactuacao_adesao: pactuacao,
+      },
+      percentual,
+      editingConsulta?.peso_kg ?? null,
+      igSemNum || null,
+    );
+  }, [isFichaA, checklist, memoria, pactuacao, percentual, editingConsulta?.peso_kg, igSemNum]);
+
   // Validation — peso não é mais obrigatório aqui (capturado no laudo, após o Bloco 1)
   const canSave = useMemo(() => {
     if (!dataInicio || !dataFim || !dataConsulta) return false;
     if (!igSemanas) return false;
     if (totalPreenchidos === 0) return false;
     if (hasNegativeValues) return false;
+    // 36B REV3 — Ficha A exige checklist completo + caminho clínico fechado (sem pendências de pactuação/memória)
+    if (isFichaA) {
+      if (!isChecklistCompleto(checklist)) return false;
+      if (decisaoFichaA && decisaoFichaA.pendencias.some(p => p === 'pactuacao_adesao' || p === 'memoria_glicosimetro')) return false;
+    }
     return true;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisaoFichaA]);
 
   // 34B.2 — status + pendentes (badge e banner).
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
@@ -274,8 +307,11 @@ export default function FichaACForm({
     if (!igSemanas) f.push('Idade gestacional (semanas)');
     if (totalPreenchidos === 0) f.push('Pelo menos 1 valor de glicemia preenchido');
     if (hasNegativeValues) f.push('Corrigir valores negativos na grade');
+    if (isFichaA && !isChecklistCompleto(checklist)) f.push('Checklist clínico do Retorno 2 (6 itens)');
+    if (isFichaA && decisaoFichaA?.pendencias.includes("pactuacao_adesao")) f.push('Pactuação com a paciente');
+    if (isFichaA && decisaoFichaA?.pendencias.includes("memoria_glicosimetro")) f.push('Avaliação da memória do glicosímetro');
     return f;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisaoFichaA]);
 
   // 34B.3 seção 3.10 — bloqueia submit quando alguma data clínica é inválida.
   const [dataInicioValida, setDataInicioValida] = useState(true);
@@ -340,6 +376,9 @@ export default function FichaACForm({
         decisao,
         data_inicio: dataInicio,
         data_fim: dataFim,
+        proxima_ficha_recomendada: decisaoFichaA?.proxima_ficha_recomendada ?? null,
+        regra_aplicada: decisaoFichaA?.regra_aplicada ?? null,
+        conduta_gerada: decisaoFichaA?.conduta_gerada ?? null,
       };
 
       let updatedConsultas: PreviewConsulta[];
@@ -460,6 +499,33 @@ export default function FichaACForm({
         recursoId: consultaId ?? undefined,
         recursoTipo: 'ficha',
       });
+
+      // 36B REV3 — Persistência auditável da decisão (apenas Ficha A com checklist completo)
+      if (isFichaA && decisaoFichaA && consultaId) {
+        await supabase
+          .from('decisoes_ficha_a' as any)
+          .upsert({
+            consulta_id: consultaId,
+            paciente_id: paciente.id,
+            profissional_id: profId,
+            checklist_dieta: checklist.dieta,
+            checklist_exercicio: checklist.exercicio,
+            checklist_ganho_peso: checklist.ganho_peso,
+            checklist_pfe_us: checklist.pfe_us,
+            checklist_ca: checklist.ca,
+            checklist_la: checklist.la,
+            percentual_meta: percentual,
+            regra_aplicada: decisaoFichaA.regra_aplicada,
+            conduta_gerada: decisaoFichaA.conduta_gerada,
+            memoria_glicosimetro: memoria,
+            pactuacao_adesao: pactuacao,
+            dose_insulina_total: decisaoFichaA.dose_total,
+            dose_insulina_manha: decisaoFichaA.dose_manha,
+            dose_insulina_noite: decisaoFichaA.dose_noite,
+            proxima_ficha_recomendada: decisaoFichaA.proxima_ficha_recomendada,
+            updated_at: new Date().toISOString(),
+          } as any, { onConflict: 'consulta_id' });
+      }
 
       setSavedResult({ percentual: percentual!, adequado: isAdequado });
       setSaving(false);
@@ -717,6 +783,31 @@ export default function FichaACForm({
       </div>
 
       {/* Peso e dose foram movidos para o LAUDO (FichaACResultCard) — capturados após o Bloco 1 */}
+
+      {/* 36B REV3 — Checklist clínico do Retorno 2 (apenas Ficha A, ≤30 sem) */}
+      {isFichaA && (
+        <ChecklistRetorno2 value={checklist} onChange={setChecklist} disabled={saving} />
+      )}
+
+      {/* 36B REV3 — Conduta gerada pelo motor de decisão (apenas Ficha A) */}
+      {isFichaA && decisaoFichaA && (
+        <CondutaCard
+          decisao={{
+            regra_aplicada: decisaoFichaA.regra_aplicada,
+            conduta_gerada: decisaoFichaA.conduta_gerada,
+            proxima_ficha_recomendada: decisaoFichaA.proxima_ficha_recomendada,
+            dose_total: decisaoFichaA.dose_total,
+            dose_manha: decisaoFichaA.dose_manha,
+            dose_noite: decisaoFichaA.dose_noite,
+            pendencias: decisaoFichaA.pendencias,
+          }}
+          pactuacao={pactuacao}
+          memoria={memoria}
+          onPactuacao={setPactuacao}
+          onMemoria={setMemoria}
+          disabled={saving}
+        />
+      )}
 
       {/* Observations */}
       <div className="space-y-1">

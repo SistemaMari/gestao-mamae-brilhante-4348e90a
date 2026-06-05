@@ -143,10 +143,36 @@ function getNextStepInfo(
       const igSem = igAtual?.semanas ?? 0;
       const hasFichaAC = consultas.some(c => ['ficha_a', 'ficha_c'].includes(c.tipo));
       const hasFichaBD = consultas.some(c => ['ficha_b', 'ficha_d'].includes(c.tipo));
+      const nextRetornoNum = consultas.length;
+
+      // 36B REV3 — Roteamento por proxima_ficha_recomendada (vinda do motor da Ficha A)
+      const ultimaFichaAC = [...consultas].reverse().find(c => ['ficha_a', 'ficha_c'].includes(c.tipo));
+      const proxima = ultimaFichaAC?.proxima_ficha_recomendada ?? null;
+
+      if (proxima === 'ficha_e') {
+        return {
+          label: `+ RETORNO ${nextRetornoNum} — Ficha E (6 pontos sem insulina) — disponível em breve`,
+          formType: 'ficha_e',
+        };
+      }
+      if (proxima === 'ficha_a' || proxima === 'ficha_c') {
+        const dias = proxima === 'ficha_a' ? 15 : 7;
+        return {
+          label: `+ RETORNO ${nextRetornoNum} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × ${dias} dias)`,
+          formType: proxima,
+        };
+      }
+      if (proxima === 'ficha_b' || proxima === 'ficha_d') {
+        return {
+          label: `+ RETORNO ${nextRetornoNum} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`,
+          formType: proxima,
+        };
+      }
+
+      // Fallback (sem decisão registrada ainda)
       const hasInsulin = consultas.some(c =>
         ['ficha_a', 'ficha_c'].includes(c.tipo) && c.decisao === 'controle_inadequado'
       );
-      const nextRetornoNum = consultas.length;
 
       if (!hasFichaAC && !hasFichaBD) {
         return {
@@ -270,6 +296,29 @@ export default function FichaPacientePage() {
             .in('consulta_id', consultaIds)
         : { data: [] as any[] };
 
+      // 36B REV3 — Carrega perfis_glicemicos + valores + decisões da Ficha A para hidratar o histórico
+      const { data: perfis } = consultaIds.length
+        ? await supabase
+            .from('perfis_glicemicos' as any)
+            .select('id, consulta_id, tipo_perfil, peso_paciente_kg, percentual_meta, decisao, dose_insulina_calculada, dose_insulina_manha, dose_insulina_noite, data_inicio, data_fim, proxima_ficha_recomendada')
+            .in('consulta_id', consultaIds)
+        : { data: [] as any[] };
+
+      const perfilIds = ((perfis ?? []) as any[]).map((p: any) => p.id);
+      const { data: valores } = perfilIds.length
+        ? await supabase
+            .from('valores_perfil' as any)
+            .select('perfil_id, dia, ponto, valor_mgdl')
+            .in('perfil_id', perfilIds)
+        : { data: [] as any[] };
+
+      const { data: decisoes } = consultaIds.length
+        ? await supabase
+            .from('decisoes_ficha_a' as any)
+            .select('consulta_id, regra_aplicada, conduta_gerada, proxima_ficha_recomendada, dose_insulina_total, dose_insulina_manha, dose_insulina_noite')
+            .in('consulta_id', consultaIds)
+        : { data: [] as any[] };
+
       // 33B: carrega USGs do paciente para resolver a referência ativa em runtime.
       const { data: usgsData } = await supabase
         .from('exames_usg' as any)
@@ -281,10 +330,45 @@ export default function FichaPacientePage() {
       const exameByConsulta = new Map<string, any>(
         (exames ?? []).map((e: any) => [e.consulta_id, e]),
       );
+      const perfilByConsulta = new Map<string, any>(
+        ((perfis ?? []) as any[]).map((p: any) => [p.consulta_id, p]),
+      );
+      const decisaoByConsulta = new Map<string, any>(
+        ((decisoes ?? []) as any[]).map((d: any) => [d.consulta_id, d]),
+      );
+      const valoresByPerfil = new Map<string, any[]>();
+      ((valores ?? []) as any[]).forEach((v: any) => {
+        const arr = valoresByPerfil.get(v.perfil_id) ?? [];
+        arr.push(v);
+        valoresByPerfil.set(v.perfil_id, arr);
+      });
 
       setConsultas(
         (cons || []).map((c: any) => {
           const ex = exameByConsulta.get(c.id);
+          const perfil = perfilByConsulta.get(c.id);
+          const decisao = decisaoByConsulta.get(c.id);
+
+          // Reconstrói grid_valores a partir de valores_perfil (ponto × dia)
+          let gridValores: Record<string, string>[] | null = null;
+          if (perfil?.id) {
+            const linhas = valoresByPerfil.get(perfil.id) ?? [];
+            if (linhas.length > 0) {
+              const maxDia = Math.max(...linhas.map((l: any) => l.dia ?? 1), 1);
+              gridValores = Array.from({ length: maxDia }, () => ({} as Record<string, string>));
+              linhas.forEach((l: any) => {
+                if (l.dia >= 1 && l.dia <= maxDia) {
+                  gridValores![l.dia - 1][l.ponto] = String(l.valor_mgdl ?? '');
+                }
+              });
+            }
+          }
+
+          // Dose: prioriza a decisão da Ficha A; fallback no perfil
+          const doseTotal = decisao?.dose_insulina_total ?? perfil?.dose_insulina_calculada ?? null;
+          const doseManha = decisao?.dose_insulina_manha ?? perfil?.dose_insulina_manha ?? null;
+          const doseNoite = decisao?.dose_insulina_noite ?? perfil?.dose_insulina_noite ?? null;
+
           return {
             id: c.id,
             tipo: c.tipo,
@@ -296,6 +380,20 @@ export default function FichaPacientePage() {
             status_gerado: c.status_gerado,
             status_ficha: c.status_ficha ?? null,
             cenario_clinico: c.cenario_clinico ?? null,
+            // Ficha A/C profile hydration
+            percentual_meta: perfil?.percentual_meta != null ? Number(perfil.percentual_meta) : null,
+            peso_kg: perfil?.peso_paciente_kg != null ? Number(perfil.peso_paciente_kg) : null,
+            dose_total: doseTotal != null ? Number(doseTotal) : null,
+            dose_manha: doseManha != null ? Number(doseManha) : null,
+            dose_noite: doseNoite != null ? Number(doseNoite) : null,
+            decisao: perfil?.decisao ?? null,
+            data_inicio: perfil?.data_inicio ?? null,
+            data_fim: perfil?.data_fim ?? null,
+            grid_valores: gridValores,
+            // 36B REV3 — roteamento/decisão
+            proxima_ficha_recomendada: decisao?.proxima_ficha_recomendada ?? perfil?.proxima_ficha_recomendada ?? null,
+            regra_aplicada: decisao?.regra_aplicada ?? null,
+            conduta_gerada: decisao?.conduta_gerada ?? null,
             ...(c.tipo === 'retorno_1' && ex
               ? {
                   retorno1_valor_gj: ex.valor_mgdl ?? null,
@@ -1126,7 +1224,6 @@ export default function FichaPacientePage() {
       {consultasHistorico.length > 0 && (
         <Collapsible
           defaultOpen={!hasFichaEmEdicao}
-          key={`hist-collapse-${hasFichaEmEdicao}`}
           className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm print:shadow-none"
         >
           <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2">
@@ -1140,7 +1237,6 @@ export default function FichaPacientePage() {
           <Accordion
             type="multiple"
             defaultValue={[consultasHistorico[0]?.id].filter(Boolean)}
-            key={`hist-${consultas.length}`}
             className="space-y-2"
           >
             {consultasHistorico.map((c) => {
@@ -1464,10 +1560,17 @@ export default function FichaPacientePage() {
           const isFichaBDButton = nextStep.formType === 'ficha_b' || nextStep.formType === 'ficha_d';
           if (isFichaBDButton && fichaBDCompleted && paciente.status_ficha === 'encaminhada_endocrino') return null;
 
+          const isFichaEButton = nextStep.formType === 'ficha_e';
+
           return (
             <Button
-              className="w-full text-left bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
+              className="w-full text-left bg-[#7C4DBA] hover:bg-[#7E69AB] text-white disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={isFichaEButton}
               onClick={() => {
+                if (isFichaEButton) {
+                  toast('Ficha E (6 pontos sem insulina) — disponível em breve.');
+                  return;
+                }
                 if (isRetorno1Button) {
                   setShowRetorno1(true);
                 } else if (isGttButton) {
