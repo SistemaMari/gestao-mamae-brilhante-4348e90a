@@ -1505,7 +1505,40 @@ export default function FichaPacientePage() {
                             />
                           </>
                         );
+                      if (c.tipo === 'ficha_e') {
+                        return (
+                          <>
+                            {c.grid_valores && c.grid_valores.length > 0 && (
+                              <FichaBDReadOnlyGrid gridValores={c.grid_valores} />
+                            )}
+                            <FichaEResultCard
+                              percentual={c.percentual_meta ?? 0}
+                              adequado={(c.percentual_meta ?? 0) >= 70}
+                              totalPreenchidos={c.total_preenchidos ?? 0}
+                              dentroMeta={c.dentro_meta ?? 0}
+                              doseTotal={c.dose_total}
+                              doseManha={c.dose_manha}
+                              doseNoite={c.dose_noite}
+                              peso={c.peso_kg}
+                              igSemanas={c.ig_semanas}
+                              pacienteId={paciente.id}
+                              consultaId={c.id}
+                              isPreview={isPreview}
+                              isReadOnly={isReadOnly}
+                              onWeightSaved={() => {
+                                if (isPreview) {
+                                  const p = getPreviewPacienteById(paciente.id);
+                                  if (p) {
+                                    setPaciente(p);
+                                    setConsultas(p.consultas || []);
+                                  }
+                                }
+                              }}
+                            />
+                          </>
+                        );
                       }
+
                       if (c.tipo === 'retorno_gtt') {
                         return <GttResultCard consulta={c} igHoje={igAtual} />;
                       }
