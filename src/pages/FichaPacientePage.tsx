@@ -47,6 +47,7 @@ import UsgManagerCard from '@/components/UsgManagerCard';
 import { type UsgRefInput } from '@/lib/fichaUtils';
 import { useIg, useIgBatch } from '@/lib/getIg';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
+import PlaceholderBlocoLaudo from '@/components/laudo/PlaceholderBlocoLaudo';
 import { mapearCenario, derivarDesfechoClinico } from '@/lib/laudoMapping';
 import { useLaudoTextos } from '@/hooks/useLaudoTextos';
 import { useAutoriaFicha } from '@/hooks/useAutoriaFicha';
@@ -1376,46 +1377,63 @@ export default function FichaPacientePage() {
                         return <Retorno1ResultCard consulta={c} janelaGTT={janelaGTT} igHoje={igAtual} />;
                       }
                       if (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') {
+                        // 36B REV3 PARTE 4 — Bloco 2: placeholder quando Ficha A
+                        // foi salva mas a decisão clínica (conduta/doses) ainda
+                        // não foi calculada/persistida. Mantém grade visível.
+                        const semDecisao =
+                          c.tipo === 'ficha_a' &&
+                          !c.conduta_gerada &&
+                          !c.regra_aplicada &&
+                          c.dose_total == null &&
+                          c.dose_manha == null &&
+                          c.dose_noite == null;
                         return (
                           <>
                             {c.grid_valores && c.grid_valores.length > 0 && (
                               <FichaACReadOnlyGrid gridValores={c.grid_valores} />
                             )}
-                            <FichaACResultCard
-                              percentual={c.percentual_meta ?? 0}
-                              adequado={(c.percentual_meta ?? 0) >= 70}
-                              totalPreenchidos={c.total_preenchidos ?? 0}
-                              dentroMeta={c.dentro_meta ?? 0}
-                              doseTotal={c.dose_total}
-                              doseManha={c.dose_manha}
-                              doseNoite={c.dose_noite}
-                              peso={c.peso_kg}
-                              retornoDias={c.retorno_dias ?? ((c.ig_semanas ?? 0) > 30 ? 7 : 15)}
-                              dataProximoRetorno={c.data_proximo_retorno_formatted}
-                              fichaType={c.tipo}
-                              pacienteId={paciente.id}
-                              consultaId={c.id}
-                              isPreview={isPreview}
-                              isReadOnly={isReadOnly}
-                              onWeightSaved={() => {
-                                if (isPreview) {
-                                  const p = getPreviewPacienteById(paciente.id);
-                                  if (p) {
-                                    setPaciente(p);
-                                    setConsultas(p.consultas || []);
+                            {semDecisao ? (
+                              <PlaceholderBlocoLaudo
+                                titulo="Conduta clínica aguardando decisão"
+                                mensagem="Esta Ficha A foi registrada antes da implantação do motor de decisão ou a decisão ainda não foi calculada. Reabra a ficha e salve novamente para gerar conduta e doses."
+                              />
+                            ) : (
+                              <FichaACResultCard
+                                percentual={c.percentual_meta ?? 0}
+                                adequado={(c.percentual_meta ?? 0) >= 70}
+                                totalPreenchidos={c.total_preenchidos ?? 0}
+                                dentroMeta={c.dentro_meta ?? 0}
+                                doseTotal={c.dose_total}
+                                doseManha={c.dose_manha}
+                                doseNoite={c.dose_noite}
+                                peso={c.peso_kg}
+                                retornoDias={c.retorno_dias ?? ((c.ig_semanas ?? 0) > 30 ? 7 : 15)}
+                                dataProximoRetorno={c.data_proximo_retorno_formatted}
+                                fichaType={c.tipo}
+                                pacienteId={paciente.id}
+                                consultaId={c.id}
+                                isPreview={isPreview}
+                                isReadOnly={isReadOnly}
+                                onWeightSaved={() => {
+                                  if (isPreview) {
+                                    const p = getPreviewPacienteById(paciente.id);
+                                    if (p) {
+                                      setPaciente(p);
+                                      setConsultas(p.consultas || []);
+                                    }
                                   }
-                                }
-                                // Recarrega os textos agora que o peso/dose foram confirmados
-                                const desfechoPeso = derivarDesfechoClinico({
-                                  tipo: c.tipo,
-                                  status_gerado: c.status_gerado,
-                                  decisao: c.decisao,
-                                  percentual_meta: c.percentual_meta,
-                                  cenario_clinico: c.cenario_clinico,
-                                });
-                                laudoTextos.tentarNovamente(c.id, c.tipo, desfechoPeso);
-                              }}
-                            />
+                                  // Recarrega os textos agora que o peso/dose foram confirmados
+                                  const desfechoPeso = derivarDesfechoClinico({
+                                    tipo: c.tipo,
+                                    status_gerado: c.status_gerado,
+                                    decisao: c.decisao,
+                                    percentual_meta: c.percentual_meta,
+                                    cenario_clinico: c.cenario_clinico,
+                                  });
+                                  laudoTextos.tentarNovamente(c.id, c.tipo, desfechoPeso);
+                                }}
+                              />
+                            )}
                           </>
                         );
                       }
