@@ -1,6 +1,16 @@
 // Edge Function: salvar-ficha-retorno
-// Persistência idempotente da ficha de retorno com modo rascunho|finalizar.
-// Usa COALESCE em todos os campos clínicos para impedir sobrescrita destrutiva por NULL.
+// Persistência idempotente de QUALQUER ficha (caso_novo, retorno_1, ficha_a/b/c/d, gtt, registro_parto)
+// com modo rascunho|finalizar.
+// Usa COALESCE em todos os campos clínicos (consulta + perfil glicêmico + exame de glicemia)
+// para impedir sobrescrita destrutiva por NULL.
+//
+// 34A.2 — Generalização: aceita e persiste a grade (perfis_glicemicos + valores_perfil)
+// para QUALQUER tipo de ficha, com a mesma proteção COALESCE que antes só o retorno_1 tinha.
+//   • grade ausente no payload  → NÃO toca em perfis_glicemicos nem em valores_perfil
+//   • grade presente sem valores → atualiza perfil com COALESCE, NÃO apaga valores existentes
+//   • grade.valores presente (array) → substitui (delete+insert) os valores do perfil
+// A camada de decisão clínica da ficha_a (checklist/regra/dose) é responsabilidade do 36A,
+// que apenas acrescenta colunas sobre esta base — não duplica persistência da grade.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -18,11 +28,34 @@ function jsonResp(body: unknown, status = 200) {
 
 type Modo = "rascunho" | "finalizar";
 
+interface ValorPerfilInput {
+  dia: number;
+  ponto: string;
+  valor_mgdl: number;
+}
+
+interface GradeInput {
+  // Identificador opcional do perfil já existente (UPDATE com COALESCE)
+  id?: string;
+  // Campos do perfil glicêmico (todos COALESCE)
+  tipo_perfil?: string | null;
+  tipo_pos_prandial?: string | null;
+  peso_paciente_kg?: number | null;
+  data_inicio?: string | null;
+  data_fim?: string | null;
+  percentual_meta?: number | null;
+  decisao?: string | null;
+  dose_insulina_calculada?: number | null;
+  // Valores da grade. Quando omitido (undefined), valores existentes ficam INTACTOS.
+  // Quando enviado como array (inclusive vazio), substitui (delete+insert).
+  valores?: ValorPerfilInput[];
+}
+
 interface Payload {
   consulta_id?: string;
   paciente_id: string;
   modo: Modo;
-  tipo?: string;                  // ex.: 'retorno_1'
+  tipo?: string; // 'caso_novo' | 'retorno_1' | 'ficha_a' | 'ficha_b' | 'ficha_c' | 'ficha_d' | 'gtt' | 'registro_parto'
   numero_sequencial?: number;
   campos?: {
     data?: string;
@@ -39,6 +72,8 @@ interface Payload {
     ig_semanas_na_data?: number | null;
     ig_dias_na_data?: number | null;
   } | null;
+  // 34A.2 — grade genérica (perfil glicêmico + valores)
+  grade?: GradeInput | null;
 }
 
 Deno.serve(async (req) => {
@@ -117,7 +152,7 @@ Deno.serve(async (req) => {
     }
 
     // ============================================================
-    // UPSERT consultas (COALESCE via RPC manual: usamos UPDATE … COALESCE)
+    // UPSERT consultas (COALESCE via UPDATE … COALESCE no servidor)
     // ============================================================
     let consultaId = body.consulta_id ?? null;
 
@@ -178,7 +213,6 @@ Deno.serve(async (req) => {
       if (updErr) return jsonResp({ error: "Erro ao atualizar consulta", details: updErr.message }, 500);
     }
 
-
     // ============================================================
     // Exame de glicemia (opcional)
     // ============================================================
@@ -222,6 +256,121 @@ Deno.serve(async (req) => {
           ig_semanas_na_data: eg.ig_semanas_na_data ?? null,
           ig_dias_na_data: eg.ig_dias_na_data ?? null,
         });
+      }
+    }
+
+    // ============================================================
+    // 34A.2 — Grade glicêmica genérica (perfis_glicemicos + valores_perfil)
+    // COALESCE: campo ausente NÃO sobrescreve; valores ausentes NÃO apagam.
+    // ============================================================
+    if (body.grade !== undefined && body.grade !== null && consultaId) {
+      const g = body.grade;
+
+      // Resolve perfil_id: usa o id enviado OU busca o perfil existente da consulta
+      let perfilId: string | null = g.id ?? null;
+      let perfilAtual: Record<string, unknown> | null = null;
+
+      if (perfilId) {
+        const { data } = await admin
+          .from("perfis_glicemicos")
+          .select("id, paciente_id, profissional_id, tipo_perfil, tipo_pos_prandial, peso_paciente_kg, data_inicio, data_fim, percentual_meta, decisao, dose_insulina_calculada")
+          .eq("id", perfilId)
+          .maybeSingle();
+        if (!data) return jsonResp({ error: "Perfil glicêmico não encontrado" }, 404);
+        if (data.paciente_id !== body.paciente_id || data.profissional_id !== prof.id) {
+          return jsonResp({ error: "Sem permissão para alterar este perfil" }, 403);
+        }
+        perfilAtual = data;
+      } else {
+        // Procura um perfil já existente para esta consulta (1:1 por consulta)
+        const { data } = await admin
+          .from("perfis_glicemicos")
+          .select("id, paciente_id, profissional_id, tipo_perfil, tipo_pos_prandial, peso_paciente_kg, data_inicio, data_fim, percentual_meta, decisao, dose_insulina_calculada")
+          .eq("consulta_id", consultaId)
+          .maybeSingle();
+        if (data) {
+          if (data.paciente_id !== body.paciente_id || data.profissional_id !== prof.id) {
+            return jsonResp({ error: "Sem permissão para alterar perfil da consulta" }, 403);
+          }
+          perfilId = data.id as string;
+          perfilAtual = data;
+        }
+      }
+
+      if (perfilId && perfilAtual) {
+        // UPDATE COALESCE — só sobrescreve quando o cliente enviou explicitamente
+        const updPerfil: Record<string, unknown> = {
+          tipo_perfil: g.tipo_perfil ?? (perfilAtual.tipo_perfil as unknown),
+          peso_paciente_kg: g.peso_paciente_kg ?? (perfilAtual.peso_paciente_kg as unknown),
+          data_inicio: g.data_inicio ?? (perfilAtual.data_inicio as unknown),
+          data_fim: g.data_fim ?? (perfilAtual.data_fim as unknown),
+          percentual_meta: g.percentual_meta ?? (perfilAtual.percentual_meta as unknown),
+          decisao: g.decisao ?? (perfilAtual.decisao as unknown),
+          dose_insulina_calculada: g.dose_insulina_calculada ?? (perfilAtual.dose_insulina_calculada as unknown),
+          // tipo_pos_prandial é imutável após criação (trigger BEFORE UPDATE) — não atualizar.
+        };
+        const { error: perfUpdErr } = await admin
+          .from("perfis_glicemicos")
+          .update(updPerfil)
+          .eq("id", perfilId);
+        if (perfUpdErr) {
+          return jsonResp({ error: "Erro ao atualizar perfil glicêmico", details: perfUpdErr.message }, 500);
+        }
+      } else {
+        // INSERT — só cria se houver dados mínimos (data_inicio + data_fim)
+        const data_inicio = g.data_inicio ?? campos.data ?? new Date().toISOString().slice(0, 10);
+        const data_fim = g.data_fim ?? data_inicio;
+        const insPerfil: Record<string, unknown> = {
+          consulta_id: consultaId,
+          paciente_id: body.paciente_id,
+          profissional_id: prof.id,
+          tipo_perfil: g.tipo_perfil ?? "4_pontos",
+          tipo_pos_prandial: g.tipo_pos_prandial ?? "1h",
+          peso_paciente_kg: g.peso_paciente_kg ?? null,
+          data_inicio,
+          data_fim,
+          percentual_meta: g.percentual_meta ?? 0,
+          decisao: g.decisao ?? null,
+          dose_insulina_calculada: g.dose_insulina_calculada ?? null,
+        };
+        const { data: novoPerfil, error: perfInsErr } = await admin
+          .from("perfis_glicemicos")
+          .insert(insPerfil)
+          .select("id")
+          .single();
+        if (perfInsErr || !novoPerfil) {
+          return jsonResp({ error: "Erro ao criar perfil glicêmico", details: perfInsErr?.message }, 500);
+        }
+        perfilId = novoPerfil.id as string;
+      }
+
+      // Valores da grade: só substitui se o cliente ENVIOU o array explicitamente.
+      // Omitir g.valores preserva os valores já gravados (proteção COALESCE).
+      if (Array.isArray(g.valores) && perfilId) {
+        const valoresLimpos = g.valores
+          .filter((v) => v && typeof v.valor_mgdl === "number" && v.valor_mgdl > 0)
+          .map((v) => ({
+            perfil_id: perfilId,
+            dia: v.dia,
+            ponto: v.ponto,
+            valor_mgdl: v.valor_mgdl,
+          }));
+
+        const { error: delErr } = await admin
+          .from("valores_perfil")
+          .delete()
+          .eq("perfil_id", perfilId);
+        if (delErr) {
+          return jsonResp({ error: "Erro ao limpar valores da grade", details: delErr.message }, 500);
+        }
+        if (valoresLimpos.length > 0) {
+          const { error: insValErr } = await admin
+            .from("valores_perfil")
+            .insert(valoresLimpos);
+          if (insValErr) {
+            return jsonResp({ error: "Erro ao inserir valores da grade", details: insValErr.message }, 500);
+          }
+        }
       }
     }
 
