@@ -42,6 +42,8 @@ export interface PreviewConsulta {
   proxima_ficha_recomendada?: 'ficha_a' | 'ficha_b' | 'ficha_c' | 'ficha_d' | 'ficha_e' | null;
   regra_aplicada?: string | null;
   conduta_gerada?: string | null;
+  // 36E-B — Ficha E (6 pontos sem insulina)
+  conduta_e?: 'manter_e' | 'insulina' | null;
 }
 
 export interface PreviewPaciente {

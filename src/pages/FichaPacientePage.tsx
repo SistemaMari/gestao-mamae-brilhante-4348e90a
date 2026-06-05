@@ -40,6 +40,8 @@ import FichaACReadOnlyGrid from '@/components/FichaACReadOnlyGrid';
 import FichaBDForm from '@/components/FichaBDForm';
 import FichaBDResultCard from '@/components/FichaBDResultCard';
 import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
+import FichaEForm from '@/components/FichaEForm';
+import FichaEResultCard from '@/components/FichaEResultCard';
 
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
@@ -103,6 +105,8 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
       const dias = (c.ig_semanas ?? 0) > 30 ? 7 : 15;
       return `${prefix} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × ${dias} dias)`;
     }
+    case 'ficha_e':
+      return `${prefix} — Perfil de 6 pontos (sem insulina) × 10 dias`;
     case 'registro_parto':
       return `${prefix} — Registro do parto`;
     default:
@@ -146,13 +150,16 @@ function getNextStepInfo(
       const hasFichaBD = consultas.some(c => ['ficha_b', 'ficha_d'].includes(c.tipo));
       const nextRetornoNum = consultas.length;
 
-      // 36B REV3 — Roteamento por proxima_ficha_recomendada (vinda do motor da Ficha A)
-      const ultimaFichaAC = [...consultas].reverse().find(c => ['ficha_a', 'ficha_c'].includes(c.tipo));
-      const proxima = ultimaFichaAC?.proxima_ficha_recomendada ?? null;
+      // 36B REV3 / 36E-B — Roteamento por proxima_ficha_recomendada
+      // (motor da Ficha A ou da Ficha E, qualquer que seja a última com decisão).
+      const ultimaComDecisao = [...consultas].reverse().find(
+        c => ['ficha_a', 'ficha_c', 'ficha_e'].includes(c.tipo) && !!c.proxima_ficha_recomendada,
+      );
+      const proxima = ultimaComDecisao?.proxima_ficha_recomendada ?? null;
 
       if (proxima === 'ficha_e') {
         return {
-          label: `+ RETORNO ${nextRetornoNum} — Ficha E (6 pontos sem insulina) — disponível em breve`,
+          label: `+ RETORNO ${nextRetornoNum} — Perfil de 6 pontos (sem insulina) × 10 dias`,
           formType: 'ficha_e',
         };
       }
@@ -248,6 +255,9 @@ export default function FichaPacientePage() {
   const [showFichaBD, setShowFichaBD] = useState(false);
   const [fichaBDCompleted, setFichaBDCompleted] = useState(false);
   const [_fichaBDResult, setFichaBDResult] = useState<PreviewConsulta | null>(null);
+  const [showFichaE, setShowFichaE] = useState(false);
+  const [fichaECompleted, setFichaECompleted] = useState(false);
+  const [_fichaEResult, setFichaEResult] = useState<PreviewConsulta | null>(null);
   const [showGtt, setShowGtt] = useState(false);
   const [gttCompleted, setGttCompleted] = useState(false);
   const [showRegistroParto, setShowRegistroParto] = useState(false);
@@ -723,7 +733,7 @@ export default function FichaPacientePage() {
   // histórico por padrão. Nesta tela não há status_ficha de rascunho; o estado
   // real de edição é dado pelos flags de formulário ativo / consulta em edição.
   const hasFichaEmEdicao =
-    showRetorno1 || showFichaAC || showFichaBD || showGtt || showRegistroParto || editingConsultaId !== null;
+    showRetorno1 || showFichaAC || showFichaBD || showFichaE || showGtt || showRegistroParto || editingConsultaId !== null;
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -1170,6 +1180,35 @@ export default function FichaPacientePage() {
           />
         </div>
       )}
+      {/* Ficha E form */}
+      {showFichaE && paciente && (
+        <div className="print:hidden">
+          <FichaEForm
+            paciente={paciente}
+            consultas={consultas}
+            isPreview={isPreview}
+            onSaved={() => {
+              setShowFichaE(false);
+              if (isPreview && id) {
+                const p = getPreviewPacienteById(id);
+                if (p) {
+                  setPaciente(p);
+                  setConsultas(p.consultas || []);
+                  const lastFicha = [...(p.consultas || [])].reverse().find(c => c.tipo === 'ficha_e');
+                  if (lastFicha) {
+                    setFichaEResult(lastFicha);
+                    setFichaECompleted(true);
+                  }
+                }
+              } else {
+                void fetchPaciente();
+                setFichaECompleted(true);
+              }
+            }}
+            onCancel={() => setShowFichaE(false)}
+          />
+        </div>
+      )}
       {/* GTT form */}
       {showGtt && paciente && (
         <div className="print:hidden">
@@ -1285,7 +1324,7 @@ export default function FichaPacientePage() {
                   {(() => {
                     const isLastConsulta = c.id === consultasHistorico[0]?.id;
                     const isEditing = editingConsultaId === c.id;
-                    const noFormOpen = !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt;
+                    const noFormOpen = !showRetorno1 && !showFichaAC && !showFichaBD && !showFichaE && !showGtt;
                     const canEdit = isLastConsulta && noFormOpen && c.tipo !== 'consulta_1';
 
                     // Handle edit save — reload data and close editing
@@ -1344,6 +1383,18 @@ export default function FichaPacientePage() {
                       if (c.tipo === 'ficha_b' || c.tipo === 'ficha_d') {
                         return (
                           <FichaBDForm
+                            paciente={paciente}
+                            consultas={consultas}
+                            isPreview={isPreview}
+                            onSaved={handleEditSaved}
+                            onCancel={() => setEditingConsultaId(null)}
+                            editingConsulta={c}
+                          />
+                        );
+                      }
+                      if (c.tipo === 'ficha_e') {
+                        return (
+                          <FichaEForm
                             paciente={paciente}
                             consultas={consultas}
                             isPreview={isPreview}
@@ -1455,6 +1506,40 @@ export default function FichaPacientePage() {
                           </>
                         );
                       }
+                      if (c.tipo === 'ficha_e') {
+                        return (
+                          <>
+                            {c.grid_valores && c.grid_valores.length > 0 && (
+                              <FichaBDReadOnlyGrid gridValores={c.grid_valores} />
+                            )}
+                            <FichaEResultCard
+                              percentual={c.percentual_meta ?? 0}
+                              adequado={(c.percentual_meta ?? 0) >= 70}
+                              totalPreenchidos={c.total_preenchidos ?? 0}
+                              dentroMeta={c.dentro_meta ?? 0}
+                              doseTotal={c.dose_total}
+                              doseManha={c.dose_manha}
+                              doseNoite={c.dose_noite}
+                              peso={c.peso_kg}
+                              igSemanas={c.ig_semanas}
+                              pacienteId={paciente.id}
+                              consultaId={c.id}
+                              isPreview={isPreview}
+                              isReadOnly={isReadOnly}
+                              onWeightSaved={() => {
+                                if (isPreview) {
+                                  const p = getPreviewPacienteById(paciente.id);
+                                  if (p) {
+                                    setPaciente(p);
+                                    setConsultas(p.consultas || []);
+                                  }
+                                }
+                              }}
+                            />
+                          </>
+                        );
+                      }
+
                       if (c.tipo === 'retorno_gtt') {
                         return <GttResultCard consulta={c} igHoje={igAtual} />;
                       }
@@ -1559,7 +1644,7 @@ export default function FichaPacientePage() {
       {/* Next step button — hidden in print and read-only */}
       <div className="print:hidden">
         {!isReadOnly && (() => {
-          if (showRetorno1 || showFichaAC || showFichaBD || showGtt || showRegistroParto) return null;
+          if (showRetorno1 || showFichaAC || showFichaBD || showFichaE || showGtt || showRegistroParto) return null;
           if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
 
           const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
@@ -1579,16 +1664,12 @@ export default function FichaPacientePage() {
           if (isFichaBDButton && fichaBDCompleted && paciente.status_ficha === 'encaminhada_endocrino') return null;
 
           const isFichaEButton = nextStep.formType === 'ficha_e';
+          if (isFichaEButton && fichaECompleted && paciente.status_ficha === 'encaminhada_endocrino') return null;
 
           return (
             <Button
               className="w-full text-left bg-[#7C4DBA] hover:bg-[#7E69AB] text-white disabled:opacity-60 disabled:cursor-not-allowed"
-              disabled={isFichaEButton}
               onClick={() => {
-                if (isFichaEButton) {
-                  toast('Ficha E (6 pontos sem insulina) — disponível em breve.');
-                  return;
-                }
                 if (isRetorno1Button) {
                   setShowRetorno1(true);
                 } else if (isGttButton) {
@@ -1601,6 +1682,10 @@ export default function FichaPacientePage() {
                   setFichaBDCompleted(false);
                   setFichaBDResult(null);
                   setShowFichaBD(true);
+                } else if (isFichaEButton) {
+                  setFichaECompleted(false);
+                  setFichaEResult(null);
+                  setShowFichaE(true);
                 } else {
                   toast('Próximo retorno ainda não implementado.');
                 }
@@ -1613,7 +1698,7 @@ export default function FichaPacientePage() {
         })()}
 
         {/* Botão secundário — Registro do Parto */}
-        {!isReadOnly && canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showGtt && !showRegistroParto && (
+        {!isReadOnly && canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showFichaE && !showGtt && !showRegistroParto && (
           <Button
             variant="outline"
             className="w-full mt-2 border-[#7C4DBA] text-[#7C4DBA] hover:bg-[#E8E0FF] hover:text-[#7E69AB]"
