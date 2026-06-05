@@ -500,6 +500,33 @@ export default function FichaACForm({
         recursoTipo: 'ficha',
       });
 
+      // 36B REV3 — Persistência auditável da decisão (apenas Ficha A com checklist completo)
+      if (isFichaA && decisaoFichaA && consultaId) {
+        await supabase
+          .from('decisoes_ficha_a' as any)
+          .upsert({
+            consulta_id: consultaId,
+            paciente_id: paciente.id,
+            profissional_id: profId,
+            checklist_dieta: checklist.dieta,
+            checklist_exercicio: checklist.exercicio,
+            checklist_ganho_peso: checklist.ganho_peso,
+            checklist_pfe_us: checklist.pfe_us,
+            checklist_ca: checklist.ca,
+            checklist_la: checklist.la,
+            percentual_meta: percentual,
+            regra_aplicada: decisaoFichaA.regra_aplicada,
+            conduta_gerada: decisaoFichaA.conduta_gerada,
+            memoria_glicosimetro: memoria,
+            pactuacao_adesao: pactuacao,
+            dose_insulina_total: decisaoFichaA.dose_total,
+            dose_insulina_manha: decisaoFichaA.dose_manha,
+            dose_insulina_noite: decisaoFichaA.dose_noite,
+            proxima_ficha_recomendada: decisaoFichaA.proxima_ficha_recomendada,
+            updated_at: new Date().toISOString(),
+          } as any, { onConflict: 'consulta_id' });
+      }
+
       setSavedResult({ percentual: percentual!, adequado: isAdequado });
       setSaving(false);
       setShowImpact(true);
