@@ -57,6 +57,13 @@ Deno.serve(async (req) => {
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
   const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+  // Auth guard: only callable with the service-role key (internal smoke test).
+  const bearer = req.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
+  if (!SERVICE_ROLE || bearer !== SERVICE_ROLE) {
+    return json({ error: 'Unauthorized' }, 401);
+  }
+
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
     auth: { autoRefreshToken: false, persistSession: false },
   });

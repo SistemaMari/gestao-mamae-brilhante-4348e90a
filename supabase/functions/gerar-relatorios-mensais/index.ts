@@ -452,6 +452,13 @@ Deno.serve(async (req) => {
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+  // Auth guard: only allow calls bearing the service-role key (pg_cron / admin).
+  const bearer = req.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
+  if (!SERVICE_ROLE || bearer !== SERVICE_ROLE) {
+    return jsonResponse({ error: 'Unauthorized' }, 401);
+  }
+
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   // Permite override de período via body (para regeração manual por admin)
