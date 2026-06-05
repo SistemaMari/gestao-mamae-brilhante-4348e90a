@@ -420,6 +420,121 @@ export type Database = {
         }
         Relationships: []
       }
+      decisoes_ficha_a: {
+        Row: {
+          checklist_ca: string | null
+          checklist_dieta: boolean | null
+          checklist_exercicio: boolean | null
+          checklist_ganho_peso: boolean | null
+          checklist_la: string | null
+          checklist_pfe_us: string | null
+          conduta_gerada: string | null
+          consulta_id: string
+          created_at: string
+          dose_insulina_manha: number | null
+          dose_insulina_noite: number | null
+          dose_insulina_total: number | null
+          id: string
+          memoria_glicosimetro: string | null
+          paciente_id: string
+          pactuacao_adesao: string | null
+          percentual_meta: number | null
+          profissional_id: string
+          proxima_ficha_recomendada: string | null
+          regra_aplicada: string | null
+          updated_at: string
+        }
+        Insert: {
+          checklist_ca?: string | null
+          checklist_dieta?: boolean | null
+          checklist_exercicio?: boolean | null
+          checklist_ganho_peso?: boolean | null
+          checklist_la?: string | null
+          checklist_pfe_us?: string | null
+          conduta_gerada?: string | null
+          consulta_id: string
+          created_at?: string
+          dose_insulina_manha?: number | null
+          dose_insulina_noite?: number | null
+          dose_insulina_total?: number | null
+          id?: string
+          memoria_glicosimetro?: string | null
+          paciente_id: string
+          pactuacao_adesao?: string | null
+          percentual_meta?: number | null
+          profissional_id: string
+          proxima_ficha_recomendada?: string | null
+          regra_aplicada?: string | null
+          updated_at?: string
+        }
+        Update: {
+          checklist_ca?: string | null
+          checklist_dieta?: boolean | null
+          checklist_exercicio?: boolean | null
+          checklist_ganho_peso?: boolean | null
+          checklist_la?: string | null
+          checklist_pfe_us?: string | null
+          conduta_gerada?: string | null
+          consulta_id?: string
+          created_at?: string
+          dose_insulina_manha?: number | null
+          dose_insulina_noite?: number | null
+          dose_insulina_total?: number | null
+          id?: string
+          memoria_glicosimetro?: string | null
+          paciente_id?: string
+          pactuacao_adesao?: string | null
+          percentual_meta?: number | null
+          profissional_id?: string
+          proxima_ficha_recomendada?: string | null
+          regra_aplicada?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decisoes_ficha_a_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: true
+            referencedRelation: "consultas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisoes_ficha_a_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: true
+            referencedRelation: "v_ficha_retorno_contexto"
+            referencedColumns: ["consulta_caso_novo_id"]
+          },
+          {
+            foreignKeyName: "decisoes_ficha_a_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: true
+            referencedRelation: "v_ficha_retorno_contexto"
+            referencedColumns: ["consulta_retorno_id"]
+          },
+          {
+            foreignKeyName: "decisoes_ficha_a_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisoes_ficha_a_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "equipe_unidade_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisoes_ficha_a_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
