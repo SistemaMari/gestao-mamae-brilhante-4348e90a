@@ -93,6 +93,8 @@ interface Payload {
   grade?: GradeInput | null;
   // 36A REV3 — checklist + pactuação + memória da Ficha A
   decisao_ficha_a?: DecisaoFichaAInput | null;
+  // 36E-A — overrides opcionais para o veredito da Ficha E (peso/percentual)
+  decisao_ficha_e?: { peso_paciente_kg?: number | null; percentual_meta?: number | null } | null;
 }
 
 // ============================================================
