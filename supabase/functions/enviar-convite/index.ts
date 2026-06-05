@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
       .eq("id", unidade_id)
       .single();
 
-    const conviteUrl = `https://maridmg.com.br/cadastro-convite/${token_invite}`;
+    const conviteUrl = `https://maridmg.com.br/convite/${token_invite}`;
     const nomeUnidade = unidade?.nome ?? "sua unidade";
 
     const htmlBody = `
