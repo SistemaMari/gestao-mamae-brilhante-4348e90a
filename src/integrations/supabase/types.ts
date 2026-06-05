@@ -1364,47 +1364,59 @@ export type Database = {
       }
       perfis_glicemicos: {
         Row: {
+          conduta_e: string | null
           consulta_id: string
           created_at: string
           data_fim: string
           data_inicio: string
           decisao: string | null
           dose_insulina_calculada: number | null
+          dose_insulina_manha: number | null
+          dose_insulina_noite: number | null
           id: string
           paciente_id: string
           percentual_meta: number
           peso_paciente_kg: number | null
           profissional_id: string
+          proxima_ficha_recomendada: string | null
           tipo_perfil: string
           tipo_pos_prandial: string
         }
         Insert: {
+          conduta_e?: string | null
           consulta_id: string
           created_at?: string
           data_fim: string
           data_inicio: string
           decisao?: string | null
           dose_insulina_calculada?: number | null
+          dose_insulina_manha?: number | null
+          dose_insulina_noite?: number | null
           id?: string
           paciente_id: string
           percentual_meta?: number
           peso_paciente_kg?: number | null
           profissional_id: string
+          proxima_ficha_recomendada?: string | null
           tipo_perfil?: string
           tipo_pos_prandial?: string
         }
         Update: {
+          conduta_e?: string | null
           consulta_id?: string
           created_at?: string
           data_fim?: string
           data_inicio?: string
           decisao?: string | null
           dose_insulina_calculada?: number | null
+          dose_insulina_manha?: number | null
+          dose_insulina_noite?: number | null
           id?: string
           paciente_id?: string
           percentual_meta?: number
           peso_paciente_kg?: number | null
           profissional_id?: string
+          proxima_ficha_recomendada?: string | null
           tipo_perfil?: string
           tipo_pos_prandial?: string
         }
