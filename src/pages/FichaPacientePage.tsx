@@ -1126,7 +1126,6 @@ export default function FichaPacientePage() {
       {consultasHistorico.length > 0 && (
         <Collapsible
           defaultOpen={!hasFichaEmEdicao}
-          key={`hist-collapse-${hasFichaEmEdicao}`}
           className="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm print:shadow-none"
         >
           <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2">
@@ -1140,7 +1139,6 @@ export default function FichaPacientePage() {
           <Accordion
             type="multiple"
             defaultValue={[consultasHistorico[0]?.id].filter(Boolean)}
-            key={`hist-${consultas.length}`}
             className="space-y-2"
           >
             {consultasHistorico.map((c) => {
