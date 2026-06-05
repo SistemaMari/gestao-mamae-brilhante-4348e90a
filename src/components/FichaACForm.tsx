@@ -784,6 +784,31 @@ export default function FichaACForm({
 
       {/* Peso e dose foram movidos para o LAUDO (FichaACResultCard) — capturados após o Bloco 1 */}
 
+      {/* 36B REV3 — Checklist clínico do Retorno 2 (apenas Ficha A, ≤30 sem) */}
+      {isFichaA && (
+        <ChecklistRetorno2 value={checklist} onChange={setChecklist} disabled={saving} />
+      )}
+
+      {/* 36B REV3 — Conduta gerada pelo motor de decisão (apenas Ficha A) */}
+      {isFichaA && decisaoFichaA && (
+        <CondutaCard
+          decisao={{
+            regra_aplicada: decisaoFichaA.regra_aplicada,
+            conduta_gerada: decisaoFichaA.conduta_gerada,
+            proxima_ficha_recomendada: decisaoFichaA.proxima_ficha_recomendada,
+            dose_total: decisaoFichaA.dose_total,
+            dose_manha: decisaoFichaA.dose_manha,
+            dose_noite: decisaoFichaA.dose_noite,
+            pendencias: decisaoFichaA.pendencias,
+          }}
+          pactuacao={pactuacao}
+          memoria={memoria}
+          onPactuacao={setPactuacao}
+          onMemoria={setMemoria}
+          disabled={saving}
+        />
+      )}
+
       {/* Observations */}
       <div className="space-y-1">
         <div className="flex items-center gap-1">
