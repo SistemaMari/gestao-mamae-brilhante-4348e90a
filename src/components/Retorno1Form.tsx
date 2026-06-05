@@ -55,8 +55,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Info, Loader2, AlertTriangle, CheckCircle2, XCircle, Printer, Pencil, FileText } from 'lucide-react';
-import { differenceInDays, addDays, format } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
+import { useIg, getIg } from '@/lib/getIg';
 import UsgFlowSection, { emptyUsgFlow, UsgFlowValue } from '@/components/UsgFlowSection';
 
 function todayISO() {
@@ -181,16 +182,10 @@ export default function Retorno1Form({
 
   const isCapilar = tipoExame === 'capilar';
 
-  // Calculate IG at exam date based on DUM
-  const igCalculada = useMemo(() => {
-    if (!paciente.dum || !dataExame) return null;
-    const exam = parseDateLocal(dataExame);
-    const dum = parseDateLocal(paciente.dum);
-    if (!exam || !dum) return null;
-    const dias = differenceInDays(exam, dum);
-    if (dias < 0) return null;
-    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
-  }, [paciente.dum, dataExame]);
+  // 34C-B2: IG na data do exame vem da fonte única (RPC calcular_ig).
+  // Respeita a âncora vigente da paciente — não calcula via DUM-diff.
+  const igCalculadaQuery = useIg(paciente.id, dataExame || null);
+  const igCalculada = igCalculadaQuery.data ?? null;
 
   // 34B.1 hotfix — auto-fill da IG na data do exame.
   //
@@ -231,20 +226,20 @@ export default function Retorno1Form({
    * colocou? Não — a expectativa do usuário (reportada) é que mudar a data do exame
    * recalcule IG. Quem quiser fixar IG manual deve digitá-la depois de definir a data.
    */
+  // 34C-B2: ao trocar a data do exame, recalcula IG via fonte única
+  // (RPC calcular_ig na nova data). Sem DUM-diff local — respeita
+  // a âncora vigente da paciente.
   const handleDataExameChange = useCallback(
-    (novaData: string) => {
+    async (novaData: string) => {
       setDataExame(novaData);
       if (editingResult || editingConsulta) return;
-      if (!paciente.dum || !novaData) return;
-      const exam = parseDateLocal(novaData);
-      const dum = parseDateLocal(paciente.dum);
-      if (!exam || !dum) return;
-      const dias = differenceInDays(exam, dum);
-      if (dias < 0) return;
-      setIgSemanas(String(Math.floor(dias / 7)));
-      setIgDias(String(dias % 7));
+      if (!novaData) return;
+      const ig = await getIg(paciente.id, novaData);
+      if (!ig) return;
+      setIgSemanas(String(ig.semanas));
+      setIgDias(String(ig.dias));
     },
-    [paciente.dum, editingResult, editingConsulta],
+    [paciente.id, editingResult, editingConsulta],
   );
 
   // DUM-based GTT window calc for negative result
@@ -257,14 +252,12 @@ export default function Retorno1Form({
     return { inicio, fim };
   }, [paciente.dum]);
 
-  const igHoje = useMemo(() => {
-    if (!paciente.dum) return null;
-    const dum = parseDateLocal(paciente.dum);
-    if (!dum) return null;
-    const dias = differenceInDays(new Date(), dum);
-    if (dias < 0) return null;
-    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
-  }, [paciente.dum]);
+  // 34C-B2: "IG hoje" via fonte única (usada para igMaior24 — janela GTT
+  // só faz sentido se a paciente já passou de 24 semanas HOJE). Cai para
+  // null se paciente sem âncora; igMaior24 = false nesse caso.
+  const hojeISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const igHojeQuery = useIg(paciente.id, hojeISO);
+  const igHoje = igHojeQuery.data ?? null;
 
   const igMaior24 = igHoje ? igHoje.semanas >= 24 : false;
 

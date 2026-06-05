@@ -31,8 +31,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Info, Loader2, AlertTriangle, CheckCircle2, XCircle, Printer } from 'lucide-react';
-import { differenceInDays } from 'date-fns';
-import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
+// 34C-B2: differenceInDays removido — cálculo de IG agora é centralizado
+// em `@/lib/getIg` (RPC calcular_ig).
+import { todayLocalISO } from '@/lib/dateUtils';
+import { useIg } from '@/lib/getIg';
 
 function todayISO() {
   return todayLocalISO();
@@ -142,16 +144,10 @@ export default function GttForm({
   const [resultado, setResultado] = useState<GttDiagResult | null>(null);
   const [showPopup, setShowPopup] = useState(false);
 
-  // Calculate IG at exam date
-  const igCalculada = useMemo(() => {
-    if (!paciente.dum || !dataExame) return null;
-    const exam = parseDateLocal(dataExame);
-    const dum = parseDateLocal(paciente.dum);
-    if (!exam || !dum) return null;
-    const dias = differenceInDays(exam, dum);
-    if (dias < 0) return null;
-    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
-  }, [paciente.dum, dataExame]);
+  // 34C-B2: IG na data do GTT vem da fonte única (RPC calcular_ig na
+  // data do exame). Respeita a âncora vigente — sem DUM-diff local.
+  const igCalculadaQuery = useIg(paciente.id, dataExame || null);
+  const igCalculada = igCalculadaQuery.data ?? null;
 
   useEffect(() => {
     if (igCalculada && !editingConsulta) {
@@ -160,14 +156,11 @@ export default function GttForm({
     }
   }, [igCalculada, editingConsulta]);
 
-  const igHoje = useMemo(() => {
-    if (!paciente.dum) return null;
-    const dum = parseDateLocal(paciente.dum);
-    if (!dum) return null;
-    const dias = differenceInDays(new Date(), dum);
-    if (dias < 0) return null;
-    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
-  }, [paciente.dum]);
+  // 34C-B2: "IG hoje" via fonte única — usada apenas para o texto da
+  // recomendação ("ultrassom para datar..." se < 20s; senão "para crescimento").
+  const hojeISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const igHojeQuery = useIg(paciente.id, hojeISO);
+  const igHoje = igHojeQuery.data ?? null;
 
   const jejumNum = parseInt(valorJejum, 10);
   const h1Num = parseInt(valor1h, 10);

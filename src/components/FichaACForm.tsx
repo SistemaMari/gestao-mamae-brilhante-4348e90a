@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
-import { differenceInDays, addDays, format } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
+import { useIg } from '@/lib/getIg';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
@@ -92,16 +93,12 @@ export default function FichaACForm({
   const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
   const [saving, setSaving] = useState(false);
 
-  // IG auto-calculated
-  const igAtual = useMemo(() => {
-    if (!paciente.dum) return null;
-    const consulta = parseDateLocal(dataConsulta);
-    const dum = parseDateLocal(paciente.dum);
-    if (!consulta || !dum) return null;
-    const dias = differenceInDays(consulta, dum);
-    if (dias < 0) return null;
-    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
-  }, [paciente.dum, dataConsulta]);
+  // 34C-B2: IG vem da fonte única (RPC calcular_ig) na data da consulta.
+  // Respeita a âncora vigente da paciente (DUM ou USG de referência) — nada
+  // de DUM-diff ad-hoc. Quando a paciente não tem âncora, igAtual = null e
+  // os campos ig_semanas/ig_dias ficam vazios (o backend pode bloquear via 34C-A).
+  const igAtualQuery = useIg(paciente.id, dataConsulta);
+  const igAtual = igAtualQuery.data ?? null;
 
   const [igSemanas, setIgSemanas] = useState(editingConsulta?.ig_semanas != null ? String(editingConsulta.ig_semanas) : '');
   const [igDias, setIgDias] = useState(editingConsulta?.ig_dias != null ? String(editingConsulta.ig_dias) : '');

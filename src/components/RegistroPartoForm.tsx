@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { classificarRN } from '@/lib/intergrowth';
 
-import { differenceInDays, format } from 'date-fns';
-import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
+import { format } from 'date-fns';
+import { todayLocalISO } from '@/lib/dateUtils';
+import { useIg } from '@/lib/getIg';
 import { toast } from 'sonner';
 import { FileText, Info, Loader2, Baby } from 'lucide-react';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
@@ -64,15 +65,11 @@ function HelpIcon({ text }: { text: string }) {
 export default function RegistroPartoForm({
   paciente, consultas, isPreview, onSaved, onCancel,
 }: Props) {
-  // ── IG atual calculada a partir da DUM (badge no cabeçalho) ──
-  const igAtual = useMemo(() => {
-    if (!paciente.dum) return null;
-    const dum = parseDateLocal(paciente.dum);
-    if (!dum) return null;
-    const dias = differenceInDays(new Date(), dum);
-    if (dias < 0) return null;
-    return { semanas: Math.floor(dias / 7), dias: dias % 7 };
-  }, [paciente.dum]);
+  // 34C-B2: IG atual (badge no cabeçalho) via fonte única — IG na data
+  // de hoje, calculada pela RPC `calcular_ig` que respeita a âncora vigente.
+  const hojeISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const igAtualQuery = useIg(paciente.id, hojeISO);
+  const igAtual = igAtualQuery.data ?? null;
 
   // ── Estado dos campos ──
   const [viaParto, setViaParto] = useState<ViaParto>('');
@@ -119,18 +116,16 @@ export default function RegistroPartoForm({
 
   // 34B.1 — Bug A: useAutosave removido. Save explícito via botão.
 
-  // ── Auto-cálculo da IG no parto a partir da DUM e da data do parto ──
+  // 34C-B2: IG no parto via fonte única (RPC calcular_ig na data do parto).
+  // Respeita a âncora vigente da paciente — sem DUM-diff local.
+  const igPartoQuery = useIg(paciente.id, dataParto || null);
   useEffect(() => {
     if (igOrigem === 'manual') return;
-    if (!paciente.dum || !dataParto) return;
-    const parto = parseDateLocal(dataParto);
-    const dum = parseDateLocal(paciente.dum);
-    if (!parto || !dum) return;
-    const dias = differenceInDays(parto, dum);
-    if (dias < 0) return;
-    setIgPartoSemanas(String(Math.floor(dias / 7)));
-    setIgPartoDias(String(dias % 7));
-  }, [dataParto, paciente.dum, igOrigem]);
+    const ig = igPartoQuery.data;
+    if (!ig) return;
+    setIgPartoSemanas(String(ig.semanas));
+    setIgPartoDias(String(ig.dias));
+  }, [igPartoQuery.data, igOrigem]);
 
   // ── Auto-cálculo Intergrowth-21st (PIG/AIG/GIG) ──
   useEffect(() => {
