@@ -258,14 +258,44 @@ export default function FichaACForm({
     }));
   }, [grid]);
 
+  // 36B REV3 — Checklist + pactuação + memória (somente Ficha A, ≤30 sem)
+  const isFichaA = igSemNum <= 30;
+  const [checklist, setChecklist] = useState<ChecklistState>(CHECKLIST_VAZIO);
+  const [pactuacao, setPactuacao] = useState<'aceita' | 'recusa' | null>(null);
+  const [memoria, setMemoria] = useState<'confirma' | 'nao_confirma' | null>(null);
+
+  const decisao = useMemo<DecisaoResultado | null>(() => {
+    if (!isFichaA || !isChecklistCompleto(checklist) || percentual == null) return null;
+    return aplicarRegrasFichaA(
+      {
+        checklist_dieta: checklist.dieta,
+        checklist_exercicio: checklist.exercicio,
+        checklist_ganho_peso: checklist.ganho_peso,
+        checklist_pfe_us: checklist.pfe_us,
+        checklist_ca: checklist.ca,
+        checklist_la: checklist.la,
+        memoria_glicosimetro: memoria,
+        pactuacao_adesao: pactuacao,
+      },
+      percentual,
+      editingConsulta?.peso_kg ?? null,
+      igSemNum || null,
+    );
+  }, [isFichaA, checklist, memoria, pactuacao, percentual, editingConsulta?.peso_kg, igSemNum]);
+
   // Validation — peso não é mais obrigatório aqui (capturado no laudo, após o Bloco 1)
   const canSave = useMemo(() => {
     if (!dataInicio || !dataFim || !dataConsulta) return false;
     if (!igSemanas) return false;
     if (totalPreenchidos === 0) return false;
     if (hasNegativeValues) return false;
+    // 36B REV3 — Ficha A exige checklist completo + caminho clínico fechado (sem pendências de pactuação/memória)
+    if (isFichaA) {
+      if (!isChecklistCompleto(checklist)) return false;
+      if (decisao && decisao.pendencias.some(p => p === 'pactuacao_adesao' || p === 'memoria_glicosimetro')) return false;
+    }
     return true;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisao]);
 
   // 34B.2 — status + pendentes (badge e banner).
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
