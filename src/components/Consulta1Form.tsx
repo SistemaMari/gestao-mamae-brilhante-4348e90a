@@ -161,8 +161,11 @@ export default function Consulta1Form() {
       dmg_gestacao_anterior: dmgAnterior === true,
       data_ultima_consulta: dataConsulta,
       is_rascunho: false,
-      // 34B.2 — finaliza ficha. Backend default era 'rascunho' até este save explícito.
-      status_ficha: 'completa',
+      // Status CLÍNICO inicial do Caso Novo: aguardando glicemia de jejum.
+      // pacientes.status_ficha é o estado clínico (default do banco = 'aguardando_gj'),
+      // DIFERENTE de consultas.status_ficha (rascunho/completa). Gravar 'completa' aqui
+      // sufocava o gate de getNextStepInfo (FichaPacientePage) e escondia o "+ Retorno 1".
+      status_ficha: 'aguardando_gj',
       referencia_ig: usgFlow.referenciaIg ?? (dumDesconhecida ? null : 'dum'),
     };
 
