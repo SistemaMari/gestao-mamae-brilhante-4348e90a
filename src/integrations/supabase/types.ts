@@ -60,13 +60,6 @@ export type Database = {
             referencedRelation: "profissionais"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "admin_access_log_admin_id_fkey"
-            columns: ["admin_id"]
-            isOneToOne: false
-            referencedRelation: "profissionais_equipe"
-            referencedColumns: ["id"]
-          },
         ]
       }
       admin_audit_log: {
@@ -275,13 +268,6 @@ export type Database = {
             columns: ["profissional_id"]
             isOneToOne: false
             referencedRelation: "profissionais"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "consultas_profissional_id_fkey"
-            columns: ["profissional_id"]
-            isOneToOne: false
-            referencedRelation: "profissionais_equipe"
             referencedColumns: ["id"]
           },
         ]
@@ -547,13 +533,6 @@ export type Database = {
             referencedRelation: "profissionais"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "decisoes_ficha_a_profissional_id_fkey"
-            columns: ["profissional_id"]
-            isOneToOne: false
-            referencedRelation: "profissionais_equipe"
-            referencedColumns: ["id"]
-          },
         ]
       }
       email_send_log: {
@@ -721,13 +700,6 @@ export type Database = {
             columns: ["profissional_id"]
             isOneToOne: false
             referencedRelation: "profissionais"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "exames_glicemia_profissional_id_fkey"
-            columns: ["profissional_id"]
-            isOneToOne: false
-            referencedRelation: "profissionais_equipe"
             referencedColumns: ["id"]
           },
         ]
@@ -1126,13 +1098,6 @@ export type Database = {
             referencedRelation: "profissionais"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "log_mudanca_plano_profissional_id_fkey"
-            columns: ["profissional_id"]
-            isOneToOne: false
-            referencedRelation: "profissionais_equipe"
-            referencedColumns: ["id"]
-          },
         ]
       }
       log_transferencia_unidade: {
@@ -1302,13 +1267,6 @@ export type Database = {
             columns: ["profissional_id"]
             isOneToOne: false
             referencedRelation: "profissionais"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pacientes_profissional_id_fkey"
-            columns: ["profissional_id"]
-            isOneToOne: false
-            referencedRelation: "profissionais_equipe"
             referencedColumns: ["id"]
           },
           {
@@ -1505,13 +1463,6 @@ export type Database = {
             referencedRelation: "profissionais"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "perfis_glicemicos_profissional_id_fkey"
-            columns: ["profissional_id"]
-            isOneToOne: false
-            referencedRelation: "profissionais_equipe"
-            referencedColumns: ["id"]
-          },
         ]
       }
       planos: {
@@ -1681,13 +1632,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "profissionais_acesso_revogado_por_fkey"
-            columns: ["acesso_revogado_por"]
-            isOneToOne: false
-            referencedRelation: "profissionais_equipe"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "profissionais_plano_id_fkey"
             columns: ["plano_id"]
             isOneToOne: false
@@ -1791,13 +1735,6 @@ export type Database = {
             columns: ["profissional_id"]
             isOneToOne: false
             referencedRelation: "profissionais"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "registros_atendimento_profissional_id_fkey"
-            columns: ["profissional_id"]
-            isOneToOne: false
-            referencedRelation: "profissionais_equipe"
             referencedColumns: ["id"]
           },
           {
@@ -2205,70 +2142,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profissionais_equipe: {
-        Row: {
-          acesso_revogado: boolean | null
-          created_at: string | null
-          crm: string | null
-          especialidade: string | null
-          id: string | null
-          identificador_padrao: string | null
-          nome: string | null
-          perfil_clinico: string | null
-          perfil_institucional: string | null
-          unidade_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          acesso_revogado?: boolean | null
-          created_at?: string | null
-          crm?: string | null
-          especialidade?: string | null
-          id?: string | null
-          identificador_padrao?: string | null
-          nome?: string | null
-          perfil_clinico?: string | null
-          perfil_institucional?: string | null
-          unidade_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          acesso_revogado?: boolean | null
-          created_at?: string | null
-          crm?: string | null
-          especialidade?: string | null
-          id?: string | null
-          identificador_padrao?: string | null
-          nome?: string | null
-          perfil_clinico?: string | null
-          perfil_institucional?: string | null
-          unidade_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profissionais_unidade_id_fkey"
-            columns: ["unidade_id"]
-            isOneToOne: false
-            referencedRelation: "mv_admin_unidades_resumo"
-            referencedColumns: ["unidade_id"]
-          },
-          {
-            foreignKeyName: "profissionais_unidade_id_fkey"
-            columns: ["unidade_id"]
-            isOneToOne: false
-            referencedRelation: "mv_metricas_unidade"
-            referencedColumns: ["unidade_id"]
-          },
-          {
-            foreignKeyName: "profissionais_unidade_id_fkey"
-            columns: ["unidade_id"]
-            isOneToOne: false
-            referencedRelation: "unidades"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       v_ficha_retorno_contexto: {
         Row: {
           cenario_caso_novo: string | null
@@ -2403,6 +2276,22 @@ export type Database = {
         Returns: Json
       }
       get_painel_tendencia: { Args: { p_unidade_id: string }; Returns: Json }
+      get_profissionais_equipe: {
+        Args: { p_unidade_id?: string }
+        Returns: {
+          acesso_revogado: boolean
+          created_at: string
+          crm: string
+          especialidade: string
+          id: string
+          identificador_padrao: string
+          nome: string
+          perfil_clinico: string
+          perfil_institucional: string
+          unidade_id: string
+          user_id: string
+        }[]
+      }
       get_ranking_unidades_gestor_geral: {
         Args: {
           p_data_fim: string
