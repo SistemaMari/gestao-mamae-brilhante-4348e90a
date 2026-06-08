@@ -101,10 +101,18 @@ export default function NovaSenhaPage() {
     setIsLoading(false);
 
     if (error) {
-      if (error.message.includes('expired') || error.message.includes('invalid')) {
+      const msg = (error.message || '').toLowerCase();
+      console.error('[NovaSenha] updateUser error:', error);
+      if (msg.includes('expired') || msg.includes('jwt') || msg.includes('session')) {
         setExpired(true);
+      } else if (msg.includes('different') || msg.includes('same as')) {
+        setError('A nova senha deve ser diferente da senha atual. Escolha outra.');
+      } else if (msg.includes('pwned') || msg.includes('compromis') || msg.includes('weak') || msg.includes('breach')) {
+        setError('Esta senha aparece em vazamentos públicos. Escolha uma senha mais forte.');
+      } else if (msg.includes('characters') || msg.includes('length') || msg.includes('short')) {
+        setError('A senha não atende aos requisitos mínimos de tamanho.');
       } else {
-        setError(t('auth.updatePasswordError'));
+        setError(error.message || t('auth.updatePasswordError'));
       }
       return;
     }
