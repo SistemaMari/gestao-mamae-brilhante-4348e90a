@@ -112,6 +112,14 @@ export default function NovaSenhaPage() {
     setSuccess(true);
   };
 
+  if (checking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (expired || (!isRecovery && !success)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
