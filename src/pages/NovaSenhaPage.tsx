@@ -19,29 +19,56 @@ export default function NovaSenhaPage() {
   const [isRecovery, setIsRecovery] = useState(false);
   const [isFirstAccess, setIsFirstAccess] = useState(false);
   const [expired, setExpired] = useState(false);
+  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
   const countdownRef = useRef<ReturnType<typeof setInterval>>();
 
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash.includes('type=recovery')) {
-      setIsRecovery(true);
-    }
+    const search = window.location.search;
+    const hasPkceCode = /[?&]code=/.test(search);
+    const hasHashFlow = hash.includes('type=');
+
     if (hash.includes('type=invite') || hash.includes('type=signup')) {
       setIsRecovery(true);
+      setIsFirstAccess(true);
+    } else if (hash.includes('type=recovery')) {
+      setIsRecovery(true);
+      // Convite admin usa type=recovery — tratar como primeiro acesso.
       setIsFirstAccess(true);
     }
     if (hash.includes('error=access_denied') || hash.includes('error_code=')) {
       setExpired(true);
+      setChecking(false);
+      return;
+    }
+
+    // Fluxo PKCE: link de recovery chega como ?code=xxx; o cliente troca automaticamente.
+    if (hasPkceCode) {
+      setIsRecovery(true);
+      setIsFirstAccess(true);
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setIsRecovery(true);
+        setIsFirstAccess(true);
+        setChecking(false);
+      } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (hasPkceCode || hasHashFlow) {
+          setIsRecovery(true);
+        }
+        setChecking(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    if (!hasPkceCode && !hasHashFlow) {
+      setChecking(false);
+      return () => subscription.unsubscribe();
+    }
+
+    const timer = setTimeout(() => setChecking(false), 2500);
+    return () => { clearTimeout(timer); subscription.unsubscribe(); };
   }, []);
 
   useEffect(() => {
