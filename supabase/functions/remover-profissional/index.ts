@@ -49,11 +49,11 @@ Deno.serve(async (req) => {
     // 2. Verify CALLER is gestor of this unit (identity from JWT)
     const { data: gestor } = await supabaseAdmin
       .from("profissionais")
-      .select("id, unidade_id, perfil_institucional")
+      .select("id, unidade_id, perfil_institucional, acesso_revogado")
       .eq("user_id", callerUserId)
       .maybeSingle();
 
-    if (!gestor || gestor.unidade_id !== unidade_id || gestor.perfil_institucional !== "gestor") {
+    if (!gestor || gestor.acesso_revogado || gestor.unidade_id !== unidade_id || gestor.perfil_institucional !== "gestor") {
       return json({ status: "erro", mensagem: "Sem permissão." }, 403);
     }
 
