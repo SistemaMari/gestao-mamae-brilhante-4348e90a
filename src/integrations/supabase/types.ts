@@ -792,20 +792,32 @@ export type Database = {
       }
       gestores_gerais: {
         Row: {
+          acesso_revogado: boolean
+          acesso_revogado_em: string | null
+          acesso_revogado_por: string | null
           created_at: string
           id: string
+          motivo_revogacao: string | null
           nome: string | null
           user_id: string
         }
         Insert: {
+          acesso_revogado?: boolean
+          acesso_revogado_em?: string | null
+          acesso_revogado_por?: string | null
           created_at?: string
           id?: string
+          motivo_revogacao?: string | null
           nome?: string | null
           user_id: string
         }
         Update: {
+          acesso_revogado?: boolean
+          acesso_revogado_em?: string | null
+          acesso_revogado_por?: string | null
           created_at?: string
           id?: string
+          motivo_revogacao?: string | null
           nome?: string | null
           user_id?: string
         }
