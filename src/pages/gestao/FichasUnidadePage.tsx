@@ -163,7 +163,7 @@ export default function FichasUnidadePage() {
       setGestorNome(prof.nome || '');
       const [unidadeRes, profsRes] = await Promise.all([
         supabase.from('unidades').select('nome').eq('id', prof.unidade_id).single(),
-        supabase.from('profissionais_equipe' as any).select('id, nome').eq('unidade_id', prof.unidade_id),
+        (supabase as any).rpc('get_profissionais_equipe', { p_unidade_id: prof.unidade_id }),
       ]);
       setUnidadeNome(unidadeRes.data?.nome || '');
       const profsMap = new Map(((profsRes.data as any[]) || []).map((p: any) => [p.id, p.nome]));

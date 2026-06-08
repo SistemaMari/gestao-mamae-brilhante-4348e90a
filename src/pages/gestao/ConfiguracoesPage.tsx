@@ -237,10 +237,8 @@ export default function ConfiguracoesPage() {
         }
 
         try {
-          const { data: profsRaw } = await supabase
-            .from('profissionais_equipe' as any)
-            .select('nome, created_at, acesso_revogado, perfil_institucional')
-            .eq('unidade_id', unidadeId);
+          const { data: profsRaw } = await (supabase as any)
+            .rpc('get_profissionais_equipe', { p_unidade_id: unidadeId });
           const profs = (profsRaw ?? []) as any[];
           const ativos = (profs || []).filter((p: any) =>
             p.perfil_institucional === 'institucional' &&

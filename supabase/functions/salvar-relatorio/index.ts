@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
 
       const { data: prof, error: profErr } = await admin
         .from('profissionais')
-        .select('id, unidade_id, perfil_institucional')
+        .select('id, unidade_id, perfil_institucional, acesso_revogado')
         .eq('user_id', gestorIdRaw)
         .maybeSingle();
 
@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
         return jsonResponse({ status: 'erro', mensagem: 'Falha ao validar gestor.' }, 500);
       }
 
-      if (!prof || prof.unidade_id !== unidadeId || prof.perfil_institucional !== 'gestor') {
+      if (!prof || prof.acesso_revogado || prof.unidade_id !== unidadeId || prof.perfil_institucional !== 'gestor') {
         return jsonResponse({ status: 'erro', mensagem: 'Gestor não pertence a esta unidade.' }, 403);
       }
     } else {
