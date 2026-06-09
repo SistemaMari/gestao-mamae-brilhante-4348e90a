@@ -301,6 +301,10 @@ export default function FichaBDForm({
 
   // 34B.2 — status + pendentes.
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
+  // Em retorno NOVO intocado, esconde o badge "Rascunho" + banner de pendentes;
+  // aparecem ao começar a preencher (ou ao editar ficha existente). Só visual.
+  const iniciouPreenchimento =
+    !!editingConsulta || totalPreenchidos > 0 || !!dataInicio || !!dataFim;
   const camposPendentes = useMemo<string[]>(() => {
     const f: string[] = [];
     if (!dataInicio) f.push('Data de início do perfil');
@@ -528,7 +532,7 @@ export default function FichaBDForm({
             <FileText className="h-5 w-5" />
             {headerTitle}
           </h2>
-          <StatusFichaBadge status={statusFichaLocal} />
+          {iniciouPreenchimento && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
         <p className="text-xs text-[#6D28D9]">
           Preencha a grade com as glicemias capilares registradas pela paciente.
@@ -546,7 +550,7 @@ export default function FichaBDForm({
 
       <CamposPendentesBanner
         pendentes={camposPendentes}
-        ativo={statusFichaLocal === 'rascunho'}
+        ativo={iniciouPreenchimento && statusFichaLocal === 'rascunho'}
       />
 
       <ContextoClinicoCard loading={contextoLoading} contexto={contextoCasoNovo} />
