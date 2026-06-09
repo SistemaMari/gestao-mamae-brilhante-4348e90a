@@ -213,15 +213,32 @@ export default function Consulta1Form() {
 
     // Persistir 1ª USG na tabela exames_usg (se informada)
     if (usgFlow.jaFezUsg === 'sim' && usgFlow.dataExame && usgFlow.igSemanas !== '') {
-      const { error: usgErr } = await supabase.from('exames_usg').insert({
-        paciente_id: pacienteId!,
-        data_exame: usgFlow.dataExame,
-        ig_semanas: Number(usgFlow.igSemanas),
-        ig_dias: Number(usgFlow.igDias || 0),
-        ordem: 1,
-        criado_por: user?.id ?? null,
-      } as any);
-      if (usgErr) console.error('[exames_usg] insert falhou:', usgErr);
+      const { data: novaUsg, error: usgErr } = await supabase
+        .from('exames_usg')
+        .insert({
+          paciente_id: pacienteId!,
+          data_exame: usgFlow.dataExame,
+          ig_semanas: Number(usgFlow.igSemanas),
+          ig_dias: Number(usgFlow.igDias || 0),
+          ordem: 1,
+          criado_por: user?.id ?? null,
+        } as any)
+        .select('id')
+        .single();
+      if (usgErr || !novaUsg) {
+        console.error('[exames_usg] insert falhou:', usgErr);
+      } else if (usgFlow.referenciaIg === 'usg') {
+        // A paciente já foi gravada com referencia_ig='usg', mas referencia_usg_id
+        // ficava NULL. A fonte única de IG (RPC calcular_ig) só usa a USG quando o
+        // id está preenchido — sem ele, cai silenciosamente na DUM, ignorando a
+        // escolha "calcular IG pela USG". Persistimos o id da USG recém-criada.
+        // Espelha o padrão de UsgManagerCard.handleAddUsg.
+        const { error: refErr } = await supabase
+          .from('pacientes')
+          .update({ referencia_usg_id: novaUsg.id })
+          .eq('id', pacienteId!);
+        if (refErr) console.error('[pacientes] update referencia_usg_id falhou:', refErr);
+      }
     }
 
 
