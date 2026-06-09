@@ -271,6 +271,9 @@ export default function Retorno1Form({
   const statusFichaLocal: string =
     editingConsulta?.status_ficha
     ?? (serverDraftState === 'salvo' ? 'completa' : 'rascunho');
+  // Em retorno NOVO intocado, esconde o badge "Rascunho" + banner de pendentes;
+  // aparecem ao começar a preencher (ou ao editar ficha existente). Só visual.
+  const iniciouPreenchimento = !!editingConsulta || !!valorGJ || !!dataExame;
 
   // 34B.2 — Lista de campos obrigatórios pendentes, calculada em tempo real.
   // Mesma fonte de verdade usada pelo isValid acima — sem duplicar validação.
@@ -918,7 +921,7 @@ export default function Retorno1Form({
             RETORNO 1 — Resultado da Glicemia de Jejum
           </h2>
           <div className="flex items-center gap-2">
-            <StatusFichaBadge status={statusFichaLocal} />
+            {iniciouPreenchimento && <StatusFichaBadge status={statusFichaLocal} />}
             <RascunhoStatus
               state={visualState}
               savedAt={visualSavedAt}
@@ -934,7 +937,7 @@ export default function Retorno1Form({
       {/* 34B.2 seção 3.1.3 — banner de campos pendentes quando ficha em rascunho */}
       <CamposPendentesBanner
         pendentes={camposPendentes}
-        ativo={statusFichaLocal === 'rascunho'}
+        ativo={iniciouPreenchimento && statusFichaLocal === 'rascunho'}
       />
 
       {/* 34B.3 seção 3.9.4 — banner laranja de divergência IG (efêmero) */}
