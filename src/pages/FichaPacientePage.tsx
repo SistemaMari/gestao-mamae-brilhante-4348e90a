@@ -51,6 +51,7 @@ import { useIg, useIgBatch } from '@/lib/getIg';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import PlaceholderBlocoLaudo from '@/components/laudo/PlaceholderBlocoLaudo';
 import { mapearCenario, derivarDesfechoClinico } from '@/lib/laudoMapping';
+import { type JanelaPosPrandial, normalizarJanela } from '@/lib/posPrandial';
 import { useLaudoTextos } from '@/hooks/useLaudoTextos';
 import { useAutoriaFicha } from '@/hooks/useAutoriaFicha';
 import AutoriaRodape from '@/components/clinico/AutoriaRodape';
@@ -354,6 +355,20 @@ export default function FichaPacientePage() {
         valoresByPerfil.set(v.perfil_id, arr);
       });
 
+      // 35B — carrega a janela pós-prandial (tipo_pos_prandial) de cada perfil glicêmico.
+      // Necessário para a edição e o histórico/laudo refletirem a meta correta (1h → 140,
+      // 2h → 120); sem isto, uma ficha 2h cairia no fallback '1h' e mostraria meta errada.
+      const { data: perfisPos } = consultaIds.length
+        ? await supabase
+            .from('perfis_glicemicos')
+            .select('consulta_id, tipo_pos_prandial')
+            .in('consulta_id', consultaIds)
+        : { data: [] as { consulta_id: string; tipo_pos_prandial: string }[] };
+
+      const tipoPosByConsulta = new Map<string, JanelaPosPrandial>(
+        (perfisPos ?? []).map((pf) => [pf.consulta_id, normalizarJanela(pf.tipo_pos_prandial)]),
+      );
+
       setConsultas(
         (cons || []).map((c: any) => {
           const ex = exameByConsulta.get(c.id);
@@ -405,6 +420,7 @@ export default function FichaPacientePage() {
             proxima_ficha_recomendada: decisao?.proxima_ficha_recomendada ?? perfil?.proxima_ficha_recomendada ?? null,
             regra_aplicada: decisao?.regra_aplicada ?? null,
             conduta_gerada: decisao?.conduta_gerada ?? null,
+            tipo_pos_prandial: tipoPosByConsulta.get(c.id) ?? null,
             ...(c.tipo === 'retorno_1' && ex
               ? {
                   retorno1_valor_gj: ex.valor_mgdl ?? null,
@@ -1441,7 +1457,7 @@ export default function FichaPacientePage() {
                         return (
                           <>
                             {c.grid_valores && c.grid_valores.length > 0 && (
-                              <FichaACReadOnlyGrid gridValores={c.grid_valores} />
+                              <FichaACReadOnlyGrid gridValores={c.grid_valores} tipoPosPrandial={c.tipo_pos_prandial ?? '1h'} />
                             )}
                             {semDecisao ? (
                               <PlaceholderBlocoLaudo
@@ -1492,7 +1508,7 @@ export default function FichaPacientePage() {
                         return (
                           <>
                             {c.grid_valores && c.grid_valores.length > 0 && (
-                              <FichaBDReadOnlyGrid gridValores={c.grid_valores} />
+                              <FichaBDReadOnlyGrid gridValores={c.grid_valores} tipoPosPrandial={c.tipo_pos_prandial ?? '1h'} />
                             )}
                             <FichaBDResultCard
                               percentual={c.percentual_meta ?? 0}
