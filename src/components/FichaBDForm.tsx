@@ -27,6 +27,11 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog';
+import PactuacaoPosPrandialModal from '@/components/ficha/PactuacaoPosPrandialModal';
+import {
+  type JanelaPosPrandial, metaPosPrandial, prefixoHora,
+  rotuloPosPrandial, tooltipPosPrandial, normalizarJanela,
+} from '@/lib/posPrandial';
 import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
@@ -34,32 +39,40 @@ import {
 const POINTS_6 = ['jejum', 'pos_cafe', 'pre_almoco', 'pos_almoco', 'pre_jantar', 'pos_jantar'] as const;
 type Point6 = typeof POINTS_6[number];
 
-const POINT_LABELS_6: Record<Point6, string> = {
-  jejum: 'Jejum',
-  pos_cafe: '1h pós café',
-  pre_almoco: 'Pré-almoço',
-  pos_almoco: '1h pós almoço',
-  pre_jantar: 'Pré-jantar',
-  pos_jantar: '1h pós jantar',
+// 35B — pós-prandiais (pos_cafe/pos_almoco/pos_jantar) passam a depender da janela 1h/2h.
+// Jejum e pré-prandiais (pre_almoco/pre_jantar) ficam inalterados em rótulo, meta e cálculo.
+const REFEICAO_POS_6: Record<'pos_cafe' | 'pos_almoco' | 'pos_jantar', 'café' | 'almoço' | 'jantar'> = {
+  pos_cafe: 'café',
+  pos_almoco: 'almoço',
+  pos_jantar: 'jantar',
 };
 
-const POINT_TOOLTIPS_6: Record<Point6, string> = {
+function isPosPrandial(point: Point6): point is 'pos_cafe' | 'pos_almoco' | 'pos_jantar' {
+  return point === 'pos_cafe' || point === 'pos_almoco' || point === 'pos_jantar';
+}
+
+const TOOLTIP_6_FIXO: Record<'jejum' | 'pre_almoco' | 'pre_jantar', string> = {
   jejum: 'Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-  pos_cafe: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
   pre_almoco: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-  pos_almoco: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
   pre_jantar: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-  pos_jantar: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
 };
 
-const POINT_META_LABELS: Record<Point6, string> = {
-  jejum: '< 95',
-  pos_cafe: '< 140',
-  pre_almoco: '70-100',
-  pos_almoco: '< 140',
-  pre_jantar: '70-100',
-  pos_jantar: '< 140',
-};
+function label6(point: Point6, janela: JanelaPosPrandial): string {
+  if (isPosPrandial(point)) return rotuloPosPrandial(REFEICAO_POS_6[point], janela);
+  if (point === 'jejum') return 'Jejum';
+  return point === 'pre_almoco' ? 'Pré-almoço' : 'Pré-jantar';
+}
+
+function metaLabel6(point: Point6, janela: JanelaPosPrandial): string {
+  if (isPosPrandial(point)) return `< ${metaPosPrandial(janela)}`;
+  if (point === 'jejum') return '< 95';
+  return '70-100'; // pré-prandiais
+}
+
+function tooltip6(point: Point6, janela: JanelaPosPrandial): string {
+  if (isPosPrandial(point)) return tooltipPosPrandial(janela);
+  return TOOLTIP_6_FIXO[point];
+}
 
 const IS_PRE_PRANDIAL: Record<Point6, boolean> = {
   jejum: false,
@@ -70,12 +83,12 @@ const IS_PRE_PRANDIAL: Record<Point6, boolean> = {
   pos_jantar: false,
 };
 
-function isWithinMeta(point: Point6, value: number): boolean {
-  // Hypoglycemia (< 70) is always out of meta — applies to all 6 points (paciente em insulina)
+function isWithinMeta(point: Point6, value: number, janela: JanelaPosPrandial): boolean {
+  // Hipoglicemia (< 70) sempre conta como fora da meta — todos os 6 pontos (paciente em insulina)
   if (value < 70) return false;
   if (point === 'jejum') return value < 95;
   if (point === 'pre_almoco' || point === 'pre_jantar') return value >= 70 && value <= 100;
-  return value < 140; // pos_cafe, pos_almoco, pos_jantar
+  return value < metaPosPrandial(janela); // pos_cafe, pos_almoco, pos_jantar
 }
 
 function isHypoglycemia(_point: Point6, value: number): boolean {
@@ -98,6 +111,14 @@ export default function FichaBDForm({
   paciente, consultas, isPreview, onSaved, onCancel, editingConsulta,
 }: FichaBDFormProps) {
   const { profissionalData } = useProfissionalData();
+
+  // 35B — Pactuação pós-prandial (1h/2h). Em edição, carrega a janela já gravada (loader
+  // traz tipo_pos_prandial do banco); ficha antiga sem o campo cai em '1h'. Em ficha nova,
+  // `pactuada` começa false → o corpo só renderiza após o modal de pactuação (sem flash de grade).
+  const [janela, setJanela] = useState<JanelaPosPrandial>(
+    () => normalizarJanela(editingConsulta?.tipo_pos_prandial),
+  );
+  const [pactuada, setPactuada] = useState<boolean>(() => !!editingConsulta);
 
   const [grid, setGrid] = useState<Record<string, string>[]>(() => {
     if (editingConsulta?.grid_valores && editingConsulta.grid_valores.length > 0) {
@@ -165,10 +186,10 @@ export default function FichaBDForm({
         if (!val || val <= 0) continue;
         if (val >= 1 && val <= 400) {
           total++;
-          if (isWithinMeta(p, val)) ok++;
+          if (isWithinMeta(p, val, janela)) ok++;
         } else if (val > 400) {
           total++;
-          if (isWithinMeta(p, val)) ok++;
+          if (isWithinMeta(p, val, janela)) ok++;
         }
       }
     }
@@ -177,7 +198,7 @@ export default function FichaBDForm({
       dentroMeta: ok,
       percentual: total > 0 ? Math.round((ok / total) * 1000) / 10 : null,
     };
-  }, [grid]);
+  }, [grid, janela]);
 
   const isAdequado = percentual !== null && percentual >= 70;
   const isInadequado = percentual !== null && percentual < 70;
@@ -189,12 +210,12 @@ export default function FichaBDForm({
       for (const p of POINTS_6) {
         const val = parseInt(row[p]);
         if (!isNaN(val) && val > 0 && isHypoglycemia(p, val)) {
-          alerts.push({ day: dayIdx + 1, point: POINT_LABELS_6[p], value: val });
+          alerts.push({ day: dayIdx + 1, point: label6(p, janela), value: val });
         }
       }
     });
     return alerts;
-  }, [grid]);
+  }, [grid, janela]);
 
   const dataConsultaLocal = parseDateLocal(dataConsulta);
   const dataProximoRetorno = dataConsultaLocal
@@ -220,7 +241,7 @@ export default function FichaBDForm({
     const num = parseInt(value);
     if (!num || num <= 0) return '';
     if (isHypoglycemia(point, num)) return 'bg-[#FEE2E2] border-red-400';
-    if (!isWithinMeta(point, num)) return 'bg-[#FEE2E2]';
+    if (!isWithinMeta(point, num, janela)) return 'bg-[#FEE2E2]';
     return 'bg-[#DCFCE7]';
   };
 
@@ -349,6 +370,7 @@ export default function FichaBDForm({
         decisao,
         data_inicio: dataInicio,
         data_fim: dataFim,
+        tipo_pos_prandial: janela,
       };
 
       let updatedConsultas: PreviewConsulta[];
@@ -421,6 +443,9 @@ export default function FichaBDForm({
         percentual_meta: percentual ?? 0,
         decisao,
         dose_insulina_calculada: null,
+        // 35B — janela pós-prandial. Gravada só no INSERT: o banco tem trigger de
+        // imutabilidade (impedir_update_tipo_pos_prandial) que rejeita alteração em UPDATE.
+        tipo_pos_prandial: janela,
       };
 
       let perfilId = draftPerfilIdRef.current;
@@ -485,6 +510,16 @@ export default function FichaBDForm({
   };
 
   return (
+    <>
+      {/* 35B — Passo de pactuação bloqueante. Só aparece em ficha NOVA (pactuada=false);
+          na edição (pactuada=true) o modal não abre e o corpo já vem com a janela gravada. */}
+      <PactuacaoPosPrandialModal
+        open={!pactuada}
+        onConfirm={(j) => { setJanela(j); setPactuada(true); }}
+        onCancel={onCancel}
+      />
+
+      {pactuada && (
     <div className="space-y-5">
       {/* Header */}
       <div className="rounded-xl border border-[#7C4DBA] bg-[#F1F0FB] p-4 space-y-1">
@@ -498,9 +533,14 @@ export default function FichaBDForm({
         <p className="text-xs text-[#6D28D9]">
           Preencha a grade com as glicemias capilares registradas pela paciente.
         </p>
-        {/* Ficha badge */}
-        <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">
-          Ficha {fichaType === 'ficha_b' ? 'B' : 'D'} — com insulina — IG {igSemNum} sem
+        {/* Ficha badge + indicador read-only da janela pós-prandial (35B) */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">
+            Ficha {fichaType === 'ficha_b' ? 'B' : 'D'} — com insulina — IG {igSemNum} sem
+          </div>
+          <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">
+            Pós-prandial: {prefixoHora(janela)}
+          </div>
         </div>
       </div>
 
@@ -608,19 +648,19 @@ export default function FichaBDForm({
                   className={`px-2 py-2 text-center ${IS_PRE_PRANDIAL[p] ? 'bg-[#E8E0FF]' : ''}`}
                 >
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-xs font-medium text-foreground">{POINT_LABELS_6[p]}</span>
+                    <span className="text-xs font-medium text-foreground">{label6(p, janela)}</span>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p className="text-xs">{POINT_TOOLTIPS_6[p]}</p>
+                          <p className="text-xs">{tooltip6(p, janela)}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <span className="text-[10px] text-muted-foreground">{POINT_META_LABELS[p]} mg/dL</span>
+                  <span className="text-[10px] text-muted-foreground">{metaLabel6(p, janela)} mg/dL</span>
                 </th>
               ))}
             </tr>
@@ -654,7 +694,7 @@ export default function FichaBDForm({
                           ${!val ? 'border-border' : ''}
                         `}
                         placeholder="—"
-                        aria-label={`Dia ${day} ${POINT_LABELS_6[p]}`}
+                        aria-label={`Dia ${day} ${label6(p, janela)}`}
                       />
                       {isNeg && <span className="text-[9px] text-red-600 block text-center">Valor inválido</span>}
                       {isHigh && <span className="text-[9px] text-amber-600 block text-center">Verificar</span>}
@@ -741,5 +781,7 @@ export default function FichaBDForm({
         </AlertDialogContent>
       </AlertDialog>
     </div>
+      )}
+    </>
   );
 }

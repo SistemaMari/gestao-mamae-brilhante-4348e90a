@@ -1,23 +1,30 @@
+import { type JanelaPosPrandial, metaPosPrandial, rotuloPosPrandial } from '@/lib/posPrandial';
+
 const POINTS_6 = ['jejum', 'pos_cafe', 'pre_almoco', 'pos_almoco', 'pre_jantar', 'pos_jantar'] as const;
 type Point6 = typeof POINTS_6[number];
 
-const POINT_LABELS_6: Record<Point6, string> = {
-  jejum: 'Jejum',
-  pos_cafe: '1h pós café',
-  pre_almoco: 'Pré-almoço',
-  pos_almoco: '1h pós almoço',
-  pre_jantar: 'Pré-jantar',
-  pos_jantar: '1h pós jantar',
+// 35B — pós-prandiais dependem da janela (1h → < 140, 2h → < 120). Jejum e pré-prandiais inalterados.
+const REFEICAO_POS_6: Record<'pos_cafe' | 'pos_almoco' | 'pos_jantar', 'café' | 'almoço' | 'jantar'> = {
+  pos_cafe: 'café',
+  pos_almoco: 'almoço',
+  pos_jantar: 'jantar',
 };
 
-const POINT_META_LABELS: Record<Point6, string> = {
-  jejum: '< 95',
-  pos_cafe: '< 140',
-  pre_almoco: '70-100',
-  pos_almoco: '< 140',
-  pre_jantar: '70-100',
-  pos_jantar: '< 140',
-};
+function isPosPrandial(point: Point6): point is 'pos_cafe' | 'pos_almoco' | 'pos_jantar' {
+  return point === 'pos_cafe' || point === 'pos_almoco' || point === 'pos_jantar';
+}
+
+function label6(point: Point6, janela: JanelaPosPrandial): string {
+  if (isPosPrandial(point)) return rotuloPosPrandial(REFEICAO_POS_6[point], janela);
+  if (point === 'jejum') return 'Jejum';
+  return point === 'pre_almoco' ? 'Pré-almoço' : 'Pré-jantar';
+}
+
+function metaLabel6(point: Point6, janela: JanelaPosPrandial): string {
+  if (isPosPrandial(point)) return `< ${metaPosPrandial(janela)}`;
+  if (point === 'jejum') return '< 95';
+  return '70-100';
+}
 
 const IS_PRE_PRANDIAL: Record<Point6, boolean> = {
   jejum: false,
@@ -28,12 +35,12 @@ const IS_PRE_PRANDIAL: Record<Point6, boolean> = {
   pos_jantar: false,
 };
 
-function isWithinMeta(point: Point6, value: number): boolean {
+function isWithinMeta(point: Point6, value: number, janela: JanelaPosPrandial): boolean {
   // Hipoglicemia (< 70) sempre conta como fora da meta, em qualquer ponto
   if (value < 70) return false;
   if (point === 'jejum') return value < 95;
   if (point === 'pre_almoco' || point === 'pre_jantar') return value >= 70 && value <= 100;
-  return value < 140;
+  return value < metaPosPrandial(janela);
 }
 
 function isHypoglycemia(_point: Point6, value: number): boolean {
@@ -43,9 +50,10 @@ function isHypoglycemia(_point: Point6, value: number): boolean {
 
 interface FichaBDReadOnlyGridProps {
   gridValores: Record<string, string>[];
+  tipoPosPrandial?: JanelaPosPrandial;
 }
 
-export default function FichaBDReadOnlyGrid({ gridValores }: FichaBDReadOnlyGridProps) {
+export default function FichaBDReadOnlyGrid({ gridValores, tipoPosPrandial = '1h' }: FichaBDReadOnlyGridProps) {
   const daysWithData = gridValores
     .map((row, idx) => ({ row, dayNum: idx + 1 }))
     .filter(({ row }) => POINTS_6.some(p => {
@@ -59,7 +67,7 @@ export default function FichaBDReadOnlyGrid({ gridValores }: FichaBDReadOnlyGrid
     const num = parseInt(value);
     if (!num || num <= 0) return '';
     if (isHypoglycemia(point, num)) return 'bg-[#FEE2E2] border border-red-400';
-    if (!isWithinMeta(point, num)) return 'bg-[#FEE2E2]';
+    if (!isWithinMeta(point, num, tipoPosPrandial)) return 'bg-[#FEE2E2]';
     return 'bg-[#DCFCE7]';
   };
 
@@ -71,9 +79,9 @@ export default function FichaBDReadOnlyGrid({ gridValores }: FichaBDReadOnlyGrid
             <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">Dia</th>
             {POINTS_6.map(p => (
               <th key={p} className={`px-2 py-2 text-center ${IS_PRE_PRANDIAL[p] ? 'bg-[#E8E0FF]' : ''}`}>
-                <span className="text-xs font-medium text-foreground">{POINT_LABELS_6[p]}</span>
+                <span className="text-xs font-medium text-foreground">{label6(p, tipoPosPrandial)}</span>
                 <br />
-                <span className="text-[10px] text-muted-foreground">{POINT_META_LABELS[p]} mg/dL</span>
+                <span className="text-[10px] text-muted-foreground">{metaLabel6(p, tipoPosPrandial)} mg/dL</span>
               </th>
             ))}
           </tr>

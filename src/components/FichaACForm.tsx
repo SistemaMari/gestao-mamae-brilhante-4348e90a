@@ -27,6 +27,11 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog';
+import PactuacaoPosPrandialModal from '@/components/ficha/PactuacaoPosPrandialModal';
+import {
+  type JanelaPosPrandial, metaPosPrandial, prefixoHora,
+  rotuloPosPrandial, tooltipPosPrandial, normalizarJanela,
+} from '@/lib/posPrandial';
 import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
@@ -37,26 +42,28 @@ import { aplicarRegrasFichaA, type DecisaoResultado } from '@/lib/fichaADecisao'
 const POINTS = ['jejum', 'pos_cafe', 'pos_almoco', 'pos_jantar'] as const;
 type Point = typeof POINTS[number];
 
-const POINT_LABELS: Record<Point, string> = {
-  jejum: 'Jejum',
-  pos_cafe: '1h pós café',
-  pos_almoco: '1h pós almoço',
-  pos_jantar: '1h pós jantar',
+// Jejum permanece estático — 35B só torna dinâmicos os pontos pós-prandiais (janela 1h/2h).
+const LABEL_JEJUM = 'Jejum';
+const META_JEJUM = 95;
+const TOOLTIP_JEJUM = 'Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. Usar glicômetro capilar para acompanhamento — diferente do diagnóstico, onde é obrigatório plasma venoso. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.';
+
+const REFEICAO_POS: Record<Exclude<Point, 'jejum'>, 'café' | 'almoço' | 'jantar'> = {
+  pos_cafe: 'café',
+  pos_almoco: 'almoço',
+  pos_jantar: 'jantar',
 };
 
-const POINT_METAS: Record<Point, number> = {
-  jejum: 95,
-  pos_cafe: 140,
-  pos_almoco: 140,
-  pos_jantar: 140,
-};
+function pointLabel(point: Point, janela: JanelaPosPrandial): string {
+  return point === 'jejum' ? LABEL_JEJUM : rotuloPosPrandial(REFEICAO_POS[point], janela);
+}
 
-const POINT_TOOLTIPS: Record<Point, string> = {
-  jejum: 'Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. Usar glicômetro capilar para acompanhamento — diferente do diagnóstico, onde é obrigatório plasma venoso. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-  pos_cafe: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-  pos_almoco: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-  pos_jantar: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-};
+function pointMeta(point: Point, janela: JanelaPosPrandial): number {
+  return point === 'jejum' ? META_JEJUM : metaPosPrandial(janela);
+}
+
+function pointTooltip(point: Point, janela: JanelaPosPrandial): string {
+  return point === 'jejum' ? TOOLTIP_JEJUM : tooltipPosPrandial(janela);
+}
 
 function isHypoglycemia(value: number): boolean {
   return value > 0 && value < 70;
@@ -77,6 +84,14 @@ export default function FichaACForm({
   paciente, consultas, isPreview, onSaved, onCancel, editingConsulta,
 }: FichaACFormProps) {
   const { profissionalData } = useProfissionalData();
+
+  // 35B — Pactuação pós-prandial (1h/2h). Em edição, carrega a janela já gravada (loader
+  // traz tipo_pos_prandial do banco); ficha antiga sem o campo cai em '1h'. Em ficha nova,
+  // `pactuada` começa false → o corpo só renderiza após o modal de pactuação (sem flash de grade).
+  const [janela, setJanela] = useState<JanelaPosPrandial>(
+    () => normalizarJanela(editingConsulta?.tipo_pos_prandial),
+  );
+  const [pactuada, setPactuada] = useState<boolean>(() => !!editingConsulta);
 
   // Grid state: grid[day-1][point] = string value
   const [grid, setGrid] = useState<Record<string, string>[]>(() => {
@@ -146,7 +161,7 @@ export default function FichaACForm({
         total++;
         // Hipoglicemia (< 70) sempre conta como fora da meta, em qualquer ponto
         if (isHypoglycemia(val)) continue;
-        if (val < POINT_METAS[p]) ok++;
+        if (val < pointMeta(p, janela)) ok++;
       }
     }
     return {
@@ -154,7 +169,7 @@ export default function FichaACForm({
       dentroMeta: ok,
       percentual: total > 0 ? Math.round((ok / total) * 1000) / 10 : null,
     };
-  }, [grid]);
+  }, [grid, janela]);
 
   // Hypoglycemia alerts — qualquer valor < 70 em qualquer ponto
   const hypoAlerts = useMemo(() => {
@@ -163,12 +178,12 @@ export default function FichaACForm({
       for (const p of POINTS) {
         const val = parseInt(row[p]);
         if (!isNaN(val) && isHypoglycemia(val)) {
-          alerts.push({ day: dayIdx + 1, point: POINT_LABELS[p], value: val });
+          alerts.push({ day: dayIdx + 1, point: pointLabel(p, janela), value: val });
         }
       }
     });
     return alerts;
-  }, [grid]);
+  }, [grid, janela]);
 
   const isAdequado = percentual !== null && percentual >= 70;
   const isInadequado = percentual !== null && percentual < 70;
@@ -206,7 +221,7 @@ export default function FichaACForm({
     if (!num || num <= 0) return '';
     if (num < 0) return 'bg-red-100 border-red-300';
     if (isHypoglycemia(num)) return 'bg-[#FEE2E2] border-red-400'; // hypoglycemia
-    if (num >= POINT_METAS[point]) return 'bg-[#FEE2E2]'; // above target
+    if (num >= pointMeta(point, janela)) return 'bg-[#FEE2E2]'; // above target
     return 'bg-[#DCFCE7]'; // within target
   };
 
@@ -379,6 +394,7 @@ export default function FichaACForm({
         proxima_ficha_recomendada: decisaoFichaA?.proxima_ficha_recomendada ?? null,
         regra_aplicada: decisaoFichaA?.regra_aplicada ?? null,
         conduta_gerada: decisaoFichaA?.conduta_gerada ?? null,
+        tipo_pos_prandial: janela,
       };
 
       let updatedConsultas: PreviewConsulta[];
@@ -453,6 +469,9 @@ export default function FichaACForm({
         percentual_meta: percentual ?? 0,
         decisao,
         dose_insulina_calculada: editingConsulta?.dose_total ?? null,
+        // 35B — janela pós-prandial. Gravada só no INSERT: o banco tem trigger de
+        // imutabilidade (impedir_update_tipo_pos_prandial) que rejeita alteração em UPDATE.
+        tipo_pos_prandial: janela,
       };
 
       let perfilId = draftPerfilIdRef.current;
@@ -544,6 +563,16 @@ export default function FichaACForm({
   };
 
   return (
+    <>
+      {/* 35B — Passo de pactuação bloqueante. Só aparece em ficha NOVA (pactuada=false);
+          na edição (pactuada=true) o modal não abre e o corpo já vem com a janela gravada. */}
+      <PactuacaoPosPrandialModal
+        open={!pactuada}
+        onConfirm={(j) => { setJanela(j); setPactuada(true); }}
+        onCancel={onCancel}
+      />
+
+      {pactuada && (
     <div className="space-y-5">
       {/* Header */}
       <div className="rounded-xl border border-[#7C4DBA] bg-[#F1F0FB] p-4 space-y-1">
@@ -561,6 +590,10 @@ export default function FichaACForm({
         <p className="text-xs text-[#6D28D9]">
           Preencha a grade com as glicemias capilares registradas pela paciente.
         </p>
+        {/* 35B — janela pactuada, read-only (não há como alterar depois nesta ficha) */}
+        <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">
+          Pós-prandial: {prefixoHora(janela)}
+        </div>
       </div>
 
       <CamposPendentesBanner
@@ -716,19 +749,19 @@ export default function FichaACForm({
               {POINTS.map(p => (
                 <th key={p} className="px-2 py-2 text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-xs font-medium text-foreground">{POINT_LABELS[p]}</span>
+                    <span className="text-xs font-medium text-foreground">{pointLabel(p, janela)}</span>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p className="text-xs">{POINT_TOOLTIPS[p]}</p>
+                          <p className="text-xs">{pointTooltip(p, janela)}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <span className="text-[10px] text-muted-foreground">{'< '}{POINT_METAS[p]} mg/dL</span>
+                  <span className="text-[10px] text-muted-foreground">{'< '}{pointMeta(p, janela)} mg/dL</span>
                 </th>
               ))}
             </tr>
@@ -762,7 +795,7 @@ export default function FichaACForm({
                           ${!val ? 'border-border' : ''}
                         `}
                         placeholder="—"
-                        aria-label={`Dia ${day} ${POINT_LABELS[p]}`}
+                        aria-label={`Dia ${day} ${pointLabel(p, janela)}`}
                       />
                       {isNeg && (
                         <span className="text-[9px] text-red-600 block text-center">Valor inválido</span>
@@ -913,5 +946,7 @@ export default function FichaACForm({
         </AlertDialogContent>
       </AlertDialog>
     </div>
+      )}
+    </>
   );
 }
