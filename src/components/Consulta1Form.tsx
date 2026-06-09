@@ -28,7 +28,13 @@ import {
 // 34B-4 — Caso Novo SEM rascunho: StatusFichaBadge e CamposPendentesBanner removidos.
 // Permanecem nas fichas de retorno (Retorno1/AC/BD/GTT).
 import DateInput from '@/components/ficha/DateInput';
-import UsgFlowSection, { emptyUsgFlow, type UsgFlowValue } from '@/components/UsgFlowSection';
+import CasoNovoUsgSection from '@/components/CasoNovoUsgSection';
+import {
+  emptyCasoNovoUsg,
+  prepararUsgsParaSalvar,
+  type CasoNovoUsgEntry,
+  type CasoNovoUsgValue,
+} from '@/lib/casoNovoUsg';
 import { Checkbox } from '@/components/ui/checkbox';
 
 function todayISO() {
@@ -55,7 +61,7 @@ export default function Consulta1Form() {
   const [pais, setPais] = useState('Brasil');
   const [estado, setEstado] = useState('');
   const [cidade, setCidade] = useState('');
-  const [usgFlow, setUsgFlow] = useState<UsgFlowValue>(emptyUsgFlow);
+  const [usgFlow, setUsgFlow] = useState<CasoNovoUsgValue>(emptyCasoNovoUsg);
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
 
@@ -77,10 +83,21 @@ export default function Consulta1Form() {
 
   const whatsappValidacao = validarWhatsappBR(whatsapp);
   const dumValido = dumDesconhecida || !!dum;
-  // Se "sim" para USG, exige data + semanas + dias + referência
+  // Se "sim" para USG: exige >=1 USG completa, datas distintas e referência escolhida.
+  const refEscolhida = usgFlow.referencia;
+  const usgsCompletas =
+    usgFlow.usgs.length > 0 &&
+    usgFlow.usgs.every((u) => !!u.dataExame && u.igSemanas !== '' && u.igDias !== '');
+  const datasUsgUnicas = (() => {
+    const datas = usgFlow.usgs.map((u) => u.dataExame).filter(Boolean);
+    return new Set(datas).size === datas.length;
+  })();
+  const referenciaValida =
+    refEscolhida != null &&
+    (refEscolhida.tipo === 'dum' ||
+      usgFlow.usgs.some((u) => refEscolhida.tipo === 'usg' && u.localId === refEscolhida.localId));
   const usgValida =
-    usgFlow.jaFezUsg !== 'sim' ||
-    (!!usgFlow.dataExame && usgFlow.igSemanas !== '' && usgFlow.igDias !== '' && !!usgFlow.referenciaIg);
+    usgFlow.jaFezUsg !== 'sim' || (usgsCompletas && datasUsgUnicas && referenciaValida);
   const isValid =
     nome.trim() && dataNascimento && dumValido && dataConsulta && dmgAnterior !== null && whatsappValidacao.ok && usgValida && usgFlow.jaFezUsg !== null;
 
@@ -104,6 +121,13 @@ export default function Consulta1Form() {
       return;
     }
 
+    // USG escolhida como referência (se houver) — usada no preview e no real.
+    let usgReferenciaEntry: CasoNovoUsgEntry | null = null;
+    const refSel = usgFlow.referencia;
+    if (refSel?.tipo === 'usg') {
+      usgReferenciaEntry = usgFlow.usgs.find((u) => u.localId === refSel.localId) ?? null;
+    }
+
     if (isPreview) {
       const consultaId = crypto.randomUUID();
       const newPaciente = addPreviewPaciente({
@@ -115,9 +139,11 @@ export default function Consulta1Form() {
         pais,
         estado: estado || null,
         cidade: cidade || null,
-        usg_data: usgFlow.jaFezUsg === 'sim' ? usgFlow.dataExame : null,
-        usg_ig_semanas: usgFlow.jaFezUsg === 'sim' ? Number(usgFlow.igSemanas) : null,
-        usg_ig_dias: usgFlow.jaFezUsg === 'sim' ? Number(usgFlow.igDias || 0) : null,
+        // Preview guarda só um snapshot de USG: usa a USG escolhida como referência.
+        usg_data: usgReferenciaEntry ? usgReferenciaEntry.dataExame : null,
+        usg_ig_semanas: usgReferenciaEntry ? Number(usgReferenciaEntry.igSemanas) : null,
+        usg_ig_dias: usgReferenciaEntry ? Number(usgReferenciaEntry.igDias || 0) : null,
+        referencia_ig: usgFlow.referencia?.tipo ?? (dumDesconhecida ? null : 'dum'),
         dmg_gestacao_anterior: dmgAnterior === true,
         data_ultima_consulta: dataConsulta,
         consultas: [
@@ -166,7 +192,7 @@ export default function Consulta1Form() {
       // DIFERENTE de consultas.status_ficha (rascunho/completa). Gravar 'completa' aqui
       // sufocava o gate de getNextStepInfo (FichaPacientePage) e escondia o "+ Retorno 1".
       status_ficha: 'aguardando_gj',
-      referencia_ig: usgFlow.referenciaIg ?? (dumDesconhecida ? null : 'dum'),
+      referencia_ig: usgFlow.referencia?.tipo ?? (dumDesconhecida ? null : 'dum'),
     };
 
     if ('unidade_id' in profissionalData) {
@@ -211,33 +237,39 @@ export default function Consulta1Form() {
       }
     }
 
-    // Persistir 1ª USG na tabela exames_usg (se informada)
-    if (usgFlow.jaFezUsg === 'sim' && usgFlow.dataExame && usgFlow.igSemanas !== '') {
-      const { data: novaUsg, error: usgErr } = await supabase
+    // Persistir as USGs informadas (ordem cronológica: 1ª = mais antiga).
+    if (usgFlow.jaFezUsg === 'sim' && usgFlow.usgs.length > 0) {
+      const preparadas = prepararUsgsParaSalvar(usgFlow.usgs);
+      const { data: inseridas, error: usgErr } = await supabase
         .from('exames_usg')
-        .insert({
-          paciente_id: pacienteId!,
-          data_exame: usgFlow.dataExame,
-          ig_semanas: Number(usgFlow.igSemanas),
-          ig_dias: Number(usgFlow.igDias || 0),
-          ordem: 1,
-          criado_por: user?.id ?? null,
-        } as any)
-        .select('id')
-        .single();
-      if (usgErr || !novaUsg) {
+        .insert(
+          preparadas.map((u) => ({
+            paciente_id: pacienteId!,
+            data_exame: u.data_exame,
+            ig_semanas: u.ig_semanas,
+            ig_dias: u.ig_dias,
+            ordem: u.ordem,
+            criado_por: user?.id ?? null,
+          })) as any,
+        )
+        .select('id, data_exame');
+      if (usgErr || !inseridas) {
         console.error('[exames_usg] insert falhou:', usgErr);
-      } else if (usgFlow.referenciaIg === 'usg') {
-        // A paciente já foi gravada com referencia_ig='usg', mas referencia_usg_id
-        // ficava NULL. A fonte única de IG (RPC calcular_ig) só usa a USG quando o
-        // id está preenchido — sem ele, cai silenciosamente na DUM, ignorando a
-        // escolha "calcular IG pela USG". Persistimos o id da USG recém-criada.
-        // Espelha o padrão de UsgManagerCard.handleAddUsg.
-        const { error: refErr } = await supabase
-          .from('pacientes')
-          .update({ referencia_usg_id: novaUsg.id })
-          .eq('id', pacienteId!);
-        if (refErr) console.error('[pacientes] update referencia_usg_id falhou:', refErr);
+      } else if (usgReferenciaEntry) {
+        // Casa a USG escolhida (via data, única por paciente) com o id gerado e grava
+        // pacientes.referencia_usg_id. A fonte única de IG (RPC calcular_ig) só usa a
+        // USG quando esse id está preenchido — sem ele cai na DUM.
+        const refEntry = usgReferenciaEntry;
+        const linhaRef = (inseridas as { id: string; data_exame: string }[]).find(
+          (r) => r.data_exame === refEntry.dataExame,
+        );
+        if (linhaRef) {
+          const { error: refErr } = await supabase
+            .from('pacientes')
+            .update({ referencia_usg_id: linhaRef.id })
+            .eq('id', pacienteId!);
+          if (refErr) console.error('[pacientes] update referencia_usg_id falhou:', refErr);
+        }
       }
     }
 
@@ -482,9 +514,9 @@ export default function Consulta1Form() {
                   setDumDesconhecida(v);
                   if (v) {
                     setDum('');
-                    // se referência era DUM, limpa
-                    if (usgFlow.referenciaIg === 'dum') {
-                      setUsgFlow({ ...usgFlow, referenciaIg: null });
+                    // se a referência era a DUM, limpa (DUM ficou desconhecida)
+                    if (usgFlow.referencia?.tipo === 'dum') {
+                      setUsgFlow({ ...usgFlow, referencia: null });
                     }
                   }
                 }}
@@ -494,8 +526,8 @@ export default function Consulta1Form() {
             {errorMsg(dumValido)}
           </div>
 
-          {/* USG flow: 1ª USG + referência de IG */}
-          <UsgFlowSection
+          {/* USGs (múltiplas) + referência de IG */}
+          <CasoNovoUsgSection
             value={usgFlow}
             onChange={setUsgFlow}
             dum={dum}
