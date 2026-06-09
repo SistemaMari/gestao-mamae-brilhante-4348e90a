@@ -273,7 +273,10 @@ export default function Retorno1Form({
     ?? (serverDraftState === 'salvo' ? 'completa' : 'rascunho');
   // Em retorno NOVO intocado, esconde o badge "Rascunho" + banner de pendentes;
   // aparecem ao começar a preencher (ou ao editar ficha existente). Só visual.
-  const iniciouPreenchimento = !!editingConsulta || !!valorGJ || !!dataExame;
+  // dataExame NÃO entra aqui: nasce pré-preenchido com hoje (useState ?? todayISO),
+  // então contá-lo deixava o gate sempre ligado — rascunho/pendentes apareciam sem
+  // o usuário tocar em nada. O sinal de "começou" são os campos de resultado.
+  const iniciouPreenchimento = !!editingConsulta || !!valorGJ || !!tipoExame;
 
   // 34B.2 — Lista de campos obrigatórios pendentes, calculada em tempo real.
   // Mesma fonte de verdade usada pelo isValid acima — sem duplicar validação.
