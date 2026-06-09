@@ -1,12 +1,13 @@
-import { forwardRef, useState, useId } from 'react';
+import { forwardRef, useEffect, useId } from 'react';
 import { Input } from '@/components/ui/input';
 import { validarDataClinica } from '@/lib/dateUtils';
 
 /**
- * DateInput — input de data clínica com validação onBlur (Prompt 34B seção 3.10).
+ * DateInput — input de data clínica com validação imediata (Prompt 34B seção 3.10).
  *
- * Bloqueia datas inválidas no calendário (30/02, 31/04, 31/11) com mensagem
- * inline em vermelho. NÃO bloqueia datas vazias — quem decide se o campo é
+ * Bloqueia datas inválidas no calendário (30/02, 31/04, 31/11, 29/02 fora de ano
+ * bissexto) com mensagem inline em vermelho — exibida assim que o valor é inválido,
+ * sem depender de blur. NÃO bloqueia datas vazias — quem decide se o campo é
  * obrigatório é o form (mesma fonte do isValid usado para "Salvar e finalizar").
  *
  * Contrato:
@@ -21,8 +22,8 @@ import { validarDataClinica } from '@/lib/dateUtils';
  *
  * A spec pede também que o CÁLCULO DE IG não recalcule enquanto a data estiver
  * inválida — manter valor anterior estável. Como o cálculo de IG depende do
- * value bruto e nós só validamos onBlur, basta o caller condicionar o recálculo
- * a `validade === true` (ou usar `validarDataClinica()` diretamente).
+ * value bruto, o caller deve condicionar o recálculo a `validade === true`
+ * (ou usar `validarDataClinica()` diretamente).
  */
 
 interface Props {
@@ -58,23 +59,23 @@ const DateInput = forwardRef<HTMLInputElement, Props>(function DateInput(
   const reactId = useId();
   const inputId = id ?? reactId;
   const errorId = `${inputId}-error`;
-  const [touched, setTouched] = useState(false);
   const resultado = validarDataClinica(value);
-  const inválido = touched && !resultado.valida;
+  // Vazio conta como válido aqui (a obrigatoriedade do campo é decidida pelo form).
+  // Só marca inválido quando há um valor que não é uma data real — ex.: 29/02 em
+  // ano não bissexto. O erro passa a aparecer NA HORA, sem depender de blur.
+  const inválido = !resultado.valida;
 
-  const handleBlur = () => {
-    setTouched(true);
+  // Reporta a validade ao caller no mount e a cada mudança de valor — não só no blur.
+  // Antes, uma data impossível (digitada ou restaurada de rascunho) não bloqueava o
+  // submit nem mostrava o erro até o campo perder o foco, deixando o botão "Salvar e
+  // finalizar" apagado sem explicação visível. Agora a validade é sempre consistente.
+  useEffect(() => {
     onValidityChange?.(resultado.valida);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const novoValor = e.target.value;
-    onChange(novoValor);
-    // Revalida em tempo real após primeiro blur para limpar erro quando user corrige.
-    if (touched) {
-      const r = validarDataClinica(novoValor);
-      onValidityChange?.(r.valida);
-    }
+    onChange(e.target.value);
   };
 
   return (
@@ -85,7 +86,6 @@ const DateInput = forwardRef<HTMLInputElement, Props>(function DateInput(
         type="date"
         value={value}
         onChange={handleChange}
-        onBlur={handleBlur}
         disabled={disabled}
         min={min}
         max={max}

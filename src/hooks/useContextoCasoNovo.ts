@@ -58,20 +58,44 @@ export function useContextoCasoNovo(
         return;
       }
       try {
-        const { data, error } = await supabase
-          .from('v_ficha_retorno_contexto' as never)
-          .select(
-            'data_caso_novo, glicemia_jejum_caso_novo, tipo_exame_caso_novo, data_exame_caso_novo, cenario_caso_novo',
-          )
+        // Lê o Caso Novo (consulta_1) DIRETO, em vez da view v_ficha_retorno_contexto.
+        // A view parte de `FROM consultas c_ret WHERE tipo <> 'consulta_1'`, ou seja,
+        // só devolve linha quando JÁ EXISTE uma consulta de retorno. Ao abrir um retorno
+        // NOVO (antes do primeiro save), essa linha ainda não existe, a view vinha vazia
+        // e o card mostrava "Caso Novo não localizado" mesmo com o Caso Novo preenchido.
+        // Aqui replicamos o mesmo join da view, mas ancorado no consulta_1 da paciente —
+        // disponível desde o início. Tudo SELECT (sem mudança de schema/backend).
+        const { data: casoNovo, error: errCn } = await supabase
+          .from('consultas')
+          .select('id, data, cenario_clinico')
           .eq('paciente_id', pacienteId)
+          .eq('tipo', 'consulta_1')
+          .order('numero_sequencial', { ascending: true })
+          .order('created_at', { ascending: true })
           .limit(1)
           .maybeSingle();
         if (cancelado) return;
-        if (error || !data) {
+        if (errCn || !casoNovo) {
           setContexto(null);
-        } else {
-          setContexto(data as ContextoCasoNovo);
+          return;
         }
+        // Exame de glicemia mais antigo vinculado ao Caso Novo (mesma ordenação da view).
+        const { data: exame } = await supabase
+          .from('exames_glicemia')
+          .select('valor_mgdl, tipo_exame, data_exame')
+          .eq('consulta_id', casoNovo.id)
+          .order('data_exame', { ascending: true })
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (cancelado) return;
+        setContexto({
+          data_caso_novo: casoNovo.data ?? null,
+          glicemia_jejum_caso_novo: exame?.valor_mgdl ?? null,
+          tipo_exame_caso_novo: exame?.tipo_exame ?? null,
+          data_exame_caso_novo: exame?.data_exame ?? null,
+          cenario_caso_novo: casoNovo.cenario_clinico ?? null,
+        });
       } catch {
         if (!cancelado) setContexto(null);
       } finally {
