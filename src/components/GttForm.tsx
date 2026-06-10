@@ -174,12 +174,9 @@ export default function GttForm({
 
   // 34B.2 — status + pendentes.
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
-  // Em retorno NOVO intocado, esconde o badge "Rascunho" + banner de pendentes;
-  // aparecem ao começar a preencher (ou ao editar ficha existente). Só visual.
-  // dataExame NÃO entra: nasce pré-preenchido com hoje (?? todayISO), o que deixava
-  // o gate sempre ligado. O sinal de "começou" são as glicemias do GTT.
-  const iniciouPreenchimento =
-    !!editingConsulta || jejumValido || h1Valido || h2Valido;
+  // Rascunho NÃO é sinalizado durante o preenchimento: badge "Rascunho" + banner de
+  // pendentes só aparecem ao reabrir uma ficha JÁ salva (reflete o status real).
+  const fichaPersistida = !!editingConsulta;
   const camposPendentes = useMemo<string[]>(() => {
     const f: string[] = [];
     if (!jejumValido) f.push('Glicemia em jejum');
@@ -535,11 +532,11 @@ export default function GttForm({
           <h2 className="text-base font-bold text-foreground">
             GTT 75g — Teste de Tolerância à Glicose
           </h2>
-          {iniciouPreenchimento && <StatusFichaBadge status={statusFichaLocal} />}
+          {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
         <CamposPendentesBanner
           pendentes={camposPendentes}
-          ativo={iniciouPreenchimento && statusFichaLocal === 'rascunho'}
+          ativo={fichaPersistida && statusFichaLocal === 'rascunho'}
         />
 
         <ContextoClinicoCard loading={contextoLoading} contexto={contextoCasoNovo} />

@@ -271,12 +271,11 @@ export default function Retorno1Form({
   const statusFichaLocal: string =
     editingConsulta?.status_ficha
     ?? (serverDraftState === 'salvo' ? 'completa' : 'rascunho');
-  // Em retorno NOVO intocado, esconde o badge "Rascunho" + banner de pendentes;
-  // aparecem ao começar a preencher (ou ao editar ficha existente). Só visual.
-  // dataExame NÃO entra aqui: nasce pré-preenchido com hoje (useState ?? todayISO),
-  // então contá-lo deixava o gate sempre ligado — rascunho/pendentes apareciam sem
-  // o usuário tocar em nada. O sinal de "começou" são os campos de resultado.
-  const iniciouPreenchimento = !!editingConsulta || !!valorGJ || !!tipoExame;
+  // Rascunho NÃO é sinalizado durante o preenchimento. O badge "Rascunho" e o banner
+  // de pendentes só aparecem ao reabrir uma ficha JÁ salva (refletindo o status real).
+  // Em ficha nova o usuário preenche sem ruído; o backup local segue silencioso e a
+  // recuperação acontece ao reabrir (modal), caso ele saia sem salvar.
+  const fichaPersistida = !!editingConsulta;
 
   // 34B.2 — Lista de campos obrigatórios pendentes, calculada em tempo real.
   // Mesma fonte de verdade usada pelo isValid acima — sem duplicar validação.
@@ -420,13 +419,13 @@ export default function Retorno1Form({
   }, [clearLocalDraft]);
 
   // ── 34B.1 seção 3.4: estado visual derivado para o RascunhoStatus ──────────
-  // Precedência: erro > salvando > servidor (sem mudanças locais depois) > dirty > local > idle.
+  // Precedência: erro > salvando > servidor > idle. Os estados de backup local
+  // automático ('dirty'/'local') NÃO são sinalizados durante o preenchimento — o
+  // backup segue silencioso; a recuperação acontece ao reabrir a ficha (modal).
   const visualState: RascunhoVisualState = useMemo(() => {
     if (serverDraftState === 'erro') return 'erro';
     if (saving || serverDraftState === 'salvando') return 'salvando';
     if (serverDraftState === 'salvo' && localDraftStatus !== 'dirty') return 'servidor';
-    if (localDraftStatus === 'dirty') return 'dirty';
-    if (localDraftStatus === 'persisted') return 'local';
     return 'idle';
   }, [saving, serverDraftState, localDraftStatus]);
 
@@ -924,7 +923,7 @@ export default function Retorno1Form({
             RETORNO 1 — Resultado da Glicemia de Jejum
           </h2>
           <div className="flex items-center gap-2">
-            {iniciouPreenchimento && <StatusFichaBadge status={statusFichaLocal} />}
+            {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
             <RascunhoStatus
               state={visualState}
               savedAt={visualSavedAt}
@@ -940,7 +939,7 @@ export default function Retorno1Form({
       {/* 34B.2 seção 3.1.3 — banner de campos pendentes quando ficha em rascunho */}
       <CamposPendentesBanner
         pendentes={camposPendentes}
-        ativo={iniciouPreenchimento && statusFichaLocal === 'rascunho'}
+        ativo={fichaPersistida && statusFichaLocal === 'rascunho'}
       />
 
       {/* 34B.3 seção 3.9.4 — banner laranja de divergência IG (efêmero) */}
