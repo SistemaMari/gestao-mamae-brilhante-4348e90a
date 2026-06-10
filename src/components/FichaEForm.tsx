@@ -239,10 +239,9 @@ export default function FichaEForm({
   }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
 
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
-  // Em retorno NOVO intocado, esconde o badge "Rascunho" + banner de pendentes;
-  // aparecem ao começar a preencher (ou ao editar ficha existente). Só visual.
-  const iniciouPreenchimento =
-    !!editingConsulta || totalPreenchidos > 0 || !!dataInicio || !!dataFim;
+  // Rascunho NÃO é sinalizado durante o preenchimento: badge "Rascunho" + banner de
+  // pendentes só aparecem ao reabrir uma ficha JÁ salva (reflete o status real).
+  const fichaPersistida = !!editingConsulta;
   const camposPendentes = useMemo<string[]>(() => {
     const f: string[] = [];
     if (!dataInicio) f.push('Data de início do perfil');
@@ -458,7 +457,7 @@ export default function FichaEForm({
             <FileText className="h-5 w-5" />
             FICHA E — Perfil de 6 pontos × 10 dias (sem insulina)
           </h2>
-          {iniciouPreenchimento && <StatusFichaBadge status={statusFichaLocal} />}
+          {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
         <p className="text-xs text-[#6D28D9]">
           Reavaliação ampliada após Regra 4 (memória do glicosímetro confirma).
@@ -469,7 +468,7 @@ export default function FichaEForm({
         </div>
       </div>
 
-      <CamposPendentesBanner pendentes={camposPendentes} ativo={iniciouPreenchimento && statusFichaLocal === 'rascunho'} />
+      <CamposPendentesBanner pendentes={camposPendentes} ativo={fichaPersistida && statusFichaLocal === 'rascunho'} />
 
       <ContextoClinicoCard loading={contextoLoading} contexto={contextoCasoNovo} />
 

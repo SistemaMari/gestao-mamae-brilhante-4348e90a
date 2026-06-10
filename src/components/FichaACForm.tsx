@@ -314,11 +314,10 @@ export default function FichaACForm({
 
   // 34B.2 — status + pendentes (badge e banner).
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
-  // Em retorno NOVO intocado, esconde o badge "Rascunho" + banner de pendentes;
-  // aparecem ao começar a preencher (ou ao editar ficha existente). Só visual —
-  // não mexe na trava do "Gerar Laudo".
-  const iniciouPreenchimento =
-    !!editingConsulta || totalPreenchidos > 0 || !!dataInicio || !!dataFim;
+  // Rascunho NÃO é sinalizado durante o preenchimento: badge "Rascunho" + banner de
+  // pendentes só aparecem ao reabrir uma ficha JÁ salva (reflete o status real).
+  // Não mexe na trava do "Gerar Laudo".
+  const fichaPersistida = !!editingConsulta;
   const camposPendentes = useMemo<string[]>(() => {
     const f: string[] = [];
     if (!dataInicio) f.push('Data de início do perfil');
@@ -590,7 +589,7 @@ export default function FichaACForm({
                 ? 'FICHA C — Acompanhamento sem insulina, após a 30ª semana (Perfil Glicêmico de 4 pontos × 7 dias)'
                 : 'FICHA A — Acompanhamento sem insulina, até a 30ª semana (Perfil Glicêmico de 4 pontos × 15 dias)'}
           </h2>
-          {iniciouPreenchimento && <StatusFichaBadge status={statusFichaLocal} />}
+          {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
         <p className="text-xs text-[#6D28D9]">
           Preencha a grade com as glicemias capilares registradas pela paciente.
@@ -603,7 +602,7 @@ export default function FichaACForm({
 
       <CamposPendentesBanner
         pendentes={camposPendentes}
-        ativo={iniciouPreenchimento && statusFichaLocal === 'rascunho'}
+        ativo={fichaPersistida && statusFichaLocal === 'rascunho'}
       />
 
       <ContextoClinicoCard loading={contextoLoading} contexto={contextoCasoNovo} />
