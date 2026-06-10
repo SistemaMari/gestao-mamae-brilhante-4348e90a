@@ -36,6 +36,8 @@ import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
 import ChecklistRetorno2, { CHECKLIST_VAZIO, isChecklistCompleto, type ChecklistState } from '@/components/ficha/ChecklistRetorno2';
+import { useFichaDraft } from '@/hooks/useFichaDraft';
+import DraftRecoveryModal from '@/components/ficha/DraftRecoveryModal';
 import CondutaCard from '@/components/ficha/CondutaCard';
 import { aplicarRegrasFichaA, type DecisaoResultado } from '@/lib/fichaADecisao';
 
@@ -279,6 +281,63 @@ export default function FichaACForm({
   const [pactuacao, setPactuacao] = useState<'aceita' | 'recusa' | null>(null);
   const [memoria, setMemoria] = useState<'confirma' | 'nao_confirma' | null>(null);
 
+  // ── Backup local + recuperação de rascunho ─────────────────────────────────
+  // Preserva o que foi preenchido se o usuário sair sem finalizar; ao reabrir, o
+  // DraftRecoveryModal pergunta se recupera. Silencioso (não sinaliza "rascunho").
+  type FichaACDraft = {
+    janela: JanelaPosPrandial;
+    pactuada: boolean;
+    grid: Record<string, string>[];
+    dataInicio: string;
+    dataFim: string;
+    dataConsulta: string;
+    observacoes: string;
+    igSemanas: string;
+    igDias: string;
+    checklist: ChecklistState;
+    pactuacao: 'aceita' | 'recusa' | null;
+    memoria: 'confirma' | 'nao_confirma' | null;
+  };
+  const draftKey = editingConsulta?.id
+    ? `ficha:${editingConsulta.id}`
+    : `nova:${paciente.id}:ficha_a`;
+  const formDraft = useMemo<FichaACDraft>(
+    () => ({
+      janela, pactuada, grid, dataInicio, dataFim, dataConsulta, observacoes,
+      igSemanas, igDias, checklist, pactuacao, memoria,
+    }),
+    [janela, pactuada, grid, dataInicio, dataFim, dataConsulta, observacoes,
+      igSemanas, igDias, checklist, pactuacao, memoria],
+  );
+  // Só grava rascunho quando há dado real (não só abrir / auto-fill de IG / janela).
+  const draftTemConteudo =
+    totalPreenchidos > 0 || !!dataInicio || !!dataFim || observacoes.trim() !== '';
+  const {
+    recovery: draftRecovery,
+    clearDraft: clearFichaDraft,
+    recoverDraft: onRecoverDraft,
+    discardDraft: onDiscardDraft,
+  } = useFichaDraft<FichaACDraft>({
+    enabled: !isPreview,
+    draftKey,
+    current: formDraft,
+    hasContent: draftTemConteudo,
+    onRecover: (d) => {
+      setJanela(d.janela);
+      setPactuada(d.pactuada);
+      setGrid(d.grid);
+      setDataInicio(d.dataInicio);
+      setDataFim(d.dataFim);
+      setDataConsulta(d.dataConsulta);
+      setObservacoes(d.observacoes);
+      setIgSemanas(d.igSemanas);
+      setIgDias(d.igDias);
+      setChecklist(d.checklist);
+      setPactuacao(d.pactuacao);
+      setMemoria(d.memoria);
+    },
+  });
+
   const decisaoFichaA = useMemo<DecisaoResultado | null>(() => {
     if (!isFichaA || !isChecklistCompleto(checklist) || percentual == null) return null;
     return aplicarRegrasFichaA(
@@ -416,6 +475,7 @@ export default function FichaACForm({
       });
 
       window.dispatchEvent(new Event('preview-pacientes-updated'));
+      clearFichaDraft();
 
       setSavedResult({
         percentual: percentual!,
@@ -550,6 +610,7 @@ export default function FichaACForm({
           } as any, { onConflict: 'consulta_id' });
       }
 
+      clearFichaDraft();
       setSavedResult({ percentual: percentual!, adequado: isAdequado });
       setSaving(false);
       setShowImpact(true);
@@ -883,6 +944,13 @@ export default function FichaACForm({
           Salvar retorno
         </Button>
       </div>
+
+      <DraftRecoveryModal
+        open={draftRecovery.open}
+        draftTimestamp={draftRecovery.timestamp}
+        onRecover={onRecoverDraft}
+        onDiscard={onDiscardDraft}
+      />
 
       {/* High value confirmation dialog */}
       <AlertDialog open={showHighValueConfirm} onOpenChange={setShowHighValueConfirm}>
