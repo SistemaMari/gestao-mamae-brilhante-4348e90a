@@ -22,12 +22,13 @@ export interface DecisaoBackend {
 }
 
 // Rótulos voltados ao usuário: descrevem o PERFIL, sem expor o código interno
-// "Ficha A/B/C/D/E" (jargão de desenvolvimento, que o clínico não conhece).
+// "Ficha A/B/C/D/E" (jargão de dev). Sem a IG (até/após 30 sem) — a paciente pode
+// precisar de insulina antes das 30 semanas, então afirmar a janela ali engana.
 const FICHA_LABEL: Record<ProximaFicha, string> = {
-  ficha_a: 'Perfil de 4 pontos (até 30 semanas)',
-  ficha_b: 'Perfil de 6 pontos com insulina (até 30 semanas)',
-  ficha_c: 'Perfil de 4 pontos (após 30 semanas)',
-  ficha_d: 'Perfil de 6 pontos com insulina (após 30 semanas)',
+  ficha_a: 'Perfil de 4 pontos',
+  ficha_b: 'Perfil de 6 pontos com insulina',
+  ficha_c: 'Perfil de 4 pontos',
+  ficha_d: 'Perfil de 6 pontos com insulina',
   ficha_e: 'Perfil de 6 pontos sem insulina',
 };
 
