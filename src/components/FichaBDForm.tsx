@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
-import { useIg } from '@/lib/getIg';
+import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
@@ -604,7 +604,7 @@ export default function FichaBDForm({
         <div className="space-y-1">
           <div className="flex items-center gap-1">
             <label className="text-xs font-medium text-foreground">Idade gestacional atual</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">IG atual em semanas + dias. Usada para definir o intervalo do próximo retorno.</p></TooltipContent></Tooltip></TooltipProvider>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">IG atual em semanas + dias. Usada para definir o intervalo do próximo retorno. {descreverReferenciaIg(igAtual)}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <div className="flex items-center gap-2">
             <Input type="number" min={0} max={45} value={igSemanas} onChange={e => setIgSemanas(e.target.value)} placeholder="sem" className="w-20" />

@@ -34,7 +34,7 @@ import { Info, Loader2, AlertTriangle, CheckCircle2, XCircle, Printer } from 'lu
 // 34C-B2: differenceInDays removido — cálculo de IG agora é centralizado
 // em `@/lib/getIg` (RPC calcular_ig).
 import { todayLocalISO } from '@/lib/dateUtils';
-import { useIg } from '@/lib/getIg';
+import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 
 function todayISO() {
   return todayLocalISO();
@@ -579,7 +579,7 @@ export default function GttForm({
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Idade gestacional em semanas + dias na data do exame. O GTT deve ser realizado o mais próximo possível de 24 semanas, impreterivelmente antes de 28 semanas. Caso não seja realizado nesse período, deve ser feito o mais breve possível — nunca abandonado.
+                Idade gestacional em semanas + dias na data do exame. {descreverReferenciaIg(igCalculada)} O GTT deve ser realizado o mais próximo possível de 24 semanas, impreterivelmente antes de 28 semanas. Caso não seja realizado nesse período, deve ser feito o mais breve possível — nunca abandonado.
               </TooltipContent>
             </Tooltip>
           </div>

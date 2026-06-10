@@ -133,3 +133,16 @@ export function formatIg(
   const base = `${ig.semanas}s ${ig.dias}d`;
   return opts.showOrigem && ig.origem ? `${base} (${ig.origem})` : base;
 }
+
+/**
+ * Frase curta para tooltips: indica qual referência de IG (origem do cálculo)
+ * está ativa para a paciente. Acompanha o `igAtual` retornado por `useIg`, então
+ * troca sozinha quando a âncora muda (DUM ↔ USG). Ex.:
+ *   - "Referência de IG ativa: DUM."
+ *   - "Referência de IG ativa: USG #1."
+ *   - "Sem referência de IG definida (defina DUM ou USG)."
+ */
+export function descreverReferenciaIg(ig: IgCalculada | null | undefined): string {
+  if (!ig || !ig.origem) return 'Sem referência de IG definida (defina DUM ou USG).';
+  return `Referência de IG ativa: ${ig.origem}.`;
+}

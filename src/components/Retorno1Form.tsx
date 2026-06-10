@@ -57,7 +57,7 @@ import {
 import { Info, Loader2, AlertTriangle, CheckCircle2, XCircle, Printer, Pencil, FileText } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
-import { useIg, getIg } from '@/lib/getIg';
+import { useIg, getIg, descreverReferenciaIg } from '@/lib/getIg';
 import UsgFlowSection, { emptyUsgFlow, UsgFlowValue } from '@/components/UsgFlowSection';
 
 function todayISO() {
@@ -1038,7 +1038,7 @@ export default function Retorno1Form({
 
         {/* P1: IG na data do exame — auto-filled */}
         <div className="space-y-2">
-          <FieldLabel tooltip="Idade gestacional na data em que o exame foi coletado. Preenchida automaticamente com base na DUM. Edite manualmente se necessário.">
+          <FieldLabel tooltip={`Idade gestacional na data em que o exame foi coletado. ${descreverReferenciaIg(igCalculada)} Preenchida automaticamente; edite se necessário.`}>
             IG na data do exame
           </FieldLabel>
           <div className="grid grid-cols-2 gap-3">
