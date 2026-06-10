@@ -21,12 +21,14 @@ export interface DecisaoBackend {
   pendencias: string[];
 }
 
+// Rótulos voltados ao usuário: descrevem o PERFIL, sem expor o código interno
+// "Ficha A/B/C/D/E" (jargão de desenvolvimento, que o clínico não conhece).
 const FICHA_LABEL: Record<ProximaFicha, string> = {
-  ficha_a: 'Ficha A (4 pontos, ≤ 30 sem)',
-  ficha_b: 'Ficha B (6 pontos com insulina, ≤ 30 sem)',
-  ficha_c: 'Ficha C (4 pontos, > 30 sem)',
-  ficha_d: 'Ficha D (6 pontos com insulina, > 30 sem)',
-  ficha_e: 'Ficha E (6 pontos sem insulina) — disponível em breve',
+  ficha_a: 'Perfil de 4 pontos (até 30 semanas)',
+  ficha_b: 'Perfil de 6 pontos com insulina (até 30 semanas)',
+  ficha_c: 'Perfil de 4 pontos (após 30 semanas)',
+  ficha_d: 'Perfil de 6 pontos com insulina (após 30 semanas)',
+  ficha_e: 'Perfil de 6 pontos sem insulina',
 };
 
 interface Props {
@@ -110,7 +112,7 @@ export default function CondutaCard({ decisao, pactuacao, memoria, onPactuacao, 
               onClick={() => onMemoria('confirma')}
               className={memoria === 'confirma' ? 'bg-[#7C4DBA] hover:bg-[#7E69AB] text-white' : ''}
             >
-              Confirma → ampliar para 6 pontos sem insulina (Ficha E)
+              Confirma → ampliar para 6 pontos sem insulina
             </Button>
             <Button
               type="button"
@@ -145,7 +147,7 @@ export default function CondutaCard({ decisao, pactuacao, memoria, onPactuacao, 
       {proxima && (
         <div className="flex items-center gap-2 text-xs" style={{ color: s.text }}>
           <ArrowRight className="h-3.5 w-3.5" />
-          <span>Próxima consulta: abrir <strong>{FICHA_LABEL[proxima]}</strong></span>
+          <span>Próxima consulta: <strong>{FICHA_LABEL[proxima]}</strong></span>
         </div>
       )}
 

@@ -86,6 +86,10 @@ export function aplicarRegrasFichaA(
   if (regra === 'regra_manter') {
     proxima = semInsulinaAC();
   } else if (regra === 'regra_2') {
+    // Reforçar MEV → Aceita: MANTÉM a grade de 4 pontos e repete (loop) até haver
+    // necessidade de associar insulina. Ampliar para 6 pontos sem insulina é
+    // exclusivo da Regra 4 "confirma" (lá os dados são reais; aqui só se reforça
+    // a adesão — mais aferições não mudam o que a paciente já reporta de verdade).
     if (d.pactuacao_adesao === 'aceita') proxima = semInsulinaAC();
     else if (d.pactuacao_adesao === 'recusa') proxima = bd();
     else pendencias.push('pactuacao_adesao');
@@ -95,6 +99,10 @@ export function aplicarRegrasFichaA(
     if (d.memoria_glicosimetro === 'confirma') {
       proxima = 'ficha_e';
     } else if (d.memoria_glicosimetro === 'nao_confirma') {
+      // Memória não bate = dados não confiáveis (a paciente reportou valores melhores
+      // que os reais). Mais aferições não geram mais verdade → "aceita" MANTÉM 4 pontos
+      // (o que muda o próximo teste é a pactuação, não a quantidade de medições).
+      // Difere de 'confirma' (dados reais + alerta → amplia para 6 pontos sem insulina).
       if (d.pactuacao_adesao === 'aceita') proxima = semInsulinaAC();
       else if (d.pactuacao_adesao === 'recusa') proxima = bd();
       else pendencias.push('pactuacao_adesao');
