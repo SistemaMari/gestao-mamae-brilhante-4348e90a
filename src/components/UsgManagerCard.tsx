@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
@@ -72,6 +73,16 @@ export default function UsgManagerCard({
   const [openEditUsg, setOpenEditUsg] = useState<UsgRow | null>(null);
   const [editFlow, setEditFlow] = useState<UsgFlowValue>({ ...emptyUsgFlow, jaFezUsg: 'sim' });
   const [confirmDelete, setConfirmDelete] = useState<UsgRow | null>(null);
+
+  // 34C-B2: ao mudar a âncora (referência ou dados de USG), invalida a query única
+  // de IG (['ig', pacienteId]) para TODAS as fichas rebuscarem o RPC calcular_ig e
+  // recalcularem a IG na hora. Sem isso, o useIg seguia no valor cacheado (staleTime
+  // 5min) e a "Idade gestacional atual" não trocava ao trocar a referência.
+  const queryClient = useQueryClient();
+  const invalidarIg = useCallback(
+    () => { void queryClient.invalidateQueries({ queryKey: ['ig', pacienteId] }); },
+    [queryClient, pacienteId],
+  );
 
   const load = useCallback(async () => {
     if (isPreview) {
@@ -216,6 +227,7 @@ export default function UsgManagerCard({
     setOpenAdd(false);
     setUsgFlow({ ...emptyUsgFlow, jaFezUsg: 'sim' });
     await load();
+    invalidarIg();
     onChanged?.();
   };
 
@@ -272,6 +284,7 @@ export default function UsgManagerCard({
     toast.success('USG atualizada.');
     setOpenEditUsg(null);
     await load();
+    invalidarIg();
     onChanged?.();
   };
 
@@ -315,6 +328,7 @@ export default function UsgManagerCard({
     toast.success('USG excluída.');
     setConfirmDelete(null);
     await load();
+    invalidarIg();
     onChanged?.();
   };
 
@@ -333,6 +347,7 @@ export default function UsgManagerCard({
     }
     toast.success('Referência de IG atualizada.');
     setOpenEdit(false);
+    invalidarIg();
     onChanged?.();
   };
 

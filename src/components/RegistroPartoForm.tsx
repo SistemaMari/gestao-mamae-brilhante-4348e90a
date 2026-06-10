@@ -3,7 +3,7 @@ import { classificarRN } from '@/lib/intergrowth';
 
 import { format } from 'date-fns';
 import { todayLocalISO } from '@/lib/dateUtils';
-import { useIg } from '@/lib/getIg';
+import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { toast } from 'sonner';
 import { FileText, Info, Loader2, Baby } from 'lucide-react';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
@@ -491,7 +491,7 @@ export default function RegistroPartoForm({
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
               IG no parto <span className="text-destructive">*</span>
-              <HelpIcon text="Idade gestacional em semanas + dias no momento do parto. Calculada automaticamente a partir da DUM e da data do parto. Editável." />
+              <HelpIcon text={`Idade gestacional em semanas + dias no momento do parto. ${descreverReferenciaIg(igPartoQuery.data)} Calculada automaticamente; editável.`} />
             </label>
             <div className="flex items-center gap-2">
               <Input
