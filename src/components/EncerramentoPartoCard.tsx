@@ -25,7 +25,7 @@ export default function EncerramentoPartoCard() {
       <div className="flex items-start gap-3 rounded-lg border p-3" style={{ backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }}>
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: '#B45309' }} />
         <p className="text-sm" style={{ color: '#92400E' }}>
-          <strong>Reteste puerperal:</strong> realizar TTG 75g (jejum + 2h) entre 6 e 8 semanas após o parto.
+          <strong>Reteste puerperal:</strong> realizar GTT 75g (jejum + 2h) entre 6 e 8 semanas após o parto.
         </p>
       </div>
     </div>
