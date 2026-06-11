@@ -13,8 +13,8 @@ export type TipoOperacao =
 
 export const TIPOS_OPERACAO_LABELS: Record<TipoOperacao, string> = {
   abrir_ficha: "Abertura de ficha",
-  preencher_ficha_ac: "Preenchimento ficha A/C",
-  preencher_ficha_bd: "Preenchimento ficha B/D",
+  preencher_ficha_ac: "Registro de perfil glicêmico de 4 pontos",
+  preencher_ficha_bd: "Registro de perfil glicêmico de 6 pontos",
   preencher_gtt: "Resultado de GTT",
   consulta_inicial: "Consulta inicial",
   retorno: "Retorno clínico",

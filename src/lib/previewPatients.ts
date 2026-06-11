@@ -47,6 +47,14 @@ export interface PreviewConsulta {
   conduta_gerada?: string | null;
   // 36E-B — Ficha E (6 pontos sem insulina)
   conduta_e?: 'manter_e' | 'insulina' | null;
+  // 38B-A (#9) — Checklist do Retorno 2 (Ficha A). Persistido em decisoes_ficha_a;
+  // hidratado no fetchPaciente para restaurar os botões (Sim/Não/Sem info) ao reabrir.
+  checklist_dieta?: boolean | null;
+  checklist_exercicio?: boolean | null;
+  checklist_ganho_peso?: boolean | null;
+  checklist_pfe_us?: 'sim' | 'nao' | 'sem_info' | null;
+  checklist_ca?: 'sim' | 'nao' | 'sem_info' | null;
+  checklist_la?: 'sim' | 'nao' | 'sem_info' | null;
 }
 
 export interface PreviewPaciente {

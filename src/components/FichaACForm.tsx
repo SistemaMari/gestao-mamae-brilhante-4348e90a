@@ -275,7 +275,20 @@ export default function FichaACForm({
 
   // 36B REV3 — Checklist + pactuação + memória (somente Ficha A, ≤30 sem)
   const isFichaA = igSemNum <= 30;
-  const [checklist, setChecklist] = useState<ChecklistState>(CHECKLIST_VAZIO);
+  // 38B-A (#9): ao reabrir o Retorno 2, restaura as 6 respostas salvas
+  // (decisoes_ficha_a hidratada no fetchPaciente). Ficha nova começa vazia.
+  const [checklist, setChecklist] = useState<ChecklistState>(() =>
+    editingConsulta
+      ? {
+          dieta: editingConsulta.checklist_dieta ?? null,
+          exercicio: editingConsulta.checklist_exercicio ?? null,
+          ganho_peso: editingConsulta.checklist_ganho_peso ?? null,
+          pfe_us: editingConsulta.checklist_pfe_us ?? null,
+          ca: editingConsulta.checklist_ca ?? null,
+          la: editingConsulta.checklist_la ?? null,
+        }
+      : CHECKLIST_VAZIO,
+  );
   const [pactuacao, setPactuacao] = useState<'aceita' | 'recusa' | null>(null);
   const [memoria, setMemoria] = useState<'confirma' | 'nao_confirma' | null>(null);
 

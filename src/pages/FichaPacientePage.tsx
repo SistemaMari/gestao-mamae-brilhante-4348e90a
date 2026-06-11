@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -79,7 +79,11 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
   if (c.tipo === 'registro_parto') {
     return 'REGISTRO DO PARTO';
   }
-  const prefix = index === 0 ? 'CASO NOVO' : `RETORNO ${index}`;
+  // 38B-A (#6): "CASO NOVO" é amarrado ao tipo do PRÓPRIO registro (consulta_1),
+  // nunca à posição na lista — evita troca de rótulo entre consultas de mesma data.
+  // O número do retorno segue a ordem cronológica (agora estável pelo desempate
+  // por created_at na query).
+  const prefix = c.tipo === 'consulta_1' ? 'CASO NOVO' : `RETORNO ${index}`;
 
   switch (c.tipo) {
     case 'consulta_1':
@@ -298,7 +302,11 @@ export default function FichaPacientePage() {
         .from('consultas')
         .select('*')
         .eq('paciente_id', id)
-        .order('data', { ascending: true });
+        // 38B-A (#6): desempate estável por created_at (ordem de criação) para que
+        // consultas de mesma data (Caso Novo + Retorno 1 no mesmo dia) mantenham
+        // ordem cronológica determinística — Caso Novo (criado antes) vem primeiro.
+        .order('data', { ascending: true })
+        .order('created_at', { ascending: true });
 
       const consultaIds = (cons ?? []).map((c: any) => c.id);
       const { data: exames } = consultaIds.length
@@ -327,7 +335,7 @@ export default function FichaPacientePage() {
       const { data: decisoes } = consultaIds.length
         ? await supabase
             .from('decisoes_ficha_a' as any)
-            .select('consulta_id, regra_aplicada, conduta_gerada, proxima_ficha_recomendada, dose_insulina_total, dose_insulina_manha, dose_insulina_noite')
+            .select('consulta_id, regra_aplicada, conduta_gerada, proxima_ficha_recomendada, dose_insulina_total, dose_insulina_manha, dose_insulina_noite, checklist_dieta, checklist_exercicio, checklist_ganho_peso, checklist_pfe_us, checklist_ca, checklist_la')
             .in('consulta_id', consultaIds)
         : { data: [] as any[] };
 
@@ -420,6 +428,13 @@ export default function FichaPacientePage() {
             proxima_ficha_recomendada: decisao?.proxima_ficha_recomendada ?? perfil?.proxima_ficha_recomendada ?? null,
             regra_aplicada: decisao?.regra_aplicada ?? null,
             conduta_gerada: decisao?.conduta_gerada ?? null,
+            // 38B-A (#9) — checklist do Retorno 2 (restaura os botões ao reabrir a ficha)
+            checklist_dieta: decisao?.checklist_dieta ?? null,
+            checklist_exercicio: decisao?.checklist_exercicio ?? null,
+            checklist_ganho_peso: decisao?.checklist_ganho_peso ?? null,
+            checklist_pfe_us: decisao?.checklist_pfe_us ?? null,
+            checklist_ca: decisao?.checklist_ca ?? null,
+            checklist_la: decisao?.checklist_la ?? null,
             tipo_pos_prandial: tipoPosByConsulta.get(c.id) ?? null,
             ...(c.tipo === 'retorno_1' && ex
               ? {
@@ -453,6 +468,22 @@ export default function FichaPacientePage() {
 
     fetchPaciente();
   }, [id, isPreview, fetchPaciente]);
+
+  // 38B-A (#5): rede de segurança CENTRAL para o Histórico de consultas refletir
+  // qualquer consulta recém-salva sem F5. A maioria dos forms já refaz o fetch no
+  // onSaved; o GTT negativo (sem popup) não chama onSaved. Em vez de remendar cada
+  // tipo, refazemos o fetch sempre que um form/edição fecha (transição
+  // aberto->fechado). Seguro: sem form aberto não há state de edição a sobrescrever
+  // (Realtime segue desligado nesta tela — Fonte 4 do Bug B).
+  const algumFormAberto =
+    showRetorno1 || showFichaAC || showFichaBD || showFichaE || showGtt || showRegistroParto || editingConsultaId !== null;
+  const formAbertoAntesRef = useRef(algumFormAberto);
+  useEffect(() => {
+    if (formAbertoAntesRef.current && !algumFormAberto && !isPreview) {
+      void fetchPaciente();
+    }
+    formAbertoAntesRef.current = algumFormAberto;
+  }, [algumFormAberto, isPreview, fetchPaciente]);
 
   // Realtime DESLIGADO nesta tela (Fonte 4, 34B.1).
   //
@@ -748,8 +779,7 @@ export default function FichaPacientePage() {
   // 34C.2 (§3.4): sinal de "ficha aberta em edição" — usado para colapsar o
   // histórico por padrão. Nesta tela não há status_ficha de rascunho; o estado
   // real de edição é dado pelos flags de formulário ativo / consulta em edição.
-  const hasFichaEmEdicao =
-    showRetorno1 || showFichaAC || showFichaBD || showFichaE || showGtt || showRegistroParto || editingConsultaId !== null;
+  const hasFichaEmEdicao = algumFormAberto; // 38B-A (#5): mesma condição do refetch central
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -1291,8 +1321,9 @@ export default function FichaPacientePage() {
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-3">
           <Accordion
-            type="multiple"
-            defaultValue={[consultasHistorico[0]?.id].filter(Boolean)}
+            type="single"
+            collapsible
+            defaultValue={consultasHistorico[0]?.id}
             className="space-y-2"
           >
             {consultasHistorico.map((c) => {
