@@ -762,17 +762,25 @@ export default function FichaBDForm({
               )}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3">
-              <p className="text-base font-semibold">
-                {savedResult?.percentual?.toFixed(1)}% das glicemias dentro da meta
-              </p>
               {savedResult?.adequado ? (
-                <p className="text-sm">
-                  Manter dose atual. Detalhes no laudo completo abaixo.
-                </p>
+                <>
+                  <p className="text-base font-semibold">
+                    {savedResult?.percentual?.toFixed(1)}% das glicemias dentro da meta
+                  </p>
+                  <p className="text-sm">
+                    Manter dose atual. Detalhes no laudo completo abaixo.
+                  </p>
+                </>
               ) : (
-                <p className="text-sm">
-                  Encaminhar para GO de alto risco + endocrinologista. Detalhes no laudo completo abaixo.
-                </p>
+                <>
+                  {/* 38B-B (#12): encerramento C7 — % FORA da meta por subtração (100 − dentro). */}
+                  <p className="text-base font-semibold">
+                    {(100 - (savedResult?.percentual ?? 0)).toFixed(1)}% DAS GLICEMIAS FORA DA META
+                  </p>
+                  <p className="text-sm">
+                    AVALIAR sua segurança para continuar com o caso OU ASSOCIAR com endocrinologista OU CONSIDERAR referenciamento especializado (no caso de sistema público).
+                  </p>
+                </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>

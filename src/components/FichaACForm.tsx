@@ -202,6 +202,8 @@ export default function FichaACForm({
   const [savedResult, setSavedResult] = useState<{
     percentual: number;
     adequado: boolean;
+    // 38B-B (#10): roteamento devolvido pelo motor — pop-up sensível ao desfecho.
+    proximaFicha: string | null;
   } | null>(null);
 
   // Cell value change
@@ -433,6 +435,7 @@ export default function FichaACForm({
       setSavedResult({
         percentual: percentual!,
         adequado: isAdequado,
+        proximaFicha: decisaoFichaA?.proxima_ficha_recomendada ?? null,
       });
 
       setSaving(false);
@@ -563,7 +566,7 @@ export default function FichaACForm({
           } as any, { onConflict: 'consulta_id' });
       }
 
-      setSavedResult({ percentual: percentual!, adequado: isAdequado });
+      setSavedResult({ percentual: percentual!, adequado: isAdequado, proximaFicha: decisaoFichaA?.proxima_ficha_recomendada ?? null });
       setSaving(false);
       setShowImpact(true);
     } catch (err: any) {
@@ -943,7 +946,9 @@ export default function FichaACForm({
               </p>
               {savedResult?.adequado ? (
                 <p className="text-sm">
-                  Orientações no laudo completo abaixo.
+                  {savedResult?.proximaFicha === 'ficha_e'
+                    ? 'Controle adequado — acompanhamento ampliado para perfil de 6 pontos ainda sem insulina.'
+                    : 'Orientações no laudo completo abaixo.'}
                 </p>
               ) : (
                 <p className="text-sm">

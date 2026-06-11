@@ -87,7 +87,10 @@ export default function GttResultCard({ consulta }: GttResultCardProps) {
   const igSem = consulta.ig_semanas;
 
   const resultado = calcularGttDiagnostico(jejum, h1, h2, recurso, igSem);
-  const isTardio = resultado.cenario === '6B';
+  // 38B-B (#23): confia no cenario_clinico='6B' roteado pelo backend (GTT com
+  // IG > 28 sem). Antes dependia só do recálculo local por ig_semanas, que podia
+  // divergir do valor persistido e ocultar a nota de diagnóstico tardio.
+  const isTardio = consulta.cenario_clinico === '6B' || resultado.cenario === '6B';
 
   const valores: { label: string; valor: number; meta: string; alterado: boolean }[] = [
     { label: 'Glicemia de jejum', valor: jejum, meta: '< 92 mg/dL', alterado: jejum >= 92 },
