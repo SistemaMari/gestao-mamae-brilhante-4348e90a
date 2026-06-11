@@ -665,17 +665,11 @@ export default function FichaEForm({
               <p className="text-base font-semibold">
                 {savedResult?.percentual?.toFixed(1)}% das glicemias dentro da meta
               </p>
-              {savedResult?.adequado ? (
-                <p className="text-sm">
-                  Manter dieta e exercício, perfil de 6 pontos, reavaliar em 7-10 dias.
-                  Permanece na Ficha E. Detalhes no laudo abaixo.
-                </p>
-              ) : (
-                <p className="text-sm">
-                  Conduta: iniciar insulina NPH. Informe o peso no laudo para calcular a dose;
-                  em seguida abra a Ficha {igSemNum > 30 ? 'D' : 'B'}.
-                </p>
-              )}
+              {/* 38B-B (#25): pop-up só com veredito + % + remissão ao laudo.
+                  Conduta e próximos passos vão no laudo; sem expor "Ficha E/B/D". */}
+              <p className="text-sm">
+                Conduta e próximos passos no laudo completo abaixo.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="justify-center">

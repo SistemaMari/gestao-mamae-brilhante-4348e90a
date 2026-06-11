@@ -76,8 +76,11 @@ export function derivarDesfechoClinico(
 
   const cen = mapearCenario(c);
   if (cen === 'negativo') return 'negativo';
-  // Caso Novo é determinístico mesmo sem `cenario_clinico` gravado.
-  if (c.tipo === 'consulta_1') return String(cen);
+  // Caso Novo e Retorno 1 são determinísticos mesmo sem `cenario_clinico`
+  // gravado: a glicemia de jejum sozinha já fecha o desfecho. Sem isto, o
+  // Retorno 1 com resultado calculado cairia em `ficha_incompleta` ("Complete
+  // os dados clínicos") em vez do placeholder correto "Texto pendente" (38B-B #1).
+  if (c.tipo === 'consulta_1' || c.tipo === 'retorno_1') return String(cen);
 
   // Demais tipos sem `cenario_clinico` → diagnóstico ainda não calculado.
   return null;

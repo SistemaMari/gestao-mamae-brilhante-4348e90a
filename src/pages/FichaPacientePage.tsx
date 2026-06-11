@@ -45,6 +45,7 @@ import FichaEResultCard from '@/components/FichaEResultCard';
 
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
+import EncerramentoPartoCard from '@/components/EncerramentoPartoCard';
 import UsgManagerCard from '@/components/UsgManagerCard';
 import { type UsgRefInput } from '@/lib/fichaUtils';
 import { useIg, useIgBatch } from '@/lib/getIg';
@@ -1067,7 +1068,8 @@ export default function FichaPacientePage() {
       )}
 
       {/* CORREÇÃO 3: Card fixo de destaque da janela do GTT — aparece entre cabeçalho e histórico */}
-      {paciente.status_ficha === 'aguardando_gtt' && janelaGTT && igAtual && (() => {
+      {/* 38B-B (#2): a tarja some assim que existe um GTT registrado (não depende só do status). */}
+      {paciente.status_ficha === 'aguardando_gtt' && !consultas.some((c) => c.tipo === 'retorno_gtt') && janelaGTT && igAtual && (() => {
         const igSem = igAtual.semanas;
         if (igSem > 28) {
           // Estado 3 — Crítico
@@ -1101,21 +1103,25 @@ export default function FichaPacientePage() {
             </div>
           );
         }
-        // Estado 1 — IG < 24 semanas (normal)
+        // Estado 1 — IG < 24 semanas (normal). 38B-B (#19): âmbar (antes lilás, que
+        // se perdia no fundo); o vermelho fica reservado para a janela JÁ ultrapassada.
         return (
-          <div className="rounded-xl border-2 border-[#7C4DBA] bg-[#E8E0FF] p-4 flex items-start gap-3">
-            <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-[#7C4DBA]" />
+          <div className="rounded-xl border-2 border-[#F59E0B] bg-[#FEF3C7] p-4 flex items-start gap-3">
+            <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-[#F59E0B]" />
             <div>
-              <p className="text-sm font-bold text-[#5B21B6]">
+              <p className="text-sm font-bold text-amber-800">
                 GTT 75g deverá ser realizado entre <strong>{format(janelaGTT.inicio, 'dd/MM/yyyy')}</strong> e <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>
               </p>
-              <p className="mt-1 text-xs text-[#6D28D9]">
+              <p className="mt-1 text-xs text-amber-700">
                 O mais próximo possível da 24ª semana.
               </p>
             </div>
           </div>
         );
       })()}
+
+      {/* 38B-B (#22): card de encerramento por parto (Cenário 5) — roxo névoa + reteste puerperal. */}
+      {paciente.status_ficha === 'resultado_parto' && <EncerramentoPartoCard />}
 
       {/* Standalone green card — only when 1 consultation (aguardando_gj), no retorno form */}
       {consultas.length === 1 && paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && primeiraConsulta && (() => {

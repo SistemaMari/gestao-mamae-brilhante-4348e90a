@@ -15,9 +15,7 @@ import DraftRecoveryModal from '@/components/ficha/DraftRecoveryModal';
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
-import ContextoClinicoCard from '@/components/ficha/ContextoClinicoCard';
 import DivergenciaIgBanner from '@/components/ficha/DivergenciaIgBanner';
-import { useContextoCasoNovo } from '@/hooks/useContextoCasoNovo';
 import {
   updatePreviewPaciente,
   getPreviewPacienteById,
@@ -128,7 +126,6 @@ interface Retorno1FormProps {
 
 export default function Retorno1Form({
   paciente,
-  primeiraConsulta,
   isPreview,
   onSaved,
   onCancel,
@@ -152,13 +149,6 @@ export default function Retorno1Form({
   // 'salvo' depois de salvar com sucesso; 'erro' quando última tentativa falhou.
   const [serverDraftState, setServerDraftState] = useState<'idle' | 'salvando' | 'salvo' | 'erro'>('idle');
   const [serverDraftSavedAt, setServerDraftSavedAt] = useState<string | null>(null);
-
-  // 34B.3 seção 3.8 — contexto clínico do Caso Novo via hook reutilizável.
-  const { contexto: contextoCasoNovo, loading: contextoLoading } = useContextoCasoNovo(
-    paciente.id,
-    isPreview,
-    primeiraConsulta ? { data: primeiraConsulta.data, cenario_clinico: primeiraConsulta.cenario_clinico } : null,
-  );
 
   // 34B.3 seção 3.9.4 — alerta de divergência IG vindo da Edge Function
   // salvar-ficha-retorno (efêmero por sessão, não persistido).
@@ -851,22 +841,24 @@ export default function Retorno1Form({
                   {resultado.tipo === 'negativo' ? (
                     <>
                       <p>
-                        <strong>Resultado: DMG NEGATIVO nesta etapa da gestação.</strong> O próximo ponto de controle é o GTT 75g, que deve ser realizado entre <strong>24 e 28 semanas</strong>.
+                        <strong>Resultado: DMG NEGATIVO nesta etapa da gestação.</strong> O próximo ponto de controle é o GTT 75g.
                       </p>
                       {janelaGTT && !igMaior24 ? (
                         <p>
-                          <strong>
-                            Janela para realizar o GTT: {format(janelaGTT.inicio, 'dd/MM/yyyy')} a {format(janelaGTT.fim, 'dd/MM/yyyy')}.
-                          </strong>{' '}
-                          Oriente a paciente a agendar o exame desde já para não perder a janela de tempo.
+                          <strong>Janela para o GTT 75g: {format(janelaGTT.inicio, 'dd/MM/yyyy')} a {format(janelaGTT.fim, 'dd/MM/yyyy')}.</strong>{' '}
+                          Solicite/agende o exame imediatamente — a fila nas unidades costuma ser longa.
                         </p>
                       ) : (
                         <p>
-                          <strong>O GTT 75g já está na janela — solicitar o mais breve possível.</strong>
+                          <strong>O GTT 75g já está na janela — solicite imediatamente</strong>
+                          {janelaGTT ? <> (limite: {format(janelaGTT.fim, 'dd/MM/yyyy')})</> : null}.
                         </p>
                       )}
+                      <p>
+                        Se a janela for perdida, agende o mais próximo possível da 28ª semana — nunca deixe a paciente sem GTT.
+                      </p>
                       <p className="font-medium">
-                        Caso não seja realizado nesse período, realizar o mais breve possível.
+                        Não repita a glicemia de jejum, independentemente do resultado.
                       </p>
                     </>
                   ) : (
@@ -944,12 +936,6 @@ export default function Retorno1Form({
 
       {/* 34B.3 seção 3.9.4 — banner laranja de divergência IG (efêmero) */}
       <DivergenciaIgBanner ativo={alertaDivergenciaIg} />
-
-      {/* 34B.3 seção 3.8 — card readonly de contexto clínico do Caso Novo */}
-      <ContextoClinicoCard
-        loading={contextoLoading}
-        contexto={contextoCasoNovo}
-      />
 
       {/* Capilar alert */}
       {isCapilar && (
