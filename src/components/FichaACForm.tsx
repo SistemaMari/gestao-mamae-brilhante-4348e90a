@@ -294,6 +294,24 @@ export default function FichaACForm({
   const [pactuacao, setPactuacao] = useState<'aceita' | 'recusa' | null>(null);
   const [memoria, setMemoria] = useState<'confirma' | 'nao_confirma' | null>(null);
 
+  // 38B-A.1 (HOTFIX): o useState do checklist inicializa UMA vez na montagem; quando
+  // editingConsulta hidrata de forma assíncrona (fetchPaciente), o estado não
+  // re-sincronizava e o checklist voltava em branco ao reabrir um Retorno 2 salvo.
+  // Este efeito re-hidrata os 6 botões quando editingConsulta chega/muda — como a
+  // grade e o resultado já fazem ao serem lidos no render. Usar ?? (nunca ||): os
+  // itens 1-3 são boolean e "Não" = false; com || o false viraria null (botão vazio).
+  useEffect(() => {
+    if (!editingConsulta) return;
+    setChecklist({
+      dieta: editingConsulta.checklist_dieta ?? null,
+      exercicio: editingConsulta.checklist_exercicio ?? null,
+      ganho_peso: editingConsulta.checklist_ganho_peso ?? null,
+      pfe_us: editingConsulta.checklist_pfe_us ?? null,
+      ca: editingConsulta.checklist_ca ?? null,
+      la: editingConsulta.checklist_la ?? null,
+    });
+  }, [editingConsulta]);
+
   const decisaoFichaA = useMemo<DecisaoResultado | null>(() => {
     if (!isFichaA || !isChecklistCompleto(checklist) || percentual == null) return null;
     return aplicarRegrasFichaA(
