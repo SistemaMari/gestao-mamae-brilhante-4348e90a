@@ -18,6 +18,7 @@ export interface ConsultaParaMapear {
   status_gerado?: string | null;
   decisao?: string | null;
   percentual_meta?: number | null;
+  cenario_clinico?: string | null;
 }
 
 export function mapearCenario(c: ConsultaParaMapear): Cenario {
@@ -30,10 +31,18 @@ export function mapearCenario(c: ConsultaParaMapear): Cenario {
       if (c.status_gerado === 'encaminhada_endocrino') return 8;
       return 6;
 
-    case 'retorno_gtt':
+    case 'gtt': {
       if (c.status_gerado === 'dmg_afastado') return 'negativo';
-      // 6B reservado para borderline — heurística simples por ora
+      // 38C #23: roteia pelo cenario_clinico do próprio registro (6 / 6B /
+      // negativo). O tipo sozinho não distingue 6 de 6B — nunca hardcodar.
+      const cen = (c.cenario_clinico ?? '').trim();
+      if (cen === 'negativo') return 'negativo';
+      if (cen === '6B') return '6B';
+      if (cen === '6') return 6;
+      // Sem cenario_clinico gravado (registro legado): GTT positivo = DMG
+      // confirmado, sem afirmar borderline.
       return 6;
+    }
 
     case 'ficha_a':
     case 'ficha_c':
