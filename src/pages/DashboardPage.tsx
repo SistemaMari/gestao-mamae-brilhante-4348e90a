@@ -385,7 +385,7 @@ export default function DashboardPage() {
                           {overtIds.has(pac.id) ? (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className="inline-flex items-center gap-1 rounded-full bg-[#B91C1C] px-2.5 py-0.5 text-xs font-medium text-white">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#B91C1C] px-2.5 py-0.5 text-xs font-medium text-white whitespace-nowrap">
                                   OVERT DM
                                   <Info className="h-3 w-3 opacity-70" />
                                 </span>
@@ -395,13 +395,14 @@ export default function DashboardPage() {
                           ) : (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white ${statusCfg.color}`}>
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white whitespace-nowrap ${statusCfg.color}`}>
                                   {statusCfg.label}
                                   <Info className="h-3 w-3 opacity-70" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent className="max-w-xs">{statusCfg.meaning}</TooltipContent>
                             </Tooltip>
+
                           )}
                         </td>
                         <td className="px-4 py-3">
