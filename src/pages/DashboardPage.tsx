@@ -99,7 +99,7 @@ export default function DashboardPage() {
 
     setPacientes((data as Paciente[]) || []);
 
-    // 38B-C (#7): pacientes com cenario_clinico='8' (Overt via Retorno 1 ou GTT).
+    // 38B-C (#7): pacientes com cenario_clinico='8' (Overt via Retorno 1 ou GTT 75g).
     const { data: overt } = await supabase
       .from('consultas')
       .select('paciente_id')

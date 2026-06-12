@@ -188,7 +188,7 @@ function labelLocal(tipo: string) {
     abrir_ficha: "Abertura de ficha",
     preencher_ficha_ac: "Preenchimento ficha A/C",
     preencher_ficha_bd: "Preenchimento ficha B/D",
-    preencher_gtt: "Resultado de GTT",
+    preencher_gtt: "Resultado de GTT 75g",
     consulta_inicial: "Consulta inicial",
     retorno: "Retorno clínico",
     perfil_glicemico: "Perfil glicêmico",

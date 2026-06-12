@@ -8,19 +8,19 @@ export const STATUS_CONFIG: Record<string, { label: string; color: string; meani
     meaning: 'Caso Novo registrada. Aguardando resultado da glicemia de jejum.',
   },
   aguardando_gtt: {
-    label: 'Aguardando GTT',
+    label: 'Aguardando GTT 75g',
     color: 'bg-blue-500',
     meaning: 'GJ normal (< 92). Aguardando GTT 75g entre 24-28 semanas.',
   },
   dmg_afastado: {
     label: 'DMG afastado',
     color: 'bg-emerald-500',
-    meaning: 'GTT normal. Diagnóstico de DMG descartado. Pré-natal normal.',
+    meaning: 'GTT 75g normal. Diagnóstico de DMG descartado. Pré-natal normal.',
   },
   dmg_confirmado: {
     label: 'DMG confirmado',
     color: 'bg-orange-500',
-    meaning: 'Diagnóstico positivo (GJ ≥ 92, GTT alterado ou OVERT DM). Em acompanhamento ativo.',
+    meaning: 'Diagnóstico positivo (GJ ≥ 92, GTT 75g alterado ou OVERT DM). Em acompanhamento ativo.',
   },
   resultado_parto: {
     label: 'Resultado do parto',

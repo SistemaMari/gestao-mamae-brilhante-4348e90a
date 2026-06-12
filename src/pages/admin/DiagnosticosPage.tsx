@@ -532,8 +532,8 @@ export default function DiagnosticosPage() {
           <Pizza
             data={[
               { name: "Retorno 1", value: momento_diagnostico.retorno1 },
-              { name: "GTT 24-28 sem", value: momento_diagnostico.gtt_janela },
-              { name: "GTT tardio", value: momento_diagnostico.gtt_tardio },
+              { name: "GTT 75g 24-28 sem", value: momento_diagnostico.gtt_janela },
+              { name: "GTT 75g tardio", value: momento_diagnostico.gtt_tardio },
             ]}
             cores={[COR_LILAS, COR_LARANJA, COR_VERMELHO]}
             vazioMsg="Sem diagnósticos confirmados ainda."
@@ -546,11 +546,11 @@ export default function DiagnosticosPage() {
             valor={momento_diagnostico.ig_retorno1 != null ? `${momento_diagnostico.ig_retorno1} sem` : "—"}
           />
           <MetricaCard
-            label="IG média — GTT janela"
+            label="IG média — GTT 75g janela"
             valor={momento_diagnostico.ig_gtt_janela != null ? `${momento_diagnostico.ig_gtt_janela} sem` : "—"}
           />
           <MetricaCard
-            label="IG média — GTT tardio"
+            label="IG média — GTT 75g tardio"
             valor={momento_diagnostico.ig_gtt_tardio != null ? `${momento_diagnostico.ig_gtt_tardio} sem` : "—"}
           />
         </div>

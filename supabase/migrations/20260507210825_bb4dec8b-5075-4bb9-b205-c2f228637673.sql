@@ -190,7 +190,7 @@ BEGIN
         AND (eg.tipo_exame ILIKE '%gj%' OR eg.tipo_exame = 'plasmatica')
     );
 
-  -- Grupo B: IG >= 28 sem (DUM <= hoje - 196 dias) sem GTT registrado
+  -- Grupo B: IG >= 28 sem (DUM <= hoje - 196 dias) sem GTT 75g registrado
   WITH base AS (
     SELECT id, dum
     FROM public.pacientes

@@ -40,7 +40,7 @@ function calcularGttDiagnostico(
     const cenario = (igSemanas ?? 0) > 28 ? '6B' : '6';
     return {
       tipo: 'positivo',
-      label: 'GTT ALTERADO — Diagnóstico de DMG confirmado',
+      label: 'GTT 75g ALTERADO — Diagnóstico de DMG confirmado',
       texto: recursoLimitado
         ? `Diagnóstico realizado em cenário de recurso limitado (sem GTT 75g completo).`
         : `Qualquer valor alterado no GTT 75g já confirma o diagnóstico de Diabete Mellitus Gestacional.`,
@@ -54,7 +54,7 @@ function calcularGttDiagnostico(
 
   return {
     tipo: 'negativo',
-    label: 'GTT NORMAL — DMG afastado',
+    label: 'GTT 75g NORMAL — DMG afastado',
     texto: recursoLimitado
       ? 'Glicemia de jejum dentro dos parâmetros normais. O diagnóstico de DMG está afastado neste exame.'
       : 'Todos os valores do GTT 75g estão dentro dos parâmetros normais. O diagnóstico de Diabete Mellitus Gestacional está AFASTADO.',
@@ -76,7 +76,7 @@ export default function GttResultCard({ consulta }: GttResultCardProps) {
   if (jejum == null) {
     return (
       <p className="text-xs text-muted-foreground italic">
-        {consulta.observacoes || 'Sem dados de GTT.'}
+        {consulta.observacoes || 'Sem dados de GTT 75g.'}
       </p>
     );
   }
@@ -87,7 +87,7 @@ export default function GttResultCard({ consulta }: GttResultCardProps) {
   const igSem = consulta.ig_semanas;
 
   const resultado = calcularGttDiagnostico(jejum, h1, h2, recurso, igSem);
-  // 38B-B (#23): confia no cenario_clinico='6B' roteado pelo backend (GTT com
+  // 38B-B (#23): confia no cenario_clinico='6B' roteado pelo backend (GTT 75g com
   // IG > 28 sem). Antes dependia só do recálculo local por ig_semanas, que podia
   // divergir do valor persistido e ocultar a nota de diagnóstico tardio.
   const isTardio = consulta.cenario_clinico === '6B' || resultado.cenario === '6B';

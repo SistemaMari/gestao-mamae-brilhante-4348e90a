@@ -71,7 +71,7 @@ import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   aguardando_gj: { label: 'Aguardando GJ', color: 'bg-gray-500' },
-  aguardando_gtt: { label: 'Aguardando GTT', color: 'bg-blue-500' },
+  aguardando_gtt: { label: 'Aguardando GTT 75g', color: 'bg-blue-500' },
   dmg_afastado: { label: 'DMG afastado', color: 'bg-emerald-500' },
   dmg_confirmado: { label: 'DMG confirmado', color: 'bg-orange-500' },
   resultado_parto: { label: 'Resultado do parto', color: 'bg-purple-500' },
@@ -458,7 +458,7 @@ export default function FichaPacientePage() {
                   retorno1_data_exame: ex.data_exame ?? null,
                 }
               : {}),
-            // PROMPT 38A FIX (#24) — hidrata dados estruturados do GTT para que o
+            // PROMPT 38A FIX (#24) — hidrata dados estruturados do GTT 75g para que o
             // GttResultCard renderize a tabela em vez do fallback de string.
             ...(c.tipo === 'gtt' && ex
               ? {
@@ -497,7 +497,7 @@ export default function FichaPacientePage() {
 
   // 38B-A (#5): rede de segurança CENTRAL para o Histórico de consultas refletir
   // qualquer consulta recém-salva sem F5. A maioria dos forms já refaz o fetch no
-  // onSaved; o GTT negativo (sem popup) não chama onSaved. Em vez de remendar cada
+  // onSaved; o GTT 75g negativo (sem popup) não chama onSaved. Em vez de remendar cada
   // tipo, refazemos o fetch sempre que um form/edição fecha (transição
   // aberto->fechado). Seguro: sem form aberto não há state de edição a sobrescrever
   // (Realtime segue desligado nesta tela — Fonte 4 do Bug B).
@@ -626,9 +626,9 @@ export default function FichaPacientePage() {
   const igNaConsulta1Query = useIg(paciente?.id, primeiraConsulta?.data ?? null);
   const igNaConsulta1 = igNaConsulta1Query.data ?? null;
 
-  // 34C-B: IG "atual" da paciente (usada para janela GTT e flag igMaior24)
+  // 34C-B: IG "atual" da paciente (usada para janela GTT 75g e flag igMaior24)
   // é a IG NA DATA DE HOJE — esse é um dos poucos lugares onde "hoje" faz
-  // sentido (decisão clínica "ela está dentro da janela GTT AGORA?").
+  // sentido (decisão clínica "ela está dentro da janela GTT 75g AGORA?").
   // Tudo vem da fonte única (RPC calcular_ig) respeitando a âncora vigente.
   const hojeISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const igAtualQuery = useIg(paciente?.id, hojeISO);
@@ -639,7 +639,7 @@ export default function FichaPacientePage() {
     return parseDateLocal(paciente.dum);
   }, [paciente?.dum]);
 
-  // GTT window: 24-28 weeks from DUM
+  // GTT 75g window: 24-28 weeks from DUM
   const janelaGTT = useMemo(() => {
     if (!dumDate) return null;
     const inicio = addDays(dumDate, 24 * 7);
@@ -1092,8 +1092,8 @@ export default function FichaPacientePage() {
         />
       )}
 
-      {/* CORREÇÃO 3: Card fixo de destaque da janela do GTT — aparece entre cabeçalho e histórico */}
-      {/* 38B-B (#2): a tarja some assim que existe um GTT registrado (não depende só do status). */}
+      {/* CORREÇÃO 3: Card fixo de destaque da janela do GTT 75g — aparece entre cabeçalho e histórico */}
+      {/* 38B-B (#2): a tarja some assim que existe um GTT 75g registrado (não depende só do status). */}
       {paciente.status_ficha === 'aguardando_gtt' && !consultas.some((c) => c.tipo === 'gtt') && janelaGTT && igAtual && (() => {
         const igSem = igAtual.semanas;
         if (igSem > 28) {
@@ -1103,7 +1103,7 @@ export default function FichaPacientePage() {
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#EF4444]" />
               <div>
                 <p className="text-sm font-bold text-red-800">
-                  ATENÇÃO: Janela do GTT ultrapassada. Solicitar imediatamente.
+                  ATENÇÃO: Janela do GTT 75g ultrapassada. Solicitar imediatamente.
                 </p>
                 <p className="mt-1 text-xs text-red-700">
                   A janela ideal (24-28 sem) já foi ultrapassada. Realizar o quanto antes.
@@ -1286,7 +1286,7 @@ export default function FichaPacientePage() {
           />
         </div>
       )}
-      {/* GTT form */}
+      {/* GTT 75g form */}
       {showGtt && paciente && (
         <div className="print:hidden">
           <GttForm

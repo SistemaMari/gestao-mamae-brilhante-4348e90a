@@ -188,7 +188,7 @@ export default function DashboardMetricasPage() {
     c.cenario_clinico === 'cenario_1' || (c.cenario_clinico === 'cenario_8' && c.tipo === 'retorno_1')
   ).length;
 
-  // DMG no GTT: cenario_6 or cenario_6b
+  // DMG no GTT 75g: cenario_6 or cenario_6b
   const dmgByGTT = filteredConsultas.filter(c =>
     c.cenario_clinico === 'cenario_6' || c.cenario_clinico === 'cenario_6b'
   ).length;
@@ -215,8 +215,8 @@ export default function DashboardMetricasPage() {
 
   const diagPieData = [
     { name: 'Diagnóstico na GJ', value: dmgByGJ, color: BRAND.lilas },
-    { name: 'GTT (24-28 sem)', value: gttNormal, color: BRAND.verdaAgua },
-    { name: 'GTT tardio (>29 sem)', value: gttTardio, color: BRAND.lilasClaro },
+    { name: 'GTT 75g (24-28 sem)', value: gttNormal, color: BRAND.verdaAgua },
+    { name: 'GTT 75g tardio (>29 sem)', value: gttTardio, color: BRAND.lilasClaro },
   ].filter(d => d.value > 0);
 
   // --- TRATAMENTO ---
@@ -392,7 +392,7 @@ export default function DashboardMetricasPage() {
           />
           <StatusCard
             icon={<Clock className="h-4 w-4" style={{ color: '#3B82F6' }} />}
-            label="Aguardando GTT"
+            label="Aguardando GTT 75g"
             value={statusCounts.aguardando_gtt}
             detail={`${pct(statusCounts.aguardando_gtt)}% do total`}
             bg="#EFF6FF" border="#93C5FD"
@@ -445,14 +445,14 @@ export default function DashboardMetricasPage() {
           />
           <StatusCard
             icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
-            label="DMG confirmado no GTT"
+            label="DMG confirmado no GTT 75g"
             value={dmgByGTT}
             detail={`${allPacientesCount > 0 ? Math.round((dmgByGTT / allPacientesCount) * 100) : 0}% do total`}
             bg={BRAND.bgLavanda} border={BRAND.borderLilasPrimario}
           />
           <StatusCard
             icon={<CheckCircle className="h-4 w-4" style={{ color: BRAND.verdaAgua }} />}
-            label="DMG afastado no GTT"
+            label="DMG afastado no GTT 75g"
             value={dmgAfastado}
             detail={`${allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0}% do total`}
             bg={BRAND.bgVerdeSuave} border={BRAND.borderVerdeAgua}
@@ -593,16 +593,16 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 /*
  * Paciente 1 - Moara de Carvalho:       DMG confirmado (GJ ≥92, cenário 1) — Mar/26
  * Paciente 2 - Maria Luísa Ferreira:    Aguardando GJ (caso novo registrada) — Abr/26
- * Paciente 3 - Ana Carolina Souza:      Aguardando GTT (GJ <92 no retorno 1) — Mar/26
- * Paciente 4 - Juliana de Oliveira:     DMG afastado (GTT normal, IG 25sem) — Fev/26
- * Paciente 5 - Patrícia Almeida Santos: DMG confirmado (GTT alterado, IG 26sem, cenário 6) — Fev/26
- * Paciente 6 - Camila Rodrigues:        DMG confirmado (GTT alterado tardio, IG 30sem, cenário 6b) — Mar/26
+ * Paciente 3 - Ana Carolina Souza:      Aguardando GTT 75g (GJ <92 no retorno 1) — Mar/26
+ * Paciente 4 - Juliana de Oliveira:     DMG afastado (GTT 75g normal, IG 25sem) — Fev/26
+ * Paciente 5 - Patrícia Almeida Santos: DMG confirmado (GTT 75g alterado, IG 26sem, cenário 6) — Fev/26
+ * Paciente 6 - Camila Rodrigues:        DMG confirmado (GTT 75g alterado tardio, IG 30sem, cenário 6b) — Mar/26
  * Paciente 7 - Fernanda Costa Lima:     Resultado do parto (DMG na GJ, cenário 1, parto) — Fev/26
- * Paciente 8 - Beatriz Mendes:          Associar endocrino (GTT alterado, cenário 6 + cenário 7 insulina) — Mar/26
+ * Paciente 8 - Beatriz Mendes:          Associar endocrino (GTT 75g alterado, cenário 6 + cenário 7 insulina) — Mar/26
  *
- * Visão Geral: Ag.GJ=1, Ag.GTT=1, DMG confirmado=3 (Moara+Patrícia+Camila), DMG afastado=1, Parto=1, Endocrino=1
- * Diagnóstico: Total=8, DMG na GJ=2 (Moara+Fernanda), DMG no GTT=3 (Patrícia+Camila+Beatriz), DMG afastado GTT=1 (Juliana)
- * Pizza: GJ=2(40%), GTT 24-28=2(40%) (Patrícia+Beatriz), GTT tardio=1(20%) (Camila)
+ * Visão Geral: Ag.GJ=1, Ag.GTT 75g=1, DMG confirmado=3 (Moara+Patrícia+Camila), DMG afastado=1, Parto=1, Endocrino=1
+ * Diagnóstico: Total=8, DMG na GJ=2 (Moara+Fernanda), DMG no GTT 75g=3 (Patrícia+Camila+Beatriz), DMG afastado GTT 75g=1 (Juliana)
+ * Pizza: GJ=2(40%), GTT 75g 24-28=2(40%) (Patrícia+Beatriz), GTT 75g tardio=1(20%) (Camila)
  * Tratamento: Dieta=1 (Moara), Insulina=2 (Camila+Beatriz), Endocrino=1 (Beatriz)
  * Desfechos: 1 parto (Fernanda)
  * Evolução: Fev=3(2 DMG), Mar=4(3 DMG), Abr=1(0 DMG)
@@ -630,21 +630,21 @@ function generatePreviewConsultas(): Consulta[] {
     // Maria Luísa (p2): Apenas caso novo
     { id: 'c2a', paciente_id: 'p2', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-04-05T10:00:00Z' },
 
-    // Ana Carolina (p3): Caso Novo → Retorno 1 GJ <92 → aguardando GTT
+    // Ana Carolina (p3): Caso Novo → Retorno 1 GJ <92 → aguardando GTT 75g
     { id: 'c3a', paciente_id: 'p3', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-15T10:00:00Z' },
     { id: 'c3b', paciente_id: 'p3', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-03-22T10:00:00Z' },
 
-    // Juliana (p4): Caso Novo → Retorno 1 GJ <92 → GTT normal → cenário 5 (afastado)
+    // Juliana (p4): Caso Novo → Retorno 1 GJ <92 → GTT 75g normal → cenário 5 (afastado)
     { id: 'c4a', paciente_id: 'p4', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-02-12T10:00:00Z' },
     { id: 'c4b', paciente_id: 'p4', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-02-19T10:00:00Z' },
     { id: 'c4c', paciente_id: 'p4', cenario_clinico: 'cenario_5', tipo: 'retorno_2', created_at: '2026-03-05T10:00:00Z' },
 
-    // Patrícia (p5): GTT alterado IG 26sem → cenário 6
+    // Patrícia (p5): GTT 75g alterado IG 26sem → cenário 6
     { id: 'c5a', paciente_id: 'p5', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-02-20T10:00:00Z' },
     { id: 'c5b', paciente_id: 'p5', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-02-27T10:00:00Z' },
     { id: 'c5c', paciente_id: 'p5', cenario_clinico: 'cenario_6', tipo: 'retorno_2', created_at: '2026-03-15T10:00:00Z' },
 
-    // Camila (p6): GTT alterado tardio IG 30sem → cenário 6b
+    // Camila (p6): GTT 75g alterado tardio IG 30sem → cenário 6b
     { id: 'c6a', paciente_id: 'p6', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-22T10:00:00Z' },
     { id: 'c6b', paciente_id: 'p6', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-03-29T10:00:00Z' },
     { id: 'c6c', paciente_id: 'p6', cenario_clinico: 'cenario_6b', tipo: 'retorno_2', created_at: '2026-04-08T10:00:00Z' },
@@ -655,7 +655,7 @@ function generatePreviewConsultas(): Consulta[] {
     { id: 'c7a', paciente_id: 'p7', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-02-05T10:00:00Z' },
     { id: 'c7b', paciente_id: 'p7', cenario_clinico: 'cenario_1', tipo: 'retorno_1', created_at: '2026-02-12T10:00:00Z' },
 
-    // Beatriz (p8): GTT alterado → cenário 6 → insulina → cenário 7 (endocrino)
+    // Beatriz (p8): GTT 75g alterado → cenário 6 → insulina → cenário 7 (endocrino)
     { id: 'c8a', paciente_id: 'p8', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-28T10:00:00Z' },
     { id: 'c8b', paciente_id: 'p8', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-04-04T10:00:00Z' },
     { id: 'c8c', paciente_id: 'p8', cenario_clinico: 'cenario_6', tipo: 'retorno_2', created_at: '2026-04-08T10:00:00Z' },
@@ -665,11 +665,11 @@ function generatePreviewConsultas(): Consulta[] {
 
 function generatePreviewExames(): ExameGlicemia[] {
   return [
-    // Patrícia (p5): GTT at 26 weeks (normal range 24-28)
+    // Patrícia (p5): GTT 75g at 26 weeks (normal range 24-28)
     { id: 'ex5', paciente_id: 'p5', ig_semanas_na_data: 26, consulta_id: 'c5c' },
-    // Camila (p6): GTT at 30 weeks (tardio >28)
+    // Camila (p6): GTT 75g at 30 weeks (tardio >28)
     { id: 'ex6', paciente_id: 'p6', ig_semanas_na_data: 30, consulta_id: 'c6c' },
-    // Beatriz (p8): GTT at 26 weeks (normal range 24-28)
+    // Beatriz (p8): GTT 75g at 26 weeks (normal range 24-28)
     { id: 'ex8', paciente_id: 'p8', ig_semanas_na_data: 26, consulta_id: 'c8c' },
   ];
 }

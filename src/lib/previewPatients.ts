@@ -456,7 +456,7 @@ const SEED_PATIENTS: PreviewPaciente[] = [
   },
   {
     id: 'demo-gtt-6',
-    nome: 'Vitrine GTT Cenário 6',
+    nome: 'Vitrine GTT 75g Cenário 6',
     data_nascimento: '1993-04-18',
     numero_identificacao: '60000006',
     tipo_identificacao: 'prontuario',
@@ -495,7 +495,7 @@ const SEED_PATIENTS: PreviewPaciente[] = [
   },
   {
     id: 'demo-gtt-6b',
-    nome: 'Vitrine GTT Cenário 6B (tardio)',
+    nome: 'Vitrine GTT 75g Cenário 6B (tardio)',
     data_nascimento: '1991-09-30',
     numero_identificacao: '60000068',
     tipo_identificacao: 'prontuario',

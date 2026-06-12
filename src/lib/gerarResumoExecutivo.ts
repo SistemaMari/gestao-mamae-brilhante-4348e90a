@@ -41,7 +41,7 @@ export function gerarResumoExecutivo(input: ResumoExecutivoInput): string[] {
     if (gargalos.sem_gj_primeira_consulta.count > 0)
       partes.push(`${gargalos.sem_gj_primeira_consulta.count} sem glicemia de jejum`);
     if (gargalos.atrasadas_gtt.count > 0)
-      partes.push(`${gargalos.atrasadas_gtt.count} com GTT em atraso`);
+      partes.push(`${gargalos.atrasadas_gtt.count} com GTT 75g em atraso`);
     if (gargalos.confirmadas_sem_retorno.count > 0)
       partes.push(`${gargalos.confirmadas_sem_retorno.count} com DMG confirmado sem retorno`);
     frases.push(

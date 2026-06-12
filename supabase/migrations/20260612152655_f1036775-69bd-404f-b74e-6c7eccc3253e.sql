@@ -2,7 +2,7 @@
 -- ─────────────────────────────────────────────────────────────
 -- PROMPT 38A — Integridade de dados
 --   (A) Agregado de controle glicêmico em perfis_glicemicos
---   (B) Estruturação dos valores do GTT em exames_glicemia
+--   (B) Estruturação dos valores do GTT 75g em exames_glicemia
 -- ─────────────────────────────────────────────────────────────
 
 -- (A) Agregado de controle no perfil
@@ -15,7 +15,7 @@ COMMENT ON COLUMN public.perfis_glicemicos.total_preenchidos IS
 COMMENT ON COLUMN public.perfis_glicemicos.na_meta IS
   'PROMPT 38A. Quantidade de valores dentro da meta (regra única reusada do frontend — vereditoControle/posPrandial). Grade vazia => 0.';
 
--- (B) Valores estruturados do GTT
+-- (B) Valores estruturados do GTT 75g
 ALTER TABLE public.exames_glicemia
   ADD COLUMN IF NOT EXISTS gtt_jejum integer,
   ADD COLUMN IF NOT EXISTS gtt_1h integer,
@@ -31,13 +31,13 @@ COMMENT ON COLUMN public.exames_glicemia.gtt_2h IS
 COMMENT ON COLUMN public.exames_glicemia.gtt_recurso_limitado IS
   'PROMPT 38A. true => único valor disponível foi o jejum (cenário 6B / recurso limitado).';
 
--- valor_mgdl precisa aceitar NULL: linhas de GTT carregam os 3 valores
+-- valor_mgdl precisa aceitar NULL: linhas de GTT 75g carregam os 3 valores
 -- nas colunas dedicadas (mantém-se em valor_mgdl o jejum, por compatibilidade
 -- com queries existentes que filtram por tipo_exame).
 ALTER TABLE public.exames_glicemia
   ALTER COLUMN valor_mgdl DROP NOT NULL;
 
--- Garantia de coerência: GTT precisa de pelo menos jejum
+-- Garantia de coerência: GTT 75g precisa de pelo menos jejum
 ALTER TABLE public.exames_glicemia
   DROP CONSTRAINT IF EXISTS exames_glicemia_gtt_jejum_obrigatorio;
 ALTER TABLE public.exames_glicemia
@@ -48,7 +48,7 @@ ALTER TABLE public.exames_glicemia
   );
 
 -- ─────────────────────────────────────────────────────────────
--- Backfill não destrutivo do GTT
+-- Backfill não destrutivo do GTT 75g
 --   Estratégia: para cada consulta tipo='gtt' que NÃO tem linha
 --   correspondente em exames_glicemia, parse do texto em
 --   consultas.observacoes ("GTT 75g: jejum N, 1h N, 2h N. …"
@@ -113,6 +113,6 @@ BEGIN
     v_migradas := v_migradas + 1;
   END LOOP;
 
-  RAISE NOTICE 'PROMPT 38A backfill GTT — consultas migradas: %, não parseadas (revisar manualmente): %',
+  RAISE NOTICE 'PROMPT 38A backfill GTT 75g — consultas migradas: %, não parseadas (revisar manualmente): %',
     v_migradas, v_nao_parseadas;
 END $$;

@@ -80,7 +80,7 @@ function calcularGttDiagnostico(
     const cenario = (igSemanas ?? 0) > 28 ? '6B' : '6';
     return {
       tipo: 'positivo',
-      label: 'GTT ALTERADO — Diagnóstico de DMG confirmado',
+      label: 'GTT 75g ALTERADO — Diagnóstico de DMG confirmado',
       texto: recursoLimitado
         ? `Diagnóstico realizado em cenário de recurso limitado (sem GTT 75g completo). Este método alcança aproximadamente 66% dos diagnósticos — cerca de 34% dos casos podem não ser detectados.`
         : `Qualquer valor alterado no GTT 75g já confirma o diagnóstico de Diabete Mellitus Gestacional.`,
@@ -95,9 +95,9 @@ function calcularGttDiagnostico(
 
   return {
     tipo: 'negativo',
-    label: 'GTT NORMAL — DMG afastado',
+    label: 'GTT 75g NORMAL — DMG afastado',
     texto: recursoLimitado
-      ? 'Glicemia de jejum dentro dos parâmetros normais. O diagnóstico de DMG está afastado neste exame. Nota: sem o GTT completo, cerca de 34% dos casos podem não ser detectados.'
+      ? 'Glicemia de jejum dentro dos parâmetros normais. O diagnóstico de DMG está afastado neste exame. Nota: sem o GTT 75g completo, cerca de 34% dos casos podem não ser detectados.'
       : 'Todos os valores do GTT 75g estão dentro dos parâmetros normais. O diagnóstico de Diabete Mellitus Gestacional está AFASTADO. Seguir pré-natal normal.',
     cor: 'text-emerald-800',
     bgColor: 'bg-[#DCFCE7]',
@@ -142,7 +142,7 @@ export default function GttForm({
   const [resultado, setResultado] = useState<GttDiagResult | null>(null);
   const [showPopup, setShowPopup] = useState(false);
 
-  // 34C-B2: IG na data do GTT vem da fonte única (RPC calcular_ig na
+  // 34C-B2: IG na data do GTT 75g vem da fonte única (RPC calcular_ig na
   // data do exame). Respeita a âncora vigente — sem DUM-diff local.
   const igCalculadaQuery = useIg(paciente.id, dataExame || null);
   const igCalculada = igCalculadaQuery.data ?? null;
@@ -335,9 +335,9 @@ export default function GttForm({
       return;
     }
 
-    // PROMPT 38A — persistir GTT em estrutura consultável (exames_glicemia, tipo_exame='gtt')
+    // PROMPT 38A — persistir GTT 75g em estrutura consultável (exames_glicemia, tipo_exame='gtt')
     // Antes ficava apenas no texto livre de consultas.observacoes.
-    // Recupera o consulta_id (insert acima não retornou; busca pelo draft ou pelo único GTT desta consulta)
+    // Recupera o consulta_id (insert acima não retornou; busca pelo draft ou pelo único GTT 75g desta consulta)
     let gttConsultaId: string | null = draftConsultaIdRef.current ?? novaConsultaId;
     if (!gttConsultaId) {
       const { data: cRow } = await supabase
@@ -353,7 +353,7 @@ export default function GttForm({
     }
 
     if (gttConsultaId) {
-      // 1 GTT por consulta — apaga linha anterior (idempotente em edição)
+      // 1 GTT 75g por consulta — apaga linha anterior (idempotente em edição)
       await supabase
         .from('exames_glicemia')
         .delete()
@@ -379,7 +379,7 @@ export default function GttForm({
         .from('exames_glicemia')
         .insert(examePayload as any);
       if (examErr) {
-        console.error('Erro ao persistir GTT estruturado:', examErr);
+        console.error('Erro ao persistir GTT 75g estruturado:', examErr);
         // não bloqueia o save da consulta — observacoes já preservou o histórico
       }
     }
@@ -544,7 +544,7 @@ export default function GttForm({
                 <span className={`flex items-center justify-center gap-2 ${resultado.tipo === 'positivo' ? 'text-orange-600' : 'text-red-600'}`}>
                   <XCircle className="h-5 w-5" />
                   {resultado.tipo === 'positivo'
-                    ? 'POSITIVO — Diabete Mellitus Gestacional confirmado pelo GTT.'
+                    ? 'POSITIVO — Diabete Mellitus Gestacional confirmado pelo GTT 75g.'
                     : 'POSITIVO — OVERT DM (diabete prévio) confirmado.'}
                 </span>
               </AlertDialogTitle>
@@ -603,7 +603,7 @@ export default function GttForm({
               {recursoLimitado && (
                 <div className="rounded-lg border border-amber-200 bg-[#FEF3C7] p-3 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
                   <p className="text-xs text-amber-800">
-                    <strong>Atenção:</strong> sem o GTT completo, o diagnóstico é baseado apenas na glicemia de jejum, que alcança aproximadamente 66% dos diagnósticos. Cerca de 34% dos casos de DMG podem não ser detectados com este método isolado.
+                    <strong>Atenção:</strong> sem o GTT 75g completo, o diagnóstico é baseado apenas na glicemia de jejum, que alcança aproximadamente 66% dos diagnósticos. Cerca de 34% dos casos de DMG podem não ser detectados com este método isolado.
                   </p>
                 </div>
               )}
@@ -611,16 +611,16 @@ export default function GttForm({
           </div>
         </div>
 
-        {/* IG na data do GTT */}
+        {/* IG na data do GTT 75g */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-foreground">IG na data do GTT</Label>
+            <Label className="text-sm font-medium text-foreground">IG na data do GTT 75g</Label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Idade gestacional em semanas + dias na data do exame. {descreverReferenciaIg(igCalculada)} O GTT deve ser realizado o mais próximo possível de 24 semanas, impreterivelmente antes de 28 semanas. Caso não seja realizado nesse período, deve ser feito o mais breve possível — nunca abandonado.
+                Idade gestacional em semanas + dias na data do exame. {descreverReferenciaIg(igCalculada)} O GTT 75g deve ser realizado o mais próximo possível de 24 semanas, impreterivelmente antes de 28 semanas. Caso não seja realizado nesse período, deve ser feito o mais breve possível — nunca abandonado.
               </TooltipContent>
             </Tooltip>
           </div>
@@ -651,13 +651,13 @@ export default function GttForm({
         {/* Glicemia de jejum */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-foreground">Glicemia de jejum no GTT (mg/dL) *</Label>
+            <Label className="text-sm font-medium text-foreground">Glicemia de jejum no GTT 75g (mg/dL) *</Label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Primeira coleta do GTT — antes de ingerir a solução de glicose. Meta normal: &lt; 92 mg/dL.
+                Primeira coleta do GTT 75g — antes de ingerir a solução de glicose. Meta normal: &lt; 92 mg/dL.
               </TooltipContent>
             </Tooltip>
           </div>
@@ -736,7 +736,7 @@ export default function GttForm({
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Data em que o GTT foi realizado.
+                Data em que o GTT 75g foi realizado.
               </TooltipContent>
             </Tooltip>
           </div>
@@ -848,7 +848,7 @@ export default function GttForm({
           className="flex-1 bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
         >
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Salvar GTT
+          Salvar GTT 75g
         </Button>
       </div>
     </form>

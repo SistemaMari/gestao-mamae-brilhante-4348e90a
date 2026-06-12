@@ -24,7 +24,7 @@ export interface LaudoCompletoProps {
   gradeGlicemica?: GradeGlicemicaProps | null;
   proximaFichaTexto?: string | null;
   notasTecnicas?: string[];
-  /** Janela do GTT — só renderizada quando cenario === 'negativo' */
+  /** Janela do GTT 75g — só renderizada quando cenario === 'negativo' */
   janelaGTT?: { inicio: Date; fim: Date } | null;
   igMaior24?: boolean;
   onTentarNovamente?: () => void;

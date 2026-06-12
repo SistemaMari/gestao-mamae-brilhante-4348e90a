@@ -114,7 +114,7 @@ function buildApendiceElement(detalhes: DetalhesGargalos): HTMLDivElement {
 
   const grupos: Array<{ titulo: string; cor: string; lista: PacienteGargaloDetalhe[] }> = [
     { titulo: 'Sem GJ na primeira consulta', cor: '#CA8A04', lista: detalhes.sem_gj_primeira_consulta },
-    { titulo: 'GTT em atraso', cor: '#EA580C', lista: detalhes.atrasadas_gtt },
+    { titulo: 'GTT 75g em atraso', cor: '#EA580C', lista: detalhes.atrasadas_gtt },
     { titulo: 'DMG confirmado sem retorno', cor: '#DC2626', lista: detalhes.confirmadas_sem_retorno },
   ];
 

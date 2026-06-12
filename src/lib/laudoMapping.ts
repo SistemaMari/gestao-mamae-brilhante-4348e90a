@@ -1,12 +1,12 @@
 /**
  * Mapeamento de cenários do laudo (Prompt 15 / 16)
- * 1  – Caso Novo → DMG afastado / aguardando GTT
+ * 1  – Caso Novo → DMG afastado / aguardando GTT 75g
  * 2  – Ficha A/C controle adequado (≥70%, 4 pontos)
  * 3  – Ficha A/C controle inadequado (<70%, 4 pontos)
  * 4  – Ficha B/D controle adequado (≥70%, 6 pontos)
  * 5  – Registro do parto (encerramento)
- * 6  – DMG confirmado (Retorno 1 ou GTT positivo)
- * 6B – DMG confirmado por GTT borderline
+ * 6  – DMG confirmado (Retorno 1 ou GTT 75g positivo)
+ * 6B – DMG confirmado por GTT 75g borderline
  * 7  – Ficha B/D controle inadequado (<70%, 6 pontos) → endócrino
  * 8  – Encaminhada endócrino (Retorno 1)
  * negativo – Resultado afastou DMG
@@ -39,7 +39,7 @@ export function mapearCenario(c: ConsultaParaMapear): Cenario {
       if (cen === 'negativo') return 'negativo';
       if (cen === '6B') return '6B';
       if (cen === '6') return 6;
-      // Sem cenario_clinico gravado (registro legado): GTT positivo = DMG
+      // Sem cenario_clinico gravado (registro legado): GTT 75g positivo = DMG
       // confirmado, sem afirmar borderline.
       return 6;
     }
