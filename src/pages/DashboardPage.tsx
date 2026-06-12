@@ -335,7 +335,7 @@ export default function DashboardPage() {
                     <th className="w-[88px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">IG hoje</th>
                     <th className="w-[120px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Última consulta</th>
                     <th className="w-[160px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Status</th>
-                    <th className="w-[170px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Retorno</th>
+                    <th className="w-[220px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Retorno</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
