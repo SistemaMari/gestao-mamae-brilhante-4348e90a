@@ -61,7 +61,7 @@ function calcularGttDiagnostico(
   if (jejum >= 126 || (h2 != null && h2 >= 200)) {
     return {
       tipo: 'overt',
-      label: 'OVERT DIABETES — Diabete pré-existente diagnosticado na gestação',
+      label: 'OVERT DM — Diabete pré-existente diagnosticado na gestação',
       texto: `Diagnóstico de Diabete pré-existente diagnosticado durante a gestação.`,
       cor: 'text-red-800',
       bgColor: 'bg-[#FEE2E2]',
@@ -494,7 +494,7 @@ export default function GttForm({
                   <XCircle className="h-5 w-5" />
                   {resultado.tipo === 'positivo'
                     ? 'POSITIVO — Diabete Mellitus Gestacional confirmado pelo GTT.'
-                    : 'POSITIVO — Overt Diabetes (diabete prévio) confirmado.'}
+                    : 'POSITIVO — OVERT DM (diabete prévio) confirmado.'}
                 </span>
               </AlertDialogTitle>
               <AlertDialogDescription className="text-center text-base font-medium text-foreground">
@@ -749,7 +749,7 @@ export default function GttForm({
                   <th className="text-left px-3 py-2 font-medium text-foreground">Dosagem</th>
                   <th className="text-center px-3 py-2 font-medium text-foreground">Normal</th>
                   <th className="text-center px-3 py-2 font-medium text-foreground">DMG</th>
-                  <th className="text-center px-3 py-2 font-medium text-foreground">Overt</th>
+                  <th className="text-center px-3 py-2 font-medium text-foreground">OVERT DM</th>
                 </tr>
               </thead>
               <tbody>

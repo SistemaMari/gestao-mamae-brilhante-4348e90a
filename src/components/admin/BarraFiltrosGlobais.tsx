@@ -286,7 +286,7 @@ export function BarraFiltrosGlobais() {
               <SelectItem value="retorno_1">Retorno 1</SelectItem>
               <SelectItem value="gtt">GTT (24-28 sem)</SelectItem>
               <SelectItem value="gtt_tardio">GTT tardio</SelectItem>
-              <SelectItem value="overt">Diabete Overt</SelectItem>
+              <SelectItem value="overt">OVERT DM</SelectItem>
             </SelectContent>
           </Select>
         </div>

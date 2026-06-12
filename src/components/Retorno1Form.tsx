@@ -103,7 +103,7 @@ function calcularDiagnostico(valor: number): DiagnosticoResult {
   }
   return {
     tipo: 'overt',
-    label: 'Resultado: OVERT DIABETES — Diabete pré-existente',
+    label: 'Resultado: OVERT DM — Diabete pré-existente',
     texto: `Glicemia de jejum: ${valor} mg/dL. Diagnóstico de Diabete pré-existente diagnosticado durante a gestação.`,
     cor: 'text-red-800',
     bgColor: 'bg-[#FEE2E2]',
@@ -832,7 +832,7 @@ export default function Retorno1Form({
                     <XCircle className="h-5 w-5" />
                     {resultado.tipo === 'positivo'
                       ? 'POSITIVO — Diabete Mellitus Gestacional confirmado.'
-                      : 'POSITIVO — Overt Diabetes (diabete prévio) confirmado.'}
+                      : 'POSITIVO — OVERT DM (diabete prévio) confirmado.'}
                   </span>
                 )}
               </AlertDialogTitle>

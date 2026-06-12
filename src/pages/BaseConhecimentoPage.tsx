@@ -30,7 +30,7 @@ const ARQUIVOS_ESPERADOS: ExpectedFile[] = [
   { name: 'M6.pdf',  rotulo: 'Módulo 6 — Tratamento (Aula 2)',         obrigatorio: true, cenarios: ['1','2','3','4','6','6B','8'], descricao: 'Aula 2: dieta detalhada, atividade física, perfil glicêmico. CRÍTICO para profundidade.' },
   { name: 'M7.pdf',  rotulo: 'Módulo 7 — Insulinoterapia',             obrigatorio: true, cenarios: ['3','4','7'],               descricao: 'Critérios de insulinização, NPH, metformina como exceção.' },
   { name: 'M9.pdf',  rotulo: 'Módulo 9 — Acompanhamento pré-natal',    obrigatorio: true, cenarios: ['1','2','3','4','6','6B','8'], descricao: 'Frequência de retornos, AAS+cálcio, apoio multiprofissional.' },
-  { name: 'M10.pdf', rotulo: 'Módulo 10 — Vigilância fetal',           obrigatorio: true, cenarios: ['1','2','3','4','6','6B','8'], descricao: 'A1: ≥34 sem; A2: ≥32 sem; Overt: ≥28 sem.' },
+  { name: 'M10.pdf', rotulo: 'Módulo 10 — Vigilância fetal',           obrigatorio: true, cenarios: ['1','2','3','4','6','6B','8'], descricao: 'A1: ≥34 sem; A2: ≥32 sem; OVERT DM: ≥28 sem.' },
   { name: 'M12.pdf', rotulo: 'Módulo 12 — Pós-parto',                  obrigatorio: true, cenarios: ['5'],                       descricao: 'Suspensão de insulina, TOTG 6-12 sem, aleitamento.' },
   { name: 'M13.pdf', rotulo: 'Módulo 13 — Follow-up de longo prazo',   obrigatorio: true, cenarios: ['1','2','3','4','5','6','6B','7','8'], descricao: 'Janela de oportunidade, rastreamento DM2, MANTRA FINAL.' },
 ];

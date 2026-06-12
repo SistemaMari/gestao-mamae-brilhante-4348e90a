@@ -20,7 +20,7 @@ export const STATUS_CONFIG: Record<string, { label: string; color: string; meani
   dmg_confirmado: {
     label: 'DMG confirmado',
     color: 'bg-orange-500',
-    meaning: 'Diagnóstico positivo (GJ ≥ 92, GTT alterado ou Overt). Em acompanhamento ativo.',
+    meaning: 'Diagnóstico positivo (GJ ≥ 92, GTT alterado ou OVERT DM). Em acompanhamento ativo.',
   },
   resultado_parto: {
     label: 'Resultado do parto',

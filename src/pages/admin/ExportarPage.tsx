@@ -30,7 +30,7 @@ const TIMEOUT_MSG =
 const CONTEUDOS = [
   { id: "completo", label: "Relatório completo", desc: "Usuários + diagnósticos + desfechos" },
   { id: "usuarios", label: "Usuários e unidades", desc: "Profissionais, planos, geografia" },
-  { id: "diagnosticos", label: "Diagnósticos clínicos", desc: "DMG, Overt, tratamento, desfechos" },
+  { id: "diagnosticos", label: "Diagnósticos clínicos", desc: "DMG, OVERT DM, tratamento, desfechos" },
   { id: "profissionais_por_estado", label: "Profissionais por estado", desc: "Tabela específica" },
   { id: "dmg_por_estado", label: "DMG por estado", desc: "Tabela específica" },
   { id: "dmg_por_cidade", label: "DMG por cidade", desc: "Tabela específica" },
