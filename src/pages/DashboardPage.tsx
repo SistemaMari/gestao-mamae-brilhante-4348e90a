@@ -380,11 +380,11 @@ export default function DashboardPage() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span className="inline-flex items-center gap-1 rounded-full bg-[#B91C1C] px-2.5 py-0.5 text-xs font-medium text-white">
-                                  Overt Diabete
+                                  OVERT DM
                                   <Info className="h-3 w-3 opacity-70" />
                                 </span>
                               </TooltipTrigger>
-                              <TooltipContent className="max-w-xs">Diabete pré-existente diagnosticado na gestação (Overt). Conduta distinta do DMG gestacional.</TooltipContent>
+                              <TooltipContent className="max-w-xs">Diabete pré-existente diagnosticado na gestação (OVERT DM). Conduta distinta do DMG gestacional.</TooltipContent>
                             </Tooltip>
                           ) : (
                             <Tooltip>
@@ -456,7 +456,7 @@ export default function DashboardPage() {
                       </div>
                       {overtIds.has(pac.id) ? (
                         <span className="inline-flex shrink-0 items-center rounded-full bg-[#B91C1C] px-2 py-0.5 text-xs font-medium text-white">
-                          Overt Diabete
+                          OVERT DM
                         </span>
                       ) : (
                         <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium text-white ${statusCfg.color}`}>

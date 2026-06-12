@@ -196,13 +196,13 @@ function gerarXlsx(
         : "",
     ],
     [
-      "Diabete Overt",
+      "OVERT DM",
       m?.resumo?.overt ?? 0,
       m?.resumo?.total_gestantes
         ? `${(((m.resumo.overt ?? 0) / m.resumo.total_gestantes) * 100).toFixed(1)}%`
         : "",
     ],
-    ["DMG + Overt", m?.resumo?.dmg_overt_total ?? 0, ""],
+    ["DMG + OVERT DM", m?.resumo?.dmg_overt_total ?? 0, ""],
     ["Taxa de controle global", "", `${m?.resumo?.taxa_controle_global ?? 0}%`],
     ["", "", ""],
     ["Total profissionais", d.resumoGlobal?.total_profissionais ?? 0, ""],
@@ -291,7 +291,7 @@ function gerarXlsx(
         momento.gtt_tardio ?? 0,
         momento.ig_gtt_tardio ?? "—",
       ],
-      ["Diabete Overt", m?.resumo?.overt ?? 0, "—"],
+      ["OVERT DM", m?.resumo?.overt ?? 0, "—"],
       ["", "", ""],
       ["DMG por estado", "", ""],
       ["Estado", "Gestantes", "DMG / Taxa"],
@@ -422,8 +422,8 @@ async function gerarPdf(
   const resumo = m?.resumo ?? {};
   drawText(`Total de gestantes: ${resumo.total_gestantes ?? 0}`);
   drawText(`DMG confirmado: ${resumo.dmg ?? 0}`);
-  drawText(`Diabete Overt: ${resumo.overt ?? 0}`);
-  drawText(`DMG + Overt: ${resumo.dmg_overt_total ?? 0}`);
+  drawText(`OVERT DM: ${resumo.overt ?? 0}`);
+  drawText(`DMG + OVERT DM: ${resumo.dmg_overt_total ?? 0}`);
   drawText(`Taxa de controle global: ${resumo.taxa_controle_global ?? 0}%`);
   drawText(`Total profissionais: ${d.resumoGlobal?.total_profissionais ?? 0}`);
   drawText(`Ativos (30d): ${d.resumoGlobal?.profissionais_ativos_30d ?? 0}`);

@@ -305,7 +305,7 @@ async function gerarPdfRelatorio(params: {
     ['Gestantes no período', metricas.total_gestantes],
     ['DMG confirmado', metricas.total_dmg_confirmado],
     ['Taxa de DMG (%)', metricas.taxa_dmg_percent],
-    ['Overt diabetes', metricas.total_overt],
+    ['OVERT DM', metricas.total_overt],
     ['Profissionais', metricas.profissionais_ativos],
   ];
   y = desenharGridKpis(page, helv, helvBold, kpis, y, cBgCard, cTexto, cMuted);

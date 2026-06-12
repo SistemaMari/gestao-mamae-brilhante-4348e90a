@@ -468,7 +468,7 @@ export default function DiagnosticosPage() {
           Diagnósticos
         </h2>
         <p className="text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
-          Métricas epidemiológicas agregadas — DMG, Overt Diabete, tratamento e desfechos.
+          Métricas epidemiológicas agregadas — DMG, OVERT DM, tratamento e desfechos.
         </p>
       </div>
 
@@ -484,18 +484,18 @@ export default function DiagnosticosPage() {
           cor={COR_LARANJA}
         />
         <MetricaCard
-          label="Overt Diabete"
+          label="OVERT DM"
           valor={resumo.overt}
           sublabel={pctSobreTotal(resumo.overt) + " do total"}
           cor={COR_VERMELHO}
         />
         <MetricaCard
-          label="DMG + Overt combinados"
+          label="DMG + OVERT DM combinados"
           valor={resumo.dmg_overt_total}
           sublabel={pctSobreTotal(resumo.dmg_overt_total) + " do total"}
           cor={COR_ROXO}
           destaque
-          tooltip="Soma automática de pacientes com DMG ou Overt Diabete."
+          tooltip="Soma automática de pacientes com DMG ou OVERT DM."
         />
         <MetricaCard
           label="Taxa de controle adequado"

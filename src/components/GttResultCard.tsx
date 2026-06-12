@@ -22,7 +22,7 @@ function calcularGttDiagnostico(
   if (jejum >= 126 || (h2 != null && h2 >= 200)) {
     return {
       tipo: 'overt',
-      label: 'OVERT DIABETES — Diabete pré-existente diagnosticado na gestação',
+      label: 'OVERT DM — Diabete pré-existente diagnosticado na gestação',
       texto: `Diagnóstico de Diabete pré-existente diagnosticado durante a gestação.`,
       cor: 'text-red-800',
       bgColor: 'bg-[#FEE2E2]',

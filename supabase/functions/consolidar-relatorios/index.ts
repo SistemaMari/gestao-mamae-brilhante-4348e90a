@@ -248,7 +248,7 @@ async function gerarPdfConsolidado(params: {
     ['Total gestantes', params.somatorio.total_gestantes],
     ['DMG confirmado', params.somatorio.total_dmg_confirmado],
     ['Taxa DMG (%)', params.somatorio.taxa_dmg_percent],
-    ['Overt diabetes', params.somatorio.total_overt],
+    ['OVERT DM', params.somatorio.total_overt],
     ['DMG via Retorno 1', params.somatorio.dmg_retorno1],
     ['DMG via GTT', params.somatorio.dmg_gtt],
     ['Adequado s/ insulina', params.somatorio.controle_adequado_sem_insulina],
