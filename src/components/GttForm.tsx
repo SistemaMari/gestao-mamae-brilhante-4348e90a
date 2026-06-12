@@ -316,13 +316,16 @@ export default function GttForm({
     };
 
     let consErr: unknown = null;
+    let novaConsultaId: string | null = null;
     if (draftConsultaIdRef.current) {
       const { error } = await supabase
         .from('consultas').update(consultaPayload as any).eq('id', draftConsultaIdRef.current);
       consErr = error;
     } else {
-      const { error } = await supabase.from('consultas').insert(consultaPayload as any);
+      const { data: novaCons, error } = await supabase
+        .from('consultas').insert(consultaPayload as any).select('id').single();
       consErr = error;
+      novaConsultaId = novaCons?.id ?? null;
     }
 
     if (consErr) {
