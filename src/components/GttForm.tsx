@@ -338,7 +338,7 @@ export default function GttForm({
     // PROMPT 38A — persistir GTT em estrutura consultável (exames_glicemia, tipo_exame='gtt')
     // Antes ficava apenas no texto livre de consultas.observacoes.
     // Recupera o consulta_id (insert acima não retornou; busca pelo draft ou pelo único GTT desta consulta)
-    let gttConsultaId = draftConsultaIdRef.current;
+    let gttConsultaId: string | null = draftConsultaIdRef.current ?? novaConsultaId;
     if (!gttConsultaId) {
       const { data: cRow } = await supabase
         .from('consultas')
