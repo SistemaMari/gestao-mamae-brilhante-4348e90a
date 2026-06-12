@@ -627,37 +627,49 @@ export type Database = {
           consulta_id: string
           created_at: string
           data_exame: string
+          gtt_1h: number | null
+          gtt_2h: number | null
+          gtt_jejum: number | null
+          gtt_recurso_limitado: boolean
           id: string
           ig_dias_na_data: number | null
           ig_semanas_na_data: number | null
           paciente_id: string
           profissional_id: string
           tipo_exame: string
-          valor_mgdl: number
+          valor_mgdl: number | null
         }
         Insert: {
           consulta_id: string
           created_at?: string
           data_exame?: string
+          gtt_1h?: number | null
+          gtt_2h?: number | null
+          gtt_jejum?: number | null
+          gtt_recurso_limitado?: boolean
           id?: string
           ig_dias_na_data?: number | null
           ig_semanas_na_data?: number | null
           paciente_id: string
           profissional_id: string
           tipo_exame?: string
-          valor_mgdl: number
+          valor_mgdl?: number | null
         }
         Update: {
           consulta_id?: string
           created_at?: string
           data_exame?: string
+          gtt_1h?: number | null
+          gtt_2h?: number | null
+          gtt_jejum?: number | null
+          gtt_recurso_limitado?: boolean
           id?: string
           ig_dias_na_data?: number | null
           ig_semanas_na_data?: number | null
           paciente_id?: string
           profissional_id?: string
           tipo_exame?: string
-          valor_mgdl?: number
+          valor_mgdl?: number | null
         }
         Relationships: [
           {
@@ -1386,6 +1398,7 @@ export type Database = {
           dose_insulina_manha: number | null
           dose_insulina_noite: number | null
           id: string
+          na_meta: number | null
           paciente_id: string
           percentual_meta: number
           peso_paciente_kg: number | null
@@ -1393,6 +1406,7 @@ export type Database = {
           proxima_ficha_recomendada: string | null
           tipo_perfil: string
           tipo_pos_prandial: string
+          total_preenchidos: number | null
         }
         Insert: {
           conduta_e?: string | null
@@ -1405,6 +1419,7 @@ export type Database = {
           dose_insulina_manha?: number | null
           dose_insulina_noite?: number | null
           id?: string
+          na_meta?: number | null
           paciente_id: string
           percentual_meta?: number
           peso_paciente_kg?: number | null
@@ -1412,6 +1427,7 @@ export type Database = {
           proxima_ficha_recomendada?: string | null
           tipo_perfil?: string
           tipo_pos_prandial?: string
+          total_preenchidos?: number | null
         }
         Update: {
           conduta_e?: string | null
@@ -1424,6 +1440,7 @@ export type Database = {
           dose_insulina_manha?: number | null
           dose_insulina_noite?: number | null
           id?: string
+          na_meta?: number | null
           paciente_id?: string
           percentual_meta?: number
           peso_paciente_kg?: number | null
@@ -1431,6 +1448,7 @@ export type Database = {
           proxima_ficha_recomendada?: string | null
           tipo_perfil?: string
           tipo_pos_prandial?: string
+          total_preenchidos?: number | null
         }
         Relationships: [
           {

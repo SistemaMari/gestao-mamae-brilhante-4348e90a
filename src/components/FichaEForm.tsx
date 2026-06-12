@@ -374,8 +374,11 @@ export default function FichaEForm({
         peso_paciente_kg: null,
         data_inicio: dataInicio,
         data_fim: dataFim,
-        percentual_meta: percentual ?? 0,
-        decisao,
+        percentual_meta: totalPreenchidos > 0 ? (percentual ?? 0) : null,
+        // PROMPT 38A — agregado de controle (fonte única; card/cabeçalho/laudo leem daqui)
+        total_preenchidos: totalPreenchidos,
+        na_meta: dentroMeta,
+        decisao: totalPreenchidos > 0 ? decisao : null,
         dose_insulina_calculada: null,
         conduta_e,
         proxima_ficha_recomendada: proxima,

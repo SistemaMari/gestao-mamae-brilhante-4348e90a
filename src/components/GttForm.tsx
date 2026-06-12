@@ -316,13 +316,16 @@ export default function GttForm({
     };
 
     let consErr: unknown = null;
+    let novaConsultaId: string | null = null;
     if (draftConsultaIdRef.current) {
       const { error } = await supabase
         .from('consultas').update(consultaPayload as any).eq('id', draftConsultaIdRef.current);
       consErr = error;
     } else {
-      const { error } = await supabase.from('consultas').insert(consultaPayload as any);
+      const { data: novaCons, error } = await supabase
+        .from('consultas').insert(consultaPayload as any).select('id').single();
       consErr = error;
+      novaConsultaId = novaCons?.id ?? null;
     }
 
     if (consErr) {
@@ -332,7 +335,55 @@ export default function GttForm({
       return;
     }
 
-    // Note: exames_gtt table insert would go here in production
+    // PROMPT 38A — persistir GTT em estrutura consultável (exames_glicemia, tipo_exame='gtt')
+    // Antes ficava apenas no texto livre de consultas.observacoes.
+    // Recupera o consulta_id (insert acima não retornou; busca pelo draft ou pelo único GTT desta consulta)
+    let gttConsultaId: string | null = draftConsultaIdRef.current ?? novaConsultaId;
+    if (!gttConsultaId) {
+      const { data: cRow } = await supabase
+        .from('consultas')
+        .select('id')
+        .eq('paciente_id', paciente.id)
+        .eq('tipo', 'gtt')
+        .eq('data', dataConsulta)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      gttConsultaId = cRow?.id ?? null;
+    }
+
+    if (gttConsultaId) {
+      // 1 GTT por consulta — apaga linha anterior (idempotente em edição)
+      await supabase
+        .from('exames_glicemia')
+        .delete()
+        .eq('consulta_id', gttConsultaId)
+        .eq('tipo_exame', 'gtt');
+
+      const examePayload = {
+        consulta_id: gttConsultaId,
+        paciente_id: paciente.id,
+        profissional_id: profissionalData.id,
+        tipo_exame: 'gtt',
+        data_exame: dataConsulta,
+        ig_semanas_na_data: igFinal?.semanas ?? null,
+        ig_dias_na_data: igFinal?.dias ?? null,
+        // valor_mgdl mantido por compat (queries existentes filtram tipo_exame='gtt' e leem valor_mgdl)
+        valor_mgdl: jejumNum,
+        gtt_jejum: jejumNum,
+        gtt_1h: recursoLimitado ? null : h1Num,
+        gtt_2h: recursoLimitado ? null : h2Num,
+        gtt_recurso_limitado: recursoLimitado,
+      };
+      const { error: examErr } = await supabase
+        .from('exames_glicemia')
+        .insert(examePayload as any);
+      if (examErr) {
+        console.error('Erro ao persistir GTT estruturado:', examErr);
+        // não bloqueia o save da consulta — observacoes já preservou o histórico
+      }
+    }
+
     await supabase.from('pacientes').update({
       status_ficha: diag.statusFicha,
       data_ultima_consulta: dataConsulta,
