@@ -425,6 +425,10 @@ export default function FichaPacientePage() {
             cenario_clinico: c.cenario_clinico ?? null,
             // Ficha A/C profile hydration
             percentual_meta: perfil?.percentual_meta != null ? Number(perfil.percentual_meta) : null,
+            // PROMPT 38A FIX (#8) — hidrata agregado do perfil glicêmico para que
+            // os ResultCards exibam "X de Y" em vez de "0 de 0".
+            total_preenchidos: perfil?.total_preenchidos != null ? Number(perfil.total_preenchidos) : null,
+            dentro_meta: perfil?.na_meta != null ? Number(perfil.na_meta) : null,
             peso_kg: perfil?.peso_paciente_kg != null ? Number(perfil.peso_paciente_kg) : null,
             dose_total: doseTotal != null ? Number(doseTotal) : null,
             dose_manha: doseManha != null ? Number(doseManha) : null,
@@ -452,6 +456,17 @@ export default function FichaPacientePage() {
                   retorno1_valor_gj: ex.valor_mgdl ?? null,
                   retorno1_tipo_exame: ex.tipo_exame ?? null,
                   retorno1_data_exame: ex.data_exame ?? null,
+                }
+              : {}),
+            // PROMPT 38A FIX (#24) — hidrata dados estruturados do GTT para que o
+            // GttResultCard renderize a tabela em vez do fallback de string.
+            ...(c.tipo === 'gtt' && ex
+              ? {
+                  gtt_jejum: ex.gtt_jejum ?? null,
+                  gtt_1h: ex.gtt_1h ?? null,
+                  gtt_2h: ex.gtt_2h ?? null,
+                  gtt_recurso_limitado: ex.gtt_recurso_limitado ?? false,
+                  gtt_data_exame: ex.data_exame ?? null,
                 }
               : {}),
           };
