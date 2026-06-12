@@ -196,13 +196,13 @@ function gerarXlsx(
         : "",
     ],
     [
-      "Diabete Overt",
+      "OVERT DM",
       m?.resumo?.overt ?? 0,
       m?.resumo?.total_gestantes
         ? `${(((m.resumo.overt ?? 0) / m.resumo.total_gestantes) * 100).toFixed(1)}%`
         : "",
     ],
-    ["DMG + Overt", m?.resumo?.dmg_overt_total ?? 0, ""],
+    ["DMG + OVERT DM", m?.resumo?.dmg_overt_total ?? 0, ""],
     ["Taxa de controle global", "", `${m?.resumo?.taxa_controle_global ?? 0}%`],
     ["", "", ""],
     ["Total profissionais", d.resumoGlobal?.total_profissionais ?? 0, ""],
