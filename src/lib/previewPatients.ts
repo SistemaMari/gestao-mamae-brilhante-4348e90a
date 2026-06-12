@@ -55,6 +55,8 @@ export interface PreviewConsulta {
   checklist_pfe_us?: 'sim' | 'nao' | 'sem_info' | null;
   checklist_ca?: 'sim' | 'nao' | 'sem_info' | null;
   checklist_la?: 'sim' | 'nao' | 'sem_info' | null;
+  pactuacao_adesao?: 'aceita' | 'recusa' | null;
+  memoria_glicosimetro?: 'confirma' | 'nao_confirma' | null;
 }
 
 export interface PreviewPaciente {
