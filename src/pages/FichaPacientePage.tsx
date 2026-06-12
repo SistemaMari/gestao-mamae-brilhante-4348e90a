@@ -1337,7 +1337,6 @@ export default function FichaPacientePage() {
           <Accordion
             type="single"
             collapsible
-            defaultValue={consultasHistorico[0]?.id}
             className="space-y-2"
           >
             {consultasHistorico.map((c) => {
