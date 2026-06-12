@@ -57,7 +57,7 @@ function getReturnBadge(paciente: Paciente): {
 
   return {
     type: 'em_dia',
-    label: 'Em dia',
+    label: `Em dia — até ${dataLimite}`,
     tooltip: `Próximo retorno até ${dataLimite}.`,
   };
 }
