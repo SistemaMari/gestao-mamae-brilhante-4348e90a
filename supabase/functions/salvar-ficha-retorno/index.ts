@@ -414,7 +414,7 @@ Deno.serve(async (req) => {
         // Procura um perfil já existente para esta consulta (1:1 por consulta)
         const { data } = await admin
           .from("perfis_glicemicos")
-          .select("id, paciente_id, profissional_id, tipo_perfil, tipo_pos_prandial, peso_paciente_kg, data_inicio, data_fim, percentual_meta, decisao, dose_insulina_calculada")
+          .select("id, paciente_id, profissional_id, tipo_perfil, tipo_pos_prandial, peso_paciente_kg, data_inicio, data_fim, percentual_meta, decisao, dose_insulina_calculada, total_preenchidos, na_meta")
           .eq("consulta_id", consultaId)
           .maybeSingle();
         if (data) {
