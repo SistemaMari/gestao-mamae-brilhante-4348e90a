@@ -314,18 +314,22 @@ export default function FichaPacientePage() {
         .order('created_at', { ascending: true });
 
       const consultaIds = (cons ?? []).map((c: any) => c.id);
+      // PROMPT 38A FIX (#24) — inclui gtt_jejum/1h/2h/recurso_limitado no SELECT;
+      // sem isso o GttResultCard caía no fallback de string (observacoes).
       const { data: exames } = consultaIds.length
         ? await supabase
             .from('exames_glicemia')
-            .select('consulta_id, valor_mgdl, tipo_exame, data_exame')
+            .select('consulta_id, valor_mgdl, tipo_exame, data_exame, gtt_jejum, gtt_1h, gtt_2h, gtt_recurso_limitado')
             .in('consulta_id', consultaIds)
         : { data: [] as any[] };
 
       // 36B REV3 — Carrega perfis_glicemicos + valores + decisões da Ficha A para hidratar o histórico
+      // PROMPT 38A FIX (#8) — inclui total_preenchidos e na_meta no SELECT; sem
+      // isso o card lia c.total_preenchidos ?? 0 e exibia sempre "0 de 0".
       const { data: perfis } = consultaIds.length
         ? await supabase
             .from('perfis_glicemicos' as any)
-            .select('id, consulta_id, tipo_perfil, peso_paciente_kg, percentual_meta, decisao, dose_insulina_calculada, dose_insulina_manha, dose_insulina_noite, data_inicio, data_fim, proxima_ficha_recomendada')
+            .select('id, consulta_id, tipo_perfil, peso_paciente_kg, percentual_meta, decisao, dose_insulina_calculada, dose_insulina_manha, dose_insulina_noite, data_inicio, data_fim, proxima_ficha_recomendada, total_preenchidos, na_meta')
             .in('consulta_id', consultaIds)
         : { data: [] as any[] };
 
