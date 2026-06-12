@@ -58,7 +58,7 @@ export interface MetricasUnidade {
   total_overt: number;                // overt diabetes (cenário clínico)
   // Diagnóstico por momento
   dmg_retorno1: number;               // DMG diagnosticado a partir de Retorno 1
-  dmg_gtt: number;                    // DMG diagnosticado por GTT
+  dmg_gtt: number;                    // DMG diagnosticado por GTT 75g
   // Controle glicêmico
   controle_adequado_sem_insulina: number;
   controle_com_insulina: number;
@@ -315,7 +315,7 @@ async function gerarPdfRelatorio(params: {
   y = desenharSecao(page, helvBold, 'Diagnóstico de DMG', y, cRoxo);
   const dxKpis: Array<[string, string | number]> = [
     ['DMG via Retorno 1', metricas.dmg_retorno1],
-    ['DMG via GTT', metricas.dmg_gtt],
+    ['DMG via GTT 75g', metricas.dmg_gtt],
     ['Total laudos', metricas.total_laudos],
   ];
   y = desenharGridKpis(page, helv, helvBold, dxKpis, y, cBgCard, cTexto, cMuted);

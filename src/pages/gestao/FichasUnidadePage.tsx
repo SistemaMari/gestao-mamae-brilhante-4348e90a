@@ -120,7 +120,7 @@ export default function FichasUnidadePage() {
 
   const FILTRO_META: Record<FiltroKey, { titulo: string; cor: 'amarelo' | 'laranja' | 'vermelho'; Icon: typeof AlertTriangle }> = {
     sem_gj_primeira: { titulo: 'Sem GJ na primeira consulta', cor: 'amarelo', Icon: AlertTriangle },
-    atrasadas_gtt: { titulo: 'GTT em atraso', cor: 'laranja', Icon: AlertCircle },
+    atrasadas_gtt: { titulo: 'GTT 75g em atraso', cor: 'laranja', Icon: AlertCircle },
     sem_retorno: { titulo: 'DMG confirmado sem retorno', cor: 'vermelho', Icon: AlertOctagon },
   };
   const CHIP_STYLES: Record<'amarelo' | 'laranja' | 'vermelho', string> = {

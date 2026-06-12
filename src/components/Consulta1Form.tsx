@@ -26,7 +26,7 @@ import {
 } from '@/lib/whatsapp';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
 // 34B-4 — Caso Novo SEM rascunho: StatusFichaBadge e CamposPendentesBanner removidos.
-// Permanecem nas fichas de retorno (Retorno1/AC/BD/GTT).
+// Permanecem nas fichas de retorno (Retorno1/AC/BD/GTT 75g).
 import DateInput from '@/components/ficha/DateInput';
 import UsgFlowSection, { emptyUsgFlow, type UsgFlowValue } from '@/components/UsgFlowSection';
 import { Checkbox } from '@/components/ui/checkbox';

@@ -174,12 +174,12 @@ Mantenha o JSON válido — escape aspas internas (\\") e quebras de linha (\\n\
 - Argumentação: janela de oportunidade.
 - NÃO incluir próxima consulta. NÃO incluir frase motivacional final.
 
-## CENÁRIO 6 — GTT positivo (24-28 sem)
+## CENÁRIO 6 — GTT 75g positivo (24-28 sem)
 - USAR estrutura de 4 subtítulos.
-- Fundamentar citando o ponto do GTT alterado (jejum ≥92; 1h ≥180; 2h ≥153).
-- Mesmas exigências do Cenário 1, adaptando seção 1 ao critério IADPSG do GTT.
+- Fundamentar citando o ponto do GTT 75g alterado (jejum ≥92; 1h ≥180; 2h ≥153).
+- Mesmas exigências do Cenário 1, adaptando seção 1 ao critério IADPSG do GTT 75g.
 
-## CENÁRIO 6B — GTT positivo (após 28 sem) — DIAGNÓSTICO TARDIO
+## CENÁRIO 6B — GTT 75g positivo (após 28 sem) — DIAGNÓSTICO TARDIO
 - USAR estrutura de 4 subtítulos.
 - Tudo do Cenário 6 +
 - NOTA OBRIGATÓRIA de diagnóstico tardio (científica na seção 1, acessível na seção 3): (a) urgência do tratamento imediato, (b) riscos do período sem diagnóstico (macrossomia, pré-eclâmpsia, complicações neonatais), (c) acompanhamento intensificado. M2/M3.

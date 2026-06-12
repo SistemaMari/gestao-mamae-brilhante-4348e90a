@@ -285,9 +285,9 @@ function gerarXlsx(
     const diagRows: any[][] = [
       ["Momento", "Pacientes", "IG média (semanas)"],
       ["Retorno 1", momento.retorno1 ?? 0, momento.ig_retorno1 ?? "—"],
-      ["GTT (24-28 sem)", momento.gtt_janela ?? 0, momento.ig_gtt_janela ?? "—"],
+      ["GTT 75g (24-28 sem)", momento.gtt_janela ?? 0, momento.ig_gtt_janela ?? "—"],
       [
-        "GTT tardio (após 28 sem)",
+        "GTT 75g tardio (após 28 sem)",
         momento.gtt_tardio ?? 0,
         momento.ig_gtt_tardio ?? "—",
       ],
@@ -434,10 +434,10 @@ async function gerarPdf(
   const momento = m?.momento_diagnostico ?? {};
   drawText(`Retorno 1: ${momento.retorno1 ?? 0} (IG média ${momento.ig_retorno1 ?? "—"})`);
   drawText(
-    `GTT janela: ${momento.gtt_janela ?? 0} (IG média ${momento.ig_gtt_janela ?? "—"})`,
+    `GTT 75g janela: ${momento.gtt_janela ?? 0} (IG média ${momento.ig_gtt_janela ?? "—"})`,
   );
   drawText(
-    `GTT tardio: ${momento.gtt_tardio ?? 0} (IG média ${momento.ig_gtt_tardio ?? "—"})`,
+    `GTT 75g tardio: ${momento.gtt_tardio ?? 0} (IG média ${momento.ig_gtt_tardio ?? "—"})`,
   );
 
   // Funil

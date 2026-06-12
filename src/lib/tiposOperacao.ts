@@ -15,7 +15,7 @@ export const TIPOS_OPERACAO_LABELS: Record<TipoOperacao, string> = {
   abrir_ficha: "Abertura de ficha",
   preencher_ficha_ac: "Registro de perfil glicêmico de 4 pontos",
   preencher_ficha_bd: "Registro de perfil glicêmico de 6 pontos",
-  preencher_gtt: "Resultado de GTT",
+  preencher_gtt: "Resultado de GTT 75g",
   consulta_inicial: "Consulta inicial",
   retorno: "Retorno clínico",
   perfil_glicemico: "Perfil glicêmico",

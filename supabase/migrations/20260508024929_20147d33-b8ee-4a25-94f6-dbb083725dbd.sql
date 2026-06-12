@@ -41,7 +41,7 @@ BEGIN
   INTO v_a
   FROM (SELECT * FROM enriched ORDER BY ig_atual_dias DESC LIMIT p_limit) e;
 
-  -- Grupo B: IG >= 28sem (DUM <= hoje-196d) sem GTT
+  -- Grupo B: IG >= 28sem (DUM <= hoje-196d) sem GTT 75g
   WITH base AS (
     SELECT p.id, p.nome, p.dum, p.profissional_id
     FROM public.pacientes p

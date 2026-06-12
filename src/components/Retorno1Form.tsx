@@ -232,7 +232,7 @@ export default function Retorno1Form({
     [paciente.id, editingResult, editingConsulta],
   );
 
-  // DUM-based GTT window calc for negative result
+  // DUM-based GTT 75g window calc for negative result
   const janelaGTT = useMemo(() => {
     if (!paciente.dum) return null;
     const dumDate = parseDateLocal(paciente.dum);
@@ -242,7 +242,7 @@ export default function Retorno1Form({
     return { inicio, fim };
   }, [paciente.dum]);
 
-  // 34C-B2: "IG hoje" via fonte única (usada para igMaior24 — janela GTT
+  // 34C-B2: "IG hoje" via fonte única (usada para igMaior24 — janela GTT 75g
   // só faz sentido se a paciente já passou de 24 semanas HOJE). Cai para
   // null se paciente sem âncora; igMaior24 = false nesse caso.
   const hojeISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -855,7 +855,7 @@ export default function Retorno1Form({
                         </p>
                       )}
                       <p>
-                        Se a janela for perdida, agende o mais próximo possível da 28ª semana — nunca deixe a paciente sem GTT.
+                        Se a janela for perdida, agende o mais próximo possível da 28ª semana — nunca deixe a paciente sem GTT 75g.
                       </p>
                       <p className="font-medium">
                         Não repita a glicemia de jejum, independentemente do resultado.

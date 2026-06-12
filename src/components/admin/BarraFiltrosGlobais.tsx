@@ -284,8 +284,8 @@ export function BarraFiltrosGlobais() {
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               <SelectItem value="retorno_1">Retorno 1</SelectItem>
-              <SelectItem value="gtt">GTT (24-28 sem)</SelectItem>
-              <SelectItem value="gtt_tardio">GTT tardio</SelectItem>
+              <SelectItem value="gtt">GTT 75g (24-28 sem)</SelectItem>
+              <SelectItem value="gtt_tardio">GTT 75g tardio</SelectItem>
               <SelectItem value="overt">OVERT DM</SelectItem>
             </SelectContent>
           </Select>

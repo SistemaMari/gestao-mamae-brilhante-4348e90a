@@ -250,7 +250,7 @@ async function gerarPdfConsolidado(params: {
     ['Taxa DMG (%)', params.somatorio.taxa_dmg_percent],
     ['OVERT DM', params.somatorio.total_overt],
     ['DMG via Retorno 1', params.somatorio.dmg_retorno1],
-    ['DMG via GTT', params.somatorio.dmg_gtt],
+    ['DMG via GTT 75g', params.somatorio.dmg_gtt],
     ['Adequado s/ insulina', params.somatorio.controle_adequado_sem_insulina],
     ['Em insulina', params.somatorio.controle_com_insulina],
     ['Adequado c/ insulina', params.somatorio.controle_adequado_com_insulina],

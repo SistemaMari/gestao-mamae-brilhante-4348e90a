@@ -230,7 +230,7 @@ export default function UsgFlowSection({
         <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           <span>
-            Sem referência de IG definida. O cálculo da janela GTT ficará indisponível até o registro da 1ª USG.
+            Sem referência de IG definida. O cálculo da janela GTT 75g ficará indisponível até o registro da 1ª USG.
           </span>
         </div>
       )}

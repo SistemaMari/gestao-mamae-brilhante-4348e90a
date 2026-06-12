@@ -717,7 +717,7 @@ BEGIN
     ),
     'atrasadas_gtt', jsonb_build_object(
       'count', coalesce(v_b, 0),
-      'label', 'GTT em atraso',
+      'label', 'GTT 75g em atraso',
       'severidade', 'laranja'
     ),
     'confirmadas_sem_retorno', jsonb_build_object(

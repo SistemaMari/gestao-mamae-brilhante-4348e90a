@@ -67,7 +67,7 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
     {
       key: 'gtt',
       filtroParam: 'atrasadas_gtt',
-      titulo: 'GTT em atraso',
+      titulo: 'GTT 75g em atraso',
       descricao: 'IG ≥ 28 semanas sem TTOG registrado.',
       severidade: 'laranja',
       data: data.atrasadas_gtt,
