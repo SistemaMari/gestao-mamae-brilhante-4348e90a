@@ -37,6 +37,7 @@ import GttResultCard from '@/components/GttResultCard';
 import FichaACForm from '@/components/FichaACForm';
 import FichaACResultCard from '@/components/FichaACResultCard';
 import FichaACReadOnlyGrid from '@/components/FichaACReadOnlyGrid';
+import ChecklistRetorno2ReadOnly from '@/components/ficha/ChecklistRetorno2ReadOnly';
 import FichaBDForm from '@/components/FichaBDForm';
 import FichaBDResultCard from '@/components/FichaBDResultCard';
 import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
@@ -1496,6 +1497,18 @@ export default function FichaPacientePage() {
                             {c.grid_valores && c.grid_valores.length > 0 && (
                               <FichaACReadOnlyGrid gridValores={c.grid_valores} tipoPosPrandial={c.tipo_pos_prandial ?? '1h'} />
                             )}
+                            {/* Checklist do Retorno 2 visível na ficha salva (read-only) — o dado
+                                já vem hidratado em c.checklist_* pelo fetchPaciente. */}
+                            <ChecklistRetorno2ReadOnly
+                              value={{
+                                dieta: c.checklist_dieta ?? null,
+                                exercicio: c.checklist_exercicio ?? null,
+                                ganho_peso: c.checklist_ganho_peso ?? null,
+                                pfe_us: c.checklist_pfe_us ?? null,
+                                ca: c.checklist_ca ?? null,
+                                la: c.checklist_la ?? null,
+                              }}
+                            />
                             {semDecisao ? (
                               <PlaceholderBlocoLaudo
                                 titulo="Conduta clínica aguardando decisão"
