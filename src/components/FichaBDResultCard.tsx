@@ -1,4 +1,5 @@
 import { FileText } from 'lucide-react';
+import { formatPctDentroPtBr, vereditoControle } from '@/lib/vereditoControle';
 
 interface FichaBDResultCardProps {
   percentual: number;
@@ -14,18 +15,21 @@ interface FichaBDResultCardProps {
 export default function FichaBDResultCard({
   percentual, adequado, totalPreenchidos, dentroMeta, hypoCount,
 }: FichaBDResultCardProps) {
+  const pctFmt = formatPctDentroPtBr(percentual);
+  const veredito = vereditoControle(percentual);
+
   if (adequado) {
     return (
       <div className="rounded-xl border-2 p-5 space-y-4" style={{ backgroundColor: '#DCFCE7', borderColor: '#86EFAC' }}>
         <h2 className="text-sm font-bold flex items-center gap-2" style={{ color: '#166534' }}>
           <FileText className="h-4 w-4" />
-          CONTROLE ADEQUADO COM INSULINA — {percentual.toFixed(1)}% das glicemias dentro da meta
+          CONTROLE ADEQUADO COM INSULINA — {pctFmt} das glicemias dentro da meta
         </h2>
 
         <div className="rounded-lg bg-white/70 p-3">
           <p className="text-sm font-semibold" style={{ color: '#166534' }}>Resultado</p>
           <p className="mt-1 text-xs" style={{ color: '#15803D' }}>
-            {dentroMeta} de {totalPreenchidos} valores dentro da meta ({percentual.toFixed(1)}%).
+            {dentroMeta} de {totalPreenchidos} valores dentro da meta ({pctFmt}).
           </p>
           <p className="mt-2 text-xs italic" style={{ color: '#15803D' }}>
             Manter dose atual. Detalhes no laudo completo abaixo.
@@ -43,22 +47,23 @@ export default function FichaBDResultCard({
     );
   }
 
-  // Inadequado — encerramento (acompanhamento conduzido pelo GO + endocrino associado)
+  // Inadequado — encerramento Cenário 7 (acompanhamento conduzido pelo GO + endocrino associado)
   return (
     <div className="rounded-xl border-2 p-5 space-y-4" style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' }}>
       <h2 className="text-base font-bold" style={{ color: '#991B1B' }}>
-        ENCERRAMENTO DA DRA. MARI — Controle inadequado com insulina
+        ENCERRAMENTO DA DRA. MARI — {veredito.titulo}
       </h2>
 
       <div className="rounded-lg bg-white/70 p-3">
         <p className="text-sm font-semibold" style={{ color: '#991B1B' }}>Resultado</p>
         <p className="mt-1 text-xs" style={{ color: '#B91C1C' }}>
-          {dentroMeta} de {totalPreenchidos} valores dentro da meta ({percentual.toFixed(1)}%).
+          {dentroMeta} de {totalPreenchidos} valores dentro da meta ({pctFmt}).
         </p>
         <p className="mt-2 text-xs italic" style={{ color: '#B91C1C' }}>
-          Encaminhar para GO de alto risco + endocrinologista. Detalhes no laudo completo abaixo.
+          AVALIAR sua segurança para continuar com o caso OU ASSOCIAR com endocrinologista OU CONSIDERAR referenciamento especializado (no caso de sistema público). Detalhes no laudo completo abaixo.
         </p>
       </div>
     </div>
   );
 }
+

@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
+import { vereditoControle } from '@/lib/vereditoControle';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
