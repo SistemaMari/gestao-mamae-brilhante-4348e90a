@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
+import { vereditoControle } from '@/lib/vereditoControle';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
@@ -757,7 +758,7 @@ export default function FichaBDForm({
               {savedResult?.adequado ? (
                 <>
                   <p className="text-base font-semibold">
-                    {savedResult?.percentual?.toFixed(1)}% das glicemias dentro da meta
+                    {vereditoControle(savedResult?.percentual ?? 0).titulo}
                   </p>
                   <p className="text-sm">
                     Manter dose atual. Detalhes no laudo completo abaixo.
@@ -765,9 +766,9 @@ export default function FichaBDForm({
                 </>
               ) : (
                 <>
-                  {/* 38B-B (#12): encerramento C7 — % FORA da meta por subtração (100 − dentro). */}
+                  {/* Regra única: exibir SEMPRE "% dentro da meta" (helper vereditoControle). */}
                   <p className="text-base font-semibold">
-                    {(100 - (savedResult?.percentual ?? 0)).toFixed(1)}% DAS GLICEMIAS FORA DA META
+                    {vereditoControle(savedResult?.percentual ?? 0).titulo}
                   </p>
                   <p className="text-sm">
                     AVALIAR sua segurança para continuar com o caso OU ASSOCIAR com endocrinologista OU CONSIDERAR referenciamento especializado (no caso de sistema público).

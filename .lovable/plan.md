@@ -1,20 +1,39 @@
-# Histórico de consultas — abrir todas retraídas
+## Encerramento Cenário 7 — % dentro unificado + texto único de conduta
 
-## Comportamento atual
-Ao entrar na ficha da paciente, dentro do card "Histórico de consultas", a consulta mais recente vem automaticamente expandida (accordion abre o primeiro item por padrão).
+### Mudanças
 
-## Comportamento desejado
-Ao entrar na ficha, todas as consultas do histórico aparecem retraídas (igual ao print). O usuário expande manualmente a que quiser. Só uma por vez continua podendo ficar aberta (comportamento single/collapsible mantido).
+**1. `src/components/FichaBDForm.tsx` (pop-up de encerramento, linhas 766-776)**
+Substituir a exibição "% FORA" (cálculo `100 - percentual`) pelo "% dentro da meta", consumindo `savedResult.percentual` direto, formatado em pt-BR (vírgula). Texto:
+- `"Controle inadequado — apenas {X,X}% dentro da meta"` (substitui "{Y,Y}% DAS GLICEMIAS FORA DA META")
+- Mantém o texto das 3 condutas (AVALIAR / ASSOCIAR / CONSIDERAR) já presente.
+- Também ajustar o ramo "adequado" para usar a mesma formatação pt-BR ("{X,X}% dentro da meta") por consistência da regra única.
 
-## Mudança
-Arquivo: `src/pages/FichaPacientePage.tsx` (linha 1340).
+**2. `src/components/FichaBDResultCard.tsx` (card de encerramento inadequado, linhas 53-61)**
+Substituir o parágrafo de conduta:
+- De: `"Encaminhar para GO de alto risco + endocrinologista. Detalhes no laudo completo abaixo."`
+- Para: `"AVALIAR sua segurança para continuar com o caso OU ASSOCIAR com endocrinologista OU CONSIDERAR referenciamento especializado (no caso de sistema público). Detalhes no laudo completo abaixo."`
+- Padronizar o número "{percentual.toFixed(1)}%" para formato pt-BR (vírgula decimal) — vale também para o ramo adequado, para card e pop-up baterem byte a byte.
 
-Remover a prop `defaultValue={consultasHistorico[0]?.id}` do `<Accordion>` dentro do bloco "Histórico de consultas". Sem valor inicial, o accordion (`type="single" collapsible`) começa com tudo fechado.
+**3. Helper compartilhado de veredito**
+Adicionar `src/lib/vereditoControle.ts` exportando:
+```ts
+formatPctDentroPtBr(pct: number): string  // "51,1%"
+vereditoControle(pct: number): { adequado: boolean; titulo: string }
+// adequado (>=70): "Controle adequado — {X,X}% dentro da meta"
+// inadequado (<70): "Controle inadequado — apenas {X,X}% dentro da meta"
+```
+Consumir esse helper no card (`FichaBDResultCard`) e no pop-up (`FichaBDForm`) para garantir que nunca divirjam.
 
-## Fora de escopo
-- Card "Histórico de consultas" em si (o `Collapsible` externo continua abrindo por padrão quando não há ficha em edição — sem mudança).
-- Outros cards da ficha (Dados de identificação, USG, etc.).
-- Comportamento ao salvar/criar nova consulta — sem alteração.
+### Fora de escopo (não tocar)
+- Contagem "N de M valores" (débito do 38A).
+- Placeholder "Texto pendente" do laudo.
+- Cards/pop-ups dos cenários 2, 3, 4.
+- Títulos dos cards/pop-ups ("CONTROLE ADEQUADO COM INSULINA" / "ENCERRAMENTO DA MARI").
+- Lógica de cálculo do percentual em si.
 
-## Verificação
-Abrir uma paciente com 2+ consultas: o card "Histórico de consultas" aparece aberto, mas os itens RETORNO 2 / RETORNO 1 / CASO NOVO ficam todos colapsados, com o chevron apontando para baixo — idêntico ao print.
+### Critérios de aceite
+- Pop-up Cenário 7 mostra "% dentro da meta" (sem mais "fora").
+- Card e pop-up mostram exatamente o mesmo percentual para a mesma paciente.
+- Inadequado: "apenas {X,X}% dentro da meta"; adequado: "{X,X}% dentro da meta".
+- Card de encerramento C7 traz o texto AVALIAR / ASSOCIAR / CONSIDERAR.
+- Contagem "N de M" inalterada.
