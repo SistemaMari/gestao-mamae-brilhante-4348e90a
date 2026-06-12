@@ -13,6 +13,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
+import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
@@ -88,7 +89,8 @@ function isHypoglycemia(_point: Point6, value: number): boolean {
 }
 
 const DAYS = Array.from({ length: 10 }, (_, i) => i + 1);
-const RETORNO_DIAS = 7; // "7-10 dias" — usa 7 para o próximo retorno
+// 38B-C (#17): Ficha E tem intervalo próprio de 7 dias (via regra central).
+const RETORNO_DIAS = calcularIntervaloRetornoDias({ ehFichaE: true, ehPrimeiroPerfil: false, igSemanas: null });
 
 interface FichaEFormProps {
   paciente: PreviewPaciente;

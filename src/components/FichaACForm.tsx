@@ -36,6 +36,7 @@ import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
 import ChecklistRetorno2, { CHECKLIST_VAZIO, isChecklistCompleto, type ChecklistState } from '@/components/ficha/ChecklistRetorno2';
+import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 import CondutaCard from '@/components/ficha/CondutaCard';
 import { aplicarRegrasFichaA, type DecisaoResultado } from '@/lib/fichaADecisao';
 
@@ -190,8 +191,12 @@ export default function FichaACForm({
 
   // Insulin dose calculation moved to laudo (FichaACResultCard) — captured AFTER doctor sees Bloco 1.
 
-  // Next return interval
-  const retornoDias = igSemNum > 30 ? 7 : 15;
+  // 38B-C (#17): intervalo de retorno da regra central. A 1ª Ficha A/C
+  // (1º perfil glicêmico pós-diagnóstico) usa 10 dias; demais, 15 (≤30) / 7 (>30).
+  const ehPrimeiroPerfil = !consultas.some(
+    c => c.id !== editingConsulta?.id && ['ficha_a', 'ficha_c', 'ficha_b', 'ficha_d', 'ficha_e'].includes(c.tipo),
+  );
+  const retornoDias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil, igSemanas: igSemNum });
   const dataConsultaLocal = parseDateLocal(dataConsulta);
   const dataProximoRetorno = dataConsultaLocal
     ? format(addDays(dataConsultaLocal, retornoDias), 'dd/MM/yyyy')

@@ -65,6 +65,10 @@ import {
 } from '@/components/ui/collapsible';
 import { differenceInYears, differenceInDays, addDays, format } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
+import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
+
+// 38B-C (#17): intervalo fixo da Ficha E (perfil de 6 pontos sem insulina) = 7 dias.
+const DIAS_RETORNO_FICHA_E = calcularIntervaloRetornoDias({ ehFichaE: true, ehPrimeiroPerfil: false, igSemanas: null });
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   aguardando_gj: { label: 'Aguardando GJ', color: 'bg-gray-500' },
@@ -100,7 +104,7 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
       if (isFirst) {
         return `${prefix} — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo`;
       }
-      const dias = (c.ig_semanas ?? 0) > 30 ? 7 : 15;
+      const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: c.ig_semanas });
       return `${prefix} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × ${dias} dias)`;
     }
     case 'ficha_b':
@@ -109,11 +113,11 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
       if (isFirst) {
         return `${prefix} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`;
       }
-      const dias = (c.ig_semanas ?? 0) > 30 ? 7 : 15;
+      const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: c.ig_semanas });
       return `${prefix} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × ${dias} dias)`;
     }
     case 'ficha_e':
-      return `${prefix} — Perfil de 6 pontos (sem insulina) × 10 dias`;
+      return `${prefix} — Perfil de 6 pontos (sem insulina) × ${DIAS_RETORNO_FICHA_E} dias`;
     case 'registro_parto':
       return `${prefix} — Registro do parto`;
     default:
@@ -166,12 +170,12 @@ function getNextStepInfo(
 
       if (proxima === 'ficha_e') {
         return {
-          label: `+ RETORNO ${nextRetornoNum} — Perfil de 6 pontos (sem insulina) × 10 dias`,
+          label: `+ RETORNO ${nextRetornoNum} — Perfil de 6 pontos (sem insulina) × ${DIAS_RETORNO_FICHA_E} dias`,
           formType: 'ficha_e',
         };
       }
       if (proxima === 'ficha_a' || proxima === 'ficha_c') {
-        const dias = proxima === 'ficha_a' ? 15 : 7;
+        const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSem });
         return {
           label: `+ RETORNO ${nextRetornoNum} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × ${dias} dias)`,
           formType: proxima,
@@ -203,14 +207,14 @@ function getNextStepInfo(
             formType: igSem <= 30 ? 'ficha_b' : 'ficha_d',
           };
         }
-        const dias = igSem <= 30 ? 15 : 7;
+        const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSem });
         return {
           label: `+ RETORNO ${nextRetornoNum} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × ${dias} dias)`,
           formType: igSem <= 30 ? 'ficha_b' : 'ficha_d',
         };
       }
 
-      const dias = igSem <= 30 ? 15 : 7;
+      const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSem });
       return {
         label: `+ RETORNO ${nextRetornoNum} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × ${dias} dias)`,
         formType: igSem <= 30 ? 'ficha_a' : 'ficha_c',
@@ -1524,7 +1528,7 @@ export default function FichaPacientePage() {
                                 doseManha={c.dose_manha}
                                 doseNoite={c.dose_noite}
                                 peso={c.peso_kg}
-                                retornoDias={c.retorno_dias ?? ((c.ig_semanas ?? 0) > 30 ? 7 : 15)}
+                                retornoDias={c.retorno_dias ?? calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: c.ig_semanas })}
                                 dataProximoRetorno={c.data_proximo_retorno_formatted}
                                 fichaType={c.tipo}
                                 pacienteId={paciente.id}
@@ -1565,7 +1569,7 @@ export default function FichaPacientePage() {
                               adequado={(c.percentual_meta ?? 0) >= 70}
                               totalPreenchidos={c.total_preenchidos ?? 0}
                               dentroMeta={c.dentro_meta ?? 0}
-                              retornoDias={c.retorno_dias ?? ((c.ig_semanas ?? 0) > 30 ? 7 : 15)}
+                              retornoDias={c.retorno_dias ?? calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: c.ig_semanas })}
                               dataProximoRetorno={c.data_proximo_retorno_formatted}
                               fichaType={c.tipo}
                             />

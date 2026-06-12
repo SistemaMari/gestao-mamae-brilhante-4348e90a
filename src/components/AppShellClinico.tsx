@@ -174,7 +174,12 @@ export default function AppShellClinico() {
 
   const isActive = (itemPath: string) => {
     if (itemPath === '/dashboard') {
-      return location.pathname === '/dashboard' || (location.pathname.startsWith('/paciente') && !location.pathname.startsWith('/dashboard/metricas'));
+      // 38B-C (#18): "Pacientes" acende em /dashboard e ao abrir uma ficha
+      // (/paciente/:id), mas NÃO em /paciente/nova — lá quem acende é "Nova paciente".
+      return location.pathname === '/dashboard'
+        || (location.pathname.startsWith('/paciente')
+            && !location.pathname.startsWith('/paciente/nova')
+            && !location.pathname.startsWith('/dashboard/metricas'));
     }
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/');
   };
