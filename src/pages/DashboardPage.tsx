@@ -327,15 +327,15 @@ export default function DashboardPage() {
           <>
             {/* Desktop table */}
             <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-              <table className="w-full text-sm">
+              <table className="w-full table-fixed text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
                     <th className="w-8 px-2 py-3" aria-label="Atenção"></th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Paciente</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">IG hoje</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Última consulta</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Retorno</th>
+                    <th className="w-auto px-4 py-3 text-left font-medium text-muted-foreground">Paciente</th>
+                    <th className="w-[88px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">IG hoje</th>
+                    <th className="w-[120px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Última consulta</th>
+                    <th className="w-[160px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Status</th>
+                    <th className="w-[170px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Retorno</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -360,26 +360,32 @@ export default function DashboardPage() {
                             </Tooltip>
                           )}
                         </td>
-                        <td className="px-4 py-3">
-                          <div>
-                            <p className="font-medium text-foreground hover:text-primary">{pac.nome}</p>
+                        <td className="px-4 py-3 min-w-0">
+                          <div className="min-w-0">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <p className="truncate font-medium text-foreground hover:text-primary">{pac.nome}</p>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">{pac.nome}</TooltipContent>
+                            </Tooltip>
                             {pac.numero_identificacao && (
-                              <p className="text-xs text-muted-foreground">{pac.numero_identificacao}</p>
+                              <p className="truncate text-xs text-muted-foreground">{pac.numero_identificacao}</p>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">{formatIg(igMap.get(pac.id) ?? null)}</td>
-                        <td className="px-4 py-3 text-muted-foreground">
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatIg(igMap.get(pac.id) ?? null)}</td>
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                           {pac.data_ultima_consulta
                             ? formatDateBR(pac.data_ultima_consulta)
                             : '—'}
                         </td>
+
                         <td className="px-4 py-3">
                           {/* 38B-C (#7): Overt lê o cenário do registro, não o status. */}
                           {overtIds.has(pac.id) ? (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className="inline-flex items-center gap-1 rounded-full bg-[#B91C1C] px-2.5 py-0.5 text-xs font-medium text-white">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#B91C1C] px-2.5 py-0.5 text-xs font-medium text-white whitespace-nowrap">
                                   OVERT DM
                                   <Info className="h-3 w-3 opacity-70" />
                                 </span>
@@ -389,26 +395,28 @@ export default function DashboardPage() {
                           ) : (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white ${statusCfg.color}`}>
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white whitespace-nowrap ${statusCfg.color}`}>
                                   {statusCfg.label}
                                   <Info className="h-3 w-3 opacity-70" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent className="max-w-xs">{statusCfg.meaning}</TooltipContent>
                             </Tooltip>
+
                           )}
                         </td>
                         <td className="px-4 py-3">
                           {returnBadge && (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${
                                   returnBadge.type === 'vencido'
                                     ? 'bg-red-100 text-red-700'
                                     : returnBadge.type === 'proximo'
                                       ? 'bg-amber-100 text-amber-700'
                                       : 'bg-muted text-muted-foreground'
                                 }`}>
+
                                   {returnBadge.type === 'vencido'
                                     ? <Clock className="h-3 w-3 shrink-0" />
                                     : <CalendarCheck className="h-3 w-3 shrink-0" />}

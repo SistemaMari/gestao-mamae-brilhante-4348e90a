@@ -1,39 +1,40 @@
-## Encerramento Cenário 7 — % dentro unificado + texto único de conduta
+## Por que está quebrando
 
-### Mudanças
+A tabela do Dashboard (`src/pages/DashboardPage.tsx`, linhas 329-428) usa `w-full` sem `table-layout: fixed` e sem largura definida por coluna. Com a entrada de pacientes-teste com nomes longos ("1. #6 — Caso Novo ↔ Retorno 1 na mesma data", "Teste 03 — DMG → Ficha A adequado…"), o auto-layout do navegador inflou a coluna **Paciente** e comprimiu as demais. Junto disso:
 
-**1. `src/components/FichaBDForm.tsx` (pop-up de encerramento, linhas 766-776)**
-Substituir a exibição "% FORA" (cálculo `100 - percentual`) pelo "% dentro da meta", consumindo `savedResult.percentual` direto, formatado em pt-BR (vírgula). Texto:
-- `"Controle inadequado — apenas {X,X}% dentro da meta"` (substitui "{Y,Y}% DAS GLICEMIAS FORA DA META")
-- Mantém o texto das 3 condutas (AVALIAR / ASSOCIAR / CONSIDERAR) já presente.
-- Também ajustar o ramo "adequado" para usar a mesma formatação pt-BR ("{X,X}% dentro da meta") por consistência da regra única.
+- a coluna do ⚠ (`w-8`, comentário "38B-C (#15)") removeu ~32 px do espaço útil;
+- os badges "OVERT DM", "Resultado do parto" e "Em dia — até DD/MM/AAAA" ficaram mais largos e não têm `whitespace-nowrap`;
+- os cabeçalhos curtos ("IG hoje", "Última consulta", "Retorno") não têm largura mínima reservada, então quebram em duas linhas quando comprimidos.
 
-**2. `src/components/FichaBDResultCard.tsx` (card de encerramento inadequado, linhas 53-61)**
-Substituir o parágrafo de conduta:
-- De: `"Encaminhar para GO de alto risco + endocrinologista. Detalhes no laudo completo abaixo."`
-- Para: `"AVALIAR sua segurança para continuar com o caso OU ASSOCIAR com endocrinologista OU CONSIDERAR referenciamento especializado (no caso de sistema público). Detalhes no laudo completo abaixo."`
-- Padronizar o número "{percentual.toFixed(1)}%" para formato pt-BR (vírgula decimal) — vale também para o ramo adequado, para card e pop-up baterem byte a byte.
+Nenhuma mudança global de layout/CSS quebrou isso — é a combinação acima.
 
-**3. Helper compartilhado de veredito**
-Adicionar `src/lib/vereditoControle.ts` exportando:
-```ts
-formatPctDentroPtBr(pct: number): string  // "51,1%"
-vereditoControle(pct: number): { adequado: boolean; titulo: string }
-// adequado (>=70): "Controle adequado — {X,X}% dentro da meta"
-// inadequado (<70): "Controle inadequado — apenas {X,X}% dentro da meta"
-```
-Consumir esse helper no card (`FichaBDResultCard`) e no pop-up (`FichaBDForm`) para garantir que nunca divirjam.
+## Mudanças (escopo: apenas a tabela desktop do Dashboard)
 
-### Fora de escopo (não tocar)
-- Contagem "N de M valores" (débito do 38A).
-- Placeholder "Texto pendente" do laudo.
-- Cards/pop-ups dos cenários 2, 3, 4.
-- Títulos dos cards/pop-ups ("CONTROLE ADEQUADO COM INSULINA" / "ENCERRAMENTO DA MARI").
-- Lógica de cálculo do percentual em si.
+**Arquivo único:** `src/pages/DashboardPage.tsx`
 
-### Critérios de aceite
-- Pop-up Cenário 7 mostra "% dentro da meta" (sem mais "fora").
-- Card e pop-up mostram exatamente o mesmo percentual para a mesma paciente.
-- Inadequado: "apenas {X,X}% dentro da meta"; adequado: "{X,X}% dentro da meta".
-- Card de encerramento C7 traz o texto AVALIAR / ASSOCIAR / CONSIDERAR.
-- Contagem "N de M" inalterada.
+1. Adicionar `table-fixed` na `<table>` (linha 330) para o navegador respeitar larguras declaradas.
+2. Reservar largura em cada `<th>` (linhas 333-338):
+   - ⚠: `w-8` (já existe).
+   - Paciente: `w-auto` (única coluna fluida) + truncar nome/identificador com `truncate` no `<td>`.
+   - IG hoje: `w-[88px]`.
+   - Última consulta: `w-[120px]`.
+   - Status: `w-[160px]`.
+   - Retorno: `w-[170px]`.
+3. Em cada `<th>` curto adicionar `whitespace-nowrap` para garantir cabeçalho em uma linha.
+4. Nos `<td>` de Paciente (linhas 363-370): envelopar `<p>` do nome e do número em `truncate` + `max-w-full`, e dar `min-w-0` na célula para o truncate funcionar dentro da tabela fixa.
+5. Nos `<td>` de IG hoje, Última consulta, Status, Retorno: adicionar `whitespace-nowrap` ao conteúdo (o badge de Status e Retorno recebe `whitespace-nowrap` no `<span>` do badge).
+6. Tooltip no nome truncado: envolver o `<p>` do nome num `<Tooltip>` (já importado) para exibir o nome completo no hover — preserva acessibilidade quando o nome é cortado.
+
+## Fora de escopo
+
+- Cards mobile (linhas 431+) — não há quebra reportada.
+- Lógica de status, badges, ⚠, ordenação, paginação, filtros.
+- Demais tabelas do sistema (admin, gestor, gestor geral).
+- Mudança de tokens/tema/tipografia.
+
+## Critérios de aceite
+
+- Cabeçalhos "IG hoje", "Última consulta", "Status", "Retorno" sempre em uma linha.
+- Badges "OVERT DM", "Resultado do parto", "Em dia — até DD/MM/AAAA" sem quebra interna.
+- Nomes de paciente longos truncam com "…" e mostram nome completo via tooltip; demais colunas mantêm largura.
+- Layout da tabela inalterado quando todos os nomes são curtos.
