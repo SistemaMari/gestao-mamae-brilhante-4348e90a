@@ -83,7 +83,7 @@ export interface PreviewPaciente {
   consultas: PreviewConsulta[];
 }
 
-const STORAGE_KEY = 'dramari_preview_pacientes_v5';
+const STORAGE_KEY = 'dramari_preview_pacientes_v6';
 
 function canUseStorage() {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
@@ -454,7 +454,86 @@ const SEED_PATIENTS: PreviewPaciente[] = [
       },
     ],
   },
+  {
+    id: 'demo-gtt-6',
+    nome: 'Vitrine GTT Cenário 6',
+    data_nascimento: '1993-04-18',
+    numero_identificacao: '60000006',
+    tipo_identificacao: 'prontuario',
+    dum: daysAgo(182),
+    pais: 'Brasil',
+    estado: 'SP',
+    cidade: 'São Paulo',
+    usg_data: null,
+    usg_ig_semanas: null,
+    usg_ig_dias: null,
+    status_ficha: 'dmg_confirmado',
+    dmg_gestacao_anterior: false,
+    data_ultima_consulta: daysAgo(2),
+    data_proximo_retorno: null,
+    tipo_retorno: null,
+    consultas: [
+      { id: 'cg6-1', tipo: 'consulta_1', numero_sequencial: 1, data: daysAgo(90), ig_semanas: 13, ig_dias: 1, observacoes: 'Primeira gestação. IMC 25. Sem comorbidades.', status_gerado: 'aguardando_gj' },
+      { id: 'cg6-2', tipo: 'retorno', numero_sequencial: 2, data: daysAgo(60), ig_semanas: 17, ig_dias: 3, observacoes: 'GJ: 84 mg/dL — normal. Agendar GTT 75g entre 24-28 sem.', status_gerado: 'aguardando_gtt' },
+      {
+        id: 'cg6-3',
+        tipo: 'gtt',
+        numero_sequencial: 3,
+        data: daysAgo(2),
+        ig_semanas: 26,
+        ig_dias: 0,
+        observacoes: 'GTT 75g realizado na janela ideal (24-28 sem).',
+        status_gerado: 'dmg_confirmado',
+        gtt_jejum: 82,
+        gtt_1h: 192,
+        gtt_2h: 140,
+        gtt_recurso_limitado: false,
+        gtt_data_exame: daysAgo(2),
+        cenario_clinico: '6',
+      },
+    ],
+  },
+  {
+    id: 'demo-gtt-6b',
+    nome: 'Vitrine GTT Cenário 6B (tardio)',
+    data_nascimento: '1991-09-30',
+    numero_identificacao: '60000068',
+    tipo_identificacao: 'prontuario',
+    dum: daysAgo(212),
+    pais: 'Brasil',
+    estado: 'SP',
+    cidade: 'São Paulo',
+    usg_data: null,
+    usg_ig_semanas: null,
+    usg_ig_dias: null,
+    status_ficha: 'dmg_confirmado',
+    dmg_gestacao_anterior: false,
+    data_ultima_consulta: daysAgo(1),
+    data_proximo_retorno: null,
+    tipo_retorno: null,
+    consultas: [
+      { id: 'cg6b-1', tipo: 'consulta_1', numero_sequencial: 1, data: daysAgo(120), ig_semanas: 13, ig_dias: 2, observacoes: 'Segunda gestação. IMC 27. Captação tardia para investigação.', status_gerado: 'aguardando_gj' },
+      { id: 'cg6b-2', tipo: 'retorno', numero_sequencial: 2, data: daysAgo(90), ig_semanas: 17, ig_dias: 3, observacoes: 'GJ: 86 mg/dL — normal. Solicitado GTT 75g; paciente atrasou agendamento.', status_gerado: 'aguardando_gtt' },
+      {
+        id: 'cg6b-3',
+        tipo: 'gtt',
+        numero_sequencial: 3,
+        data: daysAgo(1),
+        ig_semanas: 30,
+        ig_dias: 2,
+        observacoes: 'GTT 75g realizado após a janela ideal (IG > 28 sem).',
+        status_gerado: 'dmg_confirmado',
+        gtt_jejum: 96,
+        gtt_1h: 170,
+        gtt_2h: 145,
+        gtt_recurso_limitado: false,
+        gtt_data_exame: daysAgo(1),
+        cenario_clinico: '6B',
+      },
+    ],
+  },
 ];
+
 
 export function getPreviewPacientes(): PreviewPaciente[] {
   if (!canUseStorage()) return SEED_PATIENTS;
