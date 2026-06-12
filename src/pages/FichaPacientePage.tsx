@@ -49,6 +49,7 @@ import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import EncerramentoPartoCard from '@/components/EncerramentoPartoCard';
 import UsgManagerCard from '@/components/UsgManagerCard';
+import BannerClinicoPersistente from '@/components/ficha/BannerClinicoPersistente';
 import { type UsgRefInput } from '@/lib/fichaUtils';
 import { useIg, useIgBatch } from '@/lib/getIg';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
@@ -1144,6 +1145,21 @@ export default function FichaPacientePage() {
           </div>
         );
       })()}
+
+      {/* 38F: banners clínicos persistentes — leem de dado salvo na consulta e
+          reaparecem ao reabrir a ficha (não dependem do pop-up). Empilháveis. */}
+      {consultas.some((c) => c.tipo === 'gtt' && c.cenario_clinico === '6B') && (
+        <BannerClinicoPersistente
+          tom="alerta"
+          texto="Diagnóstico tardio (GTT após 28 semanas). Início imediato do tratamento é crítico."
+        />
+      )}
+      {consultas.some((c) => c.proxima_ficha_recomendada === 'ficha_e') && (
+        <BannerClinicoPersistente
+          tom="info"
+          texto="Acompanhamento ampliado para perfil de 6 pontos sem insulina por controle adequado com falha de adesão (Regra 4). Memória do glicosímetro confirma o controle."
+        />
+      )}
 
       {/* 38B-B (#22): card de encerramento por parto (Cenário 5) — roxo névoa + reteste puerperal. */}
       {paciente.status_ficha === 'resultado_parto' && <EncerramentoPartoCard />}
