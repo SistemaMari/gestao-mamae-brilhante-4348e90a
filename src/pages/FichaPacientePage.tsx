@@ -341,7 +341,7 @@ export default function FichaPacientePage() {
       const { data: decisoes } = consultaIds.length
         ? await supabase
             .from('decisoes_ficha_a' as any)
-            .select('consulta_id, regra_aplicada, conduta_gerada, proxima_ficha_recomendada, dose_insulina_total, dose_insulina_manha, dose_insulina_noite, checklist_dieta, checklist_exercicio, checklist_ganho_peso, checklist_pfe_us, checklist_ca, checklist_la')
+            .select('consulta_id, regra_aplicada, conduta_gerada, proxima_ficha_recomendada, dose_insulina_total, dose_insulina_manha, dose_insulina_noite, checklist_dieta, checklist_exercicio, checklist_ganho_peso, checklist_pfe_us, checklist_ca, checklist_la, pactuacao_adesao, memoria_glicosimetro')
             .in('consulta_id', consultaIds)
         : { data: [] as any[] };
 
@@ -441,6 +441,8 @@ export default function FichaPacientePage() {
             checklist_pfe_us: decisao?.checklist_pfe_us ?? null,
             checklist_ca: decisao?.checklist_ca ?? null,
             checklist_la: decisao?.checklist_la ?? null,
+            pactuacao_adesao: decisao?.pactuacao_adesao ?? null,
+            memoria_glicosimetro: decisao?.memoria_glicosimetro ?? null,
             tipo_pos_prandial: tipoPosByConsulta.get(c.id) ?? null,
             ...(c.tipo === 'retorno_1' && ex
               ? {
@@ -1503,7 +1505,7 @@ export default function FichaPacientePage() {
                             )}
                             {/* Checklist do Retorno 2 visível na ficha salva (read-only) — o dado
                                 já vem hidratado em c.checklist_* pelo fetchPaciente. */}
-                            <div className="mb-4">
+                            <div className="mb-4 space-y-3">
                               <ChecklistRetorno2ReadOnly
                                 value={{
                                   dieta: c.checklist_dieta ?? null,
@@ -1513,6 +1515,10 @@ export default function FichaPacientePage() {
                                   ca: c.checklist_ca ?? null,
                                   la: c.checklist_la ?? null,
                                 }}
+                              />
+                              <DecisaoExtrasReadOnly
+                                pactuacao={c.pactuacao_adesao ?? null}
+                                memoria={c.memoria_glicosimetro ?? null}
                               />
                             </div>
                             {semDecisao ? (
