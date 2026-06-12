@@ -409,13 +409,14 @@ export default function DashboardPage() {
                           {returnBadge && (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${
                                   returnBadge.type === 'vencido'
                                     ? 'bg-red-100 text-red-700'
                                     : returnBadge.type === 'proximo'
                                       ? 'bg-amber-100 text-amber-700'
                                       : 'bg-muted text-muted-foreground'
                                 }`}>
+
                                   {returnBadge.type === 'vencido'
                                     ? <Clock className="h-3 w-3 shrink-0" />
                                     : <CalendarCheck className="h-3 w-3 shrink-0" />}
