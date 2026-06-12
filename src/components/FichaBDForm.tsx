@@ -437,8 +437,11 @@ export default function FichaBDForm({
         peso_paciente_kg: null,
         data_inicio: dataInicio,
         data_fim: dataFim,
-        percentual_meta: percentual ?? 0,
-        decisao,
+        percentual_meta: totalPreenchidos > 0 ? (percentual ?? 0) : null,
+        // PROMPT 38A — agregado de controle (fonte única; card/cabeçalho/laudo leem daqui)
+        total_preenchidos: totalPreenchidos,
+        na_meta: dentroMeta,
+        decisao: totalPreenchidos > 0 ? decisao : null,
         dose_insulina_calculada: null,
         // 35B — janela pós-prandial. Gravada só no INSERT: o banco tem trigger de
         // imutabilidade (impedir_update_tipo_pos_prandial) que rejeita alteração em UPDATE.
