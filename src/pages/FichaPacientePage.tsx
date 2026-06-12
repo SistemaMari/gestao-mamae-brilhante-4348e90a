@@ -68,8 +68,6 @@ import { differenceInYears, differenceInDays, addDays, format } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 
-// 38B-C (#17): intervalo fixo da Ficha E (perfil de 6 pontos sem insulina) = 7 dias.
-const DIAS_RETORNO_FICHA_E = calcularIntervaloRetornoDias({ ehFichaE: true, ehPrimeiroPerfil: false, igSemanas: null });
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   aguardando_gj: { label: 'Aguardando GJ', color: 'bg-gray-500' },
@@ -118,7 +116,7 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
       return `${prefix} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × ${dias} dias)`;
     }
     case 'ficha_e':
-      return `${prefix} — Perfil de 6 pontos (sem insulina) × ${DIAS_RETORNO_FICHA_E} dias`;
+      return `${prefix} — Perfil de 6 pontos (sem insulina) × 7 a 10 dias`;
     case 'registro_parto':
       return `${prefix} — Registro do parto`;
     default:
@@ -171,7 +169,7 @@ function getNextStepInfo(
 
       if (proxima === 'ficha_e') {
         return {
-          label: `+ RETORNO ${nextRetornoNum} — Perfil de 6 pontos (sem insulina) × ${DIAS_RETORNO_FICHA_E} dias`,
+          label: `+ Retorno — Perfil de 6 pontos (sem insulina) × 7 a 10 dias`,
           formType: 'ficha_e',
         };
       }
