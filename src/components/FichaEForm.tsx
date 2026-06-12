@@ -20,8 +20,6 @@ import { useProfissionalData } from '@/hooks/useProfissionalData';
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
-import ContextoClinicoCard from '@/components/ficha/ContextoClinicoCard';
-import { useContextoCasoNovo } from '@/hooks/useContextoCasoNovo';
 import {
   updatePreviewPaciente,
   type PreviewPaciente,
@@ -260,13 +258,6 @@ export default function FichaEForm({
   const [dataConsultaValida, setDataConsultaValida] = useState(true);
   const todasDatasValidas = dataInicioValida && dataFimValida && dataConsultaValida;
 
-  const primeiraConsultaFicha = consultas.find((c) => c.tipo === 'consulta_1');
-  const { contexto: contextoCasoNovo, loading: contextoLoading } = useContextoCasoNovo(
-    paciente.id, isPreview,
-    primeiraConsultaFicha
-      ? { data: primeiraConsultaFicha.data, cenario_clinico: primeiraConsultaFicha.cenario_clinico }
-      : null,
-  );
 
   const [showHighValueConfirm, setShowHighValueConfirm] = useState(false);
   const draftConsultaIdRef = useRef<string | null>(editingConsulta?.id ?? null);
@@ -472,7 +463,6 @@ export default function FichaEForm({
 
       <CamposPendentesBanner pendentes={camposPendentes} ativo={fichaPersistida && statusFichaLocal === 'rascunho'} />
 
-      <ContextoClinicoCard loading={contextoLoading} contexto={contextoCasoNovo} />
 
       <div className="rounded-lg border border-[#D6BCFA] bg-[#E8E0FF] p-3 flex items-center gap-2">
         <Info className="h-4 w-4 shrink-0 text-[#7E69AB]" />

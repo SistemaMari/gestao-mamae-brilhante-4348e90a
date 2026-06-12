@@ -6,8 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
-import ContextoClinicoCard from '@/components/ficha/ContextoClinicoCard';
-import { useContextoCasoNovo } from '@/hooks/useContextoCasoNovo';
 import {
   updatePreviewPaciente,
   getPreviewPacienteById,
@@ -194,13 +192,6 @@ export default function GttForm({
   const [dataConsultaValida, setDataConsultaValida] = useState(true);
   const todasDatasValidas = dataExameValida && dataConsultaValida;
 
-  // 34B.3 seção 3.8 — contexto clínico do Caso Novo.
-  const primeiraConsultaFicha = consultas.find((c) => c.tipo === 'consulta_1');
-  const { contexto: contextoCasoNovo, loading: contextoLoading } = useContextoCasoNovo(
-    paciente.id,
-    isPreview,
-    primeiraConsultaFicha ? { data: primeiraConsultaFicha.data, cenario_clinico: primeiraConsultaFicha.cenario_clinico } : null,
-  );
 
   const igFinal = useMemo(() => {
     const s = parseInt(igSemanas, 10);
@@ -269,7 +260,7 @@ export default function GttForm({
         } else {
           const newConsulta: PreviewConsulta = {
             id: crypto.randomUUID(),
-            tipo: 'retorno_gtt',
+            tipo: 'gtt',
             numero_sequencial: (current.consultas?.length || 1) + 1,
             data: dataConsulta,
             ig_semanas: igFinal?.semanas ?? null,
@@ -539,7 +530,6 @@ export default function GttForm({
           ativo={fichaPersistida && statusFichaLocal === 'rascunho'}
         />
 
-        <ContextoClinicoCard loading={contextoLoading} contexto={contextoCasoNovo} />
 
         {/* Recurso limitado checkbox */}
         <div className={`rounded-lg border-2 p-4 transition-colors ${recursoLimitado ? 'border-amber-400 bg-amber-50/50' : 'border-border bg-card'}`}>

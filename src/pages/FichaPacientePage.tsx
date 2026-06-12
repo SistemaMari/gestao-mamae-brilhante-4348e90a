@@ -97,7 +97,7 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
       return `${prefix} — Hora de rastrear o DMG (glicemia plasmática de jejum)`;
     case 'retorno_1':
       return `${prefix} — Hora de confirmar o diagnóstico e iniciar o tratamento`;
-    case 'retorno_gtt':
+    case 'gtt':
       return `${prefix} — GTT 75g (24-28 semanas)`;
     case 'ficha_a':
     case 'ficha_c': {
@@ -139,7 +139,7 @@ function getNextStepInfo(
   igAtual: { semanas: number; dias: number } | null,
 ): { label: string; formType: string } | null {
   const _hasRetorno1 = consultas.some(c => c.tipo === 'retorno_1');
-  const _hasRetornoGtt = consultas.some(c => c.tipo === 'retorno_gtt');
+  const _hasRetornoGtt = consultas.some(c => c.tipo === 'gtt');
   const _hasRetorno2 = consultas.some(c => c.tipo === 'retorno_2');
   const _hasRetorno3 = consultas.some(c => c.tipo === 'retorno_3');
 
@@ -153,7 +153,7 @@ function getNextStepInfo(
     case 'aguardando_gtt':
       return {
         label: '+ RETORNO GTT 75g (24-28 semanas)',
-        formType: 'retorno_gtt',
+        formType: 'gtt',
       };
 
     case 'dmg_confirmado': {
@@ -1077,7 +1077,7 @@ export default function FichaPacientePage() {
 
       {/* CORREÇÃO 3: Card fixo de destaque da janela do GTT — aparece entre cabeçalho e histórico */}
       {/* 38B-B (#2): a tarja some assim que existe um GTT registrado (não depende só do status). */}
-      {paciente.status_ficha === 'aguardando_gtt' && !consultas.some((c) => c.tipo === 'retorno_gtt') && janelaGTT && igAtual && (() => {
+      {paciente.status_ficha === 'aguardando_gtt' && !consultas.some((c) => c.tipo === 'gtt') && janelaGTT && igAtual && (() => {
         const igSem = igAtual.semanas;
         if (igSem > 28) {
           // Estado 3 — Crítico
@@ -1417,7 +1417,7 @@ export default function FichaPacientePage() {
                           />
                         );
                       }
-                      if (c.tipo === 'retorno_gtt') {
+                      if (c.tipo === 'gtt') {
                         return (
                           <GttForm
                             paciente={paciente}
@@ -1479,6 +1479,7 @@ export default function FichaPacientePage() {
                       status_gerado: c.status_gerado,
                       decisao: c.decisao,
                       percentual_meta: c.percentual_meta,
+                      cenario_clinico: c.cenario_clinico,
                     });
 
                     const renderCardBloco1 = () => {
@@ -1619,7 +1620,7 @@ export default function FichaPacientePage() {
                         );
                       }
 
-                      if (c.tipo === 'retorno_gtt') {
+                      if (c.tipo === 'gtt') {
                         return <GttResultCard consulta={c} igHoje={igAtual} />;
                       }
                       if (c.tipo === 'registro_parto') {
@@ -1675,7 +1676,7 @@ export default function FichaPacientePage() {
                           const tipoOpConsulta =
                             c.tipo === 'consulta_1' ? 'consulta_inicial'
                             : c.tipo === 'retorno_1' ? 'retorno'
-                            : c.tipo === 'retorno_gtt' ? 'preencher_gtt'
+                            : c.tipo === 'gtt' ? 'preencher_gtt'
                             : (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') ? 'preencher_ficha_ac'
                             : (c.tipo === 'ficha_b' || c.tipo === 'ficha_d') ? 'preencher_ficha_bd'
                             : c.tipo === 'registro_parto' ? 'registrar_parto'
@@ -1733,7 +1734,7 @@ export default function FichaPacientePage() {
           if (isRetorno1Button && retorno1Completed) return null;
           if (isRetorno1Button && canShowRetorno1Form) return null;
 
-          const isGttButton = nextStep.formType === 'retorno_gtt';
+          const isGttButton = nextStep.formType === 'gtt';
           if (isGttButton && gttCompleted) return null;
 
           const isFichaACButton = nextStep.formType === 'ficha_a' || nextStep.formType === 'ficha_c';
