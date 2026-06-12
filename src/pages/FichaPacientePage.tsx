@@ -38,6 +38,7 @@ import FichaACForm from '@/components/FichaACForm';
 import FichaACResultCard from '@/components/FichaACResultCard';
 import FichaACReadOnlyGrid from '@/components/FichaACReadOnlyGrid';
 import ChecklistRetorno2ReadOnly from '@/components/ficha/ChecklistRetorno2ReadOnly';
+import DecisaoExtrasReadOnly from '@/components/ficha/DecisaoExtrasReadOnly';
 import FichaBDForm from '@/components/FichaBDForm';
 import FichaBDResultCard from '@/components/FichaBDResultCard';
 import FichaBDReadOnlyGrid from '@/components/FichaBDReadOnlyGrid';
