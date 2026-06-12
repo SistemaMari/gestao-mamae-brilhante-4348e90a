@@ -436,6 +436,9 @@ Deno.serve(async (req) => {
           percentual_meta: g.percentual_meta ?? (perfilAtual.percentual_meta as unknown),
           decisao: g.decisao ?? (perfilAtual.decisao as unknown),
           dose_insulina_calculada: g.dose_insulina_calculada ?? (perfilAtual.dose_insulina_calculada as unknown),
+          // PROMPT 38A — agregado de controle glicêmico (fonte única para card/cabeçalho/laudo)
+          total_preenchidos: g.total_preenchidos ?? (perfilAtual as any).total_preenchidos ?? null,
+          na_meta: g.na_meta ?? (perfilAtual as any).na_meta ?? null,
           // tipo_pos_prandial é imutável após criação (trigger BEFORE UPDATE) — não atualizar.
         };
         const { error: perfUpdErr } = await admin
@@ -458,9 +461,12 @@ Deno.serve(async (req) => {
           peso_paciente_kg: g.peso_paciente_kg ?? null,
           data_inicio,
           data_fim,
-          percentual_meta: g.percentual_meta ?? 0,
+          percentual_meta: g.percentual_meta ?? null,
           decisao: g.decisao ?? null,
           dose_insulina_calculada: g.dose_insulina_calculada ?? null,
+          // PROMPT 38A — agregado de controle glicêmico
+          total_preenchidos: g.total_preenchidos ?? null,
+          na_meta: g.na_meta ?? null,
         };
         const { data: novoPerfil, error: perfInsErr } = await admin
           .from("perfis_glicemicos")
