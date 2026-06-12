@@ -1503,16 +1503,18 @@ export default function FichaPacientePage() {
                             )}
                             {/* Checklist do Retorno 2 visível na ficha salva (read-only) — o dado
                                 já vem hidratado em c.checklist_* pelo fetchPaciente. */}
-                            <ChecklistRetorno2ReadOnly
-                              value={{
-                                dieta: c.checklist_dieta ?? null,
-                                exercicio: c.checklist_exercicio ?? null,
-                                ganho_peso: c.checklist_ganho_peso ?? null,
-                                pfe_us: c.checklist_pfe_us ?? null,
-                                ca: c.checklist_ca ?? null,
-                                la: c.checklist_la ?? null,
-                              }}
-                            />
+                            <div className="mb-4">
+                              <ChecklistRetorno2ReadOnly
+                                value={{
+                                  dieta: c.checklist_dieta ?? null,
+                                  exercicio: c.checklist_exercicio ?? null,
+                                  ganho_peso: c.checklist_ganho_peso ?? null,
+                                  pfe_us: c.checklist_pfe_us ?? null,
+                                  ca: c.checklist_ca ?? null,
+                                  la: c.checklist_la ?? null,
+                                }}
+                              />
+                            </div>
                             {semDecisao ? (
                               <PlaceholderBlocoLaudo
                                 titulo="Conduta clínica aguardando decisão"
