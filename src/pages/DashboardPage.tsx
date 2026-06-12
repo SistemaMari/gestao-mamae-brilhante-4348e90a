@@ -24,30 +24,49 @@ import { useIgBatch, formatIg } from '@/lib/getIg';
 
 interface Paciente extends PreviewPaciente {}
 
-function getReturnBadge(paciente: Paciente): { type: 'proximo' | 'vencido'; tooltip: string } | null {
+// 38B-C (#16): semáforo de 3 estados a partir de data_proximo_retorno.
+function getReturnBadge(paciente: Paciente): {
+  type: 'vencido' | 'proximo' | 'em_dia';
+  label: string;
+  tooltip: string;
+} | null {
   if (paciente.status_ficha !== 'dmg_confirmado') return null;
   if (!paciente.data_proximo_retorno) return null;
 
   const retornoDate = parseDateLocal(paciente.data_proximo_retorno);
   if (!retornoDate) return null;
-  const today = new Date();
-  const diff = differenceInDays(retornoDate, today);
+  const diff = differenceInDays(retornoDate, new Date());
+  const dataLimite = formatDateBR(paciente.data_proximo_retorno);
 
   if (diff < 0) {
+    const dias = Math.abs(diff);
     return {
       type: 'vencido',
-      tooltip: 'O prazo de retorno já foi ultrapassado. Este badge NÃO pode ser fechado ou ocultado.',
+      label: `Vencido há ${dias} ${dias === 1 ? 'dia' : 'dias'}`,
+      tooltip: `O prazo de retorno (${dataLimite}) já passou há ${dias} ${dias === 1 ? 'dia' : 'dias'}. Este aviso não pode ser ocultado.`,
     };
   }
 
-  if (diff <= 2) {
+  if (diff <= 3) {
     return {
       type: 'proximo',
-      tooltip: 'Faltam 2 dias ou menos para o prazo de retorno esperado.',
+      label: `Retorno próximo — até ${dataLimite}`,
+      tooltip: `Faltam ${diff} ${diff === 1 ? 'dia' : 'dias'} para o prazo de retorno (${dataLimite}).`,
     };
   }
 
-  return null;
+  return {
+    type: 'em_dia',
+    label: 'Em dia',
+    tooltip: `Próximo retorno até ${dataLimite}.`,
+  };
+}
+
+// 38B-C (#7): na vitrine, deriva os ids Overt das consultas do preview.
+function derivarOvertIds(lista: PreviewPaciente[]): Set<string> {
+  return new Set(
+    lista.filter((p) => (p.consultas ?? []).some((c) => c.cenario_clinico === '8')).map((p) => p.id),
+  );
 }
 
 const PAGE_SIZE = 20;
@@ -66,6 +85,8 @@ export default function DashboardPage() {
   const [showEncerradas, setShowEncerradas] = useState(true);
   const [showBlockingModal, setShowBlockingModal] = useState(false);
   const [page, setPage] = useState(1);
+  // 38B-C (#7): ids de pacientes com diagnóstico Overt (cenario_clinico='8').
+  const [overtIds, setOvertIds] = useState<Set<string>>(new Set());
 
   const fetchPacientes = useCallback(async () => {
     if (!profissionalData || isPreview) return;
@@ -77,12 +98,22 @@ export default function DashboardPage() {
       .order('data_ultima_consulta', { ascending: false, nullsFirst: false });
 
     setPacientes((data as Paciente[]) || []);
+
+    // 38B-C (#7): pacientes com cenario_clinico='8' (Overt via Retorno 1 ou GTT).
+    const { data: overt } = await supabase
+      .from('consultas')
+      .select('paciente_id')
+      .eq('cenario_clinico', '8');
+    setOvertIds(new Set(((overt ?? []) as { paciente_id: string }[]).map((r) => r.paciente_id)));
+
     setLoadingPacientes(false);
   }, [profissionalData, isPreview]);
 
   useEffect(() => {
     if (isPreview) {
-      setPacientes(getPreviewPacientes());
+      const lista = getPreviewPacientes();
+      setPacientes(lista);
+      setOvertIds(derivarOvertIds(lista));
       setLoadingPacientes(false);
       return;
     }
@@ -100,7 +131,9 @@ export default function DashboardPage() {
     if (!isPreview) return;
 
     const syncPreviewPacientes = () => {
-      setPacientes(getPreviewPacientes());
+      const lista = getPreviewPacientes();
+      setPacientes(lista);
+      setOvertIds(derivarOvertIds(lista));
     };
 
     window.addEventListener('storage', syncPreviewPacientes);
@@ -297,6 +330,7 @@ export default function DashboardPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
+                    <th className="w-8 px-2 py-3" aria-label="Atenção"></th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Paciente</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">IG hoje</th>
                     <th className="px-4 py-3 text-left font-medium text-muted-foreground">Última consulta</th>
@@ -315,22 +349,23 @@ export default function DashboardPage() {
                         className="cursor-pointer transition-colors hover:bg-muted/30"
                         onClick={() => navigate(`${isPreview ? '/vitrine' : ''}/paciente/${pac.id}`)}
                       >
+                        {/* 38B-C (#15): ícone de atenção em coluna própria — nomes alinhados. */}
+                        <td className="w-8 px-2 py-3 align-middle">
+                          {pac.dmg_gestacao_anterior && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>Histórico de DMG em gestação anterior.</TooltipContent>
+                            </Tooltip>
+                          )}
+                        </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            {pac.dmg_gestacao_anterior && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
-                                </TooltipTrigger>
-                                <TooltipContent>Histórico de DMG em gestação anterior.</TooltipContent>
-                              </Tooltip>
+                          <div>
+                            <p className="font-medium text-foreground hover:text-primary">{pac.nome}</p>
+                            {pac.numero_identificacao && (
+                              <p className="text-xs text-muted-foreground">{pac.numero_identificacao}</p>
                             )}
-                            <div>
-                              <p className="font-medium text-foreground hover:text-primary">{pac.nome}</p>
-                              {pac.numero_identificacao && (
-                                <p className="text-xs text-muted-foreground">{pac.numero_identificacao}</p>
-                              )}
-                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">{formatIg(igMap.get(pac.id) ?? null)}</td>
@@ -340,15 +375,28 @@ export default function DashboardPage() {
                             : '—'}
                         </td>
                         <td className="px-4 py-3">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white ${statusCfg.color}`}>
-                                {statusCfg.label}
-                                <Info className="h-3 w-3 opacity-70" />
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">{statusCfg.meaning}</TooltipContent>
-                          </Tooltip>
+                          {/* 38B-C (#7): Overt lê o cenário do registro, não o status. */}
+                          {overtIds.has(pac.id) ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#B91C1C] px-2.5 py-0.5 text-xs font-medium text-white">
+                                  Overt Diabete
+                                  <Info className="h-3 w-3 opacity-70" />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">Diabete pré-existente diagnosticado na gestação (Overt). Conduta distinta do DMG gestacional.</TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white ${statusCfg.color}`}>
+                                  {statusCfg.label}
+                                  <Info className="h-3 w-3 opacity-70" />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">{statusCfg.meaning}</TooltipContent>
+                            </Tooltip>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           {returnBadge && (
@@ -357,13 +405,14 @@ export default function DashboardPage() {
                                 <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
                                   returnBadge.type === 'vencido'
                                     ? 'bg-red-100 text-red-700'
-                                    : 'bg-amber-100 text-amber-700'
+                                    : returnBadge.type === 'proximo'
+                                      ? 'bg-amber-100 text-amber-700'
+                                      : 'bg-muted text-muted-foreground'
                                 }`}>
-                                  {returnBadge.type === 'vencido' ? (
-                                    <><Clock className="h-3 w-3" /> Vencido</>
-                                  ) : (
-                                    <><CalendarCheck className="h-3 w-3" /> Próximo</>
-                                  )}
+                                  {returnBadge.type === 'vencido'
+                                    ? <Clock className="h-3 w-3 shrink-0" />
+                                    : <CalendarCheck className="h-3 w-3 shrink-0" />}
+                                  {returnBadge.label}
                                   <Info className="h-3 w-3 opacity-70" />
                                 </span>
                               </TooltipTrigger>
@@ -392,9 +441,12 @@ export default function DashboardPage() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        {pac.dmg_gestacao_anterior && (
-                          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
-                        )}
+                        {/* 38B-C (#15): slot fixo do ícone — nomes alinhados com ou sem ⚠. */}
+                        <div className="flex w-4 shrink-0 justify-center">
+                          {pac.dmg_gestacao_anterior && (
+                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                          )}
+                        </div>
                         <div>
                           <p className="font-medium text-foreground">{pac.nome}</p>
                           {pac.numero_identificacao && (
@@ -402,9 +454,15 @@ export default function DashboardPage() {
                           )}
                         </div>
                       </div>
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white ${statusCfg.color}`}>
-                        {statusCfg.label}
-                      </span>
+                      {overtIds.has(pac.id) ? (
+                        <span className="inline-flex shrink-0 items-center rounded-full bg-[#B91C1C] px-2 py-0.5 text-xs font-medium text-white">
+                          Overt Diabete
+                        </span>
+                      ) : (
+                        <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium text-white ${statusCfg.color}`}>
+                          {statusCfg.label}
+                        </span>
+                      )}
                     </div>
                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
                       <span>IG: {formatIg(igMap.get(pac.id) ?? null)}</span>
@@ -419,13 +477,14 @@ export default function DashboardPage() {
                         <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
                           returnBadge.type === 'vencido'
                             ? 'bg-red-100 text-red-700'
-                            : 'bg-amber-100 text-amber-700'
+                            : returnBadge.type === 'proximo'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-muted text-muted-foreground'
                         }`}>
-                          {returnBadge.type === 'vencido' ? (
-                            <><Clock className="h-3 w-3" /> Retorno vencido</>
-                          ) : (
-                            <><CalendarCheck className="h-3 w-3" /> Retorno próximo</>
-                          )}
+                          {returnBadge.type === 'vencido'
+                            ? <Clock className="h-3 w-3 shrink-0" />
+                            : <CalendarCheck className="h-3 w-3 shrink-0" />}
+                          {returnBadge.label}
                         </span>
                       </div>
                     )}

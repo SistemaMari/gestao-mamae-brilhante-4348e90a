@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
+import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
@@ -155,7 +156,8 @@ export default function FichaBDForm({
   // Determine naming
   const isFirstFichaBD = !consultas.some(c => ['ficha_b', 'ficha_d'].includes(c.tipo));
   const fichaType = igSemNum > 30 ? 'ficha_d' : 'ficha_b';
-  const retornoDias = igSemNum > 30 ? 7 : 15;
+  // 38B-C (#17): Ficha B/D nunca é o 1º perfil → 15 (≤30) / 7 (>30), via regra central.
+  const retornoDias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSemNum });
 
   const headerTitle = isFirstFichaBD
     ? 'RETORNO 3 — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo'
