@@ -448,7 +448,7 @@ export default function FichaEForm({
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            FICHA E — Perfil de 6 pontos × 10 dias (sem insulina)
+            Retorno — Perfil de 6 pontos × 7 a 10 dias (sem insulina)
           </h2>
           {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
@@ -457,7 +457,7 @@ export default function FichaEForm({
           Preencha a grade com as glicemias capilares registradas pela paciente.
         </p>
         <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">
-          Ficha E — sem insulina — IG {igSemNum} sem
+          Perfil de 6 pontos — sem insulina — IG {igSemNum} sem
         </div>
       </div>
 
@@ -466,7 +466,7 @@ export default function FichaEForm({
 
       <div className="rounded-lg border border-[#D6BCFA] bg-[#E8E0FF] p-3 flex items-center gap-2">
         <Info className="h-4 w-4 shrink-0 text-[#7E69AB]" />
-        <p className="text-xs font-medium text-[#5B21B6]">Preencha até 10 dias de medições.</p>
+        <p className="text-xs font-medium text-[#5B21B6]">Preencha de 7 a 10 dias de medições.</p>
       </div>
 
       {hypoAlerts.length > 0 && (
