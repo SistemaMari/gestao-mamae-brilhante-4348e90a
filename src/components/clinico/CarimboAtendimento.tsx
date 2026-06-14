@@ -159,7 +159,32 @@ function ListaRender({ data, isLoading }: { data: RegistroLista[] | undefined; i
 }
 
 function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; ehInstitucional: boolean }) {
-  const { data, isLoading } = useQuery({
+  const { user, profile } = useAuth();
+  // TEMP DEBUG — render (sempre dispara, mesmo com cache)
+  console.warn("[DEBUG_HISTORICO render]", {
+    pacienteId,
+    ehInstitucional,
+    profile,
+    user_id_ctx: user?.id ?? null,
+  });
+  // TEMP DEBUG — auth.getUser() no render
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        console.warn("[DEBUG_HISTORICO authUser]", {
+          auth_uid: u?.user?.id ?? null,
+          user_id_ctx: user?.id ?? null,
+          profile,
+          ehInstitucional,
+        });
+      } catch (e) {
+        console.warn("[DEBUG_HISTORICO authUser failed]", e);
+      }
+    })();
+  }, [pacienteId]);
+
+  const { data, isLoading, error: qError } = useQuery({
     queryKey: ["registros_atendimento", pacienteId],
     enabled: ehInstitucional,
     queryFn: async () => {
@@ -168,24 +193,26 @@ function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; e
         .select("id, tipo_operacao, profissional_nome, profissional_crm, profissional_especialidade, created_at")
         .eq("paciente_id", pacienteId)
         .order("created_at", { ascending: false });
-      // TEMP DEBUG — remover após diagnóstico
-      try {
-        const { data: u } = await supabase.auth.getUser();
-        console.error("[DEBUG_HISTORICO]", {
-          auth_uid: u?.user?.id ?? null,
-          paciente_id: pacienteId,
-          error_code: (error as any)?.code ?? null,
-          error_message: error?.message ?? null,
-          error_details: (error as any)?.details ?? null,
-          rows: data?.length ?? 0,
-          sample: data?.slice(0, 3) ?? null,
-        });
-      } catch (e) {
-        console.error("[DEBUG_HISTORICO] log failed", e);
-      }
+      // TEMP DEBUG — fetch
+      console.warn("[DEBUG_HISTORICO fetch]", {
+        paciente_id: pacienteId,
+        error_code: (error as any)?.code ?? null,
+        error_message: error?.message ?? null,
+        error_details: (error as any)?.details ?? null,
+        rows: data?.length ?? 0,
+        sample: data?.slice(0, 3) ?? null,
+      });
       if (error) throw error;
       return (data ?? []) as unknown as RegistroLista[];
     },
+  });
+
+  // TEMP DEBUG — estado do useQuery
+  console.warn("[DEBUG_HISTORICO state]", {
+    isLoading,
+    hasData: !!data,
+    rows: data?.length ?? 0,
+    queryError: (qError as any)?.message ?? null,
   });
 
   if (!ehInstitucional) return null;
