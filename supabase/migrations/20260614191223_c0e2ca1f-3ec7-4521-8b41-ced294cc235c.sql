@@ -1,0 +1,10 @@
+REVOKE EXECUTE ON FUNCTION public.profissionais_enforce_safe_insert_defaults() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.sync_admin_role() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.sync_gestor_geral_role() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.sync_profissional_role() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.read_email_batch(queue_name text, batch_size integer, vt integer) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.delete_email(queue_name text, message_id bigint) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.move_to_dlq(source_queue text, dlq_name text, message_id bigint, payload jsonb) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.enqueue_email(queue_name text, payload jsonb) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.pode_gerar_laudo(p_profissional_id uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.refresh_mv_metricas_unidade_seed() FROM PUBLIC;
