@@ -2389,6 +2389,10 @@ export type Database = {
         Returns: boolean
       }
       pode_gerar_laudo: { Args: { p_profissional_id: string }; Returns: Json }
+      pode_ver_registro_de_profissional: {
+        Args: { _prof_id: string; _user: string }
+        Returns: boolean
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {

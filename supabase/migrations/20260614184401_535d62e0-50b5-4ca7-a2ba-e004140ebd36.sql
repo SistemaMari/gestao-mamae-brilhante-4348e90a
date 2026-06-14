@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.pode_ver_registro_de_profissional(uuid, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.pode_ver_registro_de_profissional(uuid, uuid) TO authenticated, service_role;
