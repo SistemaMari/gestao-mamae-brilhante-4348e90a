@@ -46,7 +46,7 @@ export default function CarimboAtendimento(props: Props) {
     profile === "institucional" || profile === "gestor" || profile === "gestor_geral";
 
   // TEMP DEBUG — ponto visivelmente montado pelo banner e pela lista
-  console.error("[DEBUG_HISTORICO CarimboAtendimento root]", {
+  console.error("[DEBUG_HISTORICO CarimboAtendimento root] " + JSON.stringify({
     variant: props.variant,
     pacienteId: props.variant === "lista" ? props.pacienteId ?? null : null,
     forceVisible: props.variant === "lista" ? props.forceVisible ?? false : null,
@@ -54,7 +54,7 @@ export default function CarimboAtendimento(props: Props) {
     profile,
     ehInstitucional,
     user_id_ctx: user?.id ?? null,
-  });
+  }));
 
   useEffect(() => {
     if (!user || !ehInstitucional || props.variant !== "banner") return;
@@ -172,23 +172,23 @@ function ListaRender({ data, isLoading }: { data: RegistroLista[] | undefined; i
 function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; ehInstitucional: boolean }) {
   const { user, profile } = useAuth();
   // TEMP DEBUG — render (sempre dispara, mesmo com cache)
-  console.warn("[DEBUG_HISTORICO render]", {
+  console.warn("[DEBUG_HISTORICO render] " + JSON.stringify({
     pacienteId,
     ehInstitucional,
     profile,
     user_id_ctx: user?.id ?? null,
-  });
+  }));
   // TEMP DEBUG — auth.getUser() no render
   useEffect(() => {
     (async () => {
       try {
         const { data: u } = await supabase.auth.getUser();
-        console.warn("[DEBUG_HISTORICO authUser]", {
+        console.warn("[DEBUG_HISTORICO authUser] " + JSON.stringify({
           auth_uid: u?.user?.id ?? null,
           user_id_ctx: user?.id ?? null,
           profile,
           ehInstitucional,
-        });
+        }));
       } catch (e) {
         console.warn("[DEBUG_HISTORICO authUser failed]", e);
       }
@@ -205,26 +205,26 @@ function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; e
         .eq("paciente_id", pacienteId)
         .order("created_at", { ascending: false });
       // TEMP DEBUG — fetch
-      console.warn("[DEBUG_HISTORICO fetch]", {
+      console.warn("[DEBUG_HISTORICO fetch] " + JSON.stringify({
         paciente_id: pacienteId,
         error_code: (error as any)?.code ?? null,
         error_message: error?.message ?? null,
         error_details: (error as any)?.details ?? null,
         rows: data?.length ?? 0,
         sample: data?.slice(0, 3) ?? null,
-      });
+      }));
       if (error) throw error;
       return (data ?? []) as unknown as RegistroLista[];
     },
   });
 
   // TEMP DEBUG — estado do useQuery
-  console.warn("[DEBUG_HISTORICO state]", {
+  console.warn("[DEBUG_HISTORICO state] " + JSON.stringify({
     isLoading,
     hasData: !!data,
     rows: data?.length ?? 0,
     queryError: (qError as any)?.message ?? null,
-  });
+  }));
 
   if (!ehInstitucional) return null;
   return <ListaRender data={data} isLoading={isLoading} />;
