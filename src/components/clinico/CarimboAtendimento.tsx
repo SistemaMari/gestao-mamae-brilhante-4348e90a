@@ -199,6 +199,16 @@ function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; e
     queryKey: ["registros_atendimento", pacienteId],
     enabled: ehInstitucional,
     queryFn: async () => {
+      // TEMP DEBUG — sessão antes do fetch
+      const { data: sess } = await supabase.auth.getSession();
+      const { data: u2 } = await supabase.auth.getUser();
+      console.warn("[DEBUG_HISTORICO preFetch] " + JSON.stringify({
+        hasSession: !!sess?.session,
+        hasAccessToken: !!sess?.session?.access_token,
+        token_sub_uid: u2?.user?.id ?? null,
+        token_role: (sess?.session as any)?.user?.role ?? null,
+        expires_at: sess?.session?.expires_at ?? null,
+      }));
       const { data, error } = await supabase
         .from("registros_atendimento" as any)
         .select("id, tipo_operacao, profissional_nome, profissional_crm, profissional_especialidade, created_at")
