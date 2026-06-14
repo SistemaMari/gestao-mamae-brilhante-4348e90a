@@ -46,7 +46,7 @@ export default function CarimboAtendimento(props: Props) {
     profile === "institucional" || profile === "gestor" || profile === "gestor_geral";
 
   // TEMP DEBUG — ponto visivelmente montado pelo banner e pela lista
-  console.error("[DEBUG_HISTORICO CarimboAtendimento root]", {
+  console.error("[DEBUG_HISTORICO CarimboAtendimento root] " + JSON.stringify({
     variant: props.variant,
     pacienteId: props.variant === "lista" ? props.pacienteId ?? null : null,
     forceVisible: props.variant === "lista" ? props.forceVisible ?? false : null,
@@ -54,7 +54,7 @@ export default function CarimboAtendimento(props: Props) {
     profile,
     ehInstitucional,
     user_id_ctx: user?.id ?? null,
-  });
+  }));
 
   useEffect(() => {
     if (!user || !ehInstitucional || props.variant !== "banner") return;
