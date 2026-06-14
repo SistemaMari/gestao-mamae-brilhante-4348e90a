@@ -1648,20 +1648,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "profissionais_acesso_revogado_por_fkey"
-            columns: ["acesso_revogado_por"]
-            isOneToOne: false
-            referencedRelation: "equipe_unidade_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profissionais_acesso_revogado_por_fkey"
-            columns: ["acesso_revogado_por"]
-            isOneToOne: false
-            referencedRelation: "profissionais"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "profissionais_plano_id_fkey"
             columns: ["plano_id"]
             isOneToOne: false
