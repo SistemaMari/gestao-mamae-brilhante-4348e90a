@@ -1564,6 +1564,7 @@ export default function FichaPacientePage() {
                               <FichaACResultCard
                                 percentual={c.percentual_meta ?? 0}
                                 adequado={(c.percentual_meta ?? 0) >= 70}
+                                condutaInsulina={c.conduta_gerada === 'insulina' || c.proxima_ficha_recomendada === 'ficha_b' || c.proxima_ficha_recomendada === 'ficha_d'}
                                 totalPreenchidos={c.total_preenchidos ?? 0}
                                 dentroMeta={c.dentro_meta ?? 0}
                                 doseTotal={c.dose_total}

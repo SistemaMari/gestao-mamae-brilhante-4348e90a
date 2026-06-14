@@ -15,6 +15,10 @@ import {
 interface FichaACResultCardProps {
   percentual: number;
   adequado: boolean;
+  /** 36B-FIX1: o card só exibe peso/dose/insulina quando o MOTOR de decisão
+   *  resolve para um desfecho de insulina (proxima_ficha b/d). Nunca recalcula
+   *  conduta por percentual. Para o galho de reforço de MEV, fica false. */
+  condutaInsulina: boolean;
   totalPreenchidos: number;
   dentroMeta: number;
   doseTotal?: number | null;
@@ -33,7 +37,7 @@ interface FichaACResultCardProps {
 }
 
 export default function FichaACResultCard({
-  percentual, adequado, totalPreenchidos, dentroMeta,
+  percentual, adequado, condutaInsulina, totalPreenchidos, dentroMeta,
   peso, doseTotal, doseManha, doseNoite,
   pacienteId, consultaId, isPreview, isReadOnly, onWeightSaved,
 }: FichaACResultCardProps) {
@@ -51,8 +55,9 @@ export default function FichaACResultCard({
   const calcDoseManha = calcDoseTotal ? Math.round((calcDoseTotal * 2 / 3) * 10) / 10 : null;
   const calcDoseNoite = calcDoseTotal ? Math.round((calcDoseTotal * 1 / 3) * 10) / 10 : null;
 
-  const needsWeight = !adequado && (peso == null || peso <= 0) && !isReadOnly;
-  const hasWeight = !adequado && peso != null && peso > 0 && doseTotal != null;
+  // 36B-FIX1: peso/dose só quando o MOTOR resolveu para insulina — nunca por percentual.
+  const needsWeight = condutaInsulina && (peso == null || peso <= 0) && !isReadOnly;
+  const hasWeight = condutaInsulina && peso != null && peso > 0 && doseTotal != null;
 
   const handleConfirmWeight = async () => {
     if (pesoNum <= 0 || !calcDoseTotal || !pacienteId || !consultaId) return;
@@ -127,7 +132,9 @@ export default function FichaACResultCard({
           <p className="mt-2 text-xs italic" style={{ color: textColor }}>
             {adequado
               ? 'Orientações no laudo completo abaixo.'
-              : 'Conduta: iniciar insulina. Dose e orientações no laudo completo abaixo.'}
+              : condutaInsulina
+                ? 'Conduta: iniciar insulina. Dose e orientações no laudo completo abaixo.'
+                : 'Conduta: reforçar dieta e exercício (MEV). Reavaliar mantendo o perfil de 4 pontos.'}
           </p>
         </div>
       </div>

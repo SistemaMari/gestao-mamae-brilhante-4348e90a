@@ -35,6 +35,7 @@ export default function FichaEResultCard({
         <FichaACResultCard
           percentual={percentual}
           adequado={false}
+          condutaInsulina={true}
           totalPreenchidos={totalPreenchidos}
           dentroMeta={dentroMeta}
           doseTotal={doseTotal}
