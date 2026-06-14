@@ -168,6 +168,21 @@ function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; e
         .select("id, tipo_operacao, profissional_nome, profissional_crm, profissional_especialidade, created_at")
         .eq("paciente_id", pacienteId)
         .order("created_at", { ascending: false });
+      // TEMP DEBUG — remover após diagnóstico
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        console.error("[DEBUG_HISTORICO]", {
+          auth_uid: u?.user?.id ?? null,
+          paciente_id: pacienteId,
+          error_code: (error as any)?.code ?? null,
+          error_message: error?.message ?? null,
+          error_details: (error as any)?.details ?? null,
+          rows: data?.length ?? 0,
+          sample: data?.slice(0, 3) ?? null,
+        });
+      } catch (e) {
+        console.error("[DEBUG_HISTORICO] log failed", e);
+      }
       if (error) throw error;
       return (data ?? []) as unknown as RegistroLista[];
     },
