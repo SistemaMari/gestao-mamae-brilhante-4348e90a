@@ -10,7 +10,7 @@ type: feature
 - Em `isPreview` (`/vitrine/...`), `useLaudoIA` devolve template demo (não chama IA, não consome quota).
 
 ## Estrutura (8 elementos)
-1. **Cabeçalho** (`LaudoCabecalho`) — fundo branco, borda inferior `#D6BCFA`. Título "Laudo Dra. Mari DMG Diagnóstica", paciente, IG, data, badge cenário.
+1. **Cabeçalho** (`LaudoCabecalho`) — fundo branco, borda inferior `#D6BCFA`. Título "Laudo MARI", paciente, IG, data, badge cenário.
 2. **Bloco 1** (children) — cards clínicos atuais (Consulta1ResultCard, Retorno1ResultCard, FichaACResultCard, FichaBDResultCard, GttResultCard, EncerramentoPartoCard, RegistroPartoReadOnlyCard).
 3. **Grade glicêmica compacta** (`GradeGlicemicaCompacta`) — readonly 4 ou 6 pontos × N dias, células `#DCFCE7`/`#FEE2E2`, `—` vazias, % no rodapé.
 4. **Bloco 2 — Justificativa** (`Bloco2Justificativa`) — card lavanda `#F1F0FB` / borda `#D6BCFA`, título DM Serif `#7E69AB`. Markdown via `react-markdown` + `remark-gfm`.
