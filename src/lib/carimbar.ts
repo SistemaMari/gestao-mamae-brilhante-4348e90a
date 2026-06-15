@@ -20,12 +20,35 @@ export async function carimbarAtendimento(args: {
       p_recurso_tipo: args.recursoTipo ?? null,
     });
     if (error) {
-      console.error("[carimbar_atendimento]", error);
+      reportarFalhaCarimbo(args, error.message ?? "erro no RPC carimbar_atendimento");
       return null;
     }
     return (data as string | null) ?? null;
   } catch (err) {
-    console.error("[carimbar_atendimento] exception", err);
+    reportarFalhaCarimbo(args, err instanceof Error ? err.message : String(err));
     return null;
+  }
+}
+
+/**
+ * 40B (3.5) — a falha de auditoria NÃO pode ser invisível, mas também NÃO pode
+ * quebrar o atendimento. Em vez de engolir o erro, registra um sinal observável
+ * e não-bloqueante: log estruturado com contexto + um CustomEvent que uma camada
+ * de telemetria pode escutar depois. (Telemetria persistente fica para outro item.)
+ */
+function reportarFalhaCarimbo(
+  args: { pacienteId: string; tipoOperacao: string; recursoId?: string | null; recursoTipo?: string | null },
+  motivo: string,
+): void {
+  const contexto = {
+    pacienteId: args.pacienteId,
+    tipoOperacao: args.tipoOperacao,
+    recursoId: args.recursoId ?? null,
+    recursoTipo: args.recursoTipo ?? null,
+    motivo,
+  };
+  console.error("[carimbar_atendimento] FALHA AO REGISTRAR ATENDIMENTO", contexto);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("carimbo:falha", { detail: contexto }));
   }
 }

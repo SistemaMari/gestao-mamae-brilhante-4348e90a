@@ -8,6 +8,7 @@ import { labelTipoOperacao } from "@/lib/tiposOperacao";
 interface RegistroLista {
   id: string;
   tipo_operacao: string;
+  recurso_id?: string | null;
   profissional_nome: string;
   profissional_crm: string | null;
   profissional_especialidade: string | null;
@@ -120,7 +121,24 @@ function ListaHistoricoMock({ registros }: { registros: RegistroLista[] }) {
   return <ListaRender data={registros} isLoading={false} />;
 }
 
-function ListaRender({ data, isLoading }: { data: RegistroLista[] | undefined; isLoading: boolean }) {
+type ConsultaOrdenada = { id: string; tipo: string };
+
+/**
+ * 40B (3.6) — número do retorno calculado no render (sem persistir nem migration).
+ * Posição cronológica da consulta (via recurso_id) entre as consultas da paciente
+ * — mesma lógica/ordenação do getDisplayName em FichaPacientePage (data, created_at).
+ */
+function rotuloNumeroConsulta(
+  consultas: ConsultaOrdenada[] | undefined,
+  recursoId: string | null | undefined,
+): string | null {
+  if (!consultas || !recursoId) return null;
+  const idx = consultas.findIndex((c) => c.id === recursoId);
+  if (idx < 0) return null;
+  return consultas[idx].tipo === "consulta_1" ? "Caso Novo" : `Retorno ${idx}`;
+}
+
+function ListaRender({ data, consultas, isLoading }: { data: RegistroLista[] | undefined; consultas?: ConsultaOrdenada[]; isLoading: boolean }) {
   return (
     <div className="space-y-2">
       <h3 className="font-[Sora] text-base font-semibold text-[#5B3A8E]">
@@ -132,10 +150,12 @@ function ListaRender({ data, isLoading }: { data: RegistroLista[] | undefined; i
         <p className="text-sm text-muted-foreground">Nenhum atendimento registrado ainda.</p>
       ) : (
         <ul className="divide-y rounded-md border bg-white">
-          {data.map((r) => (
+          {data.map((r) => {
+            const numero = rotuloNumeroConsulta(consultas, r.recurso_id);
+            return (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm">
               <div>
-                <div className="font-medium">{labelTipoOperacao(r.tipo_operacao)}</div>
+                <div className="font-medium">{labelTipoOperacao(r.tipo_operacao)}{numero ? ` — ${numero}` : ""}</div>
                 <div className="text-xs text-muted-foreground">
                   {r.profissional_nome}
                   {r.profissional_crm ? ` — CRM ${r.profissional_crm}` : ""}
@@ -152,7 +172,8 @@ function ListaRender({ data, isLoading }: { data: RegistroLista[] | undefined; i
                 })}
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>
@@ -164,16 +185,29 @@ function ListaHistorico({ pacienteId, ehInstitucional }: { pacienteId: string; e
     queryKey: ["registros_atendimento", pacienteId],
     enabled: ehInstitucional,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("registros_atendimento" as any)
-        .select("id, tipo_operacao, profissional_nome, profissional_crm, profissional_especialidade, created_at")
-        .eq("paciente_id", pacienteId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as unknown as RegistroLista[];
+      // 40B (3.6): além dos registros, carrega as consultas da paciente (mesma
+      // ordenação do getDisplayName) para compor "Caso Novo / Retorno N" no render.
+      const [regRes, consRes] = await Promise.all([
+        supabase
+          .from("registros_atendimento" as any)
+          .select("id, tipo_operacao, recurso_id, profissional_nome, profissional_crm, profissional_especialidade, created_at")
+          .eq("paciente_id", pacienteId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("consultas" as any)
+          .select("id, tipo, data, created_at")
+          .eq("paciente_id", pacienteId)
+          .order("data", { ascending: true })
+          .order("created_at", { ascending: true }),
+      ]);
+      if (regRes.error) throw regRes.error;
+      return {
+        registros: (regRes.data ?? []) as unknown as RegistroLista[],
+        consultas: (consRes.data ?? []) as unknown as ConsultaOrdenada[],
+      };
     },
   });
 
   if (!ehInstitucional) return null;
-  return <ListaRender data={data} isLoading={isLoading} />;
+  return <ListaRender data={data?.registros} consultas={data?.consultas} isLoading={isLoading} />;
 }

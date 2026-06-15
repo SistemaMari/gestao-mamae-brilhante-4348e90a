@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { addDays, differenceInDays } from 'date-fns';
 import { calcIgHojeFromDum, calcIgHojeFromUsg, formatIgCurto } from '@/lib/fichaUtils';
 import IgOrigemTooltip from '@/components/ficha/IgOrigemTooltip';
+import { carimbarAtendimento } from '@/lib/carimbar';
 
 type UsgRow = {
   id: string;
@@ -206,20 +207,26 @@ export default function UsgManagerCard({
       return;
     }
 
+    // 40B (3.3): registra a inserção da USG no histórico de atendimentos.
+    const novoId = (novaUsg as unknown as { id: string }).id;
+    await carimbarAtendimento({ pacienteId, tipoOperacao: 'inserir_usg', recursoId: novoId, recursoTipo: 'usg' });
+
     // Se o usuário escolheu uma referência no fluxo de adicionar, persiste em pacientes.
     if (usgFlow.referenciaIg === 'usg') {
-      const novoId = (novaUsg as unknown as { id: string }).id;
       const { error: refErr } = await supabase
         .from('pacientes')
         .update({ referencia_ig: 'usg', referencia_usg_id: novoId } as any)
         .eq('id', pacienteId);
       if (refErr) console.error('[UsgManagerCard] falha ao atualizar referencia_ig=usg:', refErr);
+      // 40B (3.3): a nova USG virou a referência de IG → registra a troca.
+      else await carimbarAtendimento({ pacienteId, tipoOperacao: 'trocar_referencia_ig', recursoId: novoId, recursoTipo: 'paciente' });
     } else if (usgFlow.referenciaIg === 'dum') {
       const { error: refErr } = await supabase
         .from('pacientes')
         .update({ referencia_ig: 'dum', referencia_usg_id: null } as any)
         .eq('id', pacienteId);
       if (refErr) console.error('[UsgManagerCard] falha ao atualizar referencia_ig=dum:', refErr);
+      else await carimbarAtendimento({ pacienteId, tipoOperacao: 'trocar_referencia_ig', recursoTipo: 'paciente' });
     }
 
     setSaving(false);
@@ -322,6 +329,8 @@ export default function UsgManagerCard({
         .update(refUpdate as any)
         .eq('id', pacienteId);
       if (refErr) console.error('[UsgManagerCard] falha ao realocar referência após exclusão:', refErr);
+      // 40B (3.3): a exclusão realocou a referência de IG → registra a troca.
+      else await carimbarAtendimento({ pacienteId, tipoOperacao: 'trocar_referencia_ig', recursoId: refUpdate.referencia_usg_id ?? undefined, recursoTipo: 'paciente' });
     }
 
     setSaving(false);
@@ -345,6 +354,8 @@ export default function UsgManagerCard({
       toast.error('Erro ao atualizar referência.');
       return;
     }
+    // 40B (3.3): troca explícita da referência de IG.
+    await carimbarAtendimento({ pacienteId, tipoOperacao: 'trocar_referencia_ig', recursoId: payload.referencia_usg_id ?? undefined, recursoTipo: 'paciente' });
     toast.success('Referência de IG atualizada.');
     setOpenEdit(false);
     invalidarIg();

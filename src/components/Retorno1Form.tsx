@@ -696,9 +696,10 @@ export default function Retorno1Form({
     const { carimbarAtendimento } = await import('@/lib/carimbar');
     await carimbarAtendimento({
       pacienteId: paciente.id,
-      tipoOperacao: 'retorno',
+      // 40B (3.4): criação carimba só no 1º save; reabrir/reeditar → reabrir_consulta
+      tipoOperacao: editingConsulta ? 'reabrir_consulta' : 'retorno',
       recursoId: consultaId ?? undefined,
-      recursoTipo: 'retorno',
+      recursoTipo: editingConsulta ? 'consulta' : 'retorno',
     });
 
     setSaving(false);

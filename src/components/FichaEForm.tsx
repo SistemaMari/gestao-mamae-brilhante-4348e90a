@@ -431,9 +431,10 @@ export default function FichaEForm({
       const { carimbarAtendimento } = await import('@/lib/carimbar');
       await carimbarAtendimento({
         pacienteId: paciente.id,
-        tipoOperacao: 'preencher_ficha_e' as any,
+        // 40B (3.2/3.4): cast removido — tipo válido no 40A; criação só no 1º save
+        tipoOperacao: editingConsulta ? 'reabrir_consulta' : 'preencher_ficha_e',
         recursoId: consultaId ?? undefined,
-        recursoTipo: 'ficha',
+        recursoTipo: editingConsulta ? 'consulta' : 'ficha',
       });
 
       setSavedResult({ percentual: percentual!, adequado: isAdequado });
