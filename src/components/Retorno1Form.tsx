@@ -207,6 +207,22 @@ export default function Retorno1Form({
     setIgDias(String(igCalculada.dias));
   }, [igCalculada, editingResult, editingConsulta, igSemanas, igDias]);
 
+  // 34D — ao reabrir uma ficha para EDITAR, pré-preenche a IG com o valor AO VIVO
+  // na data do exame (âncora atual), não o congelado. Roda uma vez e só enquanto o
+  // campo ainda está intocado (igual ao seed congelado) — assim não sobrescreve
+  // rascunho restaurado, edição manual nem o refetch ao focar a aba.
+  const igEditPrefilledRef = useRef(false);
+  useEffect(() => {
+    if (igEditPrefilledRef.current) return;
+    if (!editingConsulta || editingResult) return;
+    if (!igCalculada) return;
+    igEditPrefilledRef.current = true;
+    const seedSem = editingConsulta.ig_semanas != null ? String(editingConsulta.ig_semanas) : '';
+    if (igSemanas !== seedSem) return; // rascunho/edição manual presente — preserva
+    setIgSemanas(String(igCalculada.semanas));
+    setIgDias(String(igCalculada.dias));
+  }, [editingConsulta, editingResult, igCalculada, igSemanas]);
+
   /**
    * Atualiza a data do exame E recalcula IG inline.
    * Disparado APENAS pelo onChange do input de data — não reage a mudanças de `paciente`,

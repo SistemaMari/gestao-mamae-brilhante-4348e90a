@@ -143,12 +143,18 @@ export default function FichaBDForm({
   const [igSemanas, setIgSemanas] = useState(editingConsulta?.ig_semanas != null ? String(editingConsulta.ig_semanas) : '');
   const [igDias, setIgDias] = useState(editingConsulta?.ig_dias != null ? String(editingConsulta.ig_dias) : '');
 
+  // 34D — pré-preenche a IG (ficha nova OU reabertura p/ editar) com o valor AO VIVO
+  // na data da consulta, pela âncora ATUAL (não o congelado da época). Refaz só
+  // quando a data muda; o refetch ao focar a aba não sobrescreve o que foi digitado.
+  // Sem âncora (igAtual=null) mantém o seed.
+  const igPrefilledForDateRef = useRef<string | null>(null);
   useEffect(() => {
-    if (igAtual && !editingConsulta) {
-      setIgSemanas(String(igAtual.semanas));
-      setIgDias(String(igAtual.dias));
-    }
-  }, [igAtual, editingConsulta]);
+    if (!igAtual) return;
+    if (igPrefilledForDateRef.current === dataConsulta) return;
+    igPrefilledForDateRef.current = dataConsulta;
+    setIgSemanas(String(igAtual.semanas));
+    setIgDias(String(igAtual.dias));
+  }, [igAtual, dataConsulta]);
 
   const igSemNum = parseInt(igSemanas) || 0;
 
