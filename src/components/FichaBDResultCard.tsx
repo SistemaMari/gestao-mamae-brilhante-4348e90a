@@ -51,7 +51,7 @@ export default function FichaBDResultCard({
   return (
     <div className="rounded-xl border-2 p-5 space-y-4" style={{ backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' }}>
       <h2 className="text-base font-bold" style={{ color: '#991B1B' }}>
-        ENCERRAMENTO DA DRA. MARI — {veredito.titulo}
+        ENCERRAMENTO DA MARI — {veredito.titulo}
       </h2>
 
       <div className="rounded-lg bg-white/70 p-3">
