@@ -551,9 +551,10 @@ export default function FichaACForm({
       const { carimbarAtendimento } = await import('@/lib/carimbar');
       await carimbarAtendimento({
         pacienteId: paciente.id,
-        tipoOperacao: 'preencher_ficha_ac',
+        // 40B (3.4): criação carimba só no 1º save; reabrir/reeditar → reabrir_consulta
+        tipoOperacao: editingConsulta ? 'reabrir_consulta' : 'preencher_ficha_ac',
         recursoId: consultaId ?? undefined,
-        recursoTipo: 'ficha',
+        recursoTipo: editingConsulta ? 'consulta' : 'ficha',
       });
 
       // 36B REV3 — Persistência auditável da decisão (apenas Ficha A com checklist completo)

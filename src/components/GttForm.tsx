@@ -392,8 +392,10 @@ export default function GttForm({
     const { carimbarAtendimento } = await import('@/lib/carimbar');
     await carimbarAtendimento({
       pacienteId: paciente.id,
-      tipoOperacao: 'preencher_gtt',
-      recursoTipo: 'gtt',
+      // 40B (3.4): criação carimba só no 1º save; reabrir/reeditar → reabrir_consulta
+      tipoOperacao: editingConsulta ? 'reabrir_consulta' : 'preencher_gtt',
+      recursoId: gttConsultaId ?? undefined,
+      recursoTipo: editingConsulta ? 'consulta' : 'gtt',
     });
 
     setSaving(false);

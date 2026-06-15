@@ -489,9 +489,10 @@ export default function FichaBDForm({
       const { carimbarAtendimento } = await import('@/lib/carimbar');
       await carimbarAtendimento({
         pacienteId: paciente.id,
-        tipoOperacao: 'preencher_ficha_bd',
+        // 40B (3.4): criação carimba só no 1º save; reabrir/reeditar → reabrir_consulta
+        tipoOperacao: editingConsulta ? 'reabrir_consulta' : 'preencher_ficha_bd',
         recursoId: consultaId ?? undefined,
-        recursoTipo: 'ficha',
+        recursoTipo: editingConsulta ? 'consulta' : 'ficha',
       });
 
       setSavedResult({ percentual: percentual!, adequado: isAdequado });
