@@ -147,12 +147,18 @@ export default function GttForm({
   const igCalculadaQuery = useIg(paciente.id, dataExame || null);
   const igCalculada = igCalculadaQuery.data ?? null;
 
+  // 34D — pré-preenche a IG (ficha nova OU reabertura p/ editar) com o valor AO VIVO
+  // na data do exame, calculado pela âncora ATUAL (não o congelado da época). Refaz
+  // só quando a data muda (igPrefilledForDateRef); o refetch ao focar a aba não
+  // sobrescreve o que o médico digitou. Sem âncora (igCalculada=null) mantém o seed.
+  const igPrefilledForDateRef = useRef<string | null>(null);
   useEffect(() => {
-    if (igCalculada && !editingConsulta) {
-      setIgSemanas(String(igCalculada.semanas));
-      setIgDias(String(igCalculada.dias));
-    }
-  }, [igCalculada, editingConsulta]);
+    if (!igCalculada) return;
+    if (igPrefilledForDateRef.current === dataExame) return;
+    igPrefilledForDateRef.current = dataExame;
+    setIgSemanas(String(igCalculada.semanas));
+    setIgDias(String(igCalculada.dias));
+  }, [igCalculada, dataExame]);
 
   // 34C-B2: "IG hoje" via fonte única — usada apenas para o texto da
   // recomendação ("ultrassom para datar..." se < 20s; senão "para crescimento").

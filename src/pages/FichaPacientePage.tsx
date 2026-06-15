@@ -80,7 +80,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 // Dynamic display name based on chronological index
-function getDisplayName(c: PreviewConsulta, index: number, allConsultas: PreviewConsulta[]): string {
+function getDisplayName(c: PreviewConsulta, index: number, allConsultas: PreviewConsulta[], igSemanasAoVivo: number | null): string {
   // Registro do parto NÃO é numerado como RETORNO N — é evento final
   if (c.tipo === 'registro_parto') {
     return 'REGISTRO DO PARTO';
@@ -104,7 +104,7 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
       if (isFirst) {
         return `${prefix} — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo`;
       }
-      const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: c.ig_semanas });
+      const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSemanasAoVivo });
       return `${prefix} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × ${dias} dias)`;
     }
     case 'ficha_b':
@@ -113,7 +113,7 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
       if (isFirst) {
         return `${prefix} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`;
       }
-      const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: c.ig_semanas });
+      const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSemanasAoVivo });
       return `${prefix} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × ${dias} dias)`;
     }
     case 'ficha_e':
@@ -1375,13 +1375,15 @@ export default function FichaPacientePage() {
             {consultasHistorico.map((c) => {
               // Find chronological index for dynamic numbering
               const chronologicalIndex = consultas.findIndex(cx => cx.id === c.id);
-              const displayName = getDisplayName(c, chronologicalIndex, consultas);
-
               // 34C-B: IG do header da consulta vem da fonte única
               // (calcular_ig na data da consulta). Sem fallback DUM-diff:
               // se a paciente não tem âncora, igDisplay = null e o badge
               // simplesmente não renderiza (em vez de mostrar 0s 0d falso).
               const igDisplay = igConsultaMap.get(c.id) ?? null;
+
+              // 34D — o rótulo da timeline ("× N dias") decide pelo limiar de 30 sem:
+              // usa a IG AO VIVO na data da consulta (âncora atual), não a congelada.
+              const displayName = getDisplayName(c, chronologicalIndex, consultas, igDisplay?.semanas ?? null);
 
               return (
               <AccordionItem
@@ -1634,7 +1636,7 @@ export default function FichaPacientePage() {
                               doseManha={c.dose_manha}
                               doseNoite={c.dose_noite}
                               peso={c.peso_kg}
-                              igSemanas={c.ig_semanas}
+                              igSemanas={igDisplay?.semanas ?? null}
                               pacienteId={paciente.id}
                               consultaId={c.id}
                               isPreview={isPreview}
