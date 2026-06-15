@@ -10,7 +10,7 @@ type: feature
 - Em `isPreview` (`/vitrine/...`), `useLaudoIA` devolve template demo (não chama IA, não consome quota).
 
 ## Estrutura (8 elementos)
-1. **Cabeçalho** (`LaudoCabecalho`) — fundo branco, borda inferior `#D6BCFA`. Título "Laudo Dra. Mari DMG Diagnóstica", paciente, IG, data, badge cenário.
+1. **Cabeçalho** (`LaudoCabecalho`) — fundo branco, borda inferior `#D6BCFA`. Título "Laudo MARI", paciente, IG, data, badge cenário.
 2. **Bloco 1** (children) — cards clínicos atuais (Consulta1ResultCard, Retorno1ResultCard, FichaACResultCard, FichaBDResultCard, GttResultCard, EncerramentoPartoCard, RegistroPartoReadOnlyCard).
 3. **Grade glicêmica compacta** (`GradeGlicemicaCompacta`) — readonly 4 ou 6 pontos × N dias, células `#DCFCE7`/`#FEE2E2`, `—` vazias, % no rodapé.
 4. **Bloco 2 — Justificativa** (`Bloco2Justificativa`) — card lavanda `#F1F0FB` / borda `#D6BCFA`, título DM Serif `#7E69AB`. Markdown via `react-markdown` + `remark-gfm`.
@@ -50,7 +50,7 @@ interface LaudoCompletoProps {
 ## Print (`src/styles/print.css`)
 - `.no-print` oculto; `.print-only` exibido.
 - `@page { margin: 15mm }`. Cards com `page-break-inside: avoid` e `-webkit-print-color-adjust: exact`.
-- Rodapé legal `print-only`: "Gerado por Dra. Mari DMG Diagnóstica — [data] — Este documento não substitui a avaliação médica.".
+- Rodapé legal `print-only`: "Gerado por MARI — [data] — Este documento não substitui a avaliação médica.".
 - Múltiplos laudos: `page-break-before: always` entre `.laudo-completo`.
 
 ## Mapeamento de cenário (`src/lib/laudoMapping.ts`)
