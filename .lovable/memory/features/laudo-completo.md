@@ -50,7 +50,7 @@ interface LaudoCompletoProps {
 ## Print (`src/styles/print.css`)
 - `.no-print` oculto; `.print-only` exibido.
 - `@page { margin: 15mm }`. Cards com `page-break-inside: avoid` e `-webkit-print-color-adjust: exact`.
-- Rodapé legal `print-only`: "Gerado por Dra. Mari DMG Diagnóstica — [data] — Este documento não substitui a avaliação médica.".
+- Rodapé legal `print-only`: "Gerado por MARI — [data] — Este documento não substitui a avaliação médica.".
 - Múltiplos laudos: `page-break-before: always` entre `.laudo-completo`.
 
 ## Mapeamento de cenário (`src/lib/laudoMapping.ts`)
