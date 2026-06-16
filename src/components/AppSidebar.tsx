@@ -26,7 +26,7 @@ const navByProfile: Record<string, NavItem[]> = {
   institucional: [
     { label: 'Pacientes', icon: Users, path: '/dashboard' },
     { label: 'Nova paciente', icon: UserPlus, path: '/paciente/nova' },
-    { label: 'Históricos', icon: History, path: '/laudos' },
+    
     { label: 'Perfil', icon: UserCircle, path: '/perfil' },
   ],
   gestor: [
