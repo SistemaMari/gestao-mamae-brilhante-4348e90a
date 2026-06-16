@@ -21,7 +21,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  VARIAVEIS_LAUDO, labelCenario, labelBloco, variaveisDesconhecidas, ajudaCenario, type LaudoTextoRow,
+  VARIAVEIS_LAUDO, labelCenario, labelBloco, variaveisDesconhecidas, ajudaCenario,
+  cenarioTecnicoOculto, type LaudoTextoRow,
 } from '@/lib/laudoTextosAdmin';
 
 interface BlocoAgrupado {
@@ -82,7 +83,10 @@ export default function LaudoTextosPage() {
       else if (r.status === 'rascunho') b.rascunho = r;
     }
     for (const cen of map.values()) cen.blocos.sort((a, b) => a.ordem_bloco - b.ordem_bloco);
-    return [...map.values()];
+    // Oculta cenários técnicos/legados (redes de segurança) — continuam no banco.
+    return [...map.values()].filter(
+      (c) => !cenarioTecnicoOculto(c.tipo_consulta, c.desfecho_clinico),
+    );
   }, [data]);
 
   const totalRascunhos = useMemo(

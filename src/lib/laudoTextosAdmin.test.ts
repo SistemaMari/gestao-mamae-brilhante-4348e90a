@@ -5,6 +5,7 @@ import {
   labelBloco,
   labelCenario,
   ajudaCenario,
+  cenarioTecnicoOculto,
 } from './laudoTextosAdmin';
 
 describe('laudoTextosAdmin', () => {
@@ -37,5 +38,14 @@ describe('laudoTextosAdmin', () => {
     expect(ajudaCenario('ficha_c', 'r3_insulina')).toBe(ajudaCenario('ficha_a', 'r3_insulina'));
     expect(ajudaCenario('ficha_d', '4')).toBe(ajudaCenario('ficha_b', '4'));
     expect(ajudaCenario('consulta_1', 'xyz')).toBeNull();
+  });
+
+  it('oculta cenários técnicos/legados, mantém os reais', () => {
+    expect(cenarioTecnicoOculto('retorno_1', '6')).toBe(true);
+    expect(cenarioTecnicoOculto('ficha_a', '2')).toBe(true);
+    expect(cenarioTecnicoOculto('ficha_c', '3')).toBe(true);
+    expect(cenarioTecnicoOculto('retorno_1', '1')).toBe(false);
+    expect(cenarioTecnicoOculto('gtt', '6')).toBe(false);
+    expect(cenarioTecnicoOculto('ficha_a', 'r3_insulina')).toBe(false);
   });
 });

@@ -155,3 +155,17 @@ export function ajudaCenario(tipo: string, desfecho: string): string | null {
   const t = tipo === 'ficha_c' ? 'ficha_a' : tipo === 'ficha_d' ? 'ficha_b' : tipo;
   return AJUDA_CENARIO[`${t}::${desfecho}`] ?? null;
 }
+
+/**
+ * Cenários técnicos/legados (redes de segurança) que NÃO aparecem no editor —
+ * continuam no banco, mas somem da UI de edição para não confundir:
+ *  - (retorno_1, '6'): resíduo do bug do #23 — Retorno 1 que recebia código de GTT;
+ *    é cópia do '1' (DMG pela glicemia de jejum).
+ *  - (ficha_a/c, '2'|'3'): fallbacks usados só quando a conduta não foi computada
+ *    (cópias da Regra 1 e da Regra 3).
+ */
+export function cenarioTecnicoOculto(tipo: string, desfecho: string): boolean {
+  if (tipo === 'retorno_1' && desfecho === '6') return true;
+  if ((tipo === 'ficha_a' || tipo === 'ficha_c') && (desfecho === '2' || desfecho === '3')) return true;
+  return false;
+}
