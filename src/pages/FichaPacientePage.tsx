@@ -1188,6 +1188,7 @@ export default function FichaPacientePage() {
           variaveis={montarVariaveisLaudo({
             paciente: { nome: paciente.nome },
             consulta: primeiraConsulta,
+            consultas,
             ig: igNaConsulta1,
             janelaGTT,
           })}
@@ -1730,6 +1731,7 @@ export default function FichaPacientePage() {
                               variaveis={montarVariaveisLaudo({
                                 paciente: { nome: paciente.nome },
                                 consulta: c,
+                                consultas,
                                 ig: igLaudo,
                                 janelaGTT: c.tipo === 'retorno_1' ? janelaGTT : null,
                               })}
