@@ -584,13 +584,9 @@ export default function FichaPacientePage() {
         if (peso == null || peso <= 0) continue; // aguarda confirmação de peso
       }
 
-      const desfecho = derivarDesfechoClinico({
-        tipo: c.tipo,
-        status_gerado: c.status_gerado,
-        decisao: c.decisao,
-        percentual_meta: c.percentual_meta,
-        cenario_clinico: c.cenario_clinico,
-      });
+      // 34D-C: passa a consulta inteira (carrega regra_aplicada/proxima_ficha_recomendada)
+      // para a Ficha A/C ter chave de laudo por conduta.
+      const desfecho = derivarDesfechoClinico(c);
       laudoTextos.garantir(c.id, c.tipo, desfecho);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1589,13 +1585,7 @@ export default function FichaPacientePage() {
                                     }
                                   }
                                   // Recarrega os textos agora que o peso/dose foram confirmados
-                                  const desfechoPeso = derivarDesfechoClinico({
-                                    tipo: c.tipo,
-                                    status_gerado: c.status_gerado,
-                                    decisao: c.decisao,
-                                    percentual_meta: c.percentual_meta,
-                                    cenario_clinico: c.cenario_clinico,
-                                  });
+                                  const desfechoPeso = derivarDesfechoClinico(c);
                                   laudoTextos.tentarNovamente(c.id, c.tipo, desfechoPeso);
                                 }}
                               />
@@ -1701,13 +1691,7 @@ export default function FichaPacientePage() {
 
                         {(() => {
                           const estadoC = laudoTextos.getEstado(c.id);
-                          const desfechoC = derivarDesfechoClinico({
-                            tipo: c.tipo,
-                            status_gerado: c.status_gerado,
-                            decisao: c.decisao,
-                            percentual_meta: c.percentual_meta,
-                            cenario_clinico: c.cenario_clinico,
-                          });
+                          const desfechoC = derivarDesfechoClinico(c);
                           const tipoOpConsulta =
                             c.tipo === 'consulta_1' ? 'consulta_inicial'
                             : c.tipo === 'retorno_1' ? 'retorno'
