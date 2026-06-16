@@ -23,7 +23,17 @@ export async function carimbarAtendimento(args: {
       reportarFalhaCarimbo(args, error.message ?? "erro no RPC carimbar_atendimento");
       return null;
     }
-    return (data as string | null) ?? null;
+    const registroId = (data as string | null) ?? null;
+    // Sinaliza o carimbo para a UI invalidar as queries de histórico
+    // (registros_atendimento / autoria_ficha) sem depender de refresh — o
+    // refetchOnWindowFocus está desligado (34B.1, Bug B), então a atualização
+    // precisa ser explícita.
+    if (registroId && typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("carimbo:sucesso", { detail: { pacienteId: args.pacienteId } }),
+      );
+    }
+    return registroId;
   } catch (err) {
     reportarFalhaCarimbo(args, err instanceof Error ? err.message : String(err));
     return null;
