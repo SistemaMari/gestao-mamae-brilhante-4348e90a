@@ -24,6 +24,8 @@ export interface LaudoCompletoProps {
   variaveis?: VariaveisLaudo;
   /** Oculta a seção de blocos textuais — cenários card-only (Caso Novo, parto, encerramento) */
   ocultarTextosLaudo?: boolean;
+  /** Período da monitorização (fichas de perfil): datas dd/MM/yyyy + nº de dias preenchidos. */
+  periodoMonitorado?: { inicio: string | null; fim: string | null; dias: number | null } | null;
   gradeGlicemica?: GradeGlicemicaProps | null;
   proximaFichaTexto?: string | null;
   notasTecnicas?: string[];
@@ -43,6 +45,7 @@ export default function LaudoCompleto({
   estado,
   variaveis,
   ocultarTextosLaudo,
+  periodoMonitorado,
   gradeGlicemica,
   proximaFichaTexto: _proximaFichaTexto,
   notasTecnicas,
@@ -67,6 +70,18 @@ export default function LaudoCompleto({
       />
 
       <div className="space-y-3 p-4">
+        {/* Período monitorado (fichas de perfil) — quando começou/terminou e
+            quantos dias a paciente preencheu. */}
+        {periodoMonitorado && (periodoMonitorado.inicio || periodoMonitorado.fim) && (
+          <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">Período monitorado:</span>{' '}
+            {periodoMonitorado.inicio ?? '—'} a {periodoMonitorado.fim ?? '—'}
+            {periodoMonitorado.dias != null && (
+              <> · {periodoMonitorado.dias} {periodoMonitorado.dias === 1 ? 'dia' : 'dias'} preenchido{periodoMonitorado.dias === 1 ? '' : 's'}</>
+            )}
+          </div>
+        )}
+
         {/* Bloco 1 — conteúdo clínico atual */}
         <div className="laudo-card">{children}</div>
 

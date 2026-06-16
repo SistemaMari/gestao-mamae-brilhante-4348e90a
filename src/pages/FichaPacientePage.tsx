@@ -68,7 +68,7 @@ import {
 } from '@/components/ui/collapsible';
 import { differenceInYears, differenceInDays, addDays, format } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
-import { montarVariaveisLaudo } from '@/lib/laudoVariaveis';
+import { montarVariaveisLaudo, contarDiasPreenchidos } from '@/lib/laudoVariaveis';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 
 
@@ -1756,6 +1756,16 @@ export default function FichaPacientePage() {
                                 janelaGTT: c.tipo === 'retorno_1' ? janelaGTT : null,
                               })}
                               ocultarTextosLaudo={cenarioSemTextoLaudo(c)}
+                              periodoMonitorado={
+                                (c.tipo === 'ficha_a' || c.tipo === 'ficha_c' ||
+                                 c.tipo === 'ficha_b' || c.tipo === 'ficha_d' || c.tipo === 'ficha_e')
+                                  ? {
+                                      inicio: c.data_inicio ? formatDateBR(c.data_inicio) : null,
+                                      fim: c.data_fim ? formatDateBR(c.data_fim) : null,
+                                      dias: contarDiasPreenchidos(c.grid_valores),
+                                    }
+                                  : null
+                              }
                               onTentarNovamente={() => laudoTextos.tentarNovamente(c.id, c.tipo, desfechoC)}
                               janelaGTT={c.tipo === 'retorno_1' ? janelaGTT : null}
                               igMaior24={igMaior24}

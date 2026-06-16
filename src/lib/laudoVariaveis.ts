@@ -106,6 +106,38 @@ export interface DadosConsultaLaudo {
   dose_total?: number | null;
   dose_manha?: number | null;
   dose_noite?: number | null;
+  /** Grade do perfil (linha = dia, coluna = ponto). Fonte de [dias preenchidos]. */
+  grid_valores?: Array<Record<string, string>> | null;
+}
+
+/**
+ * Conta os DIAS preenchidos no perfil = linhas da grade com ao menos um valor.
+ * NÃO confundir com `total_preenchidos` (nº de células/valores = dias × pontos):
+ * usar aquele em "[dias preenchidos]" mostrava, p.ex., 36 em vez de 6.
+ */
+export function contarDiasPreenchidos(grid?: Array<Record<string, string>> | null): number | null {
+  if (!grid || grid.length === 0) return null;
+  const dias = grid.filter((linha) =>
+    Object.values(linha ?? {}).some((v) => String(v ?? '').trim() !== ''),
+  ).length;
+  return dias > 0 ? dias : null;
+}
+
+/**
+ * Última dose total de insulina vigente até a consulta atual. A própria consulta
+ * tem prioridade; se não guarda dose (ex.: Ficha B/D só monitora), busca a mais
+ * recente das consultas anteriores (≤ data da atual) que registrou dose.
+ */
+export function ultimaDoseInsulina(
+  consultas: Array<{ id?: string; data?: string | null; dose_total?: number | null }>,
+  atual: { id?: string; data?: string | null; dose_total?: number | null },
+): number | null {
+  if (atual.dose_total != null) return atual.dose_total;
+  const comDose = consultas
+    .filter((c) => c.id !== atual.id && c.dose_total != null)
+    .filter((c) => !atual.data || !c.data || c.data <= atual.data)
+    .sort((a, b) => (a.data ?? '').localeCompare(b.data ?? ''));
+  return comDose.length ? (comDose[comDose.length - 1].dose_total ?? null) : null;
 }
 
 /**
@@ -147,7 +179,7 @@ export function calcularDataProximoRetornoLaudo(
 export function montarVariaveisLaudo(params: {
   paciente: { nome: string };
   consulta: DadosConsultaLaudo;
-  consultas?: Array<{ id?: string; tipo?: string | null }>;
+  consultas?: Array<{ id?: string; tipo?: string | null; data?: string | null; dose_total?: number | null }>;
   ig: IgInfo;
   janelaGTT?: { inicio: Date; fim: Date } | null;
 }): VariaveisLaudo {
@@ -176,10 +208,12 @@ export function montarVariaveisLaudo(params: {
     'data do próximo retorno': fmtDataISO(
       calcularDataProximoRetornoLaudo(consulta, consultas, ig?.semanas ?? null),
     ),
-    'dias preenchidos': fmtNum(consulta.total_preenchidos),
+    'dias preenchidos': fmtNum(contarDiasPreenchidos(consulta.grid_valores)),
     '% na meta': fmtPercent(consulta.percentual_meta),
     'dose total de insulina': fmtDose(doseTotal),
-    'dose atual de insulina': fmtDose(doseTotal),
+    // "atual" = dose vigente; na Ficha B/D (que não guarda dose) puxa da consulta
+    // anterior que a iniciou/ajustou.
+    'dose atual de insulina': fmtDose(ultimaDoseInsulina(consultas, consulta)),
     'dose manhã': fmtDose(doseManha),
     'dose noite': fmtDose(doseNoite),
   };
