@@ -4,6 +4,7 @@ import {
   variaveisDesconhecidas,
   labelBloco,
   labelCenario,
+  ajudaCenario,
 } from './laudoTextosAdmin';
 
 describe('laudoTextosAdmin', () => {
@@ -29,5 +30,12 @@ describe('laudoTextosAdmin', () => {
     expect(labelBloco('justificativa')).toBe('Justificativa Científica');
     expect(labelBloco('bloco_xyz')).toBe('bloco_xyz');
     expect(labelCenario('retorno_1', '1')).toContain('Retorno 1');
+  });
+
+  it('ajuda do cenário: Ficha C↔A e Ficha D↔B compartilham; desconhecido → null', () => {
+    expect(ajudaCenario('ficha_a', 'r3_insulina')).toContain('insulina');
+    expect(ajudaCenario('ficha_c', 'r3_insulina')).toBe(ajudaCenario('ficha_a', 'r3_insulina'));
+    expect(ajudaCenario('ficha_d', '4')).toBe(ajudaCenario('ficha_b', '4'));
+    expect(ajudaCenario('consulta_1', 'xyz')).toBeNull();
   });
 });
