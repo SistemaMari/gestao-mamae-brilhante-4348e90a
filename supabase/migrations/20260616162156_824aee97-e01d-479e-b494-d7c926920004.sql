@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Gestor geral ve profissionais das suas unidades" ON public.profissionais;
