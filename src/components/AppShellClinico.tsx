@@ -74,7 +74,7 @@ const navClinicoConsultorio: NavItem[] = [
 const navClinicoInstitucional: NavItem[] = [
   { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
-  { labelKey: 'nav.history', icon: FileText, path: '/laudos' },
+  
 ];
 
 // Gestor / gestor_geral normalmente não passam por AppShellClinico, mas se
