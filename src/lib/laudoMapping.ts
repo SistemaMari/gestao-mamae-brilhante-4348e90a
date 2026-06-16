@@ -152,3 +152,19 @@ export function cenarioLabel(cenario: Cenario): string {
 export function semProximaFicha(cenario: Cenario): boolean {
   return cenario === 5 || cenario === 7 || cenario === 'negativo';
 }
+
+/**
+ * Cenários "card-only": o laudo é 100% o card de resultado (bloco 1), sem blocos
+ * textuais 2/3 em `laudo_textos` — logo NÃO deve exibir o placeholder
+ * "Texto pendente — solicitar ao time clínico". São eles:
+ *  - Caso Novo (`consulta_1`): o laudo é o "Pedido de exame";
+ *  - Parto (cenário 5): card de registro/encerramento do parto;
+ *  - Encerramento por controle inadequado com insulina (Ficha B/D < 70% =
+ *    cenário 7): card de referenciamento ao endócrino.
+ * Os demais cenários têm texto publicado (diagnósticos, Ficha A/C, Ficha B/D ≥70%).
+ */
+export function cenarioSemTextoLaudo(c: ConsultaParaMapear): boolean {
+  if (c.tipo === 'consulta_1') return true;
+  const cen = mapearCenario(c);
+  return cen === 5 || cen === 7;
+}
