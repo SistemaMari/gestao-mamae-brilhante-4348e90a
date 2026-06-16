@@ -1,4 +1,6 @@
-import { format } from 'date-fns';
+import { addDays, format } from 'date-fns';
+import { parseDateLocal } from '@/lib/dateUtils';
+import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 
 /**
  * Substituição das variáveis [entre colchetes] dos textos de `laudo_textos`.
@@ -92,7 +94,9 @@ function fmtPercent(n: number | null | undefined): string | null {
 
 /** Subconjunto do objeto de consulta hidratado em FichaPacientePage relevante ao laudo. */
 export interface DadosConsultaLaudo {
+  id?: string;
   tipo?: string | null;
+  data?: string | null;
   retorno1_valor_gj?: number | null;
   gtt_jejum?: number | null;
   gtt_1h?: number | null;
@@ -102,7 +106,6 @@ export interface DadosConsultaLaudo {
   dose_total?: number | null;
   dose_manha?: number | null;
   dose_noite?: number | null;
-  data_proximo_retorno?: string | null;
 }
 
 /**
@@ -110,14 +113,55 @@ export interface DadosConsultaLaudo {
  * `ig` é a IG ao vivo da consulta (na data da consulta, âncora atual — 34D);
  * para a consulta de GTT essa IG já é o "[IG no GTT]".
  */
+const TIPOS_PERFIL = ['ficha_a', 'ficha_c', 'ficha_b', 'ficha_d', 'ficha_e'];
+
+/**
+ * Data do próximo retorno PARA O LAUDO de uma consulta de perfil (Ficha A/C/B/D/E).
+ * A coluna `data_proximo_retorno` existe só na tabela `pacientes` (uma data, a
+ * "próxima") — então, no laudo de cada consulta, calculamos a data por consulta:
+ * `data da consulta + intervalo da conduta`, replicando exatamente os forms
+ * (via calcularIntervaloRetornoDias). Tipos sem retorno datado (Caso Novo,
+ * diagnósticos) → null.
+ */
+export function calcularDataProximoRetornoLaudo(
+  consulta: { id?: string; tipo?: string | null; data?: string | null },
+  consultas: Array<{ id?: string; tipo?: string | null }>,
+  igSemanas: number | null,
+): string | null {
+  const tipo = consulta.tipo ?? '';
+  if (!TIPOS_PERFIL.includes(tipo)) return null;
+  const d = consulta.data ? parseDateLocal(consulta.data) : null;
+  if (!d) return null;
+
+  // Espelha os forms: Ficha E = 7d; 1ª Ficha A/C (1º perfil) = 10d;
+  // demais = 15d (≤30 sem) / 7d (>30 sem).
+  const ehFichaE = tipo === 'ficha_e';
+  const ehPrimeiroPerfil =
+    (tipo === 'ficha_a' || tipo === 'ficha_c') &&
+    !consultas.some((x) => x.id !== consulta.id && TIPOS_PERFIL.includes(x.tipo ?? ''));
+
+  const dias = calcularIntervaloRetornoDias({ ehFichaE, ehPrimeiroPerfil, igSemanas });
+  return format(addDays(d, dias), 'yyyy-MM-dd');
+}
+
 export function montarVariaveisLaudo(params: {
   paciente: { nome: string };
   consulta: DadosConsultaLaudo;
+  consultas?: Array<{ id?: string; tipo?: string | null }>;
   ig: IgInfo;
   janelaGTT?: { inicio: Date; fim: Date } | null;
 }): VariaveisLaudo {
-  const { paciente, consulta, ig, janelaGTT } = params;
+  const { paciente, consulta, consultas = [], ig, janelaGTT } = params;
   const igTexto = fmtIg(ig);
+
+  // Doses: usa as gravadas (motor da Ficha A) ou deriva ⅔ manhã / ⅓ noite da total
+  // — mesma regra do motor (fichaADecisao) e do card (FichaACResultCard). Cobre
+  // registros em que só a dose total foi persistida (peso informado pelo card).
+  const doseTotal = consulta.dose_total ?? null;
+  const doseManha =
+    consulta.dose_manha ?? (doseTotal != null ? Math.round((doseTotal * 2 / 3) * 10) / 10 : null);
+  const doseNoite =
+    consulta.dose_noite ?? (doseTotal != null ? Math.round((doseTotal / 3) * 10) / 10 : null);
 
   return {
     'nome da paciente': paciente?.nome ?? null,
@@ -129,12 +173,14 @@ export function montarVariaveisLaudo(params: {
     'GTT 2h': fmtNum(consulta.gtt_2h),
     'janela GTT início': janelaGTT ? format(janelaGTT.inicio, 'dd/MM/yyyy') : null,
     'janela GTT fim': janelaGTT ? format(janelaGTT.fim, 'dd/MM/yyyy') : null,
-    'data do próximo retorno': fmtDataISO(consulta.data_proximo_retorno),
+    'data do próximo retorno': fmtDataISO(
+      calcularDataProximoRetornoLaudo(consulta, consultas, ig?.semanas ?? null),
+    ),
     'dias preenchidos': fmtNum(consulta.total_preenchidos),
     '% na meta': fmtPercent(consulta.percentual_meta),
-    'dose total de insulina': fmtDose(consulta.dose_total),
-    'dose atual de insulina': fmtDose(consulta.dose_total),
-    'dose manhã': fmtDose(consulta.dose_manha),
-    'dose noite': fmtDose(consulta.dose_noite),
+    'dose total de insulina': fmtDose(doseTotal),
+    'dose atual de insulina': fmtDose(doseTotal),
+    'dose manhã': fmtDose(doseManha),
+    'dose noite': fmtDose(doseNoite),
   };
 }
