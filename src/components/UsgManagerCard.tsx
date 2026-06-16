@@ -211,22 +211,28 @@ export default function UsgManagerCard({
     const novoId = (novaUsg as unknown as { id: string }).id;
     await carimbarAtendimento({ pacienteId, tipoOperacao: 'inserir_usg', recursoId: novoId, recursoTipo: 'usg' });
 
-    // Se o usuário escolheu uma referência no fluxo de adicionar, persiste em pacientes.
+    // Define a referência de IG após adicionar a USG:
+    //  - escolha explícita do médico no fluxo (usg/dum) sempre manda;
+    //  - sem escolha: a USG vence a DUM (1ª USG = referência preferencial) quando
+    //    a referência atual NÃO é uma USG; se já houver USG de referência, mantém
+    //    a atual — a troca ENTRE USGs é manual ("sem default" entre USGs).
+    let novaRef: { referencia_ig: 'usg' | 'dum'; referencia_usg_id: string | null } | null = null;
     if (usgFlow.referenciaIg === 'usg') {
-      const { error: refErr } = await supabase
-        .from('pacientes')
-        .update({ referencia_ig: 'usg', referencia_usg_id: novoId } as any)
-        .eq('id', pacienteId);
-      if (refErr) console.error('[UsgManagerCard] falha ao atualizar referencia_ig=usg:', refErr);
-      // 40B (3.3): a nova USG virou a referência de IG → registra a troca.
-      else await carimbarAtendimento({ pacienteId, tipoOperacao: 'trocar_referencia_ig', recursoId: novoId, recursoTipo: 'paciente' });
+      novaRef = { referencia_ig: 'usg', referencia_usg_id: novoId };
     } else if (usgFlow.referenciaIg === 'dum') {
+      novaRef = { referencia_ig: 'dum', referencia_usg_id: null };
+    } else if (referenciaIg !== 'usg') {
+      // Sem escolha e a referência atual é DUM/indefinida → preferir a nova USG.
+      novaRef = { referencia_ig: 'usg', referencia_usg_id: novoId };
+    }
+    if (novaRef) {
       const { error: refErr } = await supabase
         .from('pacientes')
-        .update({ referencia_ig: 'dum', referencia_usg_id: null } as any)
+        .update(novaRef as any)
         .eq('id', pacienteId);
-      if (refErr) console.error('[UsgManagerCard] falha ao atualizar referencia_ig=dum:', refErr);
-      else await carimbarAtendimento({ pacienteId, tipoOperacao: 'trocar_referencia_ig', recursoTipo: 'paciente' });
+      if (refErr) console.error('[UsgManagerCard] falha ao atualizar referência de IG:', refErr);
+      // 40B (3.3): a referência de IG mudou → registra a troca.
+      else await carimbarAtendimento({ pacienteId, tipoOperacao: 'trocar_referencia_ig', recursoId: novaRef.referencia_usg_id ?? undefined, recursoTipo: 'paciente' });
     }
 
     setSaving(false);

@@ -78,9 +78,13 @@ export default function UsgFlowSection({
   const semRefDefinida =
     dumDesconhecida && (!jaPossuiUsg && (value.jaFezUsg !== 'sim' || !igPreenchida));
 
-  // Quando DUM é desconhecida e USG é registrada, força referência = USG.
+  // A 1ª USG é a referência preferencial (USG do 1º trimestre data melhor que a
+  // DUM): ao preenchê-la, assume USG por padrão — mesmo havendo DUM — e também
+  // quando não há DUM. Só aplica se o médico ainda não escolheu manualmente (ele
+  // pode marcar DUM). Em USGs subsequentes (2ª+) não força: a troca entre USGs é
+  // manual ("sem default" entre USGs).
   const handleUsgFilled = () => {
-    if (dumDesconhecida && value.referenciaIg !== 'usg') {
+    if (value.referenciaIg == null && (ehPrimeira || dumDesconhecida)) {
       set({ referenciaIg: 'usg' });
     }
   };
