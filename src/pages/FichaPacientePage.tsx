@@ -54,7 +54,7 @@ import { type UsgRefInput } from '@/lib/fichaUtils';
 import { useIg, useIgBatch } from '@/lib/getIg';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import PlaceholderBlocoLaudo from '@/components/laudo/PlaceholderBlocoLaudo';
-import { mapearCenario, derivarDesfechoClinico } from '@/lib/laudoMapping';
+import { mapearCenario, derivarDesfechoClinico, cenarioSemTextoLaudo } from '@/lib/laudoMapping';
 import { type JanelaPosPrandial, normalizarJanela } from '@/lib/posPrandial';
 import { useLaudoTextos } from '@/hooks/useLaudoTextos';
 import { useAutoriaFicha } from '@/hooks/useAutoriaFicha';
@@ -1191,6 +1191,7 @@ export default function FichaPacientePage() {
             ig: igNaConsulta1,
             janelaGTT,
           })}
+          ocultarTextosLaudo={cenarioSemTextoLaudo(primeiraConsulta)}
           onTentarNovamente={() => laudoTextos.tentarNovamente(primeiraConsulta.id, 'consulta_1', desfechoStandalone)}
           proximaFichaTexto={janelaGTT ? `GTT 75g entre ${format(janelaGTT.inicio, 'dd/MM/yyyy')} e ${format(janelaGTT.fim, 'dd/MM/yyyy')}.` : null}
         >
@@ -1732,6 +1733,7 @@ export default function FichaPacientePage() {
                                 ig: igLaudo,
                                 janelaGTT: c.tipo === 'retorno_1' ? janelaGTT : null,
                               })}
+                              ocultarTextosLaudo={cenarioSemTextoLaudo(c)}
                               onTentarNovamente={() => laudoTextos.tentarNovamente(c.id, c.tipo, desfechoC)}
                               janelaGTT={c.tipo === 'retorno_1' ? janelaGTT : null}
                               igMaior24={igMaior24}

@@ -1,10 +1,8 @@
 import { type ReactNode } from 'react';
-import { Printer } from 'lucide-react';
 import LaudoCabecalho from './LaudoCabecalho';
 import BlocosTextoLaudo from './BlocosTextoLaudo';
 import GradeGlicemicaCompacta, { type GradeGlicemicaProps } from './GradeGlicemicaCompacta';
 import NotasTecnicasCard from './NotasTecnicasCard';
-import InstrucaoCtrlP from './InstrucaoCtrlP';
 import JanelaGttCard from './JanelaGttCard';
 import { type Cenario } from '@/lib/laudoMapping';
 import type { EstadoTextos } from '@/hooks/useLaudoTextos';
@@ -24,6 +22,8 @@ export interface LaudoCompletoProps {
   estado: EstadoTextos;
   /** Variáveis [entre colchetes] a substituir nos textos do laudo */
   variaveis?: VariaveisLaudo;
+  /** Oculta a seção de blocos textuais — cenários card-only (Caso Novo, parto, encerramento) */
+  ocultarTextosLaudo?: boolean;
   gradeGlicemica?: GradeGlicemicaProps | null;
   proximaFichaTexto?: string | null;
   notasTecnicas?: string[];
@@ -42,6 +42,7 @@ export default function LaudoCompleto({
   children,
   estado,
   variaveis,
+  ocultarTextosLaudo,
   gradeGlicemica,
   proximaFichaTexto: _proximaFichaTexto,
   notasTecnicas,
@@ -49,11 +50,11 @@ export default function LaudoCompleto({
   igMaior24,
   onTentarNovamente,
 }: LaudoCompletoProps) {
-  // Critérios 6/7: PDF só é liberado quando os textos oficiais estão publicados.
-  // Não há botão "Gerar PDF" neste app — o PDF é gerado via Ctrl+P do navegador.
-  // O bloqueio se traduz em: esconder a instrução de Ctrl+P e o rodapé legal
-  // impresso, e exibir um controle desabilitado (focável, com tooltip).
-  const podeImprimir = estado.status === 'completo';
+  // Critério 6/7: o rodapé legal impresso só aparece quando os textos oficiais
+  // estão publicados (laudo completo). A UI de impressão na tela (botão e a
+  // instrução de Ctrl+P) foi removida a pedido do time clínico — a impressão
+  // continua disponível pelo Ctrl+P nativo do navegador.
+  const mostrarRodapeLegal = estado.status === 'completo';
 
   return (
     <article className="laudo-completo overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -77,33 +78,22 @@ export default function LaudoCompleto({
         {/* Grade compacta (Fichas A/B/C/D) */}
         {gradeGlicemica && <GradeGlicemicaCompacta {...gradeGlicemica} />}
 
-        {/* Textos fixos do laudo (34D-B) — blocos publicados ou placeholder/estado */}
-        <BlocosTextoLaudo estado={estado} variaveis={variaveis} onTentarNovamente={onTentarNovamente} />
+        {/* Textos fixos do laudo (34D-B) — blocos publicados ou placeholder/estado.
+            Cenários card-only (Caso Novo, parto, encerramento) não têm textos em
+            laudo_textos: omitimos a seção em vez de exibir "Texto pendente". */}
+        {!ocultarTextosLaudo && (
+          <BlocosTextoLaudo estado={estado} variaveis={variaveis} onTentarNovamente={onTentarNovamente} />
+        )}
 
         {/* Notas técnicas */}
         <NotasTecnicasCard notas={notasTecnicas} />
 
-        {podeImprimir ? (
-          <>
-            {/* Instrução Ctrl+P (não imprime) */}
-            <InstrucaoCtrlP />
-
-            {/* Rodapé legal — só impresso */}
-            <p className="print-only mt-4 text-center text-[10px] text-muted-foreground">
-              Gerado por MARI — {dataLaudo.toLocaleDateString('pt-BR')} — Este documento não substitui a avaliação médica.
-            </p>
-          </>
-        ) : (
-          <button
-            type="button"
-            aria-disabled="true"
-            title="Aguardando publicação dos textos pelo time clínico."
-            onClick={(e) => e.preventDefault()}
-            className="no-print inline-flex cursor-not-allowed items-center gap-2 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1.5 text-[11px] text-[#94A3B8] opacity-80"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            <span>Salvar/Imprimir PDF (Ctrl+P) — indisponível</span>
-          </button>
+        {/* Rodapé legal — só no impresso (Ctrl+P nativo). Sem botão nem instrução
+            de PDF na tela, a pedido do time clínico. */}
+        {mostrarRodapeLegal && (
+          <p className="print-only mt-4 text-center text-[10px] text-muted-foreground">
+            Gerado por MARI — {dataLaudo.toLocaleDateString('pt-BR')} — Este documento não substitui a avaliação médica.
+          </p>
         )}
       </div>
     </article>
