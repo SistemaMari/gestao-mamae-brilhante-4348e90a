@@ -1,34 +1,33 @@
-## Objetivo
-Garantir que em todo o sistema o nome apareça apenas como **MARI**, sem o prefixo "Dra." — conforme regra já registrada na memória do projeto ("nome oficial é apenas MARI").
+## Diagnóstico
 
-## Escopo confirmado
-Apenas o título visível na UI e a documentação interna do laudo. Placeholders de cadastro, contas de teste/seed, emails `@dramari` e crédito de autoria humana ficam intocados.
+Confirmei no banco:
 
-## Alterações
+- `roberto.costa@unesp.br` — usuário existe, email confirmado em 11/05, **`last_sign_in_at` = null** (nunca conseguiu logar).
+- `suportemari@novodmg.com.br` — mesma situação: existe, confirmado, **nunca logou**.
+- As outras 4 contas institucionais logaram hoje normalmente.
 
-### 1. UI — `src/components/FichaBDResultCard.tsx` (linha 54)
-- **De:** `ENCERRAMENTO DA DRA. MARI — {veredito.titulo}`
-- **Para:** `ENCERRAMENTO DA MARI — {veredito.titulo}`
+Como ambas nunca tiveram um login bem-sucedido, a senha que está hoje no `auth.users` para essas duas **não é** a que você tem na lista (`bwX@FJP&4u8f$NCZ` e `nwm*UXihErP37N4f`). Provavelmente foram criadas com outra senha em 11/05 e nunca atualizadas. Não dá pra ler o hash; precisa resetar.
 
-Este é o título do cartão de encerramento (Cenário 7, controle inadequado) — exatamente o que aparece no screenshot enviado.
+## Plano
 
-### 2. Documentação — `.lovable/memory/features/laudo-completo.md`
-- Linha 13: `Título "Laudo Dra. Mari DMG Diagnóstica"` → `Título "Laudo MARI"`
-- Linha 53: `Gerado por Dra. Mari DMG Diagnóstica — [data] …` → `Gerado por MARI — [data] …`
+Criar uma edge function temporária `reset-senhas-teste` (protegida por header secreto) que usa a service role para chamar `auth.admin.updateUserById` e gravar a senha desejada para cada um dos dois emails.
 
-Alinha o doc com a regra já presente em `mem://index.md` (que diz "nome oficial é apenas MARI, sem DMG Diagnóstica ou Dra. Mari").
+1. **Nova edge function `supabase/functions/reset-senhas-teste/index.ts`**
+   - Lê header `x-reset-secret` e compara com secret `RESET_SENHAS_SECRET`.
+   - Recebe body `{ items: [{ email, password }] }`.
+   - Para cada item: busca o user por email (`listUsers` paginado ou `getUserByEmail` via admin) e chama `supabase.auth.admin.updateUserById(id, { password, email_confirm: true })`.
+   - Retorna log por item: `ok` / `not_found` / `error`.
+   - Sem autenticação JWT (`verify_jwt = false` em `config.toml`), protegida só pelo secret.
 
-### 3. Memória core — `.lovable/memory/index.md` (linha 4)
-A primeira linha do Core ainda diz `Dra. Mari DMG Diagnóstica — sistema de apoio diagnóstico para DMG.`. Atualizar para:
-`MARI — sistema de apoio diagnóstico para DMG. Nome oficial é apenas "MARI" (sem "DMG Diagnóstica" ou "Dra. Mari").`
-(remove a contradição interna do próprio index.)
+2. **Secret novo**: `RESET_SENHAS_SECRET` (você confirma e eu adiciono via `add_secret` na hora de implementar).
 
-## Fora de escopo (confirmado com o usuário)
-- Placeholders de input (`"Dra. Maria Silva"`, `"Ex.: Dra. Marilza"`) — exemplos de nome de médica usuária.
-- Seeds/fixtures de teste (`"Dra. Consultório Pro"`, emails `@teste.dramari`, chave `dramari_preview_pacientes_v6`, migração `seed_test_accounts`).
-- Comentário de autoria em `prompt-v52.ts` (`Lucas/Dra. Marilsa`).
-- Banco: `laudo_textos` e `textos_laudo` não contêm "Dra. Mari" (já verificado via psql).
+3. **Execução**: depois do deploy, eu chamo a função com as duas linhas:
+   - `roberto.costa@unesp.br` → `bwX@FJP&4u8f$NCZ`
+   - `suportemari@novodmg.com.br` → `nwm*UXihErP37N4f`
+   E mostro o resultado.
 
-## Verificação
-- `grep -nE "DRA\\.?\\s*MARI|Dra\\.?\\s*Mari\\s+DMG" src supabase` deve retornar vazio após as alterações.
-- Visual: reabrir a tela do Cenário 7 (controle inadequado) e confirmar o título sem "DRA.".
+4. **Limpeza (opcional, recomendado)**: depois que confirmarmos que os dois entram, eu removo a edge function e o secret pra não ficar um endpoint de reset de senha vivo no projeto.
+
+## Observação sobre o `suportemari`
+
+Lembrando do diagnóstico anterior: esse user tem `admin` + linha em `profissionais` com nome "Roberto Costa" vinculada à UBS Demo Pinheiros. O reset de senha não toca nisso — se quiser, dá pra incluir nesse mesmo plano a limpeza (remover a role `institucional` extra e a linha de `profissionais` duplicada). Me diga se quer junto ou separado.
