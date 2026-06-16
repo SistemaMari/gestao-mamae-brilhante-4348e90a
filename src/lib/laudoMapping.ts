@@ -19,6 +19,9 @@ export interface ConsultaParaMapear {
   decisao?: string | null;
   percentual_meta?: number | null;
   cenario_clinico?: string | null;
+  // 34D-C: usados só para Ficha A/C — desfecho por conduta (vêm de decisoes_ficha_a).
+  regra_aplicada?: string | null;
+  proxima_ficha_recomendada?: string | null;
 }
 
 export function mapearCenario(c: ConsultaParaMapear): Cenario {
@@ -62,6 +65,28 @@ export function mapearCenario(c: ConsultaParaMapear): Cenario {
 }
 
 /**
+ * 34D-C — Chave de laudo da Ficha A/C por CONDUTA. Espelha o roteamento de
+ * `fichaADecisao.ts`: cada (regra_aplicada + proxima_ficha_recomendada) vira um
+ * desfecho próprio, para cada conduta ter seu texto. Sem isso, R1/R4a/R4b
+ * (cenário 2) e R2/R3 (cenário 3) dividiriam o mesmo laudo.
+ */
+function chaveCondutaFichaA(
+  regra: string | null | undefined,
+  proxima: string | null | undefined,
+): string | null {
+  const insulina = proxima === 'ficha_b' || proxima === 'ficha_d';
+  switch (regra) {
+    case 'regra_manter': return 'r1_manter';
+    case 'regra_2':      return insulina ? 'r2_insulina' : 'r2_reforcar';
+    case 'regra_3':      return 'r3_insulina';
+    case 'regra_4':
+      if (proxima === 'ficha_e') return 'r4a_fichae';
+      return insulina ? 'r4b_insulina' : 'r4_reforcar';
+    default: return null;
+  }
+}
+
+/**
  * Deriva o `desfecho_clinico` (chave de `laudo_textos`) para uma consulta,
  * usado como parâmetro da Edge Function `obter-textos-laudo` (34D-B).
  *
@@ -80,15 +105,24 @@ export function mapearCenario(c: ConsultaParaMapear): Cenario {
 export function derivarDesfechoClinico(
   c: ConsultaParaMapear & { cenario_clinico?: string | null },
 ): string | null {
+  // 34D-C: Ficha A/C → chave por CONDUTA (regra + próxima ficha), não pelo
+  // cenário grosso '2'/'3'. Se a decisão ainda não foi computada, cai no cenário.
+  if (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') {
+    const chaveConduta = chaveCondutaFichaA(c.regra_aplicada, c.proxima_ficha_recomendada);
+    if (chaveConduta) return chaveConduta;
+  }
+
   const raw = (c.cenario_clinico ?? '').trim();
   if (raw) return raw;
+
+  // 34D-C: GJ negativa (Retorno 1 aguardando GTT) → 'negativo'. Sem isto, o
+  // fallback de mapearCenario devolvia '6' (DMG), escondendo o texto correto.
+  if (c.tipo === 'retorno_1' && c.status_gerado === 'aguardando_gtt') return 'negativo';
 
   const cen = mapearCenario(c);
   if (cen === 'negativo') return 'negativo';
   // Caso Novo e Retorno 1 são determinísticos mesmo sem `cenario_clinico`
-  // gravado: a glicemia de jejum sozinha já fecha o desfecho. Sem isto, o
-  // Retorno 1 com resultado calculado cairia em `ficha_incompleta` ("Complete
-  // os dados clínicos") em vez do placeholder correto "Texto pendente" (38B-B #1).
+  // gravado: a glicemia de jejum sozinha já fecha o desfecho.
   if (c.tipo === 'consulta_1' || c.tipo === 'retorno_1') return String(cen);
 
   // Demais tipos sem `cenario_clinico` → diagnóstico ainda não calculado.
