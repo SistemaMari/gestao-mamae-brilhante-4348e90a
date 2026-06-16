@@ -2390,6 +2390,7 @@ export type Database = {
       refresh_mv_metricas_unidade_manual: { Args: never; Returns: Json }
       refresh_mv_metricas_unidade_seed: { Args: never; Returns: Json }
       resetar_laudos_aniversario: { Args: never; Returns: Json }
+      seed_pacientes_teste_para_gestores: { Args: never; Returns: Json }
     }
     Enums: {
       app_role:
