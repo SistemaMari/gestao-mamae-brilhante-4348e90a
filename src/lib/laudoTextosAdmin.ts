@@ -63,6 +63,7 @@ const DESFECHO_LABEL: Record<string, string> = {
   '2': 'Controle adequado (fallback)',
   '3': 'Controle inadequado → insulina (fallback)',
   '4': 'manter dose de insulina',
+  '7': 'encerrar MARI',
 };
 
 const BLOCO_LABEL: Record<string, string> = {
@@ -148,6 +149,8 @@ const AJUDA_CENARIO: Record<string, string> = {
     'Rede de segurança — controle inadequado com insulina quando o sistema não calculou a conduta detalhada (mesmo texto da Regra 3 — insulina).',
   'ficha_b::4':
     'Acompanhamento com insulina (perfil de 6 pontos) e pelo menos 70% na meta: manter a dose atual de insulina, a dieta e o exercício.',
+  'ficha_b::7':
+    'Acompanhamento com insulina (perfil de 6 pontos) e MENOS de 70% na meta: a dose de insulina está insuficiente e precisa ser reajustada. A MARI encerra o suporte automatizado (não calcula reajuste de dose). O texto deve explicar o próximo passo — ajustar a dose (pelo obstetra, com endocrinologista ou por referenciamento a serviço especializado) — e reforçar que as metas que valem seguem sendo as obstétricas do DMG.',
 };
 
 /** Ajuda contextual do cenário (tooltip). Ficha C↔A e Ficha D↔B compartilham. */
@@ -218,7 +221,7 @@ export function ordemFamilia(familia: string): number {
 const DESFECHO_ORDEM = [
   'negativo', '1', '6', '6B', '8',
   'r1_manter', 'r2_reforcar', 'r2_insulina', 'r3_insulina', 'r4a_fichae', 'r4_reforcar', 'r4b_insulina',
-  '2', '3', '4',
+  '2', '3', '4', '7',
 ];
 export function ordemDesfecho(desfecho: string): number {
   const i = DESFECHO_ORDEM.indexOf(desfecho);
@@ -227,7 +230,10 @@ export function ordemDesfecho(desfecho: string): number {
 
 /** Adequação do controle por conduta — entra no rótulo do retorno. */
 function adequacaoDesfecho(desfecho: string): string {
-  if (desfecho === 'r2_reforcar' || desfecho === 'r2_insulina' || desfecho === 'r3_insulina' || desfecho === '3') {
+  if (
+    desfecho === 'r2_reforcar' || desfecho === 'r2_insulina' || desfecho === 'r3_insulina' ||
+    desfecho === '3' || desfecho === '7'
+  ) {
     return 'inadequado';
   }
   if (desfecho.startsWith('r4')) return 'adequado (com ressalva)';

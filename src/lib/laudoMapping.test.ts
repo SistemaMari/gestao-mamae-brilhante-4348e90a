@@ -12,9 +12,11 @@ describe('cenarioSemTextoLaudo', () => {
     expect(cenarioSemTextoLaudo({ tipo: 'resultado_parto' })).toBe(true);
   });
 
-  it('encerramento por controle inadequado — Ficha B/D < 70% (cenário 7) — é card-only', () => {
-    expect(cenarioSemTextoLaudo({ tipo: 'ficha_b', percentual_meta: 29 })).toBe(true);
-    expect(cenarioSemTextoLaudo({ tipo: 'ficha_d', percentual_meta: 50 })).toBe(true);
+  it('encerramento por controle inadequado — Ficha B/D < 70% (cenário 7) — TEM texto (não é card-only)', () => {
+    // O cenário 7 voltou a ter laudo (Justificativa + Conduta): reajuste de insulina,
+    // encerramento da MARI e metas obstétricas. O card vermelho segue como bloco 1.
+    expect(cenarioSemTextoLaudo({ tipo: 'ficha_b', percentual_meta: 29 })).toBe(false);
+    expect(cenarioSemTextoLaudo({ tipo: 'ficha_d', percentual_meta: 50 })).toBe(false);
   });
 
   it('Ficha B/D adequada (≥70%, cenário 4) NÃO é card-only — tem texto', () => {
