@@ -8,6 +8,7 @@ import InstrucaoCtrlP from './InstrucaoCtrlP';
 import JanelaGttCard from './JanelaGttCard';
 import { type Cenario } from '@/lib/laudoMapping';
 import type { EstadoTextos } from '@/hooks/useLaudoTextos';
+import type { VariaveisLaudo } from '@/lib/laudoVariaveis';
 
 export interface LaudoCompletoProps {
   paciente: { nome: string };
@@ -21,6 +22,8 @@ export interface LaudoCompletoProps {
   children: ReactNode;
   /** Estado dos textos fixos do laudo (34D-B) */
   estado: EstadoTextos;
+  /** Variáveis [entre colchetes] a substituir nos textos do laudo */
+  variaveis?: VariaveisLaudo;
   gradeGlicemica?: GradeGlicemicaProps | null;
   proximaFichaTexto?: string | null;
   notasTecnicas?: string[];
@@ -38,6 +41,7 @@ export default function LaudoCompleto({
   cenario,
   children,
   estado,
+  variaveis,
   gradeGlicemica,
   proximaFichaTexto: _proximaFichaTexto,
   notasTecnicas,
@@ -74,7 +78,7 @@ export default function LaudoCompleto({
         {gradeGlicemica && <GradeGlicemicaCompacta {...gradeGlicemica} />}
 
         {/* Textos fixos do laudo (34D-B) — blocos publicados ou placeholder/estado */}
-        <BlocosTextoLaudo estado={estado} onTentarNovamente={onTentarNovamente} />
+        <BlocosTextoLaudo estado={estado} variaveis={variaveis} onTentarNovamente={onTentarNovamente} />
 
         {/* Notas técnicas */}
         <NotasTecnicasCard notas={notasTecnicas} />

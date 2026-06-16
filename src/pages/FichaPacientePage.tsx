@@ -67,6 +67,7 @@ import {
 } from '@/components/ui/collapsible';
 import { differenceInYears, differenceInDays, addDays, format } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
+import { montarVariaveisLaudo } from '@/lib/laudoVariaveis';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 
 
@@ -424,6 +425,9 @@ export default function FichaPacientePage() {
             status_gerado: c.status_gerado,
             status_ficha: c.status_ficha ?? null,
             cenario_clinico: c.cenario_clinico ?? null,
+            // Hidrata a data do próximo retorno (persistida pelos forms) para que o
+            // laudo substitua [data do próximo retorno] também após reload/no histórico.
+            data_proximo_retorno: c.data_proximo_retorno ?? null,
             // Ficha A/C profile hydration
             percentual_meta: perfil?.percentual_meta != null ? Number(perfil.percentual_meta) : null,
             // PROMPT 38A FIX (#8) — hidrata agregado do perfil glicêmico para que
@@ -1181,6 +1185,12 @@ export default function FichaPacientePage() {
           dataLaudo={parseDateLocal(primeiraConsulta.data) ?? new Date()}
           cenario={cenarioStandalone}
           estado={estadoStandalone}
+          variaveis={montarVariaveisLaudo({
+            paciente: { nome: paciente.nome },
+            consulta: primeiraConsulta,
+            ig: igNaConsulta1,
+            janelaGTT,
+          })}
           onTentarNovamente={() => laudoTextos.tentarNovamente(primeiraConsulta.id, 'consulta_1', desfechoStandalone)}
           proximaFichaTexto={janelaGTT ? `GTT 75g entre ${format(janelaGTT.inicio, 'dd/MM/yyyy')} e ${format(janelaGTT.fim, 'dd/MM/yyyy')}.` : null}
         >
@@ -1716,6 +1726,12 @@ export default function FichaPacientePage() {
                               dataLaudo={dataLaudo}
                               cenario={cenario}
                               estado={estadoC}
+                              variaveis={montarVariaveisLaudo({
+                                paciente: { nome: paciente.nome },
+                                consulta: c,
+                                ig: igLaudo,
+                                janelaGTT: c.tipo === 'retorno_1' ? janelaGTT : null,
+                              })}
                               onTentarNovamente={() => laudoTextos.tentarNovamente(c.id, c.tipo, desfechoC)}
                               janelaGTT={c.tipo === 'retorno_1' ? janelaGTT : null}
                               igMaior24={igMaior24}
