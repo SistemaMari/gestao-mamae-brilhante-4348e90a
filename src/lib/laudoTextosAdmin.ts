@@ -169,3 +169,58 @@ export function cenarioTecnicoOculto(tipo: string, desfecho: string): boolean {
   if ((tipo === 'ficha_a' || tipo === 'ficha_c') && (desfecho === '2' || desfecho === '3')) return true;
   return false;
 }
+
+// ── Agrupamento por família ───────────────────────────────────────────────────
+// Ficha A/C e Ficha B/D têm textos IDÊNTICOS (varia só a IG: A/B até 30 sem;
+// C/D após 30 sem). No editor elas viram um item só, editado de uma vez.
+
+/** Família do cenário: funde Ficha A/C e Ficha B/D; demais ficam como estão. */
+export function familiaTipo(tipo: string): string {
+  if (tipo === 'ficha_a' || tipo === 'ficha_c') return 'ficha_ac';
+  if (tipo === 'ficha_b' || tipo === 'ficha_d') return 'ficha_bd';
+  return tipo;
+}
+
+/** Tipo representante da família — reusa ajudaCenario/labelDesfecho/oculto por tipo. */
+export function tipoRepresentante(familia: string): string {
+  if (familia === 'ficha_ac') return 'ficha_a';
+  if (familia === 'ficha_bd') return 'ficha_b';
+  return familia;
+}
+
+const FAMILIA_LABEL: Record<string, string> = {
+  retorno_1: 'Retorno 1 (glicemia de jejum)',
+  gtt: 'GTT 75g',
+  ficha_ac: 'Retorno 2 — perfil de 4 pontos (sem insulina)',
+  ficha_bd: 'Acompanhamento com insulina — perfil de 6 pontos',
+};
+
+export function labelFamilia(familia: string): string {
+  return FAMILIA_LABEL[familia] ?? familia;
+}
+
+/** Nota exibida nos cenários agrupados (texto único p/ até 30 sem e após). */
+export function notaFamilia(familia: string): string | null {
+  if (familia === 'ficha_ac') {
+    return 'Texto único para até 30 semanas (Ficha A) e após 30 semanas (Ficha C) — editar aqui atualiza os dois.';
+  }
+  if (familia === 'ficha_bd') {
+    return 'Texto único para até 30 semanas (Ficha B) e após 30 semanas (Ficha D) — editar aqui atualiza os dois.';
+  }
+  return null;
+}
+
+const FAMILIA_ORDEM: Record<string, number> = { retorno_1: 1, gtt: 2, ficha_ac: 3, ficha_bd: 4 };
+export function ordemFamilia(familia: string): number {
+  return FAMILIA_ORDEM[familia] ?? 99;
+}
+
+const DESFECHO_ORDEM = [
+  'negativo', '1', '6', '6B', '8',
+  'r1_manter', 'r2_reforcar', 'r2_insulina', 'r3_insulina', 'r4a_fichae', 'r4_reforcar', 'r4b_insulina',
+  '2', '3', '4',
+];
+export function ordemDesfecho(desfecho: string): number {
+  const i = DESFECHO_ORDEM.indexOf(desfecho);
+  return i < 0 ? 99 : i;
+}

@@ -21,19 +21,20 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  VARIAVEIS_LAUDO, labelCenario, labelBloco, variaveisDesconhecidas, ajudaCenario,
-  cenarioTecnicoOculto, type LaudoTextoRow,
+  VARIAVEIS_LAUDO, labelBloco, labelDesfecho, variaveisDesconhecidas, ajudaCenario,
+  cenarioTecnicoOculto, familiaTipo, tipoRepresentante, labelFamilia, notaFamilia,
+  ordemFamilia, ordemDesfecho, type LaudoTextoRow,
 } from '@/lib/laudoTextosAdmin';
 
 interface BlocoAgrupado {
   bloco: string;
   ordem_bloco: number;
-  publicado: LaudoTextoRow | null;
-  rascunho: LaudoTextoRow | null;
+  publicados: LaudoTextoRow[]; // 1 (Retorno 1/GTT) ou 2 (Ficha A/C e B/D)
+  rascunhos: LaudoTextoRow[];
 }
 interface CenarioAgrupado {
   key: string;
-  tipo_consulta: string;
+  familia: string;
   desfecho_clinico: string;
   blocos: BlocoAgrupado[];
 }
@@ -42,7 +43,7 @@ export default function LaudoTextosPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const [editando, setEditando] = useState<BlocoAgrupado | null>(null);
+  const [editando, setEditando] = useState<{ cenario: CenarioAgrupado; bloco: BlocoAgrupado } | null>(null);
   const [formTexto, setFormTexto] = useState('');
   const [formTitulo, setFormTitulo] = useState('');
   const [saving, setSaving] = useState(false);
@@ -56,8 +57,6 @@ export default function LaudoTextosPage() {
         .from('laudo_textos')
         .select('id, tipo_consulta, desfecho_clinico, bloco, ordem_bloco, titulo_bloco, texto, versao, status, observacoes')
         .in('status', ['publicado', 'rascunho'])
-        .order('tipo_consulta', { ascending: true })
-        .order('desfecho_clinico', { ascending: true })
         .order('ordem_bloco', { ascending: true });
       if (error) throw error;
       return (data ?? []) as LaudoTextoRow[];
@@ -68,69 +67,78 @@ export default function LaudoTextosPage() {
     const rows = data ?? [];
     const map = new Map<string, CenarioAgrupado>();
     for (const r of rows) {
-      const key = `${r.tipo_consulta}::${r.desfecho_clinico}`;
+      const familia = familiaTipo(r.tipo_consulta);
+      const key = `${familia}::${r.desfecho_clinico}`;
       let cen = map.get(key);
       if (!cen) {
-        cen = { key, tipo_consulta: r.tipo_consulta, desfecho_clinico: r.desfecho_clinico, blocos: [] };
+        cen = { key, familia, desfecho_clinico: r.desfecho_clinico, blocos: [] };
         map.set(key, cen);
       }
       let b = cen.blocos.find((x) => x.bloco === r.bloco);
       if (!b) {
-        b = { bloco: r.bloco, ordem_bloco: r.ordem_bloco, publicado: null, rascunho: null };
+        b = { bloco: r.bloco, ordem_bloco: r.ordem_bloco, publicados: [], rascunhos: [] };
         cen.blocos.push(b);
       }
-      if (r.status === 'publicado') b.publicado = r;
-      else if (r.status === 'rascunho') b.rascunho = r;
+      if (r.status === 'publicado') b.publicados.push(r);
+      else if (r.status === 'rascunho') b.rascunhos.push(r);
     }
     for (const cen of map.values()) cen.blocos.sort((a, b) => a.ordem_bloco - b.ordem_bloco);
-    // Oculta cenários técnicos/legados (redes de segurança) — continuam no banco.
-    return [...map.values()].filter(
-      (c) => !cenarioTecnicoOculto(c.tipo_consulta, c.desfecho_clinico),
-    );
+    // Oculta cenários técnicos/legados (rede de segurança) e ordena por família/desfecho.
+    return [...map.values()]
+      .filter((c) => !cenarioTecnicoOculto(tipoRepresentante(c.familia), c.desfecho_clinico))
+      .sort(
+        (a, b) =>
+          ordemFamilia(a.familia) - ordemFamilia(b.familia) ||
+          ordemDesfecho(a.desfecho_clinico) - ordemDesfecho(b.desfecho_clinico),
+      );
   }, [data]);
 
   const totalRascunhos = useMemo(
-    () => cenarios.reduce((acc, c) => acc + c.blocos.filter((b) => b.rascunho).length, 0),
+    () => cenarios.reduce((acc, c) => acc + c.blocos.filter((b) => b.rascunhos.length > 0).length, 0),
     [cenarios],
   );
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['admin-laudo-textos'] });
 
-  const abrirEdicao = (b: BlocoAgrupado) => {
-    const base = b.rascunho ?? b.publicado;
-    setEditando(b);
+  const abrirEdicao = (cenario: CenarioAgrupado, bloco: BlocoAgrupado) => {
+    const base = bloco.rascunhos[0] ?? bloco.publicados[0];
+    setEditando({ cenario, bloco });
     setFormTexto(base?.texto ?? '');
     setFormTitulo(base?.titulo_bloco ?? '');
   };
 
+  // Salva o mesmo texto/título como rascunho em TODOS os registros do bloco
+  // (Ficha A/C e B/D = 2 registros; demais = 1).
   const salvarRascunho = async () => {
-    if (!editando?.publicado) return;
+    if (!editando || editando.bloco.publicados.length === 0) return;
     if (!formTexto.trim()) {
       toast.error('O texto não pode ficar vazio.');
       return;
     }
-    const pub = editando.publicado;
     setSaving(true);
     try {
-      if (editando.rascunho) {
-        const { error } = await supabase
-          .from('laudo_textos')
-          .update({ texto: formTexto, titulo_bloco: formTitulo || null })
-          .eq('id', editando.rascunho.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('laudo_textos').insert({
-          tipo_consulta: pub.tipo_consulta,
-          desfecho_clinico: pub.desfecho_clinico,
-          bloco: pub.bloco,
-          ordem_bloco: pub.ordem_bloco,
-          titulo_bloco: formTitulo || null,
-          texto: formTexto,
-          status: 'rascunho',
-          versao: (pub.versao ?? 1) + 1,
-          criado_por: user?.id ?? null,
-        });
-        if (error) throw error;
+      for (const pub of editando.bloco.publicados) {
+        const rasc = editando.bloco.rascunhos.find((r) => r.tipo_consulta === pub.tipo_consulta);
+        if (rasc) {
+          const { error } = await supabase
+            .from('laudo_textos')
+            .update({ texto: formTexto, titulo_bloco: formTitulo || null })
+            .eq('id', rasc.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from('laudo_textos').insert({
+            tipo_consulta: pub.tipo_consulta,
+            desfecho_clinico: pub.desfecho_clinico,
+            bloco: pub.bloco,
+            ordem_bloco: pub.ordem_bloco,
+            titulo_bloco: formTitulo || null,
+            texto: formTexto,
+            status: 'rascunho',
+            versao: (pub.versao ?? 1) + 1,
+            criado_por: user?.id ?? null,
+          });
+          if (error) throw error;
+        }
       }
       toast.success('Rascunho salvo. Publique para valer no laudo.');
       setEditando(null);
@@ -143,23 +151,28 @@ export default function LaudoTextosPage() {
     }
   };
 
+  // Aplica o rascunho ao(s) publicado(s) e remove o(s) rascunho(s).
   const publicar = async () => {
     const alvo = publicarAlvo;
-    if (!alvo?.rascunho || !alvo.publicado) return;
+    if (!alvo || alvo.rascunhos.length === 0) return;
     setSaving(true);
     try {
-      const { error: upErr } = await supabase
-        .from('laudo_textos')
-        .update({
-          texto: alvo.rascunho.texto,
-          titulo_bloco: alvo.rascunho.titulo_bloco,
-          publicado_em: new Date().toISOString(),
-          publicado_por: user?.id ?? null,
-        })
-        .eq('id', alvo.publicado.id);
-      if (upErr) throw upErr;
-      const { error: delErr } = await supabase.from('laudo_textos').delete().eq('id', alvo.rascunho.id);
-      if (delErr) throw delErr;
+      for (const pub of alvo.publicados) {
+        const rasc = alvo.rascunhos.find((r) => r.tipo_consulta === pub.tipo_consulta);
+        if (!rasc) continue;
+        const { error: upErr } = await supabase
+          .from('laudo_textos')
+          .update({
+            texto: rasc.texto,
+            titulo_bloco: rasc.titulo_bloco,
+            publicado_em: new Date().toISOString(),
+            publicado_por: user?.id ?? null,
+          })
+          .eq('id', pub.id);
+        if (upErr) throw upErr;
+        const { error: delErr } = await supabase.from('laudo_textos').delete().eq('id', rasc.id);
+        if (delErr) throw delErr;
+      }
       toast.success('Texto publicado. Já vale nos novos laudos.');
       setPublicarAlvo(null);
       refresh();
@@ -173,11 +186,13 @@ export default function LaudoTextosPage() {
 
   const descartar = async () => {
     const alvo = descartarAlvo;
-    if (!alvo?.rascunho) return;
+    if (!alvo || alvo.rascunhos.length === 0) return;
     setSaving(true);
     try {
-      const { error } = await supabase.from('laudo_textos').delete().eq('id', alvo.rascunho.id);
-      if (error) throw error;
+      for (const rasc of alvo.rascunhos) {
+        const { error } = await supabase.from('laudo_textos').delete().eq('id', rasc.id);
+        if (error) throw error;
+      }
       toast.success('Rascunho descartado.');
       setDescartarAlvo(null);
       refresh();
@@ -222,8 +237,9 @@ export default function LaudoTextosPage() {
       ) : (
         <Accordion type="multiple" className="space-y-2">
           {cenarios.map((cen) => {
-            const rascunhosNoCenario = cen.blocos.filter((b) => b.rascunho).length;
-            const ajuda = ajudaCenario(cen.tipo_consulta, cen.desfecho_clinico);
+            const rascunhosNoCenario = cen.blocos.filter((b) => b.rascunhos.length > 0).length;
+            const ajuda = ajudaCenario(tipoRepresentante(cen.familia), cen.desfecho_clinico);
+            const nota = notaFamilia(cen.familia);
             return (
               <AccordionItem
                 key={cen.key}
@@ -234,7 +250,7 @@ export default function LaudoTextosPage() {
                   <span className="flex flex-wrap items-center gap-2 text-left">
                     <FileText className="h-4 w-4 shrink-0 text-[#7C4DBA]" />
                     <span className="font-medium text-[#334155]">
-                      {labelCenario(cen.tipo_consulta, cen.desfecho_clinico)}
+                      {labelFamilia(cen.familia)} · {labelDesfecho(cen.desfecho_clinico)}
                     </span>
                     {ajuda && (
                       <Tooltip>
@@ -260,14 +276,20 @@ export default function LaudoTextosPage() {
                   </span>
                 </AccordionTrigger>
                 <AccordionContent className="space-y-3 pb-4">
+                  {nota && (
+                    <div className="flex items-start gap-2 rounded-md bg-[#F1F0FB] px-3 py-2 text-xs text-[#5B21B6]">
+                      <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>{nota}</span>
+                    </div>
+                  )}
                   {cen.blocos.map((b) => (
                     <div key={b.bloco} className="rounded-md border border-[#E2E8F0] p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <h3 className="text-sm font-semibold text-[#5B3A8E]">{labelBloco(b.bloco)}</h3>
                         <div className="flex items-center gap-2">
-                          {b.rascunho ? (
+                          {b.rascunhos.length > 0 ? (
                             <>
-                              <Button size="sm" variant="outline" onClick={() => abrirEdicao(b)}>
+                              <Button size="sm" variant="outline" onClick={() => abrirEdicao(cen, b)}>
                                 <Pencil className="mr-1 h-3.5 w-3.5" /> Editar rascunho
                               </Button>
                               <Button
@@ -287,7 +309,7 @@ export default function LaudoTextosPage() {
                               </Button>
                             </>
                           ) : (
-                            <Button size="sm" variant="outline" onClick={() => abrirEdicao(b)}>
+                            <Button size="sm" variant="outline" onClick={() => abrirEdicao(cen, b)}>
                               <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
                             </Button>
                           )}
@@ -295,16 +317,16 @@ export default function LaudoTextosPage() {
                       </div>
 
                       <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
-                        {b.publicado?.texto ?? <span className="italic">Sem versão publicada.</span>}
+                        {b.publicados[0]?.texto ?? <span className="italic">Sem versão publicada.</span>}
                       </p>
 
-                      {b.rascunho && (
+                      {b.rascunhos.length > 0 && (
                         <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2">
                           <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
                             Rascunho pendente
                           </p>
                           <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-amber-900">
-                            {b.rascunho.texto}
+                            {b.rascunhos[0].texto}
                           </p>
                         </div>
                       )}
@@ -321,16 +343,22 @@ export default function LaudoTextosPage() {
       <Dialog open={!!editando} onOpenChange={(o) => { if (!o) setEditando(null); }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Editar texto{editando ? ` — ${labelBloco(editando.bloco)}` : ''}</DialogTitle>
+            <DialogTitle>Editar texto{editando ? ` — ${labelBloco(editando.bloco.bloco)}` : ''}</DialogTitle>
             <DialogDescription>
-              {editando?.publicado
-                ? labelCenario(editando.publicado.tipo_consulta, editando.publicado.desfecho_clinico)
+              {editando
+                ? `${labelFamilia(editando.cenario.familia)} · ${labelDesfecho(editando.cenario.desfecho_clinico)}`
                 : ''}
               {' · '}A edição vira um rascunho; nada muda no laudo até você publicar.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3">
+            {editando && notaFamilia(editando.cenario.familia) && (
+              <div className="flex items-start gap-2 rounded-md bg-[#F1F0FB] px-3 py-2 text-xs text-[#5B21B6]">
+                <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{notaFamilia(editando.cenario.familia)}</span>
+              </div>
+            )}
             <div className="space-y-1">
               <label className="text-xs font-medium text-[#5B3A8E]">Título do bloco</label>
               <Input value={formTitulo} onChange={(e) => setFormTitulo(e.target.value)} placeholder="(opcional)" />

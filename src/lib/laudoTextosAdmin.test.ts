@@ -6,6 +6,9 @@ import {
   labelCenario,
   ajudaCenario,
   cenarioTecnicoOculto,
+  familiaTipo,
+  ordemFamilia,
+  ordemDesfecho,
 } from './laudoTextosAdmin';
 
 describe('laudoTextosAdmin', () => {
@@ -47,5 +50,18 @@ describe('laudoTextosAdmin', () => {
     expect(cenarioTecnicoOculto('retorno_1', '1')).toBe(false);
     expect(cenarioTecnicoOculto('gtt', '6')).toBe(false);
     expect(cenarioTecnicoOculto('ficha_a', 'r3_insulina')).toBe(false);
+  });
+
+  it('agrupa famílias (A/C, B/D) e ordena Retorno 1 → GTT → fichas', () => {
+    expect(familiaTipo('ficha_a')).toBe('ficha_ac');
+    expect(familiaTipo('ficha_c')).toBe('ficha_ac');
+    expect(familiaTipo('ficha_b')).toBe('ficha_bd');
+    expect(familiaTipo('ficha_d')).toBe('ficha_bd');
+    expect(familiaTipo('retorno_1')).toBe('retorno_1');
+    expect(ordemFamilia('retorno_1')).toBeLessThan(ordemFamilia('gtt'));
+    expect(ordemFamilia('gtt')).toBeLessThan(ordemFamilia('ficha_ac'));
+    expect(ordemFamilia('ficha_ac')).toBeLessThan(ordemFamilia('ficha_bd'));
+    expect(ordemDesfecho('negativo')).toBeLessThan(ordemDesfecho('1'));
+    expect(ordemDesfecho('r1_manter')).toBeLessThan(ordemDesfecho('r3_insulina'));
   });
 });
