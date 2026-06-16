@@ -9,6 +9,7 @@ import {
   familiaTipo,
   ordemFamilia,
   ordemDesfecho,
+  rotuloCenario,
 } from './laudoTextosAdmin';
 
 describe('laudoTextosAdmin', () => {
@@ -63,5 +64,14 @@ describe('laudoTextosAdmin', () => {
     expect(ordemFamilia('ficha_ac')).toBeLessThan(ordemFamilia('ficha_bd'));
     expect(ordemDesfecho('negativo')).toBeLessThan(ordemDesfecho('1'));
     expect(ordemDesfecho('r1_manter')).toBeLessThan(ordemDesfecho('r3_insulina'));
+  });
+
+  it('rótulo do cenário: retornos com adequação + perfil; diagnóstico simples', () => {
+    expect(rotuloCenario('ficha_ac', 'r1_manter')).toContain('controle adequado');
+    expect(rotuloCenario('ficha_ac', 'r1_manter')).toContain('4 pontos (sem insulina)');
+    expect(rotuloCenario('ficha_ac', 'r2_insulina')).toContain('controle inadequado');
+    expect(rotuloCenario('ficha_ac', 'r4a_fichae')).toContain('com ressalva');
+    expect(rotuloCenario('ficha_bd', '4')).toContain('6 pontos (com insulina)');
+    expect(rotuloCenario('retorno_1', '1')).toContain('Retorno 1');
   });
 });

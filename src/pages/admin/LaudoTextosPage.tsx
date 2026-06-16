@@ -21,9 +21,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  VARIAVEIS_LAUDO, labelBloco, labelDesfecho, variaveisDesconhecidas, ajudaCenario,
-  cenarioTecnicoOculto, familiaTipo, tipoRepresentante, labelFamilia, notaFamilia,
-  ordemFamilia, ordemDesfecho, type LaudoTextoRow,
+  VARIAVEIS_LAUDO, labelBloco, variaveisDesconhecidas, ajudaCenario,
+  cenarioTecnicoOculto, familiaTipo, tipoRepresentante, notaFamilia,
+  ordemFamilia, ordemDesfecho, rotuloCenario, type LaudoTextoRow,
 } from '@/lib/laudoTextosAdmin';
 
 interface BlocoAgrupado {
@@ -250,7 +250,7 @@ export default function LaudoTextosPage() {
                   <span className="flex flex-wrap items-center gap-2 text-left">
                     <FileText className="h-4 w-4 shrink-0 text-[#7C4DBA]" />
                     <span className="font-medium text-[#334155]">
-                      {labelFamilia(cen.familia)} · {labelDesfecho(cen.desfecho_clinico)}
+                      {rotuloCenario(cen.familia, cen.desfecho_clinico)}
                     </span>
                     {ajuda && (
                       <Tooltip>
@@ -346,7 +346,7 @@ export default function LaudoTextosPage() {
             <DialogTitle>Editar texto{editando ? ` — ${labelBloco(editando.bloco.bloco)}` : ''}</DialogTitle>
             <DialogDescription>
               {editando
-                ? `${labelFamilia(editando.cenario.familia)} · ${labelDesfecho(editando.cenario.desfecho_clinico)}`
+                ? rotuloCenario(editando.cenario.familia, editando.cenario.desfecho_clinico)
                 : ''}
               {' · '}A edição vira um rascunho; nada muda no laudo até você publicar.
             </DialogDescription>

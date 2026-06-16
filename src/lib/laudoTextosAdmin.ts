@@ -54,15 +54,15 @@ const DESFECHO_LABEL: Record<string, string> = {
   '6B': 'DMG borderline (GTT, IG tardia)',
   '8': 'Overt DM',
   r1_manter: 'Regra 1 — manter dieta + exercício',
-  r2_reforcar: 'Regra 2 — reforçar adesão (aceita)',
-  r2_insulina: 'Regra 2 — recusa → insulina',
+  r2_reforcar: 'Regra 2 — aceita pactuar adesão',
+  r2_insulina: 'Regra 2 — recusa pactuar adesão → insulina',
   r3_insulina: 'Regra 3 — iniciar insulina',
-  r4a_fichae: 'Regra 4a — memória confirma (Ficha E)',
-  r4_reforcar: 'Regra 4 — reforçar, mantém 4 pontos',
-  r4b_insulina: 'Regra 4b — memória não confirma → insulina',
+  r4a_fichae: 'Regra 4 — memória confirma → ampliar para 6 pontos (Ficha E)',
+  r4_reforcar: 'Regra 4 — memória não confirma, aceita → mantém 4 pontos',
+  r4b_insulina: 'Regra 4 — memória não confirma, recusa → insulina',
   '2': 'Controle adequado (fallback)',
   '3': 'Controle inadequado → insulina (fallback)',
-  '4': 'Controle adequado com insulina',
+  '4': 'manter dose de insulina',
 };
 
 const BLOCO_LABEL: Record<string, string> = {
@@ -223,4 +223,27 @@ const DESFECHO_ORDEM = [
 export function ordemDesfecho(desfecho: string): number {
   const i = DESFECHO_ORDEM.indexOf(desfecho);
   return i < 0 ? 99 : i;
+}
+
+/** Adequação do controle por conduta — entra no rótulo do retorno. */
+function adequacaoDesfecho(desfecho: string): string {
+  if (desfecho === 'r2_reforcar' || desfecho === 'r2_insulina' || desfecho === 'r3_insulina' || desfecho === '3') {
+    return 'inadequado';
+  }
+  if (desfecho.startsWith('r4')) return 'adequado (com ressalva)';
+  return 'adequado'; // r1_manter, '4' (Ficha B/D), '2'
+}
+
+/**
+ * Rótulo completo do cenário no editor.
+ * - Retornos (Ficha A/C e B/D): "Retorno para DMG com controle X — N pontos (…) · conduta".
+ *   (O mesmo texto vale para o 2º, 3º, 4º... retorno — por isso "Retorno", sem número.)
+ * - Diagnósticos (Retorno 1 / GTT): "<família> · <desfecho>".
+ */
+export function rotuloCenario(familia: string, desfecho: string): string {
+  if (familia === 'ficha_ac' || familia === 'ficha_bd') {
+    const perfil = familia === 'ficha_ac' ? '4 pontos (sem insulina)' : '6 pontos (com insulina)';
+    return `Retorno para DMG com controle ${adequacaoDesfecho(desfecho)} — ${perfil} · ${labelDesfecho(desfecho)}`;
+  }
+  return `${labelFamilia(familia)} · ${labelDesfecho(desfecho)}`;
 }
