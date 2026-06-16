@@ -158,13 +158,16 @@ export function semProximaFicha(cenario: Cenario): boolean {
  * textuais 2/3 em `laudo_textos` — logo NÃO deve exibir o placeholder
  * "Texto pendente — solicitar ao time clínico". São eles:
  *  - Caso Novo (`consulta_1`): o laudo é o "Pedido de exame";
- *  - Parto (cenário 5): card de registro/encerramento do parto;
- *  - Encerramento por controle inadequado com insulina (Ficha B/D < 70% =
- *    cenário 7): card de referenciamento ao endócrino.
- * Os demais cenários têm texto publicado (diagnósticos, Ficha A/C, Ficha B/D ≥70%).
+ *  - Parto (cenário 5): card de registro/encerramento do parto.
+ * O cenário 7 (Ficha B/D < 70% → encerrar MARI) DEIXOU de ser card-only: passou a
+ * ter texto publicado (Justificativa + Conduta) que explica o próximo passo —
+ * reajuste da dose de insulina (pelo obstetra, com endócrino ou por referenciamento)
+ * — e reforça que as metas válidas seguem sendo as obstétricas. O card vermelho de
+ * encerramento continua como bloco 1, acima dos textos.
+ * Os demais cenários têm texto publicado (diagnósticos, Ficha A/C, Ficha B/D).
  */
 export function cenarioSemTextoLaudo(c: ConsultaParaMapear): boolean {
   if (c.tipo === 'consulta_1') return true;
   const cen = mapearCenario(c);
-  return cen === 5 || cen === 7;
+  return cen === 5;
 }

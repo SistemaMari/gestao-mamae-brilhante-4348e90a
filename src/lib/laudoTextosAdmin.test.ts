@@ -4,6 +4,7 @@ import {
   variaveisDesconhecidas,
   labelBloco,
   labelCenario,
+  labelDesfecho,
   ajudaCenario,
   cenarioTecnicoOculto,
   familiaTipo,
@@ -73,5 +74,18 @@ describe('laudoTextosAdmin', () => {
     expect(rotuloCenario('ficha_ac', 'r4a_fichae')).toContain('com ressalva');
     expect(rotuloCenario('ficha_bd', '4')).toContain('6 pontos (com insulina)');
     expect(rotuloCenario('retorno_1', '1')).toContain('Retorno 1');
+  });
+
+  it('cenário 7 (encerrar MARI): título exato, label, ajuda compartilhada e ordem', () => {
+    // Título pedido para o editor — gerado por rotuloCenario('ficha_bd', '7'):
+    expect(rotuloCenario('ficha_bd', '7')).toBe(
+      'Retorno para DMG com controle inadequado — 6 pontos (com insulina) · encerrar MARI',
+    );
+    expect(labelDesfecho('7')).toBe('encerrar MARI');
+    // Ajuda compartilhada entre Ficha B e D:
+    expect(ajudaCenario('ficha_b', '7')).toContain('reajustada');
+    expect(ajudaCenario('ficha_d', '7')).toBe(ajudaCenario('ficha_b', '7'));
+    // Aparece logo após o '4' (controle adequado com insulina) na lista:
+    expect(ordemDesfecho('7')).toBeGreaterThan(ordemDesfecho('4'));
   });
 });
