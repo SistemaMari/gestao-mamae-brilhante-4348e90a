@@ -4,6 +4,8 @@ import {
   variaveisDesconhecidas,
   labelBloco,
   labelCenario,
+  ajudaCenario,
+  cenarioTecnicoOculto,
 } from './laudoTextosAdmin';
 
 describe('laudoTextosAdmin', () => {
@@ -29,5 +31,21 @@ describe('laudoTextosAdmin', () => {
     expect(labelBloco('justificativa')).toBe('Justificativa Científica');
     expect(labelBloco('bloco_xyz')).toBe('bloco_xyz');
     expect(labelCenario('retorno_1', '1')).toContain('Retorno 1');
+  });
+
+  it('ajuda do cenário: Ficha C↔A e Ficha D↔B compartilham; desconhecido → null', () => {
+    expect(ajudaCenario('ficha_a', 'r3_insulina')).toContain('insulina');
+    expect(ajudaCenario('ficha_c', 'r3_insulina')).toBe(ajudaCenario('ficha_a', 'r3_insulina'));
+    expect(ajudaCenario('ficha_d', '4')).toBe(ajudaCenario('ficha_b', '4'));
+    expect(ajudaCenario('consulta_1', 'xyz')).toBeNull();
+  });
+
+  it('oculta cenários técnicos/legados, mantém os reais', () => {
+    expect(cenarioTecnicoOculto('retorno_1', '6')).toBe(true);
+    expect(cenarioTecnicoOculto('ficha_a', '2')).toBe(true);
+    expect(cenarioTecnicoOculto('ficha_c', '3')).toBe(true);
+    expect(cenarioTecnicoOculto('retorno_1', '1')).toBe(false);
+    expect(cenarioTecnicoOculto('gtt', '6')).toBe(false);
+    expect(cenarioTecnicoOculto('ficha_a', 'r3_insulina')).toBe(false);
   });
 });

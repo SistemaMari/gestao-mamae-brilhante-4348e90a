@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { FileText, Pencil, Loader2, AlertTriangle } from 'lucide-react';
+import { FileText, Pencil, Loader2, AlertTriangle, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -19,8 +19,10 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  VARIAVEIS_LAUDO, labelCenario, labelBloco, variaveisDesconhecidas, type LaudoTextoRow,
+  VARIAVEIS_LAUDO, labelCenario, labelBloco, variaveisDesconhecidas, ajudaCenario,
+  cenarioTecnicoOculto, type LaudoTextoRow,
 } from '@/lib/laudoTextosAdmin';
 
 interface BlocoAgrupado {
@@ -81,7 +83,10 @@ export default function LaudoTextosPage() {
       else if (r.status === 'rascunho') b.rascunho = r;
     }
     for (const cen of map.values()) cen.blocos.sort((a, b) => a.ordem_bloco - b.ordem_bloco);
-    return [...map.values()];
+    // Oculta cenários técnicos/legados (redes de segurança) — continuam no banco.
+    return [...map.values()].filter(
+      (c) => !cenarioTecnicoOculto(c.tipo_consulta, c.desfecho_clinico),
+    );
   }, [data]);
 
   const totalRascunhos = useMemo(
@@ -218,6 +223,7 @@ export default function LaudoTextosPage() {
         <Accordion type="multiple" className="space-y-2">
           {cenarios.map((cen) => {
             const rascunhosNoCenario = cen.blocos.filter((b) => b.rascunho).length;
+            const ajuda = ajudaCenario(cen.tipo_consulta, cen.desfecho_clinico);
             return (
               <AccordionItem
                 key={cen.key}
@@ -230,6 +236,22 @@ export default function LaudoTextosPage() {
                     <span className="font-medium text-[#334155]">
                       {labelCenario(cen.tipo_consulta, cen.desfecho_clinico)}
                     </span>
+                    {ajuda && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex cursor-help"
+                            aria-label="O que é este cenário"
+                          >
+                            <Info className="h-3.5 w-3.5 text-[#7C4DBA]" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-sm text-xs leading-relaxed">
+                          {ajuda}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                     {rascunhosNoCenario > 0 && (
                       <Badge className="border-0 bg-amber-100 text-amber-800">
                         {rascunhosNoCenario} rascunho(s)
