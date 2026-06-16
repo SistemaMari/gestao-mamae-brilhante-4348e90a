@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -620,6 +621,25 @@ export default function FichaPacientePage() {
     setRetorno1Completed(true);
     setShowRetorno1(false);
   };
+
+  // Atualiza o "Histórico de atendimentos" (e a autoria dos cards) assim que um
+  // carimbo é gravado, sem depender de refresh. Como refetchOnWindowFocus está
+  // desligado (34B.1, Bug B), invalidamos explicitamente as queries ao receber o
+  // evento emitido por carimbarAtendimento.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!id) return;
+    const onCarimbo = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { pacienteId?: string } | undefined;
+      if (detail?.pacienteId && detail.pacienteId !== id) return;
+      // Invalida por prefixo (robusto a id da URL vs paciente.id): só a query
+      // observada nesta tela refetcha; as demais apenas ficam stale.
+      void queryClient.invalidateQueries({ queryKey: ['registros_atendimento'] });
+      void queryClient.invalidateQueries({ queryKey: ['autoria_ficha'] });
+    };
+    window.addEventListener('carimbo:sucesso', onCarimbo);
+    return () => window.removeEventListener('carimbo:sucesso', onCarimbo);
+  }, [id, queryClient]);
 
   // 34C-B: IG na 1ª consulta vem da fonte única (calcular_ig), com data_alvo
   // = data da própria Consulta 1. Antes era DUM-diff ad-hoc — agora respeita
