@@ -1,11 +1,11 @@
 /**
  * Mapeamento de cenários do laudo (Prompt 15 / 16)
- * 1  – Caso Novo → DMG afastado / aguardando GTT 75g
+ * 1  – Rastreio inicial (Caso Novo) e DMG confirmado pela glicemia de jejum
  * 2  – Ficha A/C controle adequado (≥70%, 4 pontos)
  * 3  – Ficha A/C controle inadequado (<70%, 4 pontos)
  * 4  – Ficha B/D controle adequado (≥70%, 6 pontos)
  * 5  – Registro do parto (encerramento)
- * 6  – DMG confirmado (Retorno 1 ou GTT 75g positivo)
+ * 6  – DMG confirmado por GTT 75g positivo
  * 6B – DMG confirmado por GTT 75g borderline
  * 7  – Ficha B/D controle inadequado (<70%, 6 pontos) → endócrino
  * 8  – Encaminhada endócrino (Retorno 1)
@@ -32,7 +32,10 @@ export function mapearCenario(c: ConsultaParaMapear): Cenario {
     case 'retorno_1':
       if (c.status_gerado === 'dmg_afastado') return 'negativo';
       if (c.status_gerado === 'encaminhada_endocrino') return 8;
-      return 6;
+      // 34D-C: DMG confirmado pela glicemia de jejum = Cenário 1 (é o que o form
+      // grava como cenario_clinico='1' e o que as especialistas chamam de
+      // "Cenário 1"). Antes devolvia 6 (DMG por GTT) — resíduo do '1 vs 6'.
+      return 1;
 
     case 'gtt': {
       if (c.status_gerado === 'dmg_afastado') return 'negativo';
