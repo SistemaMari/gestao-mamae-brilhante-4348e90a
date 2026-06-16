@@ -3,6 +3,8 @@ import {
   aplicarVariaveisLaudo,
   montarVariaveisLaudo,
   calcularDataProximoRetornoLaudo,
+  contarDiasPreenchidos,
+  ultimaDoseInsulina,
   MARCADOR_AUSENTE,
 } from './laudoVariaveis';
 
@@ -170,5 +172,82 @@ describe('montarVariaveisLaudo', () => {
     expect(vars['data do próximo retorno']).toBeNull();
     expect(vars['dose total de insulina']).toBeNull();
     expect(vars['dose manhã']).toBeNull();
+  });
+
+  it('[dias preenchidos] = nº de DIAS da grade, não nº de valores', () => {
+    const vars = montarVariaveisLaudo({
+      paciente,
+      ig: null,
+      consulta: {
+        tipo: 'ficha_b',
+        total_preenchidos: 36, // 6 dias × 6 pontos — NÃO deve usar este campo
+        grid_valores: Array.from({ length: 6 }, () => ({ jejum: '90' })),
+      },
+    });
+    expect(vars['dias preenchidos']).toBe('6');
+  });
+
+  it('[dose atual de insulina] na Ficha B/D puxa da consulta que a iniciou', () => {
+    const consultas = [
+      { id: 'a', tipo: 'ficha_a', data: '2026-03-01', dose_total: 36 },
+      { id: 'b', tipo: 'ficha_b', data: '2026-03-15', dose_total: null },
+    ];
+    const vars = montarVariaveisLaudo({
+      paciente,
+      ig: null,
+      consulta: { id: 'b', tipo: 'ficha_b', data: '2026-03-15', dose_total: null },
+      consultas,
+    });
+    expect(vars['dose atual de insulina']).toBe('36 UI');
+    expect(vars['dose total de insulina']).toBeNull(); // a B/D em si não tem dose própria
+  });
+});
+
+describe('contarDiasPreenchidos', () => {
+  it('conta linhas (dias) com ao menos um valor — ignora dias em branco', () => {
+    const grid = [
+      { jejum: '90', pos_cafe: '120' },
+      { jejum: '88' },
+      {}, // dia sem nenhum valor não conta
+      { pre_almoco: '85', pos_almoco: '130', pre_jantar: '95' },
+    ];
+    expect(contarDiasPreenchidos(grid)).toBe(3);
+  });
+
+  it('grade vazia/ausente → null', () => {
+    expect(contarDiasPreenchidos([])).toBeNull();
+    expect(contarDiasPreenchidos(null)).toBeNull();
+    expect(contarDiasPreenchidos(undefined)).toBeNull();
+  });
+});
+
+describe('ultimaDoseInsulina', () => {
+  const consultas = [
+    { id: 'a', data: '2026-03-01', dose_total: 30 },
+    { id: 'b', data: '2026-03-10', dose_total: 36 },
+    { id: 'c', data: '2026-03-20', dose_total: null }, // Ficha B/D só monitora
+  ];
+
+  it('usa a dose da própria consulta quando existe', () => {
+    expect(ultimaDoseInsulina(consultas, { id: 'b', data: '2026-03-10', dose_total: 36 })).toBe(36);
+  });
+
+  it('sem dose própria, puxa a mais recente anterior (≤ data atual)', () => {
+    expect(ultimaDoseInsulina(consultas, { id: 'c', data: '2026-03-20', dose_total: null })).toBe(36);
+  });
+
+  it('não considera doses de consultas posteriores à atual', () => {
+    expect(
+      ultimaDoseInsulina(consultas, { id: 'novo', data: '2026-03-05', dose_total: null }),
+    ).toBe(30);
+  });
+
+  it('sem nenhuma dose anterior → null', () => {
+    expect(
+      ultimaDoseInsulina(
+        [{ id: 'x', data: '2026-01-01', dose_total: null }],
+        { id: 'c', data: '2026-03-20', dose_total: null },
+      ),
+    ).toBeNull();
   });
 });

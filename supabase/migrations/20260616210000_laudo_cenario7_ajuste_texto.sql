@@ -1,0 +1,18 @@
+-- ============================================================================
+-- Ajuste do texto do cenário 7 (Ficha B/D inadequado → encerrar MARI) após
+-- validação clínica (Suellen, 16/06):
+--   • Justificativa: remove "associada à dieta e à atividade física".
+--   • Conduta: remove a linha "Prazo de retorno" (MARI encerrada — não há retorno).
+-- Atualiza os registros publicados de ficha_b e ficha_d (desfecho '7') de uma vez.
+-- O texto segue como rascunho técnico (observacoes inalteradas) até validação final.
+-- ============================================================================
+
+UPDATE public.laudo_textos SET texto =
+$t$A paciente [nome da paciente], em uso de insulina, realizou [dias preenchidos] dias de monitorização com perfil de 6 pontos, com [% na meta]% das medições dentro das metas. De acordo com o protocolo de tratamento do DMG no Brasil, o controle adequado é definido a partir de 70% dos valores na meta. Mesmo em uso de insulina, o controle permaneceu inadequado — o que indica que a dose atual de insulina está insuficiente e precisa ser reajustada. O ajuste de dose está fora do escopo de orientação automatizada da MARI; por isso o suporte da MARI se encerra neste ponto. O acompanhamento do diabetes gestacional, no entanto, deve continuar.$t$
+WHERE desfecho_clinico = '7' AND bloco = 'justificativa' AND status = 'publicado'
+  AND tipo_consulta IN ('ficha_b','ficha_d');
+
+UPDATE public.laudo_textos SET texto =
+$t$O próximo passo é o reajuste da dose de insulina (atual: [dose atual de insulina]), conforme os valores do perfil glicêmico. Esse ajuste pode ser conduzido de três formas, segundo a sua segurança e o contexto de atendimento: (1) pelo próprio obstetra, se houver segurança para titular a insulina; (2) em associação com endocrinologista; ou (3) por referenciamento a serviço especializado (especialmente no sistema público). Independentemente de quem conduza o ajuste, as metas que permanecem válidas são as metas obstétricas do DMG: jejum abaixo de 95 mg/dL e pós-prandial de 1 hora menor que 140 mg/dL e/ou de 2 horas menor que 120 mg/dL. Manter a monitorização diária de 6 pontos, a dieta e a atividade física, e reforçar a técnica de aplicação e o armazenamento da insulina.$t$
+WHERE desfecho_clinico = '7' AND bloco = 'conduta' AND status = 'publicado'
+  AND tipo_consulta IN ('ficha_b','ficha_d');
