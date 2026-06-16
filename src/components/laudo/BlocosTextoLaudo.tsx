@@ -3,9 +3,12 @@ import { Button } from '@/components/ui/button';
 import type { EstadoTextos } from '@/hooks/useLaudoTextos';
 import SkeletonShimmer from './SkeletonShimmer';
 import PlaceholderTextoPendente from './PlaceholderTextoPendente';
+import { aplicarVariaveisLaudo, type VariaveisLaudo } from '@/lib/laudoVariaveis';
 
 interface Props {
   estado: EstadoTextos;
+  /** Variáveis [entre colchetes] a substituir nos textos (34D-B revisado). */
+  variaveis?: VariaveisLaudo;
   onTentarNovamente?: () => void;
 }
 
@@ -21,10 +24,12 @@ interface Props {
  *  - pendente/carregando: skeleton.
  *
  * Regra clínica (§3.5.2 / critérios 10 e 11): o `texto` do banco é renderizado
- * EXATAMENTE como armazenado — sem markdown, paráfrase, complemento ou injeção
- * de variáveis. Dados dinâmicos da paciente aparecem apenas no cabeçalho/rodapé.
+ * EXATAMENTE como armazenado — sem markdown, paráfrase ou complemento. A ÚNICA
+ * transformação são as variáveis `[entre colchetes]` (ex.: `[nome da paciente]`,
+ * `[glicemia de jejum]`), substituídas pelos dados hidratados via
+ * `aplicarVariaveisLaudo`; valor ausente vira marcador neutro, nunca colchete cru.
  */
-export default function BlocosTextoLaudo({ estado, onTentarNovamente }: Props) {
+export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente }: Props) {
   if (estado.status === 'pendente' || estado.status === 'carregando') {
     return (
       <section className="laudo-bloco rounded-xl border border-[#D6BCFA] bg-white p-4 shadow-sm">
@@ -113,7 +118,7 @@ export default function BlocosTextoLaudo({ estado, onTentarNovamente }: Props) {
             </h3>
           )}
           <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[#4C1D95]">
-            {bloco.texto}
+            {aplicarVariaveisLaudo(bloco.texto, variaveis ?? {})}
           </p>
         </section>
       ))}

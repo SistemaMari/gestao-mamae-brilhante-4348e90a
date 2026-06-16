@@ -1,0 +1,107 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  aplicarVariaveisLaudo,
+  montarVariaveisLaudo,
+  MARCADOR_AUSENTE,
+} from './laudoVariaveis';
+
+describe('aplicarVariaveisLaudo', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('substitui uma variável conhecida pelo valor', () => {
+    const out = aplicarVariaveisLaudo('A paciente [nome da paciente] foi avaliada.', {
+      'nome da paciente': 'Maria',
+    });
+    expect(out).toBe('A paciente Maria foi avaliada.');
+  });
+
+  it('substitui múltiplas ocorrências da mesma variável', () => {
+    const out = aplicarVariaveisLaudo('[IG] e novamente [IG].', { IG: '22 semanas' });
+    expect(out).toBe('22 semanas e novamente 22 semanas.');
+  });
+
+  it('usa o marcador quando a variável é conhecida mas sem valor', () => {
+    const out = aplicarVariaveisLaudo('Glicemia de [glicemia de jejum] mg/dL.', {
+      'glicemia de jejum': null,
+    });
+    expect(out).toBe(`Glicemia de ${MARCADOR_AUSENTE} mg/dL.`);
+    expect(console.warn).toHaveBeenCalledOnce();
+  });
+
+  it('usa o marcador (com warn) quando a variável é desconhecida', () => {
+    const out = aplicarVariaveisLaudo('Valor [variavel inexistente] aqui.', {});
+    expect(out).toBe(`Valor ${MARCADOR_AUSENTE} aqui.`);
+    expect(console.warn).toHaveBeenCalledOnce();
+  });
+
+  it('trata string vazia como ausente', () => {
+    const out = aplicarVariaveisLaudo('[dose manhã]', { 'dose manhã': '' });
+    expect(out).toBe(MARCADOR_AUSENTE);
+  });
+
+  it('não altera texto sem colchetes', () => {
+    const texto = 'Mantenha o pré-natal habitual até a realização do GTT 75g.';
+    expect(aplicarVariaveisLaudo(texto, {})).toBe(texto);
+  });
+
+  it('tolera chave com espaços ao redor dentro dos colchetes', () => {
+    const out = aplicarVariaveisLaudo('[ % na meta ]%', { '% na meta': '73' });
+    expect(out).toBe('73%');
+  });
+});
+
+describe('montarVariaveisLaudo', () => {
+  const paciente = { nome: 'Ana Souza' };
+
+  it('formata nome, IG, glicemia e data do próximo retorno', () => {
+    const vars = montarVariaveisLaudo({
+      paciente,
+      ig: { semanas: 22, dias: 3 },
+      consulta: {
+        tipo: 'retorno_1',
+        retorno1_valor_gj: 98,
+        data_proximo_retorno: '2026-06-25',
+      },
+    });
+    expect(vars['nome da paciente']).toBe('Ana Souza');
+    expect(vars['IG']).toBe('22 semanas e 3 dias');
+    expect(vars['glicemia de jejum']).toBe('98');
+    // dd/MM/yyyy sem shift de fuso
+    expect(vars['data do próximo retorno']).toBe('25/06/2026');
+  });
+
+  it('IG com 0 dias omite a parte de dias; 1 dia usa singular', () => {
+    expect(montarVariaveisLaudo({ paciente, ig: { semanas: 24, dias: 0 }, consulta: {} })['IG']).toBe(
+      '24 semanas',
+    );
+    expect(montarVariaveisLaudo({ paciente, ig: { semanas: 24, dias: 1 }, consulta: {} })['IG']).toBe(
+      '24 semanas e 1 dia',
+    );
+  });
+
+  it('doses recebem unidade UI; percentual é arredondado', () => {
+    const vars = montarVariaveisLaudo({
+      paciente,
+      ig: null,
+      consulta: { dose_total: 20, dose_manha: 14, dose_noite: 6, percentual_meta: 72.6 },
+    });
+    expect(vars['dose total de insulina']).toBe('20 UI');
+    expect(vars['dose atual de insulina']).toBe('20 UI');
+    expect(vars['dose manhã']).toBe('14 UI');
+    expect(vars['dose noite']).toBe('6 UI');
+    expect(vars['% na meta']).toBe('73');
+  });
+
+  it('valores ausentes ficam null (viram marcador na renderização)', () => {
+    const vars = montarVariaveisLaudo({ paciente, ig: null, consulta: {} });
+    expect(vars['IG']).toBeNull();
+    expect(vars['glicemia de jejum']).toBeNull();
+    expect(vars['data do próximo retorno']).toBeNull();
+    expect(vars['dose total de insulina']).toBeNull();
+  });
+});
