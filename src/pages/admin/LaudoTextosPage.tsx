@@ -1,0 +1,411 @@
+import { useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { FileText, Pencil, Loader2, AlertTriangle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import {
+  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  VARIAVEIS_LAUDO, labelCenario, labelBloco, variaveisDesconhecidas, type LaudoTextoRow,
+} from '@/lib/laudoTextosAdmin';
+
+interface BlocoAgrupado {
+  bloco: string;
+  ordem_bloco: number;
+  publicado: LaudoTextoRow | null;
+  rascunho: LaudoTextoRow | null;
+}
+interface CenarioAgrupado {
+  key: string;
+  tipo_consulta: string;
+  desfecho_clinico: string;
+  blocos: BlocoAgrupado[];
+}
+
+export default function LaudoTextosPage() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const [editando, setEditando] = useState<BlocoAgrupado | null>(null);
+  const [formTexto, setFormTexto] = useState('');
+  const [formTitulo, setFormTitulo] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [publicarAlvo, setPublicarAlvo] = useState<BlocoAgrupado | null>(null);
+  const [descartarAlvo, setDescartarAlvo] = useState<BlocoAgrupado | null>(null);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['admin-laudo-textos'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('laudo_textos')
+        .select('id, tipo_consulta, desfecho_clinico, bloco, ordem_bloco, titulo_bloco, texto, versao, status, observacoes')
+        .in('status', ['publicado', 'rascunho'])
+        .order('tipo_consulta', { ascending: true })
+        .order('desfecho_clinico', { ascending: true })
+        .order('ordem_bloco', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as LaudoTextoRow[];
+    },
+  });
+
+  const cenarios = useMemo<CenarioAgrupado[]>(() => {
+    const rows = data ?? [];
+    const map = new Map<string, CenarioAgrupado>();
+    for (const r of rows) {
+      const key = `${r.tipo_consulta}::${r.desfecho_clinico}`;
+      let cen = map.get(key);
+      if (!cen) {
+        cen = { key, tipo_consulta: r.tipo_consulta, desfecho_clinico: r.desfecho_clinico, blocos: [] };
+        map.set(key, cen);
+      }
+      let b = cen.blocos.find((x) => x.bloco === r.bloco);
+      if (!b) {
+        b = { bloco: r.bloco, ordem_bloco: r.ordem_bloco, publicado: null, rascunho: null };
+        cen.blocos.push(b);
+      }
+      if (r.status === 'publicado') b.publicado = r;
+      else if (r.status === 'rascunho') b.rascunho = r;
+    }
+    for (const cen of map.values()) cen.blocos.sort((a, b) => a.ordem_bloco - b.ordem_bloco);
+    return [...map.values()];
+  }, [data]);
+
+  const totalRascunhos = useMemo(
+    () => cenarios.reduce((acc, c) => acc + c.blocos.filter((b) => b.rascunho).length, 0),
+    [cenarios],
+  );
+
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['admin-laudo-textos'] });
+
+  const abrirEdicao = (b: BlocoAgrupado) => {
+    const base = b.rascunho ?? b.publicado;
+    setEditando(b);
+    setFormTexto(base?.texto ?? '');
+    setFormTitulo(base?.titulo_bloco ?? '');
+  };
+
+  const salvarRascunho = async () => {
+    if (!editando?.publicado) return;
+    if (!formTexto.trim()) {
+      toast.error('O texto não pode ficar vazio.');
+      return;
+    }
+    const pub = editando.publicado;
+    setSaving(true);
+    try {
+      if (editando.rascunho) {
+        const { error } = await supabase
+          .from('laudo_textos')
+          .update({ texto: formTexto, titulo_bloco: formTitulo || null })
+          .eq('id', editando.rascunho.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('laudo_textos').insert({
+          tipo_consulta: pub.tipo_consulta,
+          desfecho_clinico: pub.desfecho_clinico,
+          bloco: pub.bloco,
+          ordem_bloco: pub.ordem_bloco,
+          titulo_bloco: formTitulo || null,
+          texto: formTexto,
+          status: 'rascunho',
+          versao: (pub.versao ?? 1) + 1,
+          criado_por: user?.id ?? null,
+        });
+        if (error) throw error;
+      }
+      toast.success('Rascunho salvo. Publique para valer no laudo.');
+      setEditando(null);
+      refresh();
+    } catch (e) {
+      console.error('[laudo-textos] salvar rascunho:', e);
+      toast.error('Erro ao salvar o rascunho.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const publicar = async () => {
+    const alvo = publicarAlvo;
+    if (!alvo?.rascunho || !alvo.publicado) return;
+    setSaving(true);
+    try {
+      const { error: upErr } = await supabase
+        .from('laudo_textos')
+        .update({
+          texto: alvo.rascunho.texto,
+          titulo_bloco: alvo.rascunho.titulo_bloco,
+          publicado_em: new Date().toISOString(),
+          publicado_por: user?.id ?? null,
+        })
+        .eq('id', alvo.publicado.id);
+      if (upErr) throw upErr;
+      const { error: delErr } = await supabase.from('laudo_textos').delete().eq('id', alvo.rascunho.id);
+      if (delErr) throw delErr;
+      toast.success('Texto publicado. Já vale nos novos laudos.');
+      setPublicarAlvo(null);
+      refresh();
+    } catch (e) {
+      console.error('[laudo-textos] publicar:', e);
+      toast.error('Erro ao publicar.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const descartar = async () => {
+    const alvo = descartarAlvo;
+    if (!alvo?.rascunho) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('laudo_textos').delete().eq('id', alvo.rascunho.id);
+      if (error) throw error;
+      toast.success('Rascunho descartado.');
+      setDescartarAlvo(null);
+      refresh();
+    } catch (e) {
+      console.error('[laudo-textos] descartar:', e);
+      toast.error('Erro ao descartar o rascunho.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const varsDesc = variaveisDesconhecidas(formTexto);
+
+  return (
+    <div className="space-y-6 p-6">
+      <header>
+        <h1 className="font-[Sora] text-2xl font-semibold text-[#5B3A8E]">Textos de Laudo</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {isLoading
+            ? 'Carregando…'
+            : `Edite os textos exibidos nos laudos. ${totalRascunhos > 0 ? `${totalRascunhos} rascunho(s) aguardando publicação.` : 'Nenhum rascunho pendente.'}`}
+        </p>
+      </header>
+
+      <details className="rounded-lg border border-[#E2E8F0] bg-white p-4">
+        <summary className="cursor-pointer text-sm font-medium text-[#5B3A8E]">
+          Variáveis disponíveis (escreva entre colchetes, ex.: [nome da paciente])
+        </summary>
+        <ul className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+          {VARIAVEIS_LAUDO.map((v) => (
+            <li key={v.chave} className="text-xs text-muted-foreground">
+              <code className="rounded bg-[#F1F5F9] px-1 py-0.5 text-[#5B3A8E]">[{v.chave}]</code> — {v.descricao}
+            </li>
+          ))}
+        </ul>
+      </details>
+
+      {isLoading ? (
+        <Skeleton className="h-64 w-full" />
+      ) : isError ? (
+        <p className="text-sm text-red-600">Erro ao carregar os textos. Recarregue a página.</p>
+      ) : (
+        <Accordion type="multiple" className="space-y-2">
+          {cenarios.map((cen) => {
+            const rascunhosNoCenario = cen.blocos.filter((b) => b.rascunho).length;
+            return (
+              <AccordionItem
+                key={cen.key}
+                value={cen.key}
+                className="rounded-lg border border-[#E2E8F0] bg-white px-4"
+              >
+                <AccordionTrigger className="text-sm hover:no-underline">
+                  <span className="flex flex-wrap items-center gap-2 text-left">
+                    <FileText className="h-4 w-4 shrink-0 text-[#7C4DBA]" />
+                    <span className="font-medium text-[#334155]">
+                      {labelCenario(cen.tipo_consulta, cen.desfecho_clinico)}
+                    </span>
+                    {rascunhosNoCenario > 0 && (
+                      <Badge className="border-0 bg-amber-100 text-amber-800">
+                        {rascunhosNoCenario} rascunho(s)
+                      </Badge>
+                    )}
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-3 pb-4">
+                  {cen.blocos.map((b) => (
+                    <div key={b.bloco} className="rounded-md border border-[#E2E8F0] p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h3 className="text-sm font-semibold text-[#5B3A8E]">{labelBloco(b.bloco)}</h3>
+                        <div className="flex items-center gap-2">
+                          {b.rascunho ? (
+                            <>
+                              <Button size="sm" variant="outline" onClick={() => abrirEdicao(b)}>
+                                <Pencil className="mr-1 h-3.5 w-3.5" /> Editar rascunho
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
+                                onClick={() => setPublicarAlvo(b)}
+                              >
+                                Publicar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-red-600 hover:bg-red-50"
+                                onClick={() => setDescartarAlvo(b)}
+                              >
+                                Descartar
+                              </Button>
+                            </>
+                          ) : (
+                            <Button size="sm" variant="outline" onClick={() => abrirEdicao(b)}>
+                              <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
+                        {b.publicado?.texto ?? <span className="italic">Sem versão publicada.</span>}
+                      </p>
+
+                      {b.rascunho && (
+                        <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+                            Rascunho pendente
+                          </p>
+                          <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-amber-900">
+                            {b.rascunho.texto}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      )}
+
+      {/* Modal de edição */}
+      <Dialog open={!!editando} onOpenChange={(o) => { if (!o) setEditando(null); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar texto{editando ? ` — ${labelBloco(editando.bloco)}` : ''}</DialogTitle>
+            <DialogDescription>
+              {editando?.publicado
+                ? labelCenario(editando.publicado.tipo_consulta, editando.publicado.desfecho_clinico)
+                : ''}
+              {' · '}A edição vira um rascunho; nada muda no laudo até você publicar.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-[#5B3A8E]">Título do bloco</label>
+              <Input value={formTitulo} onChange={(e) => setFormTitulo(e.target.value)} placeholder="(opcional)" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-[#5B3A8E]">Texto</label>
+              <Textarea
+                value={formTexto}
+                onChange={(e) => setFormTexto(e.target.value)}
+                rows={12}
+                className="font-mono text-xs"
+              />
+            </div>
+
+            {varsDesc.length > 0 && (
+              <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>
+                  Variável não reconhecida: {varsDesc.map((v) => `[${v}]`).join(', ')}. No laudo, ela vira
+                  "(não informado)". Confira a legenda abaixo.
+                </span>
+              </div>
+            )}
+
+            <details className="text-xs">
+              <summary className="cursor-pointer text-[#7C4DBA]">Ver variáveis disponíveis</summary>
+              <ul className="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+                {VARIAVEIS_LAUDO.map((v) => (
+                  <li key={v.chave} className="text-muted-foreground">
+                    <code className="rounded bg-[#F1F5F9] px-1 text-[#5B3A8E]">[{v.chave}]</code> — {v.descricao}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditando(null)} disabled={saving}>
+              Cancelar
+            </Button>
+            <Button
+              className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
+              onClick={salvarRascunho}
+              disabled={saving}
+            >
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Salvar rascunho
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmar publicação */}
+      <AlertDialog open={!!publicarAlvo} onOpenChange={(o) => { if (!o) setPublicarAlvo(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Publicar este texto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O rascunho substituirá a versão publicada e passará a aparecer nos novos laudos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
+              onClick={(e) => { e.preventDefault(); publicar(); }}
+              disabled={saving}
+            >
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Publicar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirmar descarte */}
+      <AlertDialog open={!!descartarAlvo} onOpenChange={(o) => { if (!o) setDescartarAlvo(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar o rascunho?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A edição não publicada será perdida. A versão publicada continua como está.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={(e) => { e.preventDefault(); descartar(); }}
+              disabled={saving}
+            >
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Descartar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
