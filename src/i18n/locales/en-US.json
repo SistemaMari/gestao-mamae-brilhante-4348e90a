@@ -85,7 +85,7 @@
   },
   "auth": {
     "appName": "MARI",
-    "appTagline": "Clinical intelligence for the management of Gestational Diabetes Mellitus.",
+    "appTagline": "Clinical intelligence for the diagnosis and management of Gestational Diabetes Mellitus.",
     "loginTitle": "Sign in",
     "loginSubtitle": "Access your account",
     "emailLabel": "Email",
