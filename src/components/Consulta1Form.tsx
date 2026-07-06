@@ -478,7 +478,7 @@ export default function Consulta1Form() {
               )}
             </div>
           </div>
-          </LocalizacaOErrorBoundaryClose>
+          </LocalizacaoErrorBoundary>
 
 
           {/* DUM */}
