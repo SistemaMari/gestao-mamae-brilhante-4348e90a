@@ -1200,6 +1200,7 @@ export type Database = {
         Row: {
           cidade: string | null
           created_at: string
+          data_encerramento: string | null
           data_nascimento: string | null
           data_proximo_retorno: string | null
           data_ultima_consulta: string | null
@@ -1208,8 +1209,12 @@ export type Database = {
           estado: string | null
           id: string
           is_rascunho: boolean
+          motivo_encerramento:
+            | Database["public"]["Enums"]["motivo_encerramento_paciente"]
+            | null
           nome: string
           numero_identificacao: string | null
+          obs_encerramento: string | null
           pais: string | null
           profissional_id: string
           referencia_ig: string | null
@@ -1227,6 +1232,7 @@ export type Database = {
         Insert: {
           cidade?: string | null
           created_at?: string
+          data_encerramento?: string | null
           data_nascimento?: string | null
           data_proximo_retorno?: string | null
           data_ultima_consulta?: string | null
@@ -1235,8 +1241,12 @@ export type Database = {
           estado?: string | null
           id?: string
           is_rascunho?: boolean
+          motivo_encerramento?:
+            | Database["public"]["Enums"]["motivo_encerramento_paciente"]
+            | null
           nome: string
           numero_identificacao?: string | null
+          obs_encerramento?: string | null
           pais?: string | null
           profissional_id: string
           referencia_ig?: string | null
@@ -1254,6 +1264,7 @@ export type Database = {
         Update: {
           cidade?: string | null
           created_at?: string
+          data_encerramento?: string | null
           data_nascimento?: string | null
           data_proximo_retorno?: string | null
           data_ultima_consulta?: string | null
@@ -1262,8 +1273,12 @@ export type Database = {
           estado?: string | null
           id?: string
           is_rascunho?: boolean
+          motivo_encerramento?:
+            | Database["public"]["Enums"]["motivo_encerramento_paciente"]
+            | null
           nome?: string
           numero_identificacao?: string | null
+          obs_encerramento?: string | null
           pais?: string | null
           profissional_id?: string
           referencia_ig?: string | null
@@ -2400,6 +2415,12 @@ export type Database = {
         | "gestor"
         | "institucional"
         | "consultorio"
+      motivo_encerramento_paciente:
+        | "insulinizacao"
+        | "parto"
+        | "aborto"
+        | "nao_retornou"
+        | "outro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2533,6 +2554,13 @@ export const Constants = {
         "gestor",
         "institucional",
         "consultorio",
+      ],
+      motivo_encerramento_paciente: [
+        "insulinizacao",
+        "parto",
+        "aborto",
+        "nao_retornou",
+        "outro",
       ],
     },
   },
