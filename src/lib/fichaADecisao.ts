@@ -34,6 +34,10 @@ export function aplicarRegrasFichaA(
   pct: number,
   peso: number | null,
   igSemanas: number | null,
+  // 42F — teto de pactuação única (Modelo A: uma por gestação, sem reset). Contagem
+  // de regra_2+aceita ANTERIORES da paciente, lida de decisoes_ficha_a pelo caller
+  // (histórico persistido, não estado local). > 0 → força insulina na inadequação.
+  pactuacoesPrevias = 0,
 ): DecisaoResultado {
   const adesao_ok =
     d.checklist_dieta === true && d.checklist_exercicio === true && d.checklist_ganho_peso === true;
@@ -50,7 +54,9 @@ export function aplicarRegrasFichaA(
     conduta = 'manter_mev';
   } else if (pct < 70 && adesao_falhou) {
     regra = 'regra_2';
-    conduta = 'reforcar_mev';
+    // 42F — teto: se já houve pactuação de MEV aceita nesta gestação, a inadequação
+    // atual é insulina (não reoferece MEV).
+    conduta = pactuacoesPrevias > 0 ? 'insulina' : 'reforcar_mev';
   } else if (pct < 70 && adesao_ok) {
     regra = 'regra_3';
     conduta = 'insulina';
@@ -65,7 +71,7 @@ export function aplicarRegrasFichaA(
 
   const vaiParaInsulina =
     regra === 'regra_3' ||
-    (regra === 'regra_2' && d.pactuacao_adesao === 'recusa') ||
+    (regra === 'regra_2' && (pactuacoesPrevias > 0 || d.pactuacao_adesao === 'recusa')) ||
     (regra === 'regra_4' && d.memoria_glicosimetro === 'nao_confirma' && d.pactuacao_adesao === 'recusa');
 
   if (vaiParaInsulina && peso && peso > 0) {
@@ -86,11 +92,14 @@ export function aplicarRegrasFichaA(
   if (regra === 'regra_manter') {
     proxima = semInsulinaAC();
   } else if (regra === 'regra_2') {
-    // Reforçar MEV → Aceita: MANTÉM a grade de 4 pontos e repete (loop) até haver
-    // necessidade de associar insulina. Ampliar para 6 pontos sem insulina é
-    // exclusivo da Regra 4 "confirma" (lá os dados são reais; aqui só se reforça
-    // a adesão — mais aferições não mudam o que a paciente já reporta de verdade).
-    if (d.pactuacao_adesao === 'aceita') proxima = semInsulinaAC();
+    // 42F — teto de pactuação única: havendo pactuação de MEV aceita anterior, a
+    // inadequação atual vai direto para insulina, independente da escolha na ficha.
+    // Reforçar MEV → Aceita (1ª vez): MANTÉM a grade de 4 pontos e repete (loop) até
+    // haver necessidade de associar insulina. Ampliar para 6 pontos sem insulina é
+    // exclusivo da Regra 4 "confirma" (lá os dados são reais; aqui só se reforça a
+    // adesão — mais aferições não mudam o que a paciente já reporta de verdade).
+    if (pactuacoesPrevias > 0) proxima = bd();
+    else if (d.pactuacao_adesao === 'aceita') proxima = semInsulinaAC();
     else if (d.pactuacao_adesao === 'recusa') proxima = bd();
     else pendencias.push('pactuacao_adesao');
   } else if (regra === 'regra_3') {

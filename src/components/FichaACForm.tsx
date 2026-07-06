@@ -324,6 +324,16 @@ export default function FichaACForm({
     });
   }, [editingConsulta]);
 
+  // 42F — teto de pactuação única: conta as pactuações de MEV aceitas ANTERIORES da
+  // paciente (regra_2 + aceita), lidas do histórico persistido (consultas hidratadas
+  // com decisoes_ficha_a), excluindo a ficha em edição. > 0 → o motor força insulina.
+  const pactuacoesPrevias = useMemo(
+    () => consultas.filter(
+      (c) => c.regra_aplicada === 'regra_2' && c.pactuacao_adesao === 'aceita' && c.id !== editingConsulta?.id,
+    ).length,
+    [consultas, editingConsulta?.id],
+  );
+
   const decisaoFichaA = useMemo<DecisaoResultado | null>(() => {
     if (!isFichaAC || !isChecklistCompleto(checklist) || percentual == null) return null;
     return aplicarRegrasFichaA(
@@ -340,8 +350,9 @@ export default function FichaACForm({
       percentual,
       editingConsulta?.peso_kg ?? null,
       igSemNum || null,
+      pactuacoesPrevias,
     );
-  }, [isFichaAC, checklist, memoria, pactuacao, percentual, editingConsulta?.peso_kg, igSemNum]);
+  }, [isFichaAC, checklist, memoria, pactuacao, percentual, editingConsulta?.peso_kg, igSemNum, pactuacoesPrevias]);
 
   // Validation — peso não é mais obrigatório aqui (capturado no laudo, após o Bloco 1)
   const canSave = useMemo(() => {
@@ -436,6 +447,9 @@ export default function FichaACForm({
         proxima_ficha_recomendada: decisaoFichaA?.proxima_ficha_recomendada ?? null,
         regra_aplicada: decisaoFichaA?.regra_aplicada ?? null,
         conduta_gerada: decisaoFichaA?.conduta_gerada ?? null,
+        // 42F — persiste pactuação/memória p/ o teto contar pactuações no histórico.
+        pactuacao_adesao: pactuacao,
+        memoria_glicosimetro: memoria,
         tipo_pos_prandial: janela,
       };
 
