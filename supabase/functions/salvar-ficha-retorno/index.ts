@@ -548,7 +548,7 @@ Deno.serve(async (req) => {
     let decisaoOut: ResultadoDecisao | null = null;
     let decisaoPersistida: Record<string, unknown> | null = null;
 
-    if (body.decisao_ficha_a && tipo === "ficha_a" && consultaId) {
+    if (body.decisao_ficha_a && (tipo === "ficha_a" || tipo === "ficha_c") && consultaId) {
       const d = body.decisao_ficha_a;
 
       // Busca perfil + valores para calcular percentual_meta (se não veio explícito)
@@ -642,8 +642,8 @@ Deno.serve(async (req) => {
         }
 
         // ============================================================
-        // PROMPT 42B — Insulinização ≤30 sem encerra o acompanhamento.
-        // Quando a Ficha A decide insulina (proxima seria ficha_b), a MARI
+        // PROMPT 42B/42D — Insulinização encerra o acompanhamento (qualquer IG).
+        // Quando a Ficha A/C decide insulina (proxima seria ficha_b OU ficha_d), a MARI
         // emite o laudo (conduta + 3 arranjos) e encerra a paciente por
         // "insulinizacao". O campo `proxima_ficha_recomendada` é PRESERVADO
         // em decisoes_ficha_a porque o mapeamento de laudo (r2_insulina /
@@ -655,7 +655,8 @@ Deno.serve(async (req) => {
         // ============================================================
         if (
           body.modo === "finalizar" &&
-          decisaoOut.proxima_ficha_recomendada === "ficha_b"
+          (decisaoOut.proxima_ficha_recomendada === "ficha_b" ||
+            decisaoOut.proxima_ficha_recomendada === "ficha_d")
         ) {
           const { data: pacAtual } = await admin
             .from("pacientes")
