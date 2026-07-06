@@ -119,6 +119,8 @@ function aplicarRegras(
   pct: number,
   peso: number | null,
   igSemanas: number | null,
+  // 42F — teto de pactuação única (espelho de fichaADecisao.ts).
+  pactuacoesPrevias = 0,
 ): ResultadoDecisao {
   const adesao_ok =
     d.checklist_dieta === true && d.checklist_exercicio === true && d.checklist_ganho_peso === true;
@@ -135,7 +137,8 @@ function aplicarRegras(
     conduta = "manter_mev";
   } else if (pct < 70 && adesao_falhou) {
     regra = "regra_2";
-    conduta = "reforcar_mev";
+    // 42F — teto: pactuação de MEV aceita anterior → insulina (não reoferece MEV).
+    conduta = pactuacoesPrevias > 0 ? "insulina" : "reforcar_mev";
   } else if (pct < 70 && adesao_ok) {
     regra = "regra_3";
     conduta = "insulina";
@@ -151,7 +154,7 @@ function aplicarRegras(
 
   const vaiParaInsulina =
     regra === "regra_3" ||
-    (regra === "regra_2" && d.pactuacao_adesao === "recusa") ||
+    (regra === "regra_2" && (pactuacoesPrevias > 0 || d.pactuacao_adesao === "recusa")) ||
     (regra === "regra_4" && d.memoria_glicosimetro === "nao_confirma" && d.pactuacao_adesao === "recusa");
 
   if (vaiParaInsulina && peso && peso > 0) {
@@ -173,7 +176,9 @@ function aplicarRegras(
   if (regra === "regra_manter") {
     proxima = semInsulinaAC();
   } else if (regra === "regra_2") {
-    if (d.pactuacao_adesao === "aceita") proxima = semInsulinaAC();
+    // 42F — teto de pactuação única: histórico com pactuação aceita → insulina direto.
+    if (pactuacoesPrevias > 0) proxima = bd();
+    else if (d.pactuacao_adesao === "aceita") proxima = semInsulinaAC();
     else if (d.pactuacao_adesao === "recusa") proxima = bd();
     else pendencias.push("pactuacao_adesao");
   } else if (regra === "regra_3") {
@@ -595,7 +600,18 @@ Deno.serve(async (req) => {
       } else {
         const peso = d.peso_paciente_kg ?? (perfilRow?.peso_paciente_kg ? Number(perfilRow.peso_paciente_kg) : null);
         const igSem = (igRef?.semanas as number | null) ?? null;
-        decisaoOut = aplicarRegras(d, pct, peso, igSem);
+
+        // 42F — teto de pactuação única: conta pactuações de MEV aceitas ANTERIORES
+        // da paciente (regra_2 + aceita) no histórico persistido, exceto a ficha atual.
+        const { count: pactuacoesPrevias } = await admin
+          .from("decisoes_ficha_a")
+          .select("consulta_id", { count: "exact", head: true })
+          .eq("paciente_id", body.paciente_id)
+          .eq("regra_aplicada", "regra_2")
+          .eq("pactuacao_adesao", "aceita")
+          .neq("consulta_id", consultaId);
+
+        decisaoOut = aplicarRegras(d, pct, peso, igSem, pactuacoesPrevias ?? 0);
 
         // Persistência auditável (upsert por consulta_id)
         const persistPayload = {

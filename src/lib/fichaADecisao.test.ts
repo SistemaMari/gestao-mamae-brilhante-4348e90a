@@ -189,25 +189,50 @@ describe('42T — Paridade Ficha A (IG 25) ↔ Ficha C (IG 32)', () => {
   }
 });
 
-describe('42T — Pactuação única (ex-42C): comportamento atual do motor', () => {
-  // ⚠️ DETECTOR: aplicarRegrasFichaA é função PURA dos inputs atuais — não conta
-  // pactuações anteriores. O caller (FichaACForm) também não conta: `pactuacao` é
-  // estado local por ficha, com ambos os botões (aceita/recusa) sempre disponíveis.
-  // Logo a regra "pactuação única" (2ª inadequação pós-pactuação → força insulina)
-  // NÃO está implementada — nem em A nem em C. A PARIDADE A↔C se mantém; a ausência
-  // do teto é um buraco a tratar em prompt próprio (fora do escopo do 42T = só testes).
-  it('R2 + aceita repetido → sempre reforcar_mev, SEM teto — idêntico em A e C', () => {
-    const inA = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'aceita' }, 50, PESO, 25);
-    const inC = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'aceita' }, 50, PESO, 32);
+describe('42F — Teto de pactuação única (Modelo A: uma por gestação, sem reset)', () => {
+  // 1ª pactuação (sem histórico, pactuacoesPrevias=0): permitida — reforçar MEV.
+  it('1ª pactuação R2 + aceita (histórico=0) → r2_reforcar — idêntico em A e C', () => {
+    const inA = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'aceita' }, 50, PESO, 25, 0);
+    const inC = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'aceita' }, 50, PESO, 32, 0);
     expect(inA.conduta_gerada).toBe('reforcar_mev');
     expect(inC.conduta_gerada).toBe('reforcar_mev');
     expect(inA.proxima_ficha_recomendada).toBe('ficha_a');
     expect(inC.proxima_ficha_recomendada).toBe('ficha_c');
   });
 
-  it('Pactuação esgotada (recusa) → insulina, idêntico em A (ficha_b) e C (ficha_d)', () => {
-    const inA = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'recusa' }, 50, PESO, 25);
-    const inC = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'recusa' }, 50, PESO, 32);
+  // Havendo pactuação aceita anterior (histórico>0), a próxima inadequação vai direto
+  // para insulina — mesmo com a ficha atual marcando "aceita". Fim do loop infinito.
+  it('2ª inadequação pós-pactuação (histórico=1) → insulina, idêntico em A (ficha_b) e C (ficha_d)', () => {
+    const inA = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'aceita' }, 50, PESO, 25, 1);
+    const inC = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'aceita' }, 50, PESO, 32, 1);
+    expect(inA.regra_aplicada).toBe('regra_2');
+    expect(inC.regra_aplicada).toBe('regra_2');
+    expect(inA.conduta_gerada).toBe('insulina');
+    expect(inC.conduta_gerada).toBe('insulina');
+    expect(inA.proxima_ficha_recomendada).toBe('ficha_b');
+    expect(inC.proxima_ficha_recomendada).toBe('ficha_d');
+    // dose calculada (0,5 UI/kg), idêntica nos dois regimes
+    expect(inA.dose_total).toBeGreaterThan(0);
+    expect(inC.dose_total).toBe(inA.dose_total);
+    // o teto decide sozinho — sem pendência de pactuação
+    expect(inA.pendencias).toEqual([]);
+    expect(inC.pendencias).toEqual([]);
+  });
+
+  // O teto vence a escolha da ficha: com histórico, mesmo sem marcar pactuação → insulina.
+  it('Histórico>0 sem escolha de pactuação → insulina, sem pendência (A e C)', () => {
+    const inA = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: null }, 50, PESO, 25, 2);
+    const inC = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: null }, 50, PESO, 32, 2);
+    expect(inA.proxima_ficha_recomendada).toBe('ficha_b');
+    expect(inC.proxima_ficha_recomendada).toBe('ficha_d');
+    expect(inA.pendencias).toEqual([]);
+    expect(inC.pendencias).toEqual([]);
+  });
+
+  // Recusa na 1ª inadequação (sem histórico) → insulina (caminho pré-teto preservado).
+  it('Recusa na 1ª (histórico=0) → insulina, A (ficha_b) e C (ficha_d)', () => {
+    const inA = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'recusa' }, 50, PESO, 25, 0);
+    const inC = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'recusa' }, 50, PESO, 32, 0);
     expect(inA.proxima_ficha_recomendada).toBe('ficha_b');
     expect(inC.proxima_ficha_recomendada).toBe('ficha_d');
   });
