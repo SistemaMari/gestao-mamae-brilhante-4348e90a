@@ -640,6 +640,48 @@ Deno.serve(async (req) => {
             })
             .eq("id", perfilRow.id);
         }
+
+        // ============================================================
+        // PROMPT 42B — Insulinização ≤30 sem encerra o acompanhamento.
+        // Quando a Ficha A decide insulina (proxima seria ficha_b), a MARI
+        // emite o laudo (conduta + 3 arranjos) e encerra a paciente por
+        // "insulinizacao". O campo `proxima_ficha_recomendada` é PRESERVADO
+        // em decisoes_ficha_a porque o mapeamento de laudo (r2_insulina /
+        // r3_insulina / r4b_insulina) depende dele — o encerramento acontece
+        // no lado da paciente, não na decisão da ficha.
+        //
+        // Só encerra em modo=finalizar (rascunho continua editável). Não
+        // sobrescreve encerramento pré-existente (idempotente para reenvio).
+        // ============================================================
+        if (
+          body.modo === "finalizar" &&
+          decisaoOut.proxima_ficha_recomendada === "ficha_b"
+        ) {
+          const { data: pacAtual } = await admin
+            .from("pacientes")
+            .select("motivo_encerramento")
+            .eq("id", body.paciente_id)
+            .maybeSingle();
+
+          if (!pacAtual?.motivo_encerramento) {
+            const dataEncerramento =
+              campos.data ?? new Date().toISOString().slice(0, 10);
+            const { error: encErr } = await admin
+              .from("pacientes")
+              .update({
+                motivo_encerramento: "insulinizacao",
+                data_encerramento: dataEncerramento,
+                status_ficha: "encerrada_insulinizacao",
+              })
+              .eq("id", body.paciente_id);
+            if (encErr) {
+              console.error(
+                "PROMPT 42B — falha ao registrar encerramento por insulinização",
+                encErr,
+              );
+            }
+          }
+        }
       }
     }
 

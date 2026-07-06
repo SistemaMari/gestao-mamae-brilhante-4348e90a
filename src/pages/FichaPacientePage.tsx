@@ -49,6 +49,7 @@ import FichaEResultCard from '@/components/FichaEResultCard';
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
 import EncerramentoPartoCard from '@/components/EncerramentoPartoCard';
+import EncerramentoInsulinizacaoCard from '@/components/EncerramentoInsulinizacaoCard';
 import UsgManagerCard from '@/components/UsgManagerCard';
 import BannerClinicoPersistente from '@/components/ficha/BannerClinicoPersistente';
 import { type UsgRefInput } from '@/lib/fichaUtils';
@@ -79,6 +80,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   dmg_confirmado: { label: 'DMG confirmado', color: 'bg-orange-500' },
   resultado_parto: { label: 'Resultado do parto', color: 'bg-purple-500' },
   encaminhada_endocrino: { label: 'Associar endocrino', color: 'bg-red-500' },
+  // PROMPT 42B — encerramento por insulinização (Hipótese 3, ≤30 sem)
+  encerrada_insulinizacao: { label: 'Encerrada por insulinização', color: 'bg-violet-600' },
 };
 
 // Dynamic display name based on chronological index
@@ -231,6 +234,10 @@ function getNextStepInfo(
 
     case 'encaminhada_endocrino':
       return null; // Only parto registration available (shown as secondary)
+
+    // PROMPT 42B — encerramento por insulinização: sem próxima ficha.
+    case 'encerrada_insulinizacao':
+      return null;
 
     default:
       return null;
@@ -1183,6 +1190,9 @@ export default function FichaPacientePage() {
 
       {/* 38B-B (#22): card de encerramento por parto (Cenário 5) — roxo névoa + reteste puerperal. */}
       {paciente.status_ficha === 'resultado_parto' && <EncerramentoPartoCard />}
+
+      {/* PROMPT 42B — card de encerramento por insulinização (Hipótese 3, ≤30 sem). */}
+      {paciente.status_ficha === 'encerrada_insulinizacao' && <EncerramentoInsulinizacaoCard />}
 
       {/* Standalone green card — only when 1 consultation (aguardando_gj), no retorno form */}
       {consultas.length === 1 && paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && primeiraConsulta && (() => {
