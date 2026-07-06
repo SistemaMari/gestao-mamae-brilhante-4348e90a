@@ -30,6 +30,7 @@ import {
 import DateInput from '@/components/ficha/DateInput';
 import UsgFlowSection, { emptyUsgFlow, type UsgFlowValue } from '@/components/UsgFlowSection';
 import { Checkbox } from '@/components/ui/checkbox';
+import LocalizacaoErrorBoundary from '@/components/LocalizacaoErrorBoundary';
 
 function todayISO() {
   return todayLocalISO();
