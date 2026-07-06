@@ -284,8 +284,11 @@ export default function FichaACForm({
     }));
   }, [grid]);
 
-  // 36B REV3 — Checklist + pactuação + memória (somente Ficha A, ≤30 sem)
-  const isFichaA = igSemNum <= 30;
+  // 42D — Motor de decisão (checklist + pactuação + memória) roda para a Ficha A
+  // (≤30 sem) E a Ficha C (>30 sem): a avaliação de controle é idêntica. O motor é
+  // bilateral (roteia por IG internamente); a única diferença A/C é o intervalo de
+  // retorno (15d vs 7d), já ortogonal ao motor. isFichaAC substitui o antigo isFichaA.
+  const isFichaAC = true;
   // 38B-A (#9): ao reabrir o Retorno 2, restaura as 6 respostas salvas
   // (decisoes_ficha_a hidratada no fetchPaciente). Ficha nova começa vazia.
   const [checklist, setChecklist] = useState<ChecklistState>(() =>
@@ -322,7 +325,7 @@ export default function FichaACForm({
   }, [editingConsulta]);
 
   const decisaoFichaA = useMemo<DecisaoResultado | null>(() => {
-    if (!isFichaA || !isChecklistCompleto(checklist) || percentual == null) return null;
+    if (!isFichaAC || !isChecklistCompleto(checklist) || percentual == null) return null;
     return aplicarRegrasFichaA(
       {
         checklist_dieta: checklist.dieta,
@@ -338,7 +341,7 @@ export default function FichaACForm({
       editingConsulta?.peso_kg ?? null,
       igSemNum || null,
     );
-  }, [isFichaA, checklist, memoria, pactuacao, percentual, editingConsulta?.peso_kg, igSemNum]);
+  }, [isFichaAC, checklist, memoria, pactuacao, percentual, editingConsulta?.peso_kg, igSemNum]);
 
   // Validation — peso não é mais obrigatório aqui (capturado no laudo, após o Bloco 1)
   const canSave = useMemo(() => {
@@ -347,12 +350,12 @@ export default function FichaACForm({
     if (totalPreenchidos === 0) return false;
     if (hasNegativeValues) return false;
     // 36B REV3 — Ficha A exige checklist completo + caminho clínico fechado (sem pendências de pactuação/memória)
-    if (isFichaA) {
+    if (isFichaAC) {
       if (!isChecklistCompleto(checklist)) return false;
       if (decisaoFichaA && decisaoFichaA.pendencias.some(p => p === 'pactuacao_adesao' || p === 'memoria_glicosimetro')) return false;
     }
     return true;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisaoFichaA]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaAC, checklist, decisaoFichaA]);
 
   // 34B.2 — status + pendentes (badge e banner).
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
@@ -368,11 +371,11 @@ export default function FichaACForm({
     if (!igSemanas) f.push('Idade gestacional (semanas)');
     if (totalPreenchidos === 0) f.push('Pelo menos 1 valor de glicemia preenchido');
     if (hasNegativeValues) f.push('Corrigir valores negativos na grade');
-    if (isFichaA && !isChecklistCompleto(checklist)) f.push('Checklist clínico do Retorno 2 (6 itens)');
-    if (isFichaA && decisaoFichaA?.pendencias.includes("pactuacao_adesao")) f.push('Pactuação com a paciente');
-    if (isFichaA && decisaoFichaA?.pendencias.includes("memoria_glicosimetro")) f.push('Avaliação da memória do glicosímetro');
+    if (isFichaAC && !isChecklistCompleto(checklist)) f.push('Checklist clínico do Retorno 2 (6 itens)');
+    if (isFichaAC && decisaoFichaA?.pendencias.includes("pactuacao_adesao")) f.push('Pactuação com a paciente');
+    if (isFichaAC && decisaoFichaA?.pendencias.includes("memoria_glicosimetro")) f.push('Avaliação da memória do glicosímetro');
     return f;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaA, checklist, decisaoFichaA]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaAC, checklist, decisaoFichaA]);
 
   // 34B.3 seção 3.10 — bloqueia submit quando alguma data clínica é inválida.
   const [dataInicioValida, setDataInicioValida] = useState(true);
@@ -564,7 +567,7 @@ export default function FichaACForm({
       });
 
       // 36B REV3 — Persistência auditável da decisão (apenas Ficha A com checklist completo)
-      if (isFichaA && decisaoFichaA && consultaId) {
+      if (isFichaAC && decisaoFichaA && consultaId) {
         await supabase
           .from('decisoes_ficha_a' as any)
           .upsert({
@@ -861,12 +864,12 @@ export default function FichaACForm({
       {/* Peso e dose foram movidos para o LAUDO (FichaACResultCard) — capturados após o Bloco 1 */}
 
       {/* 36B REV3 — Checklist clínico do Retorno 2 (apenas Ficha A, ≤30 sem) */}
-      {isFichaA && (
+      {isFichaAC && (
         <ChecklistRetorno2 value={checklist} onChange={setChecklist} disabled={saving} />
       )}
 
       {/* 36B REV3 — Conduta gerada pelo motor de decisão (apenas Ficha A) */}
-      {isFichaA && decisaoFichaA && (
+      {isFichaAC && decisaoFichaA && (
         <CondutaCard
           decisao={{
             regra_aplicada: decisaoFichaA.regra_aplicada,
