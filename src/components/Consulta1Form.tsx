@@ -408,12 +408,17 @@ export default function Consulta1Form() {
             )}
           </div>
 
+          <LocalizacaoErrorBoundary>
           <div className="space-y-2">
             <FieldLabel tooltip="Local de residência da paciente. A lista de estados e cidades muda conforme o país.">
               Localização
             </FieldLabel>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Select value={pais} onValueChange={(v) => { setPais(v); setEstado(''); setCidade(''); }}>
+              <Select value={pais} onValueChange={(v) => {
+                // eslint-disable-next-line no-console
+                console.debug('[Localizacao] setPais', { v });
+                setPais(v); setEstado(''); setCidade('');
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="País" />
                 </SelectTrigger>
@@ -431,7 +436,20 @@ export default function Consulta1Form() {
                   placeholder="Estado"
                 />
               ) : (
-                <Select value={estado} onValueChange={(v) => { setEstado(v); setCidade(''); }}>
+                <Select value={estado} onValueChange={(v) => {
+                  // eslint-disable-next-line no-console
+                  console.debug('[Localizacao] setEstado', {
+                    pais, uf: v, stateListLen: stateList.length,
+                  });
+                  try {
+                    setEstado(v);
+                    setCidade('');
+                  } catch (err) {
+                    // eslint-disable-next-line no-console
+                    console.error('[Localizacao] setEstado threw', err);
+                    throw err;
+                  }
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Estado" />
                   </SelectTrigger>
@@ -460,6 +478,8 @@ export default function Consulta1Form() {
               )}
             </div>
           </div>
+          </LocalizacaOErrorBoundaryClose>
+
 
           {/* DUM */}
           <div className="space-y-2">
