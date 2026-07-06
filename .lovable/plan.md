@@ -1,33 +1,34 @@
 ## Diagnóstico
 
-Confirmei no banco:
+**1) Badges "Dano" e "MENSAGEM DIRETA ABERTA"** — não é bug nosso. Nenhuma dessas strings existe em `src/`, `supabase/` ou nos JSONs de i18n. O Chrome está traduzindo automaticamente a página (você mesma confirmou: sumiu na versão inglês). O tradutor reescreve rótulos curtos ("DMG afastado" → "Dano") e chuta frases inteiras para siglas que não conhece ("OVERT DM" → "MENSAGEM DIRETA ABERTA"). Tooltip vem certo porque o tradutor às vezes pula tooltips.
 
-- `roberto.costa@unesp.br` — usuário existe, email confirmado em 11/05, **`last_sign_in_at` = null** (nunca conseguiu logar).
-- `suportemari@novodmg.com.br` — mesma situação: existe, confirmado, **nunca logou**.
-- As outras 4 contas institucionais logaram hoje normalmente.
+**2) Tela branca ao clicar qualquer UF** — não consegui reproduzir (rota exige login e não tenho sessão no sandbox). Sem stack trace ou log do erro real, qualquer palpite de causa é chute. O caminho responsável seguro é instrumentar o bloco de Localização pra o próximo clique da usuária cuspir o erro pra mim automaticamente (via console) no turno seguinte.
 
-Como ambas nunca tiveram um login bem-sucedido, a senha que está hoje no `auth.users` para essas duas **não é** a que você tem na lista (`bwX@FJP&4u8f$NCZ` e `nwm*UXihErP37N4f`). Provavelmente foram criadas com outra senha em 11/05 e nunca atualizadas. Não dá pra ler o hash; precisa resetar.
+## O que vou fazer
 
-## Plano
+### Fix 1 — Bloquear Google Translate na app inteira
+Em `index.html`:
+- Trocar `<html lang="en">` (ou o que estiver hoje) por `<html lang="pt-BR" translate="no">`.
+- Adicionar `<meta name="google" content="notranslate">` no `<head>`.
 
-Criar uma edge function temporária `reset-senhas-teste` (protegida por header secreto) que usa a service role para chamar `auth.admin.updateUserById` e gravar a senha desejada para cada um dos dois emails.
+Efeito: Chrome para de oferecer tradução e para de reescrever rótulos. Zero mudança visual para quem já usa em PT. Se um dia quisermos i18n de verdade, é o `LanguageSwitcher` que assume — não o tradutor do navegador.
 
-1. **Nova edge function `supabase/functions/reset-senhas-teste/index.ts`**
-   - Lê header `x-reset-secret` e compara com secret `RESET_SENHAS_SECRET`.
-   - Recebe body `{ items: [{ email, password }] }`.
-   - Para cada item: busca o user por email (`listUsers` paginado ou `getUserByEmail` via admin) e chama `supabase.auth.admin.updateUserById(id, { password, email_confirm: true })`.
-   - Retorna log por item: `ok` / `not_found` / `error`.
-   - Sem autenticação JWT (`verify_jwt = false` em `config.toml`), protegida só pelo secret.
+### Fix 2 — Instrumentar Consulta1Form pra capturar o erro do Estado
+Em `src/components/Consulta1Form.tsx`, sem mudar comportamento:
+- Envelopar o bloco Localização (país/estado/cidade) num `ErrorBoundary` local que, se cair, renderiza uma caixinha vermelha "Localização caiu — erro: …" **em vez de** deixar a página inteira branca. Já assim você consegue seguir preenchendo o resto da ficha.
+- Logar no `console.error` o objeto de erro completo (mensagem + stack) quando o boundary disparar. No próximo turno, o console log entra automaticamente no meu contexto e eu vejo o erro real.
+- Logar `console.debug` no `onValueChange` do Estado com `{ pais, uf, cityListLen }` pra confirmar em qual ponto da cadeia (setar estado, regenerar cityList, re-renderizar Combobox) a coisa quebra.
 
-2. **Secret novo**: `RESET_SENHAS_SECRET` (você confirma e eu adiciono via `add_secret` na hora de implementar).
+### Fluxo pra você
+1. Eu aplico as duas mudanças.
+2. Você abre `/paciente/nova`, seleciona um estado (qualquer um), vê a caixinha vermelha aparecer no lugar do bloco Localização.
+3. Manda "deu ruim de novo" no chat — o console log já vem pra mim.
+4. Eu leio o erro real, faço o fix definitivo (provavelmente uma linha) e removo a instrumentação.
 
-3. **Execução**: depois do deploy, eu chamo a função com as duas linhas:
-   - `roberto.costa@unesp.br` → `bwX@FJP&4u8f$NCZ`
-   - `suportemari@novodmg.com.br` → `nwm*UXihErP37N4f`
-   E mostro o resultado.
+## Fora do escopo agora
+- Não vou tentar "adivinhar" o fix da tela branca antes de ver o erro. Já tentei ler o código (`Consulta1Form.tsx`, `CidadeCombobox.tsx`, `useCidadesIBGE.ts`, `locationData.ts`, `cidadesIBGE.ts`) e não achei nada obviamente quebrado — sem o stack real, mexer às cegas piora.
+- Não vou mexer em `STATUS_CONFIG` nem nos badges: o texto no código está correto; o problema é externo (tradutor).
 
-4. **Limpeza (opcional, recomendado)**: depois que confirmarmos que os dois entram, eu removo a edge function e o secret pra não ficar um endpoint de reset de senha vivo no projeto.
-
-## Observação sobre o `suportemari`
-
-Lembrando do diagnóstico anterior: esse user tem `admin` + linha em `profissionais` com nome "Roberto Costa" vinculada à UBS Demo Pinheiros. O reset de senha não toca nisso — se quiser, dá pra incluir nesse mesmo plano a limpeza (remover a role `institucional` extra e a linha de `profissionais` duplicada). Me diga se quer junto ou separado.
+## Arquivos tocados
+- `index.html` — lang + meta notranslate
+- `src/components/Consulta1Form.tsx` — ErrorBoundary local + logs no bloco Localização (reversível em 1 commit)
