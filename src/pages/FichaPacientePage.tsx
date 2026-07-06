@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  AlertTriangle, Calendar, Clock, FileText, Pencil, Plus, User, Loader2, MessageCircle, ChevronDown,
+  AlertTriangle, Calendar, Clock, FileText, Pencil, Plus, User, Loader2, MessageCircle, ChevronDown, XCircle,
 } from 'lucide-react';
 import {
   mascararWhatsappBR,
@@ -48,12 +48,19 @@ import FichaEResultCard from '@/components/FichaEResultCard';
 
 import RegistroPartoForm from '@/components/RegistroPartoForm';
 import RegistroPartoReadOnlyCard from '@/components/RegistroPartoReadOnlyCard';
-import EncerramentoPartoCard from '@/components/EncerramentoPartoCard';
-import EncerramentoInsulinizacaoCard from '@/components/EncerramentoInsulinizacaoCard';
+// PROMPT 42E — EncerramentoPartoCard foi absorvido pelo card único (por motivo).
+// O arquivo permanece dormente no repo; deixou de ser renderizado aqui.
+import EncerramentoInsulinizacaoCard, { type RetesteInfo } from '@/components/EncerramentoInsulinizacaoCard';
+import EncerrarAcompanhamentoModal, { type EncerramentoPayload } from '@/components/EncerrarAcompanhamentoModal';
 import UsgManagerCard from '@/components/UsgManagerCard';
 import BannerClinicoPersistente from '@/components/ficha/BannerClinicoPersistente';
 import { type UsgRefInput } from '@/lib/fichaUtils';
 import { useIg, useIgBatch } from '@/lib/getIg';
+import {
+  resolverMotivoEfetivo,
+  type MotivoEncerramento,
+} from '@/lib/motivoEncerramento';
+import { calcularDppISO, janelaRetestePuerperal } from '@/lib/dpp';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import PlaceholderBlocoLaudo from '@/components/laudo/PlaceholderBlocoLaudo';
 import { mapearCenario, derivarDesfechoClinico, cenarioSemTextoLaudo } from '@/lib/laudoMapping';
@@ -281,6 +288,9 @@ export default function FichaPacientePage() {
   const [showGtt, setShowGtt] = useState(false);
   const [gttCompleted, setGttCompleted] = useState(false);
   const [showRegistroParto, setShowRegistroParto] = useState(false);
+  // PROMPT 42E — encerramento manual in-app
+  const [showEncerrarModal, setShowEncerrarModal] = useState(false);
+  const [encerrarSubmitting, setEncerrarSubmitting] = useState(false);
 
   // Editing state for last consultation — tracks which consultation is being edited inline
   const [editingConsultaId, setEditingConsultaId] = useState<string | null>(null);
@@ -678,6 +688,92 @@ export default function FichaPacientePage() {
   const igMaior24 = igAtual ? igAtual.semanas >= 24 : false;
 
   const status = paciente ? STATUS_CONFIG[paciente.status_ficha] : null;
+
+  // ── PROMPT 42E — encerramento manual in-app ──────────────────────────────
+  // Os campos de encerramento vêm do select('*') sem tipagem no state; leitura
+  // NARROW (sem `any`) para motivo/card/reteste não trabalharem no escuro.
+  const encFields = paciente as
+    | {
+        motivo_encerramento?: MotivoEncerramento | null;
+        data_encerramento?: string | null;
+        obs_encerramento?: string | null;
+      }
+    | null;
+
+  // Motivo EFETIVO é a fonte de verdade da UI (ponte status_ficha → motivo).
+  // O write manual NÃO sobrescreve status_ficha, então o sinal clínico de DMG
+  // (que vive em status_ficha) fica preservado para o gate do reteste.
+  const motivoEfetivo: MotivoEncerramento | null = paciente
+    ? resolverMotivoEfetivo({
+        motivo_encerramento: encFields?.motivo_encerramento ?? null,
+        status_ficha: paciente.status_ficha,
+      })
+    : null;
+  const isEncerrada = motivoEfetivo != null;
+
+  // DMG confirmado (persistente): estados só alcançáveis pós-confirmação, ou o
+  // próprio motivo de insulinização. Predicado baseado em status_ficha, que o
+  // encerramento manual preserva.
+  const dmgConfirmado =
+    motivoEfetivo === 'insulinizacao' ||
+    (!!paciente &&
+      ['dmg_confirmado', 'encaminhada_endocrino', 'encerrada_insulinizacao'].includes(
+        paciente.status_ficha,
+      ));
+
+  // Bloco de reteste puerperal — só com DMG confirmado. Âncora por motivo:
+  // parto/aborto → data do evento (data_encerramento); demais → DPP estimada.
+  const reteste: RetesteInfo | null = useMemo(() => {
+    if (!isEncerrada || !dmgConfirmado || !motivoEfetivo) return null;
+    const dataEnc = encFields?.data_encerramento;
+
+    let ancoraISO: string | null | undefined;
+    let origemLabel: string;
+    if (motivoEfetivo === 'parto') {
+      ancoraISO = dataEnc;
+      origemLabel = 'a partir da data do parto';
+    } else if (motivoEfetivo === 'aborto') {
+      ancoraISO = dataEnc;
+      origemLabel = 'a partir da data do aborto';
+    } else {
+      ancoraISO = calcularDppISO(igAtual?.base_data);
+      origemLabel = 'a partir da DPP estimada';
+    }
+
+    const janela = janelaRetestePuerperal(ancoraISO);
+    if (!janela) return null;
+    return {
+      inicioBR: formatDateBR(janela.inicioISO),
+      fimBR: formatDateBR(janela.fimISO),
+      origemLabel,
+    };
+  }, [isEncerrada, dmgConfirmado, motivoEfetivo, encFields?.data_encerramento, igAtual?.base_data]);
+
+  // Escrita do encerramento manual — update direto em `pacientes` (padrão da
+  // ficha), gravando SÓ motivo + data/obs. Não toca status_ficha (follow-up 42E.1
+  // cobre a propagação para listas/dashboard).
+  const handleEncerrar = async (payload: EncerramentoPayload) => {
+    if (!paciente?.id) return;
+    setEncerrarSubmitting(true);
+    const { error } = await supabase
+      .from('pacientes')
+      .update({
+        motivo_encerramento: payload.motivo,
+        data_encerramento: payload.data,
+        obs_encerramento: payload.obs,
+      })
+      .eq('id', paciente.id);
+    setEncerrarSubmitting(false);
+    if (error) {
+      console.error('PROMPT 42E — falha ao encerrar acompanhamento', error);
+      toast.error('Erro ao encerrar acompanhamento. Nada foi gravado.');
+      return;
+    }
+    setShowEncerrarModal(false);
+    toast.success('Acompanhamento encerrado.');
+    window.dispatchEvent(new Event('preview-pacientes-updated'));
+    await fetchPaciente();
+  };
 
   // Edit mode helpers
   const startEditing = () => {
@@ -1188,11 +1284,17 @@ export default function FichaPacientePage() {
         />
       )}
 
-      {/* 38B-B (#22): card de encerramento por parto (Cenário 5) — roxo névoa + reteste puerperal. */}
-      {paciente.status_ficha === 'resultado_parto' && <EncerramentoPartoCard />}
-
-      {/* PROMPT 42B — card de encerramento por insulinização (Hipótese 3, ≤30 sem). */}
-      {paciente.status_ficha === 'encerrada_insulinizacao' && <EncerramentoInsulinizacaoCard />}
+      {/* PROMPT 42E — card ÚNICO de encerramento, decidido por motivo_encerramento
+          (fonte de verdade). Absorve os antigos cards de parto e insulinização.
+          O bloco de reteste puerperal é computado no parent (gate DMG + âncora). */}
+      {motivoEfetivo && (
+        <EncerramentoInsulinizacaoCard
+          motivo={motivoEfetivo}
+          data={encFields?.data_encerramento}
+          obs={encFields?.obs_encerramento}
+          reteste={reteste}
+        />
+      )}
 
       {/* Standalone green card — only when 1 consultation (aguardando_gj), no retorno form */}
       {consultas.length === 1 && paciente.status_ficha === 'aguardando_gj' && !showRetorno1 && primeiraConsulta && (() => {
@@ -1805,6 +1907,8 @@ export default function FichaPacientePage() {
         {!isReadOnly && (() => {
           if (showRetorno1 || showFichaAC || showFichaBD || showFichaE || showGtt || showRegistroParto) return null;
           if (paciente.status_ficha === 'dmg_afastado' || paciente.status_ficha === 'resultado_parto') return null;
+          // PROMPT 42E — sem próximo passo depois de encerrada.
+          if (isEncerrada) return null;
 
           const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
           if (!nextStep) return null;
@@ -1857,7 +1961,7 @@ export default function FichaPacientePage() {
         })()}
 
         {/* Botão secundário — Registro do Parto */}
-        {!isReadOnly && canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showFichaE && !showGtt && !showRegistroParto && (
+        {!isReadOnly && !isEncerrada && canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showFichaE && !showGtt && !showRegistroParto && (
           <Button
             variant="outline"
             className="w-full mt-2 border-[#7C4DBA] text-[#7C4DBA] hover:bg-[#E8E0FF] hover:text-[#7E69AB]"
@@ -1868,12 +1972,32 @@ export default function FichaPacientePage() {
           </Button>
         )}
 
+        {/* PROMPT 42E — Encerrar acompanhamento (só em paciente ativa). */}
+        {!isReadOnly && !isEncerrada && !showRetorno1 && !showFichaAC && !showFichaBD && !showFichaE && !showGtt && !showRegistroParto && (
+          <Button
+            variant="outline"
+            className="w-full mt-2 border-[#B45309] text-[#B45309] hover:bg-[#FEF3C7] hover:text-[#92400E]"
+            onClick={() => setShowEncerrarModal(true)}
+          >
+            <XCircle className="mr-2 h-4 w-4 shrink-0" />
+            Encerrar acompanhamento
+          </Button>
+        )}
+
         {paciente?.id && (
           <div className="mt-6">
             <CarimboAtendimento variant="lista" pacienteId={paciente.id} />
           </div>
         )}
       </div>
+
+      {/* PROMPT 42E — modal de encerramento manual */}
+      <EncerrarAcompanhamentoModal
+        open={showEncerrarModal}
+        submitting={encerrarSubmitting}
+        onClose={() => setShowEncerrarModal(false)}
+        onConfirm={handleEncerrar}
+      />
     </div>
   );
 }
