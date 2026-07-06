@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { aplicarRegrasFichaA, type ChecklistInput } from './fichaADecisao';
+import { aplicarRegrasFichaA, type ChecklistInput, type Regra, type Conduta, type ProximaFicha } from './fichaADecisao';
 
 // Paciente "base": adesão completa + fetal sem alterações. Cada teste muda só o
 // necessário para cair na regra desejada.
@@ -80,4 +80,154 @@ describe('aplicarRegrasFichaA — roteamento da próxima ficha', () => {
     const r = aplicarRegrasFichaA({ ...base }, 50, 70, 32);
     expect(r.proxima_ficha_recomendada).toBe('ficha_d');
   });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// 42T — Suíte de PARIDADE Ficha A (IG 25) ↔ Ficha C (IG 32)
+// Prova que cada cenário de decisão produz resultado IDÊNTICO nos dois regimes,
+// diferindo APENAS no roteamento por idade (ficha_a↔ficha_c, ficha_b↔ficha_d).
+// A diferença de intervalo de retorno (15d vs 7d) é ortogonal ao motor
+// (calcularIntervaloRetornoDias) e não é decidida por esta função.
+// ════════════════════════════════════════════════════════════════════════════
+
+const PESO = 70;
+
+interface CenarioParidade {
+  nome: string;
+  input: ChecklistInput;
+  pct: number;
+  regra: Regra;
+  conduta: Conduta;
+  fichaA: ProximaFicha; // esperado em IG 25
+  fichaC: ProximaFicha; // esperado em IG 32
+  comInsulina: boolean;
+}
+
+const CENARIOS: CenarioParidade[] = [
+  {
+    nome: 'R1 manter (controle adequado)',
+    input: { ...base },
+    pct: 80,
+    regra: 'regra_manter', conduta: 'manter_mev',
+    fichaA: 'ficha_a', fichaC: 'ficha_c', comInsulina: false,
+  },
+  {
+    nome: 'R2 + aceita (1ª pactuação de MEV)',
+    input: { ...base, checklist_dieta: false, pactuacao_adesao: 'aceita' },
+    pct: 50,
+    regra: 'regra_2', conduta: 'reforcar_mev',
+    fichaA: 'ficha_a', fichaC: 'ficha_c', comInsulina: false,
+  },
+  {
+    nome: 'R2 + recusa → insulina',
+    input: { ...base, checklist_dieta: false, pactuacao_adesao: 'recusa' },
+    pct: 50,
+    regra: 'regra_2', conduta: 'reforcar_mev',
+    fichaA: 'ficha_b', fichaC: 'ficha_d', comInsulina: true,
+  },
+  {
+    nome: 'R3 (inadequado, boa adesão) → insulina',
+    input: { ...base },
+    pct: 50,
+    regra: 'regra_3', conduta: 'insulina',
+    fichaA: 'ficha_b', fichaC: 'ficha_d', comInsulina: true,
+  },
+  {
+    nome: 'R4 + não-confirma + recusa → insulina',
+    input: { ...base, checklist_dieta: false, memoria_glicosimetro: 'nao_confirma', pactuacao_adesao: 'recusa' },
+    pct: 80,
+    regra: 'regra_4', conduta: 'avaliar_memoria',
+    fichaA: 'ficha_b', fichaC: 'ficha_d', comInsulina: true,
+  },
+  // ── buracos explicitamente asseverados (item 3.2 do 42T) ──
+  {
+    nome: 'R4 + não-confirma + aceita (mantém 4 pontos, sem insulina)',
+    input: { ...base, checklist_dieta: false, memoria_glicosimetro: 'nao_confirma', pactuacao_adesao: 'aceita' },
+    pct: 80,
+    regra: 'regra_4', conduta: 'avaliar_memoria',
+    fichaA: 'ficha_a', fichaC: 'ficha_c', comInsulina: false,
+  },
+  {
+    nome: 'R4 + confirma (amplia p/ 6 pontos sem insulina — ficha_e nos dois)',
+    input: { ...base, checklist_dieta: false, memoria_glicosimetro: 'confirma' },
+    pct: 80,
+    regra: 'regra_4', conduta: 'avaliar_memoria',
+    fichaA: 'ficha_e', fichaC: 'ficha_e', comInsulina: false,
+  },
+];
+
+describe('42T — Paridade Ficha A (IG 25) ↔ Ficha C (IG 32)', () => {
+  for (const c of CENARIOS) {
+    it(`${c.nome}: decisão idêntica; rota ${c.fichaA} (A) ↔ ${c.fichaC} (C)`, () => {
+      const a = aplicarRegrasFichaA(c.input, c.pct, PESO, 25);
+      const cc = aplicarRegrasFichaA(c.input, c.pct, PESO, 32);
+
+      // Regra e conduta IDÊNTICAS entre A e C
+      expect(a.regra_aplicada).toBe(c.regra);
+      expect(cc.regra_aplicada).toBe(c.regra);
+      expect(a.conduta_gerada).toBe(c.conduta);
+      expect(cc.conduta_gerada).toBe(c.conduta);
+
+      // Roteamento difere APENAS pela idade gestacional
+      expect(a.proxima_ficha_recomendada).toBe(c.fichaA);
+      expect(cc.proxima_ficha_recomendada).toBe(c.fichaC);
+
+      // Dose IDÊNTICA (0,5 UI/kg/dia é invariante à IG)
+      expect(cc.dose_total).toBe(a.dose_total);
+      expect(cc.dose_manha).toBe(a.dose_manha);
+      expect(cc.dose_noite).toBe(a.dose_noite);
+      if (c.comInsulina) {
+        expect(a.dose_total).toBeGreaterThan(0);
+      } else {
+        expect(a.dose_total).toBeNull();
+      }
+
+      // Sem pendências em nenhum dos regimes
+      expect(a.pendencias).toEqual([]);
+      expect(cc.pendencias).toEqual([]);
+    });
+  }
+});
+
+describe('42T — Pactuação única (ex-42C): comportamento atual do motor', () => {
+  // ⚠️ DETECTOR: aplicarRegrasFichaA é função PURA dos inputs atuais — não conta
+  // pactuações anteriores. O caller (FichaACForm) também não conta: `pactuacao` é
+  // estado local por ficha, com ambos os botões (aceita/recusa) sempre disponíveis.
+  // Logo a regra "pactuação única" (2ª inadequação pós-pactuação → força insulina)
+  // NÃO está implementada — nem em A nem em C. A PARIDADE A↔C se mantém; a ausência
+  // do teto é um buraco a tratar em prompt próprio (fora do escopo do 42T = só testes).
+  it('R2 + aceita repetido → sempre reforcar_mev, SEM teto — idêntico em A e C', () => {
+    const inA = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'aceita' }, 50, PESO, 25);
+    const inC = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'aceita' }, 50, PESO, 32);
+    expect(inA.conduta_gerada).toBe('reforcar_mev');
+    expect(inC.conduta_gerada).toBe('reforcar_mev');
+    expect(inA.proxima_ficha_recomendada).toBe('ficha_a');
+    expect(inC.proxima_ficha_recomendada).toBe('ficha_c');
+  });
+
+  it('Pactuação esgotada (recusa) → insulina, idêntico em A (ficha_b) e C (ficha_d)', () => {
+    const inA = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'recusa' }, 50, PESO, 25);
+    const inC = aplicarRegrasFichaA({ ...base, checklist_dieta: false, pactuacao_adesao: 'recusa' }, 50, PESO, 32);
+    expect(inA.proxima_ficha_recomendada).toBe('ficha_b');
+    expect(inC.proxima_ficha_recomendada).toBe('ficha_d');
+  });
+});
+
+describe('42T — Sinal de encerramento por insulinização (entrada do gate 42B/42D)', () => {
+  // O gate de encerramento vive na Edge Function salvar-ficha-retorno e dispara
+  // quando proxima_ficha_recomendada ∈ {ficha_b, ficha_d}. A Edge Function (Deno,
+  // com imports remotos e Deno.serve no topo) não é importável no vitest; aqui
+  // asseveramos o SINAL que o gate consome — provado idêntico em A e C. A decisão
+  // no backend é o espelho de aplicarRegras (mesma lógica de fichaADecisao.ts).
+  const INSULINA: [string, ChecklistInput, number][] = [
+    ['R2 + recusa', { ...base, checklist_dieta: false, pactuacao_adesao: 'recusa' }, 50],
+    ['R3', { ...base }, 50],
+    ['R4b (não-confirma + recusa)', { ...base, checklist_dieta: false, memoria_glicosimetro: 'nao_confirma', pactuacao_adesao: 'recusa' }, 80],
+  ];
+  for (const [nome, input, pct] of INSULINA) {
+    it(`${nome}: IG25 → ficha_b e IG32 → ficha_d (ambos disparam o gate)`, () => {
+      expect(aplicarRegrasFichaA(input, pct, PESO, 25).proxima_ficha_recomendada).toBe('ficha_b');
+      expect(aplicarRegrasFichaA(input, pct, PESO, 32).proxima_ficha_recomendada).toBe('ficha_d');
+    });
+  }
 });
