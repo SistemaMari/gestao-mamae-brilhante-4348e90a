@@ -419,6 +419,21 @@ export default function FichaACForm({
     const decisao = isAdequado ? 'controle_adequado' : 'controle_inadequado';
     const newStatus = isInadequado ? 'dmg_confirmado' : 'dmg_confirmado'; // stays dmg_confirmado
 
+    // PROMPT 42H — insulinização terminal: quando a decisão da Ficha A/C roteia
+    // para insulina (proxima ∈ {ficha_b, ficha_d}), o Retorno 2 ENCERRA a paciente
+    // na hora — espelha o gate da edge salvar-ficha-retorno:689-691, sem invocá-la.
+    // Demais desfechos seguem o ciclo normal. O status_gerado da CONSULTA segue
+    // 'dmg_confirmado' (diagnóstico); só o status_ficha da PACIENTE vira encerramento.
+    // Toda a supressão de telas/botões + card já reage a isso (gates do 42E).
+    const iniciaInsulina =
+      decisaoFichaA?.proxima_ficha_recomendada === 'ficha_b' ||
+      decisaoFichaA?.proxima_ficha_recomendada === 'ficha_d';
+    const pacienteStatusFicha = iniciaInsulina ? 'encerrada_insulinizacao' : newStatus;
+    // Paciente encerrada não tem próximo retorno (jornada terminal).
+    const proximoRetornoISO = iniciaInsulina
+      ? null
+      : (dataConsultaLocal ? format(addDays(dataConsultaLocal, retornoDias), 'yyyy-MM-dd') : null);
+
     if (isPreview) {
       // Preview mode — save to localStorage
       const nextSeq = (consultas.length || 0) + 1;
@@ -462,9 +477,11 @@ export default function FichaACForm({
 
       updatePreviewPaciente(paciente.id, {
         consultas: updatedConsultas,
-        status_ficha: newStatus,
+        // 42H — no preview grava só status_ficha; o resolverMotivoEfetivo do 42E
+        // faz a ponte 'encerrada_insulinizacao' → motivo 'insulinizacao'.
+        status_ficha: pacienteStatusFicha,
         data_ultima_consulta: dataConsulta,
-        data_proximo_retorno: dataConsultaLocal ? format(addDays(dataConsultaLocal, retornoDias), 'yyyy-MM-dd') : null,
+        data_proximo_retorno: proximoRetornoISO,
       });
 
       window.dispatchEvent(new Event('preview-pacientes-updated'));
@@ -565,9 +582,13 @@ export default function FichaACForm({
       await supabase
         .from('pacientes')
         .update({
-          status_ficha: newStatus,
+          status_ficha: pacienteStatusFicha,
+          // 42H — encerramento por insulinização (espelha salvar-ficha-retorno:689-691).
+          ...(iniciaInsulina
+            ? { motivo_encerramento: 'insulinizacao', data_encerramento: dataConsulta }
+            : {}),
           data_ultima_consulta: dataConsulta,
-          data_proximo_retorno: dataConsultaLocal ? format(addDays(dataConsultaLocal, retornoDias), 'yyyy-MM-dd') : null,
+          data_proximo_retorno: proximoRetornoISO,
         })
         .eq('id', paciente.id);
 

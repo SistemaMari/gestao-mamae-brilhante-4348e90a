@@ -251,11 +251,6 @@ function getNextStepInfo(
   }
 }
 
-/** Check if the secondary "Registro do Parto" button should show */
-function canShowRegistroParto(statusFicha: string): boolean {
-  return statusFicha === 'dmg_confirmado' || statusFicha === 'encaminhada_endocrino';
-}
-
 export default function FichaPacientePage() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
@@ -1960,17 +1955,9 @@ export default function FichaPacientePage() {
           );
         })()}
 
-        {/* Botão secundário — Registro do Parto */}
-        {!isReadOnly && !isEncerrada && canShowRegistroParto(paciente.status_ficha) && !showRetorno1 && !showFichaAC && !showFichaBD && !showFichaE && !showGtt && !showRegistroParto && (
-          <Button
-            variant="outline"
-            className="w-full mt-2 border-[#7C4DBA] text-[#7C4DBA] hover:bg-[#E8E0FF] hover:text-[#7E69AB]"
-            onClick={() => setShowRegistroParto(true)}
-          >
-            <FileText className="mr-2 h-4 w-4 shrink-0" />
-            + Registrar parto
-          </Button>
-        )}
+        {/* PROMPT 42H (opção A) — botão legado "Registrar parto" removido. Parto e
+            aborto passam a ser registrados só pelo fluxo unificado "Encerrar
+            acompanhamento" (42E). O RegistroPartoForm permanece dormente no repo. */}
 
         {/* PROMPT 42E — Encerrar acompanhamento (só em paciente ativa). */}
         {!isReadOnly && !isEncerrada && !showRetorno1 && !showFichaAC && !showFichaBD && !showFichaE && !showGtt && !showRegistroParto && (
