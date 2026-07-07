@@ -79,6 +79,18 @@ import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 import { montarVariaveisLaudo, contarDiasPreenchidos } from '@/lib/laudoVariaveis';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 
+// PROMPT 42J — ficha de 6 pontos (ficha_b/ficha_d) oculta da UI.
+// Escopo travado: MARI encerra o acompanhamento na insulinização (ficha de 4
+// pontos, ficha_a/ficha_c), portanto não existe retorno após a insulina. A
+// ocultação cobre 3 frentes: (A) entrada/roteamento de próximo passo,
+// (B) formulário ativo, (C) bloco no histórico (grade + laudo daquele retorno).
+// Componentes (FichaBDForm/FichaBDResultCard/FichaBDReadOnlyGrid), estado
+// (showFichaBD, fichaBDCompleted) e motor de decisão permanecem no repo
+// dormentes — reversível trocando o flag para `false`.
+const HIDE_FICHA_6_PONTOS = true;
+
+
+
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   aguardando_gj: { label: 'Aguardando GJ', color: 'bg-gray-500' },
@@ -194,6 +206,8 @@ function getNextStepInfo(
         };
       }
       if (proxima === 'ficha_b' || proxima === 'ficha_d') {
+        // PROMPT 42J — Frente A: nenhum próximo passo de 6 pontos é oferecido.
+        if (HIDE_FICHA_6_PONTOS) return null;
         return {
           label: `+ RETORNO ${nextRetornoNum} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`,
           formType: proxima,
@@ -213,6 +227,9 @@ function getNextStepInfo(
       }
 
       if (hasInsulin) {
+        // PROMPT 42J — Frente A: fallback de 6 pontos suprimido (sem
+        // insulina/insulinização no fluxo novo → nada a oferecer).
+        if (HIDE_FICHA_6_PONTOS) return null;
         if (!hasFichaBD) {
           return {
             label: `+ RETORNO ${nextRetornoNum} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`,
@@ -225,6 +242,7 @@ function getNextStepInfo(
           formType: igSem <= 30 ? 'ficha_b' : 'ficha_d',
         };
       }
+
 
       const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSem });
       return {
@@ -1386,8 +1404,9 @@ export default function FichaPacientePage() {
           />
         </div>
       )}
-      {/* Ficha B/D form */}
-      {showFichaBD && paciente && (
+      {/* Ficha B/D form — PROMPT 42J: oculto (dormente). */}
+      {!HIDE_FICHA_6_PONTOS && showFichaBD && paciente && (
+
         <div className="print:hidden">
           <FichaBDForm
             paciente={paciente}
@@ -1516,6 +1535,11 @@ export default function FichaPacientePage() {
             className="space-y-2"
           >
             {consultasHistorico.map((c) => {
+              // PROMPT 42J — Frente C: suprime o AccordionItem inteiro dos
+              // retornos de 6 pontos (grade + laudo daquele retorno) no
+              // histórico. Afeta apenas legado (fluxo novo já não cria).
+              if (HIDE_FICHA_6_PONTOS && (c.tipo === 'ficha_b' || c.tipo === 'ficha_d')) return null;
+
               // Find chronological index for dynamic numbering
               const chronologicalIndex = consultas.findIndex(cx => cx.id === c.id);
               // 34C-B: IG do header da consulta vem da fonte única
