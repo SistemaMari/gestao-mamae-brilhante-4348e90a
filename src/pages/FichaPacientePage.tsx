@@ -206,6 +206,8 @@ function getNextStepInfo(
         };
       }
       if (proxima === 'ficha_b' || proxima === 'ficha_d') {
+        // PROMPT 42J — Frente A: nenhum próximo passo de 6 pontos é oferecido.
+        if (HIDE_FICHA_6_PONTOS) return null;
         return {
           label: `+ RETORNO ${nextRetornoNum} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`,
           formType: proxima,
@@ -225,6 +227,9 @@ function getNextStepInfo(
       }
 
       if (hasInsulin) {
+        // PROMPT 42J — Frente A: fallback de 6 pontos suprimido (sem
+        // insulina/insulinização no fluxo novo → nada a oferecer).
+        if (HIDE_FICHA_6_PONTOS) return null;
         if (!hasFichaBD) {
           return {
             label: `+ RETORNO ${nextRetornoNum} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`,
@@ -237,6 +242,7 @@ function getNextStepInfo(
           formType: igSem <= 30 ? 'ficha_b' : 'ficha_d',
         };
       }
+
 
       const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSem });
       return {
