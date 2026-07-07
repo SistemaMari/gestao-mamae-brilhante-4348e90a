@@ -79,6 +79,18 @@ import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 import { montarVariaveisLaudo, contarDiasPreenchidos } from '@/lib/laudoVariaveis';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 
+// PROMPT 42J — ficha de 6 pontos (ficha_b/ficha_d) oculta da UI.
+// Escopo travado: MARI encerra o acompanhamento na insulinização (ficha de 4
+// pontos, ficha_a/ficha_c), portanto não existe retorno após a insulina. A
+// ocultação cobre 3 frentes: (A) entrada/roteamento de próximo passo,
+// (B) formulário ativo, (C) bloco no histórico (grade + laudo daquele retorno).
+// Componentes (FichaBDForm/FichaBDResultCard/FichaBDReadOnlyGrid), estado
+// (showFichaBD, fichaBDCompleted) e motor de decisão permanecem no repo
+// dormentes — reversível trocando o flag para `false`.
+const HIDE_FICHA_6_PONTOS = true;
+
+
+
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   aguardando_gj: { label: 'Aguardando GJ', color: 'bg-gray-500' },
