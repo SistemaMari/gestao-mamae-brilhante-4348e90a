@@ -157,7 +157,7 @@ function getNextStepInfo(
   switch (statusFicha) {
     case 'aguardando_gj':
       return {
-        label: '+ RETORNO 1 — Hora de confirmar o diagnóstico e iniciar o tratamento',
+        label: '+ RETORNO 1 — Hora de avaliar a Glicemia de Jejum',
         formType: 'retorno_1',
       };
 
