@@ -41,6 +41,21 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
     );
   }
 
+  // 42I — Ficha A/C inadequada (insulina) sem peso: estado acionável, SEM spinner.
+  if (estado.status === 'aguardando_peso') {
+    return (
+      <section className="laudo-bloco rounded-xl border border-[#FDE68A] border-l-4 border-l-[#D97706] bg-[#FEF9C3] p-4">
+        <div className="flex items-start gap-2">
+          <Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[#B45309]" />
+          <p className="text-xs leading-relaxed text-[#78350F]">
+            {estado.mensagem ??
+              'Informe o peso atual da paciente para gerar o laudo completo com a dose inicial de insulina.'}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   if (estado.status === 'erro') {
     return (
       <section className="laudo-bloco rounded-xl border-2 border-[#FCA5A5] bg-[#FEE2E2] p-4">

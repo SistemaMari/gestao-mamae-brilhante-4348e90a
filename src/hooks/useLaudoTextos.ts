@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 export type StatusTextos =
   | 'pendente'
   | 'carregando'
+  | 'aguardando_peso'
   | 'completo'
   | 'incompleto'
   | 'ficha_incompleta'
@@ -44,6 +45,16 @@ const FICHA_INCOMPLETA: EstadoTextos = {
   textos: [],
   blocosFaltantes: [],
   mensagem: 'Complete os dados clínicos da ficha para visualizar o laudo.',
+};
+
+// 42I — Ficha A/C inadequada (insulina) sem peso informado ainda: o laudo depende
+// da dose (que exige o peso). É um estado ACIONÁVEL — não é "carregando".
+const AGUARDANDO_PESO: EstadoTextos = {
+  status: 'aguardando_peso',
+  textos: [],
+  blocosFaltantes: [],
+  mensagem:
+    'Informe o peso atual da paciente para gerar o laudo completo com a dose inicial de insulina.',
 };
 
 const ERRO_GENERICO = 'Não foi possível carregar os textos do laudo. Tente novamente em instantes.';
@@ -201,6 +212,19 @@ export function useLaudoTextos({ isPreview }: UseLaudoTextosOptions) {
     [carregar],
   );
 
+  /**
+   * 42I — marca a consulta como "aguardando peso" (Ficha A/C inadequada sem peso).
+   * NÃO chama a Edge Function e NÃO entra no dedupe (`tentadosRef`): quando o peso
+   * for informado, o auto-trigger/`tentarNovamente` dispara a busca real.
+   */
+  const marcarAguardandoPeso = useCallback((consultaId: string) => {
+    setEstado((prev) =>
+      prev[consultaId]?.status === 'aguardando_peso'
+        ? prev
+        : { ...prev, [consultaId]: AGUARDANDO_PESO },
+    );
+  }, []);
+
   /** Retry manual (critério 12) — reseta o dedupe e refaz a chamada. */
   const tentarNovamente = useCallback(
     (
@@ -225,5 +249,5 @@ export function useLaudoTextos({ isPreview }: UseLaudoTextosOptions) {
     [estado],
   );
 
-  return { getEstado, garantir, tentarNovamente, resetar, carregar };
+  return { getEstado, garantir, marcarAguardandoPeso, tentarNovamente, resetar, carregar };
 }
