@@ -1404,8 +1404,9 @@ export default function FichaPacientePage() {
           />
         </div>
       )}
-      {/* Ficha B/D form */}
-      {showFichaBD && paciente && (
+      {/* Ficha B/D form — PROMPT 42J: oculto (dormente). */}
+      {!HIDE_FICHA_6_PONTOS && showFichaBD && paciente && (
+
         <div className="print:hidden">
           <FichaBDForm
             paciente={paciente}
