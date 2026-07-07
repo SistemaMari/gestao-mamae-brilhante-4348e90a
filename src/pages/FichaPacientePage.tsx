@@ -583,16 +583,18 @@ export default function FichaPacientePage() {
   }, [id]);
 
   // Auto-carrega os textos das consultas elegíveis (leitura read-only — sem
-  // persistir laudo nem consumir quota; 34D-B). Mantém os gates do 34B.2:
-  //   - status_ficha rascunho/finalizada → não dispara;
+  // persistir laudo nem consumir quota; 34D-B). Prompt 42I: gatilho por
+  // DESFECHO derivável, não por allowlist de status_ficha — assim, fichas
+  // 'finalizada', 'laudo_gerado' e futuras encerradas (parto/insulinização)
+  // não travam mais em "Carregando textos do laudo…".
+  //   - Única exceção: status_ficha === 'rascunho' → não dispara.
   //   - Ficha A/C inadequado só dispara após confirmação do peso.
-  // Fichas legadas sem status_ficha (null/undefined) seguem como completas.
+  //   - derivarDesfechoClinico === null → carregar() seta 'ficha_incompleta'
+  //     (mensagem "Complete os dados clínicos…"), não trava.
   useEffect(() => {
     if (!paciente?.id) return;
     for (const c of consultas) {
-      const sf = c.status_ficha;
-      const aceitavel = sf == null || sf === 'completa' || sf === 'laudo_gerado';
-      if (!aceitavel) continue; // rascunho/finalizada → não dispara
+      if (c.status_ficha === 'rascunho') continue; // ficha ainda não submetida
 
       const isInadequadoAC =
         (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') && (c.percentual_meta ?? 0) < 70;
@@ -612,6 +614,8 @@ export default function FichaPacientePage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paciente?.id, consultas]);
+
+
 
   const _canShowRetorno1 = paciente?.status_ficha === 'aguardando_gj' && !!primeiraConsulta && !showRetorno1 && !retorno1Completed;
   // Only show form while actively filling — not after completion
