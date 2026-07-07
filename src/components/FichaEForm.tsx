@@ -463,7 +463,7 @@ export default function FichaEForm({
           {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
         <p className="text-xs text-[#6D28D9]">
-          Reavaliação ampliada após Regra 4 (memória do glicosímetro confirma).
+          Reavaliação ampliada (memória do glicosímetro confirma o controle).
           Preencha a grade com as glicemias capilares registradas pela paciente.
         </p>
         <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">

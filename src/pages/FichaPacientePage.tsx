@@ -598,7 +598,11 @@ export default function FichaPacientePage() {
         (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') && (c.percentual_meta ?? 0) < 70;
       if (isInadequadoAC) {
         const peso = c.peso_kg;
-        if (peso == null || peso <= 0) continue; // aguarda confirmação de peso
+        if (peso == null || peso <= 0) {
+          // 42I — estado ACIONÁVEL "informe o peso", não spinner de carregamento.
+          laudoTextos.marcarAguardandoPeso(c.id);
+          continue; // aguarda confirmação de peso
+        }
       }
 
       // 34D-C: passa a consulta inteira (carrega regra_aplicada/proxima_ficha_recomendada)
@@ -1275,7 +1279,7 @@ export default function FichaPacientePage() {
       {consultas.some((c) => c.proxima_ficha_recomendada === 'ficha_e') && (
         <BannerClinicoPersistente
           tom="info"
-          texto="Acompanhamento ampliado para perfil de 6 pontos sem insulina por controle adequado com falha de adesão (Regra 4). Memória do glicosímetro confirma o controle."
+          texto="Acompanhamento ampliado para perfil de 6 pontos sem insulina por controle adequado com falha de adesão. Memória do glicosímetro confirma o controle."
         />
       )}
 

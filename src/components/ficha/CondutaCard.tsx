@@ -41,8 +41,12 @@ interface Props {
 }
 
 export default function CondutaCard({ decisao, pactuacao, memoria, onPactuacao, onMemoria, disabled }: Props) {
-  const { conduta_gerada: conduta, regra_aplicada: regra, proxima_ficha_recomendada: proxima } = decisao;
+  const { conduta_gerada: conduta, proxima_ficha_recomendada: proxima } = decisao;
   if (!conduta) return null;
+
+  // 42I — insulina é terminal: proxima ∈ {ficha_b, ficha_d} encerra o
+  // acompanhamento; não anunciar "próxima consulta: perfil 6 pontos".
+  const insulinaTerminal = proxima === 'ficha_b' || proxima === 'ficha_d';
 
   const stylesPorConduta: Record<Conduta, { bg: string; border: string; title: string; text: string; label: string; icon: typeof Heart }> = {
     manter_mev:    { bg: '#DCFCE7', border: '#86EFAC', title: '#166534', text: '#15803D', label: 'MANTER MEV (15 dias)', icon: Heart },
@@ -60,11 +64,7 @@ export default function CondutaCard({ decisao, pactuacao, memoria, onPactuacao, 
         <h3 className="text-sm font-bold" style={{ color: s.title }}>{s.label}</h3>
       </div>
 
-      {regra && (
-        <p className="text-xs" style={{ color: s.text }}>
-          Regra aplicada: <span className="font-semibold">{regra.replace('_', ' ').replace('regra ', 'Regra ')}</span>
-        </p>
-      )}
+      {/* 42I — "Regra N" é rótulo interno do motor; não expor ao usuário final. */}
 
       {/* Regra 2 e Regra 4 não-confirma → pactuação */}
       {(conduta === 'reforcar_mev' || (conduta === 'avaliar_memoria' && memoria === 'nao_confirma')) && (
@@ -143,12 +143,19 @@ export default function CondutaCard({ decisao, pactuacao, memoria, onPactuacao, 
         </div>
       )}
 
-      {/* Próxima ficha */}
-      {proxima && (
+      {/* Próxima ficha — ou encerramento quando a conduta é insulina (terminal) */}
+      {insulinaTerminal ? (
         <div className="flex items-center gap-2 text-xs" style={{ color: s.text }}>
           <ArrowRight className="h-3.5 w-3.5" />
-          <span>Próxima consulta: <strong>{FICHA_LABEL[proxima]}</strong></span>
+          <span>Acompanhamento encerrado — conduta e continuidade no laudo abaixo.</span>
         </div>
+      ) : (
+        proxima && (
+          <div className="flex items-center gap-2 text-xs" style={{ color: s.text }}>
+            <ArrowRight className="h-3.5 w-3.5" />
+            <span>Próxima consulta: <strong>{FICHA_LABEL[proxima]}</strong></span>
+          </div>
+        )
       )}
 
       {/* Pendências */}
