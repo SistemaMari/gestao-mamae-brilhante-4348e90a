@@ -1535,6 +1535,11 @@ export default function FichaPacientePage() {
             className="space-y-2"
           >
             {consultasHistorico.map((c) => {
+              // PROMPT 42J — Frente C: suprime o AccordionItem inteiro dos
+              // retornos de 6 pontos (grade + laudo daquele retorno) no
+              // histórico. Afeta apenas legado (fluxo novo já não cria).
+              if (HIDE_FICHA_6_PONTOS && (c.tipo === 'ficha_b' || c.tipo === 'ficha_d')) return null;
+
               // Find chronological index for dynamic numbering
               const chronologicalIndex = consultas.findIndex(cx => cx.id === c.id);
               // 34C-B: IG do header da consulta vem da fonte única
