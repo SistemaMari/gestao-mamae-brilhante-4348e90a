@@ -30,7 +30,11 @@ interface Props {
  * `aplicarVariaveisLaudo`; valor ausente vira marcador neutro, nunca colchete cru.
  */
 export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente }: Props) {
-  if (estado.status === 'pendente' || estado.status === 'carregando') {
+  // Prompt 42I §3.4 — separar 'carregando' (busca em voo) de 'pendente' (nunca
+  // solicitado). Antes os dois compartilhavam o mesmo skeleton "Carregando…",
+  // então quando o gatilho automático não disparava, a UI ficava presa para
+  // sempre sem sinal de erro. Agora 'pendente' vira estado ACIONÁVEL com botão.
+  if (estado.status === 'carregando') {
     return (
       <section className="laudo-bloco rounded-xl border border-[#D6BCFA] bg-white p-4 shadow-sm">
         <p className="text-xs font-medium text-[#7E69AB]">Carregando textos do laudo…</p>
@@ -40,6 +44,31 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
       </section>
     );
   }
+
+  if (estado.status === 'pendente') {
+    return (
+      <section className="laudo-bloco rounded-xl border border-[#D6BCFA] bg-[#F1F0FB] p-4">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-xs leading-relaxed text-[#5B21B6]">
+            Laudo ainda não carregado.
+          </p>
+          {onTentarNovamente && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-[#7E69AB] text-[#7E69AB] hover:bg-[#E9E4F7]"
+              onClick={onTentarNovamente}
+            >
+              <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+              Carregar laudo
+            </Button>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+
 
   // 42I — Ficha A/C inadequada (insulina) sem peso: estado acionável, SEM spinner.
   if (estado.status === 'aguardando_peso') {
