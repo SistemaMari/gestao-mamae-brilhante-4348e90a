@@ -54,6 +54,17 @@ describe('laudoTextosAdmin', () => {
     expect(cenarioTecnicoOculto('ficha_a', 'r3_insulina')).toBe(false);
   });
 
+  it('oculta os laudos de Ficha B/D (6 pontos c/ insulina) — fluxo aposentado', () => {
+    // O editor consulta via tipoRepresentante(familia) = 'ficha_b' para a família B/D.
+    expect(cenarioTecnicoOculto('ficha_b', '4')).toBe(true); // manter dose de insulina
+    expect(cenarioTecnicoOculto('ficha_b', '7')).toBe(true); // encerrar MARI
+    expect(cenarioTecnicoOculto('ficha_d', '4')).toBe(true);
+    expect(cenarioTecnicoOculto('ficha_d', '7')).toBe(true);
+    // Não vaza para outras chaves de Ficha B/D nem para Ficha A/C.
+    expect(cenarioTecnicoOculto('ficha_a', '4')).toBe(false);
+    expect(cenarioTecnicoOculto('ficha_b', 'r3_insulina')).toBe(false);
+  });
+
   it('agrupa famílias (A/C, B/D) e ordena Retorno 1 → GTT → fichas', () => {
     expect(familiaTipo('ficha_a')).toBe('ficha_ac');
     expect(familiaTipo('ficha_c')).toBe('ficha_ac');

@@ -166,10 +166,16 @@ export function ajudaCenario(tipo: string, desfecho: string): string | null {
  *    é cópia do '1' (DMG pela glicemia de jejum).
  *  - (ficha_a/c, '2'|'3'): fallbacks usados só quando a conduta não foi computada
  *    (cópias da Regra 1 e da Regra 3).
+ *  - (ficha_b/d, '4'|'7'): Ficha B/D (perfil de 6 pontos com insulina) foi ocultada
+ *    do sistema (HIDE_FICHA_6_PONTOS) — a MARI encerra na insulinização, então o
+ *    fluxo de acompanhamento com insulina não roda mais para paciente nova. Os
+ *    textos permanecem no banco (laudos legados ainda renderizam), mas somem do
+ *    editor para não confundir o time clínico com um fluxo aposentado.
  */
 export function cenarioTecnicoOculto(tipo: string, desfecho: string): boolean {
   if (tipo === 'retorno_1' && desfecho === '6') return true;
   if ((tipo === 'ficha_a' || tipo === 'ficha_c') && (desfecho === '2' || desfecho === '3')) return true;
+  if ((tipo === 'ficha_b' || tipo === 'ficha_d') && (desfecho === '4' || desfecho === '7')) return true;
   return false;
 }
 
