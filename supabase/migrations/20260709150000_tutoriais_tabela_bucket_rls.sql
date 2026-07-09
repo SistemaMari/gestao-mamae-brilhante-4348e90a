@@ -72,15 +72,19 @@ ON public.tutoriais FOR DELETE TO authenticated
 USING (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 -- 3. Bucket de storage ---------------------------------------
--- Público para leitura (player simples, sem signed URL); escrita só admin.
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('tutoriais', 'tutoriais', true)
-ON CONFLICT (id) DO NOTHING;
+-- Bucket PRIVADO (o workspace bloqueia buckets públicos). O front serve
+-- vídeo/thumbnail via signed URL (TutorialPage.tsx usa createSignedUrl).
+-- ⚠️ O bucket é criado pela ferramenta de storage do Lovable (INSERT direto em
+--    storage.buckets é bloqueado) — este INSERT fica só como referência.
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('tutoriais', 'tutoriais', false)
+-- ON CONFLICT (id) DO NOTHING;
 
--- Leitura pública dos objetos do bucket.
+-- Leitura só por autenticado (permite gerar signed URL; anônimo não).
 DROP POLICY IF EXISTS "Public read tutoriais bucket" ON storage.objects;
-CREATE POLICY "Public read tutoriais bucket"
-ON storage.objects FOR SELECT
+DROP POLICY IF EXISTS "Authenticated read tutoriais bucket" ON storage.objects;
+CREATE POLICY "Authenticated read tutoriais bucket"
+ON storage.objects FOR SELECT TO authenticated
 USING (bucket_id = 'tutoriais');
 
 -- Upload/alteração/remoção só por admin.

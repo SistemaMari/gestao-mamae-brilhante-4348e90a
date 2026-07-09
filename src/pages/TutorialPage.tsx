@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { PlayCircle, Film, AlertCircle } from 'lucide-react';
+import { PlayCircle, Film, AlertCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth, type UserProfile } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,11 +24,8 @@ interface Tutorial {
 }
 
 const BUCKET = 'tutoriais';
-
-function publicUrl(path: string | null): string | null {
-  if (!path) return null;
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-}
+// Bucket privado → servimos vídeo/thumbnail por signed URL (válida por 8h).
+const SIGN_EXPIRY = 60 * 60 * 8;
 
 const TITULO_POR_PERFIL: Record<UserProfile, string> = {
   consultorio: 'Tutorial — Consultório',
@@ -41,9 +38,12 @@ const TITULO_POR_PERFIL: Record<UserProfile, string> = {
 export default function TutorialPage() {
   const { profile } = useAuth();
   const [tutoriais, setTutoriais] = useState<Tutorial[]>([]);
+  const [thumbUrls, setThumbUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(false);
   const [selecionado, setSelecionado] = useState<Tutorial | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoLoading, setVideoLoading] = useState(false);
 
   const fetchTutoriais = useCallback(async () => {
     if (!profile) {
@@ -62,9 +62,31 @@ export default function TutorialPage() {
 
     if (error) {
       setErro(true);
-    } else {
-      setTutoriais((data ?? []) as Tutorial[]);
+      setLoading(false);
+      return;
     }
+
+    const rows = (data ?? []) as Tutorial[];
+    setTutoriais(rows);
+
+    // Assina as thumbnails em lote (bucket privado).
+    const thumbPaths = rows
+      .map((r) => r.thumbnail_path)
+      .filter((p): p is string => Boolean(p));
+
+    if (thumbPaths.length > 0) {
+      const { data: signed } = await supabase.storage
+        .from(BUCKET)
+        .createSignedUrls(thumbPaths, SIGN_EXPIRY);
+      const map: Record<string, string> = {};
+      (signed ?? []).forEach((s) => {
+        if (s.path && s.signedUrl) map[s.path] = s.signedUrl;
+      });
+      setThumbUrls(map);
+    } else {
+      setThumbUrls({});
+    }
+
     setLoading(false);
   }, [profile]);
 
@@ -72,7 +94,25 @@ export default function TutorialPage() {
     fetchTutoriais();
   }, [fetchTutoriais]);
 
-  const videoUrl = selecionado ? publicUrl(selecionado.video_path) : null;
+  // Assina a URL do vídeo sob demanda ao abrir o player.
+  useEffect(() => {
+    let cancelado = false;
+    setVideoUrl(null);
+    if (!selecionado?.video_path) return;
+    setVideoLoading(true);
+    supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(selecionado.video_path, SIGN_EXPIRY)
+      .then(({ data }) => {
+        if (!cancelado) setVideoUrl(data?.signedUrl ?? null);
+      })
+      .finally(() => {
+        if (!cancelado) setVideoLoading(false);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [selecionado]);
 
   return (
     <div className="container max-w-6xl py-8">
@@ -129,7 +169,7 @@ export default function TutorialPage() {
       {!loading && !erro && tutoriais.length > 0 && (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {tutoriais.map((t) => {
-            const thumb = publicUrl(t.thumbnail_path);
+            const thumb = t.thumbnail_path ? thumbUrls[t.thumbnail_path] ?? null : null;
             const temVideo = Boolean(t.video_path);
             return (
               <Card
@@ -208,7 +248,11 @@ export default function TutorialPage() {
           </DialogHeader>
           <div className="px-6 pb-6 pt-4">
             <AspectRatio ratio={16 / 9} className="overflow-hidden rounded-lg bg-black">
-              {videoUrl ? (
+              {videoLoading ? (
+                <div className="flex h-full w-full items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-white/80" />
+                </div>
+              ) : videoUrl ? (
                 <video
                   key={videoUrl}
                   src={videoUrl}
