@@ -78,6 +78,19 @@ describe('laudoTextosAdmin', () => {
     expect(ordemDesfecho('r1_manter')).toBeLessThan(ordemDesfecho('r3_insulina'));
   });
 
+  it('encerramento manual: rótulos e ordem dos 3 desfechos (parto/aborto/nao_retornou)', () => {
+    expect(familiaTipo('encerramento')).toBe('encerramento');
+    expect(labelDesfecho('parto')).toContain('Parto');
+    expect(labelDesfecho('aborto')).toContain('Aborto');
+    expect(labelDesfecho('nao_retornou')).toContain('não retornou');
+    expect(rotuloCenario('encerramento', 'parto')).toContain('Encerramento do acompanhamento');
+    expect(rotuloCenario('encerramento', 'parto')).toContain('Parto');
+    // aparece depois das fichas no editor
+    expect(ordemFamilia('ficha_bd')).toBeLessThan(ordemFamilia('encerramento'));
+    // não é ocultado do editor
+    expect(cenarioTecnicoOculto('encerramento', 'parto')).toBe(false);
+  });
+
   it('rótulo do cenário: retornos com adequação + perfil; diagnóstico simples', () => {
     expect(rotuloCenario('ficha_ac', 'r1_manter')).toContain('controle adequado');
     expect(rotuloCenario('ficha_ac', 'r1_manter')).toContain('4 pontos (sem insulina)');

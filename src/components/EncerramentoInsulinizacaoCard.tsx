@@ -33,6 +33,12 @@ interface Props {
   obs?: string | null;
   /** Bloco de reteste puerperal já computado no parent; ausente = não exibir. */
   reteste?: RetesteInfo | null;
+  /**
+   * Conclusão clínica editável (do painel admin / `laudo_textos`), por motivo
+   * (parto/aborto/nao_retornou). Quando presente, substitui o texto padrão.
+   * "Outro" e insulinização não recebem — mantêm o texto próprio.
+   */
+  conclusaoTexto?: string | null;
 }
 
 /** Corpo específico por motivo (insulinização tem card próprio, ver abaixo). */
@@ -52,7 +58,7 @@ function corpoPorMotivo(motivo: MotivoEncerramento, data?: string | null, obs?: 
   }
 }
 
-export default function EncerramentoInsulinizacaoCard({ motivo, data, obs, reteste }: Props) {
+export default function EncerramentoInsulinizacaoCard({ motivo, data, obs, reteste, conclusaoTexto }: Props) {
   const isInsulinizacao = motivo === 'insulinizacao';
 
   return (
@@ -78,10 +84,15 @@ export default function EncerramentoInsulinizacaoCard({ motivo, data, obs, retes
               glicêmicos permanecem disponíveis para consulta nesta ficha.
             </p>
           ) : (
-            <p className="mt-2 text-sm" style={{ color: '#6D28D9' }}>
-              {corpoPorMotivo(motivo, data, obs)} Toda a história clínica, laudos e
-              perfis glicêmicos permanecem disponíveis para consulta nesta ficha.
-            </p>
+            <>
+              <p className="mt-2 whitespace-pre-wrap text-sm" style={{ color: '#6D28D9' }}>
+                {conclusaoTexto ?? corpoPorMotivo(motivo, data, obs)}
+              </p>
+              <p className="mt-2 text-xs" style={{ color: '#6D28D9' }}>
+                Toda a história clínica, laudos e perfis glicêmicos permanecem
+                disponíveis para consulta nesta ficha.
+              </p>
+            </>
           )}
         </div>
       </div>

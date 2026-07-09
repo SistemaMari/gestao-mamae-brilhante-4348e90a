@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -754,7 +754,8 @@ export default function FichaPacientePage() {
       ));
 
   // Bloco de reteste puerperal — só com DMG confirmado. Âncora por motivo:
-  // parto/aborto → data do evento (data_encerramento); demais → DPP estimada.
+  // parto/aborto → data do evento (data_encerramento); insulinização → DPP estimada.
+  // "Não retornou" e "outro" NÃO levam reteste (a paciente saiu do acompanhamento).
   const reteste: RetesteInfo | null = useMemo(() => {
     if (!isEncerrada || !dmgConfirmado || !motivoEfetivo) return null;
     const dataEnc = encFields?.data_encerramento;
@@ -767,9 +768,11 @@ export default function FichaPacientePage() {
     } else if (motivoEfetivo === 'aborto') {
       ancoraISO = dataEnc;
       origemLabel = 'a partir da data do aborto';
-    } else {
+    } else if (motivoEfetivo === 'insulinizacao') {
       ancoraISO = calcularDppISO(igAtual?.base_data);
       origemLabel = 'a partir da DPP estimada';
+    } else {
+      return null; // nao_retornou / outro → sem reteste
     }
 
     const janela = janelaRetestePuerperal(ancoraISO);
@@ -780,6 +783,29 @@ export default function FichaPacientePage() {
       origemLabel,
     };
   }, [isEncerrada, dmgConfirmado, motivoEfetivo, encFields?.data_encerramento, igAtual?.base_data]);
+
+  // PROMPT 43+ — conclusão clínica editável (admin/laudo_textos) por motivo manual
+  // (parto/aborto/nao_retornou). Buscada direto (RLS deixa autenticado ler publicado);
+  // quando ausente, o card cai no texto padrão. "Outro"/insulinização não recebem.
+  const conclusaoEncerramentoQuery = useQuery({
+    queryKey: ['encerramento-conclusao', motivoEfetivo],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('laudo_textos')
+        .select('texto')
+        .eq('tipo_consulta', 'encerramento')
+        .eq('desfecho_clinico', motivoEfetivo as string)
+        .eq('bloco', 'conclusao')
+        .eq('status', 'publicado')
+        .maybeSingle();
+      return (data as { texto?: string } | null)?.texto ?? null;
+    },
+    enabled:
+      !isPreview &&
+      (motivoEfetivo === 'parto' || motivoEfetivo === 'aborto' || motivoEfetivo === 'nao_retornou'),
+    staleTime: 5 * 60 * 1000,
+  });
+  const conclusaoEncerramento = conclusaoEncerramentoQuery.data ?? null;
 
   // Escrita do encerramento manual — update direto em `pacientes` (padrão da
   // ficha), gravando SÓ motivo + data/obs. Não toca status_ficha (follow-up 42E.1
@@ -1325,6 +1351,7 @@ export default function FichaPacientePage() {
           data={encFields?.data_encerramento}
           obs={encFields?.obs_encerramento}
           reteste={reteste}
+          conclusaoTexto={conclusaoEncerramento}
         />
       )}
 

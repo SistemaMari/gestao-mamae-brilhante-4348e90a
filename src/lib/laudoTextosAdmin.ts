@@ -64,6 +64,10 @@ const DESFECHO_LABEL: Record<string, string> = {
   '3': 'Controle inadequado → insulina (fallback)',
   '4': 'manter dose de insulina',
   '7': 'encerrar MARI',
+  // Encerramento manual (conclusão exibida no card após o popup "Encerrar acompanhamento").
+  parto: 'Parto — controlou com dieta e exercício',
+  aborto: 'Aborto — controlou com dieta e exercício',
+  nao_retornou: 'Paciente não retornou',
 };
 
 const BLOCO_LABEL: Record<string, string> = {
@@ -202,6 +206,7 @@ const FAMILIA_LABEL: Record<string, string> = {
   gtt: 'GTT 75g',
   ficha_ac: 'Retorno 2 — perfil de 4 pontos (sem insulina)',
   ficha_bd: 'Acompanhamento com insulina — perfil de 6 pontos',
+  encerramento: 'Encerramento do acompanhamento',
 };
 
 export function labelFamilia(familia: string): string {
@@ -219,7 +224,7 @@ export function notaFamilia(familia: string): string | null {
   return null;
 }
 
-const FAMILIA_ORDEM: Record<string, number> = { retorno_1: 1, gtt: 2, ficha_ac: 3, ficha_bd: 4 };
+const FAMILIA_ORDEM: Record<string, number> = { retorno_1: 1, gtt: 2, ficha_ac: 3, ficha_bd: 4, encerramento: 5 };
 export function ordemFamilia(familia: string): number {
   return FAMILIA_ORDEM[familia] ?? 99;
 }
@@ -228,6 +233,7 @@ const DESFECHO_ORDEM = [
   'negativo', '1', '6', '6B', '8',
   'r1_manter', 'r2_reforcar', 'r2_insulina', 'r3_insulina', 'r4a_fichae', 'r4_reforcar', 'r4b_insulina',
   '2', '3', '4', '7',
+  'parto', 'aborto', 'nao_retornou',
 ];
 export function ordemDesfecho(desfecho: string): number {
   const i = DESFECHO_ORDEM.indexOf(desfecho);
