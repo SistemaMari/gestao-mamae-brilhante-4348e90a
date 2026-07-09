@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -25,6 +25,16 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const BUCKET = 'tutoriais';
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+// Botão nativo "Escolher arquivo" com destaque visual (roxo claro), separado do
+// nome do arquivo (texto padrão).
+const FILE_INPUT_CLASS =
+  'cursor-pointer file:mr-3 file:cursor-pointer file:rounded-md file:border-0 ' +
+  'file:bg-[#E8E0FF] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#7C4DBA] ' +
+  'hover:file:bg-[#dcd0ff]';
 
 const PERFIS = ['consultorio', 'institucional', 'gestor', 'gestor_geral', 'admin'] as const;
 type Perfil = (typeof PERFIS)[number];
@@ -73,10 +83,53 @@ function extDe(nome: string): string {
   return i >= 0 ? nome.slice(i + 1).toLowerCase() : 'bin';
 }
 
+/**
+ * Upload para o Storage via XHR (o `supabase.storage.upload()` não expõe
+ * progresso nem cancelamento). Reporta % via onProgress e guarda o XHR em
+ * xhrRef para permitir abort(). Replica o formato do storage-js (FormData).
+ */
+async function uploadArquivo(
+  path: string,
+  file: File,
+  onProgress: (pct: number) => void,
+  xhrRef: { current: XMLHttpRequest | null },
+): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('Sessão expirada. Entre novamente.');
+
+  const url = `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`;
+  const formData = new FormData();
+  formData.append('cacheControl', '3600');
+  formData.append('', file, file.name);
+
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhrRef.current = xhr;
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('authorization', `Bearer ${token}`);
+    xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
+    xhr.setRequestHeader('x-upsert', 'false');
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(e.loaded / e.total);
+    };
+    xhr.onload = () =>
+      xhr.status >= 200 && xhr.status < 300
+        ? resolve()
+        : reject(new Error(`Upload falhou (HTTP ${xhr.status})`));
+    xhr.onerror = () => reject(new Error('Erro de rede durante o upload.'));
+    xhr.onabort = () => reject(new DOMException('cancelado', 'AbortError'));
+    xhr.send(formData);
+  });
+}
+
 export default function TutoriaisAdminPage() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadPct, setUploadPct] = useState<number | null>(null);
+  const [faseUpload, setFaseUpload] = useState('Enviando');
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
   const [excluirAlvo, setExcluirAlvo] = useState<TutorialRow | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
@@ -127,23 +180,24 @@ export default function TutoriaisAdminPage() {
 
       if (form.videoFile) {
         const novo = `${form.perfil}/${crypto.randomUUID()}.${extDe(form.videoFile.name)}`;
-        const { error } = await supabase.storage
-          .from(BUCKET)
-          .upload(novo, form.videoFile, { contentType: form.videoFile.type });
-        if (error) throw error;
+        setFaseUpload('Enviando vídeo');
+        setUploadPct(0);
+        await uploadArquivo(novo, form.videoFile, setUploadPct, xhrRef);
         if (form.video_path) await supabase.storage.from(BUCKET).remove([form.video_path]);
         videoPath = novo;
       }
 
       if (form.thumbFile) {
         const novo = `${form.perfil}/thumb-${crypto.randomUUID()}.${extDe(form.thumbFile.name)}`;
-        const { error } = await supabase.storage
-          .from(BUCKET)
-          .upload(novo, form.thumbFile, { contentType: form.thumbFile.type });
-        if (error) throw error;
+        setFaseUpload('Enviando thumbnail');
+        setUploadPct(0);
+        await uploadArquivo(novo, form.thumbFile, setUploadPct, xhrRef);
         if (form.thumbnail_path) await supabase.storage.from(BUCKET).remove([form.thumbnail_path]);
         thumbPath = novo;
       }
+
+      // Upload concluído → fase de gravação no banco ("Salvando…").
+      setUploadPct(null);
 
       const payload = {
         perfil: form.perfil,
@@ -167,10 +221,25 @@ export default function TutoriaisAdminPage() {
       setForm(null);
       invalidar();
     } catch (e) {
-      toast.error(`Erro ao salvar: ${(e as Error).message}`);
+      if ((e as Error).name === 'AbortError') {
+        toast.info('Upload cancelado.');
+      } else {
+        toast.error(`Erro ao salvar: ${(e as Error).message}`);
+      }
     } finally {
       setSaving(false);
+      setUploadPct(null);
+      xhrRef.current = null;
     }
+  }
+
+  // Durante o upload, aborta o XHR em andamento; fora dele, apenas fecha o form.
+  function cancelar() {
+    if (saving) {
+      xhrRef.current?.abort();
+      return;
+    }
+    setForm(null);
   }
 
   async function confirmarExclusao() {
@@ -424,6 +493,7 @@ export default function TutoriaisAdminPage() {
                 <Input
                   type="file"
                   accept="video/*"
+                  className={FILE_INPUT_CLASS}
                   onChange={(e) => setForm({ ...form, videoFile: e.target.files?.[0] ?? null })}
                 />
                 {form.id && form.video_path && !form.videoFile && (
@@ -436,6 +506,7 @@ export default function TutoriaisAdminPage() {
                 <Input
                   type="file"
                   accept="image/*"
+                  className={FILE_INPUT_CLASS}
                   onChange={(e) => setForm({ ...form, thumbFile: e.target.files?.[0] ?? null })}
                 />
                 <p className="text-xs text-muted-foreground">
@@ -445,9 +516,24 @@ export default function TutoriaisAdminPage() {
             </div>
           )}
 
+          {saving && uploadPct !== null && (
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{faseUpload}…</span>
+                <span>{Math.round(uploadPct * 100)}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${Math.round(uploadPct * 100)}%`, backgroundColor: '#7C4DBA' }}
+                />
+              </div>
+            </div>
+          )}
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setForm(null)} disabled={saving}>
-              Cancelar
+            <Button variant="outline" onClick={cancelar}>
+              {saving ? 'Cancelar upload' : 'Cancelar'}
             </Button>
             <Button
               className="text-white hover:opacity-90"
@@ -456,7 +542,11 @@ export default function TutoriaisAdminPage() {
               disabled={saving}
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {saving ? 'Salvando…' : 'Salvar'}
+              {saving
+                ? uploadPct !== null
+                  ? `Enviando… ${Math.round(uploadPct * 100)}%`
+                  : 'Salvando…'
+                : 'Salvar'}
             </Button>
           </DialogFooter>
         </DialogContent>
