@@ -32,7 +32,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as strin
 // Botão nativo "Escolher arquivo" com destaque visual (roxo claro), separado do
 // nome do arquivo (texto padrão).
 const FILE_INPUT_CLASS =
-  'cursor-pointer file:mr-3 file:cursor-pointer file:rounded-md file:border-0 ' +
+  'cursor-pointer text-center file:mx-auto file:mr-3 file:cursor-pointer file:rounded-md file:border-0 ' +
   'file:bg-[#E8E0FF] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#7C4DBA] ' +
   'hover:file:bg-[#dcd0ff]';
 
