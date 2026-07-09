@@ -29,13 +29,6 @@ const BUCKET = 'tutoriais';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
-// Botão nativo "Escolher arquivo" com destaque visual (roxo claro), separado do
-// nome do arquivo (texto padrão).
-const FILE_INPUT_CLASS =
-  'cursor-pointer text-center file:mx-auto file:mr-3 file:cursor-pointer file:rounded-md file:border-0 ' +
-  'file:bg-[#E8E0FF] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#7C4DBA] ' +
-  'hover:file:bg-[#dcd0ff]';
-
 const PERFIS = ['consultorio', 'institucional', 'gestor', 'gestor_geral', 'admin'] as const;
 type Perfil = (typeof PERFIS)[number];
 
@@ -69,6 +62,47 @@ interface FormState {
   thumbnail_path: string | null;
   videoFile: File | null;
   thumbFile: File | null;
+}
+
+/**
+ * Seletor de arquivo customizado: botão roxo + nome do arquivo, alinhados na
+ * vertical (flex items-center). Substitui o <input type="file"> nativo, cujo
+ * ::file-selector-button não centraliza verticalmente de forma confiável.
+ */
+function SeletorArquivo({
+  accept,
+  file,
+  placeholder,
+  onSelect,
+}: {
+  accept: string;
+  file: File | null;
+  placeholder: string;
+  onSelect: (f: File | null) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div className="flex items-center gap-3 rounded-md border border-input bg-background px-2 py-1.5">
+      <Button
+        type="button"
+        size="sm"
+        onClick={() => ref.current?.click()}
+        className="shrink-0 bg-[#E8E0FF] text-[#7C4DBA] hover:bg-[#dcd0ff]"
+      >
+        Escolher arquivo
+      </Button>
+      <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+        {file?.name ?? placeholder}
+      </span>
+      <input
+        ref={ref}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={(e) => onSelect(e.target.files?.[0] ?? null)}
+      />
+    </div>
+  );
 }
 
 function novoForm(perfil: Perfil): FormState {
@@ -490,24 +524,25 @@ export default function TutoriaisAdminPage() {
 
               <div className="space-y-1.5">
                 <Label>Vídeo {form.id ? '(deixe vazio para manter o atual)' : ''}</Label>
-                <Input
-                  type="file"
+                <SeletorArquivo
                   accept="video/*"
-                  className={FILE_INPUT_CLASS}
-                  onChange={(e) => setForm({ ...form, videoFile: e.target.files?.[0] ?? null })}
+                  file={form.videoFile}
+                  placeholder={
+                    form.id && form.video_path ? 'Vídeo atual mantido' : 'Nenhum arquivo escolhido'
+                  }
+                  onSelect={(f) => setForm({ ...form, videoFile: f })}
                 />
-                {form.id && form.video_path && !form.videoFile && (
-                  <p className="text-xs text-muted-foreground">Vídeo atual mantido.</p>
-                )}
               </div>
 
               <div className="space-y-1.5">
                 <Label>Thumbnail (opcional)</Label>
-                <Input
-                  type="file"
+                <SeletorArquivo
                   accept="image/*"
-                  className={FILE_INPUT_CLASS}
-                  onChange={(e) => setForm({ ...form, thumbFile: e.target.files?.[0] ?? null })}
+                  file={form.thumbFile}
+                  placeholder={
+                    form.id && form.thumbnail_path ? 'Thumbnail atual mantida' : 'Nenhum arquivo escolhido'
+                  }
+                  onSelect={(f) => setForm({ ...form, thumbFile: f })}
                 />
                 <p className="text-xs text-muted-foreground">
                   Sem thumbnail, o card mostra um ícone padrão.
