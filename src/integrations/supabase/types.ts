@@ -1881,6 +1881,45 @@ export type Database = {
         }
         Relationships: []
       }
+      tutoriais: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          ordem: number
+          perfil: string
+          thumbnail_path: string | null
+          titulo: string
+          updated_at: string
+          video_path: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          ordem?: number
+          perfil: string
+          thumbnail_path?: string | null
+          titulo: string
+          updated_at?: string
+          video_path?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          ordem?: number
+          perfil?: string
+          thumbnail_path?: string | null
+          titulo?: string
+          updated_at?: string
+          video_path?: string | null
+        }
+        Relationships: []
+      }
       unidades: {
         Row: {
           ativa: boolean
