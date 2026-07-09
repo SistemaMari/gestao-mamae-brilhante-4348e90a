@@ -63,7 +63,7 @@ import {
 import { calcularDppISO, janelaRetestePuerperal } from '@/lib/dpp';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import PlaceholderBlocoLaudo from '@/components/laudo/PlaceholderBlocoLaudo';
-import { mapearCenario, derivarDesfechoClinico, cenarioSemTextoLaudo } from '@/lib/laudoMapping';
+import { mapearCenario, derivarDesfechoClinico, cenarioSemTextoLaudo, ehDesfechoInsulina } from '@/lib/laudoMapping';
 import { type JanelaPosPrandial, normalizarJanela } from '@/lib/posPrandial';
 import { useLaudoTextos } from '@/hooks/useLaudoTextos';
 import { useAutoriaFicha } from '@/hooks/useAutoriaFicha';
@@ -1906,6 +1906,7 @@ export default function FichaPacientePage() {
                                 janelaGTT: c.tipo === 'retorno_1' ? janelaGTT : null,
                               })}
                               ocultarTextosLaudo={cenarioSemTextoLaudo(c)}
+                              urgenciaEndocrino={ehDesfechoInsulina(desfechoC)}
                               periodoMonitorado={
                                 (c.tipo === 'ficha_a' || c.tipo === 'ficha_c' ||
                                  c.tipo === 'ficha_b' || c.tipo === 'ficha_d' || c.tipo === 'ficha_e')

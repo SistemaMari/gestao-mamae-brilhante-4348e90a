@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import LaudoCabecalho from './LaudoCabecalho';
 import BlocosTextoLaudo from './BlocosTextoLaudo';
+import BannerUrgenciaEndocrino from './BannerUrgenciaEndocrino';
 import GradeGlicemicaCompacta, { type GradeGlicemicaProps } from './GradeGlicemicaCompacta';
 import NotasTecnicasCard from './NotasTecnicasCard';
 import JanelaGttCard from './JanelaGttCard';
@@ -24,6 +25,9 @@ export interface LaudoCompletoProps {
   variaveis?: VariaveisLaudo;
   /** Oculta a seção de blocos textuais — cenários card-only (Caso Novo, parto, encerramento) */
   ocultarTextosLaudo?: boolean;
+  /** Exibe o banner vermelho de urgência com o endocrinologista após a Conduta
+   *  (desfechos de insulina — r2/r3/r4b_insulina). */
+  urgenciaEndocrino?: boolean;
   /** Período da monitorização (fichas de perfil): datas dd/MM/yyyy + nº de dias preenchidos. */
   periodoMonitorado?: { inicio: string | null; fim: string | null; dias: number | null } | null;
   gradeGlicemica?: GradeGlicemicaProps | null;
@@ -45,6 +49,7 @@ export default function LaudoCompleto({
   estado,
   variaveis,
   ocultarTextosLaudo,
+  urgenciaEndocrino,
   periodoMonitorado,
   gradeGlicemica,
   proximaFichaTexto: _proximaFichaTexto,
@@ -98,6 +103,12 @@ export default function LaudoCompleto({
             laudo_textos: omitimos a seção em vez de exibir "Texto pendente". */}
         {!ocultarTextosLaudo && (
           <BlocosTextoLaudo estado={estado} variaveis={variaveis} onTentarNovamente={onTentarNovamente} />
+        )}
+
+        {/* Banner vermelho de urgência com o endocrinologista — ao final da Conduta,
+            só nos desfechos de insulina e quando os textos já carregaram. */}
+        {!ocultarTextosLaudo && urgenciaEndocrino && estado.status === 'completo' && (
+          <BannerUrgenciaEndocrino />
         )}
 
         {/* Notas técnicas */}

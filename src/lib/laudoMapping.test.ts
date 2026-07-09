@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cenarioSemTextoLaudo } from './laudoMapping';
+import { cenarioSemTextoLaudo, ehDesfechoInsulina } from './laudoMapping';
 
 describe('cenarioSemTextoLaudo', () => {
   it('Caso Novo (consulta_1) é card-only — inclusive DMG afastado', () => {
@@ -31,5 +31,22 @@ describe('cenarioSemTextoLaudo', () => {
     expect(cenarioSemTextoLaudo({ tipo: 'gtt', cenario_clinico: 'negativo' })).toBe(false);
     expect(cenarioSemTextoLaudo({ tipo: 'ficha_a', percentual_meta: 50 })).toBe(false);
     expect(cenarioSemTextoLaudo({ tipo: 'ficha_c', percentual_meta: 85 })).toBe(false);
+  });
+});
+
+describe('ehDesfechoInsulina (banner de urgência com endocrinologista)', () => {
+  it('true só para as 3 chaves de insulina que encerram (r2/r3/r4b)', () => {
+    expect(ehDesfechoInsulina('r2_insulina')).toBe(true);
+    expect(ehDesfechoInsulina('r3_insulina')).toBe(true);
+    expect(ehDesfechoInsulina('r4b_insulina')).toBe(true);
+  });
+
+  it('false para condutas sem insulina, fallbacks e nulos', () => {
+    expect(ehDesfechoInsulina('r1_manter')).toBe(false);
+    expect(ehDesfechoInsulina('r2_reforcar')).toBe(false);
+    expect(ehDesfechoInsulina('r4a_fichae')).toBe(false);
+    expect(ehDesfechoInsulina('3')).toBe(false); // fallback legado, não recebe o texto novo
+    expect(ehDesfechoInsulina(null)).toBe(false);
+    expect(ehDesfechoInsulina(undefined)).toBe(false);
   });
 });
