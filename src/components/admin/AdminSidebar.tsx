@@ -1,4 +1,4 @@
-import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText } from "lucide-react";
+import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -19,6 +19,7 @@ const baseItems = [
   { title: "Contas Institucionais", path: "/institucionais", icon: Building2, exact: false },
   { title: "Contas Profissionais", path: "/profissionais", icon: Stethoscope, exact: false },
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
+  { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
 ];
 
 export function AdminSidebar() {
@@ -28,10 +29,14 @@ export function AdminSidebar() {
 
   // Detecta se estamos no modo vitrine para prefixar as URLs.
   const prefix = pathname.startsWith("/vitrine/admin") ? "/vitrine/admin" : "/admin";
-  const items = baseItems.map((it) => ({
-    ...it,
-    url: it.path === "" ? prefix : `${prefix}${it.path}`,
-  }));
+  const isVitrine = prefix === "/vitrine/admin";
+  const items = baseItems
+    // Tutorial só no admin real; a vitrine não tem rota /vitrine/admin/tutorial.
+    .filter((it) => !(isVitrine && it.path === "/tutorial"))
+    .map((it) => ({
+      ...it,
+      url: it.path === "" ? prefix : `${prefix}${it.path}`,
+    }));
 
   const isActive = (url: string, exact: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(`${url}/`);

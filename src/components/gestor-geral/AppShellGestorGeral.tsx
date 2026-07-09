@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutGrid, FileBarChart, Activity, BarChart3, Settings, LogOut, Briefcase, Loader2 } from "lucide-react";
+import { LayoutGrid, FileBarChart, Activity, BarChart3, Settings, LogOut, Briefcase, Loader2, PlayCircle } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +23,10 @@ const buildItems = (base: string) => [
   { title: "Diagnóstico", path: `${base}/diagnostico`, icon: Activity, exact: false },
   { title: "Comparador", path: `${base}/comparador`, icon: BarChart3, exact: false },
   { title: "Configurações", path: `${base}/configuracoes`, icon: Settings, exact: false },
+  // Tutorial só no app real; a vitrine não tem rota /vitrine/consolidar/tutorial.
+  ...(base.startsWith("/vitrine")
+    ? []
+    : [{ title: "Tutorial", path: `${base}/tutorial`, icon: PlayCircle, exact: false }]),
 ];
 
 function iniciais(nome?: string | null) {

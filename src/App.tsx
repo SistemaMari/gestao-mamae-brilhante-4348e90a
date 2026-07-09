@@ -43,6 +43,7 @@ import ConfiguracoesPage from "./pages/gestao/ConfiguracoesPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import PacientePage from "./pages/PacientePage";
 import MeusCursosPage from "./pages/MeusCursosPage";
+import TutorialPage from "./pages/TutorialPage";
 import PerfilPage from "./pages/PerfilPage";
 import HistoricoLaudosPage from "./pages/HistoricoLaudosPage";
 import LaudoViewerPage from "./pages/LaudoViewerPage";
@@ -167,6 +168,7 @@ const App = () => (
               <Route path="/laudos" element={<HistoricoLaudosPage />} />
               <Route path="/laudo/:id" element={<LaudoViewerPage />} />
               <Route path="/meus-cursos" element={<MeusCursosPage />} />
+              <Route path="/tutorial" element={<TutorialPage />} />
             </Route>
 
             {/* Planos — exclusivo do consultório */}
@@ -202,6 +204,7 @@ const App = () => (
               <Route path="/gestao/fichas" element={<FichasUnidadePage />} />
               <Route path="/gestao/fichas/:id" element={<PacientePage />} />
               <Route path="/gestao/configuracoes" element={<ConfiguracoesPage />} />
+              <Route path="/gestao/tutorial" element={<TutorialPage />} />
             </Route>
             {/* Painel Administrativo (Prompt 22) */}
             <Route element={<ProtectedRoute allowedProfiles={['admin']}><AdminLayout /></ProtectedRoute>}>
@@ -212,6 +215,7 @@ const App = () => (
               <Route path="/admin/institucionais" element={<InstitucionaisPage />} />
               <Route path="/admin/profissionais" element={<ProfissionaisConsultorioPage />} />
               <Route path="/admin/laudos" element={<LaudoTextosPage />} />
+              <Route path="/admin/tutorial" element={<TutorialPage />} />
             </Route>
             {/* Gestor Geral — shell dedicado. /consolidar é exclusivo de gestor_geral.
                 Dívida técnica: criar /admin/consolidar futuramente para suporte/debug do admin. */}
@@ -225,6 +229,7 @@ const App = () => (
                 <Route path="/consolidar/configuracoes" element={<ConfiguracoesGestorGeralPage />} />
               </Route>
               <Route path="/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />
+              <Route path="/consolidar/tutorial" element={<TutorialPage />} />
             </Route>
 
             {/* POC dev — Etapa 0 PDF gráfico */}

@@ -7,7 +7,7 @@ import { useSyncLanguageWithProfile } from '@/hooks/useSyncLanguageWithProfile';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Users, UserPlus, CreditCard, UserCog, LogOut, Menu, X,
-  ChevronRight, User, Loader2, BarChart3, FileText, GraduationCap, Lock
+  ChevronRight, User, Loader2, BarChart3, FileText, GraduationCap, Lock, PlayCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -68,13 +68,14 @@ const navClinicoConsultorio: NavItem[] = [
   { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
   { labelKey: 'Meus Cursos', icon: GraduationCap, path: '/meus-cursos' },
+  { labelKey: 'Tutorial', icon: PlayCircle, path: '/tutorial' },
   { labelKey: 'nav.metrics', icon: BarChart3, path: '/dashboard/metricas' },
 ];
 
 const navClinicoInstitucional: NavItem[] = [
   { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
-  
+  { labelKey: 'Tutorial', icon: PlayCircle, path: '/tutorial' },
 ];
 
 // Gestor / gestor_geral normalmente não passam por AppShellClinico, mas se
