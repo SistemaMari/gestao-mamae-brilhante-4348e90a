@@ -119,7 +119,7 @@ function getDisplayName(c: PreviewConsulta, index: number, allConsultas: Preview
     case 'consulta_1':
       return `${prefix} — Hora de rastrear o DMG (glicemia plasmática de jejum)`;
     case 'retorno_1':
-      return `${prefix} — Hora de confirmar o diagnóstico e iniciar o tratamento`;
+      return `${prefix} — Hora de avaliar a Glicemia de Jejum`;
     case 'gtt':
       return `${prefix} — GTT 75g (24-28 semanas)`;
     case 'ficha_a':
@@ -579,6 +579,17 @@ export default function FichaPacientePage() {
     }
     return [];
   }, [consultas]);
+
+  // PROMPT 43 · B.3 — o contador "Histórico de consultas (N)" deve bater com os
+  // itens VISÍVEIS: quando HIDE_FICHA_6_PONTOS, os retornos ficha_b/ficha_d são
+  // suprimidos do accordion, então não podem contar no (N).
+  const consultasHistoricoVisiveis = useMemo(
+    () =>
+      HIDE_FICHA_6_PONTOS
+        ? consultasHistorico.filter((c) => c.tipo !== 'ficha_b' && c.tipo !== 'ficha_d')
+        : consultasHistorico,
+    [consultasHistorico],
+  );
 
   // 34C-B: IG por consulta vem da função única `calcular_ig` (RPC) com
   // p_data_alvo = data da própria consulta. Quando a âncora da paciente
@@ -1524,7 +1535,7 @@ export default function FichaPacientePage() {
           <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2">
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Clock className="h-5 w-5 text-[#7C4DBA]" />
-              Histórico de consultas ({consultasHistorico.length})
+              Histórico de consultas ({consultasHistoricoVisiveis.length})
             </h2>
             <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
           </CollapsibleTrigger>
