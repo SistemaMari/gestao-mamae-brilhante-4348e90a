@@ -22,6 +22,7 @@ import AdminsPage from "./pages/admin/AdminsPage";
 import InstitucionaisPage from "./pages/admin/InstitucionaisPage";
 import ProfissionaisConsultorioPage from "./pages/admin/ProfissionaisConsultorioPage";
 import LaudoTextosPage from "./pages/admin/LaudoTextosPage";
+import TutoriaisAdminPage from "./pages/admin/TutoriaisAdminPage";
 import ConsolidarLayout from "./pages/consolidar/ConsolidarLayout";
 import VisaoGeralRedePage from "./pages/consolidar/VisaoGeralRedePage";
 import ConsolidadorPage from "./pages/consolidar/ConsolidadorPage";
@@ -216,6 +217,7 @@ const App = () => (
               <Route path="/admin/profissionais" element={<ProfissionaisConsultorioPage />} />
               <Route path="/admin/laudos" element={<LaudoTextosPage />} />
               <Route path="/admin/tutorial" element={<TutorialPage />} />
+              <Route path="/admin/tutoriais" element={<TutoriaisAdminPage />} />
             </Route>
             {/* Gestor Geral — shell dedicado. /consolidar é exclusivo de gestor_geral.
                 Dívida técnica: criar /admin/consolidar futuramente para suporte/debug do admin. */}
