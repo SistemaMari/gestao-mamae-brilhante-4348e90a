@@ -57,6 +57,7 @@ import PreviewAdminLayout from "./pages/admin/PreviewAdminLayout";
 import ComponentesDemoPage from "./pages/_dev/ComponentesDemoPage";
 import FichaCarimbadaDemo from "./pages/_dev/FichaCarimbadaDemo";
 import PocPdfGraficoPage from "./pages/_dev/PocPdfGraficoPage";
+import PreviewEncerramentoParto from "./pages/_dev/PreviewEncerramentoParto";
 
 /**
  * Default global: refetch automático em window focus e reconnect DESLIGADO.
