@@ -229,6 +229,7 @@ const App = () => (
 
             {/* POC dev — Etapa 0 PDF gráfico */}
             <Route path="/dev/poc-pdf-grafico" element={<PocPdfGraficoPage />} />
+            <Route path="/dev/preview-encerramento-parto" element={<PreviewEncerramentoParto />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
