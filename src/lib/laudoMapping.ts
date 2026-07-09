@@ -132,6 +132,16 @@ export function derivarDesfechoClinico(
   return null;
 }
 
+/**
+ * Desfechos de Ficha A/C em que a conduta é INICIAR INSULINA — e, no fluxo novo,
+ * encerrar o acompanhamento da MARI. São as chaves cuja conduta traz a orientação
+ * de urgência com o endocrinologista (banner vermelho no laudo). Espelha as chaves
+ * que o Prompt 43 reescreveu (r2_insulina, r3_insulina, r4b_insulina).
+ */
+export function ehDesfechoInsulina(desfecho: string | null | undefined): boolean {
+  return desfecho === 'r2_insulina' || desfecho === 'r3_insulina' || desfecho === 'r4b_insulina';
+}
+
 export function cenarioLabel(cenario: Cenario): string {
   const map: Record<string, string> = {
     '1': 'Cenário 1 — Rastreio inicial',
