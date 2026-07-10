@@ -473,6 +473,8 @@ export default function DiagnosticosPage() {
         </p>
       </div>
 
+      <BarraFiltrosGlobais />
+
       <NotaLgpd />
 
       {/* 1. Cards de resumo */}
