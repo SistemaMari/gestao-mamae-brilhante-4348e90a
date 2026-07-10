@@ -34,6 +34,8 @@ export const mockResumoGlobal: ResumoGlobalRow[] = [
     total_unidades: 12,
     total_gestores_gerais: 4,
     total_consolidacoes: 9,
+    total_pacientes: 1248,
+    total_laudos: 3672,
     atualizado_em: new Date().toISOString(),
   },
 ];
