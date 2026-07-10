@@ -25,9 +25,9 @@ const baseItems = [
   { title: "Administradores", path: "/admins", icon: Users, exact: false },
   { title: "Contas Institucionais", path: "/institucionais", icon: Building2, exact: false },
   { title: "Contas Profissionais", path: "/profissionais", icon: Stethoscope, exact: false },
-  { title: "Planos", path: "/planos", icon: CreditCard, exact: false },
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
+  { title: "Planos", path: "/planos", icon: CreditCard, exact: false },
   { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
 ];
 
