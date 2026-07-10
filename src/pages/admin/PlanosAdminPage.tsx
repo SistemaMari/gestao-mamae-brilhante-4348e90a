@@ -33,7 +33,7 @@ interface FormState {
   nome: string;
   laudos_por_mes: number;
   laudos_original: number;
-  preco_mensal: number;
+  preco_str: string;
   preco_original: number;
   link_pagamento_asaas: string;
   propagacao: 'preservar' | 'reajustar';
@@ -78,7 +78,7 @@ export default function PlanosAdminPage() {
       nome: p.nome,
       laudos_por_mes: p.laudos_por_mes,
       laudos_original: p.laudos_por_mes,
-      preco_mensal: p.preco_mensal,
+      preco_str: String(p.preco_mensal),
       preco_original: p.preco_mensal,
       link_pagamento_asaas: p.link_pagamento_asaas ?? '',
       propagacao: 'preservar',
@@ -86,7 +86,8 @@ export default function PlanosAdminPage() {
   }
 
   const laudosMudou = form ? form.laudos_por_mes !== form.laudos_original : false;
-  const precoMudou = form ? form.preco_mensal !== form.preco_original : false;
+  const precoNum = form ? (Number(form.preco_str) || 0) : 0;
+  const precoMudou = form ? precoNum !== form.preco_original : false;
   const mudouAlgo = laudosMudou || precoMudou;
   const afetados = form ? (contagem[form.id] ?? 0) : 0;
 
@@ -106,6 +107,7 @@ export default function PlanosAdminPage() {
 
   async function executarSalvar() {
     if (!form) return;
+    const preco = Number(form.preco_str) || 0;
     setConfirmarReajuste(false);
     setSaving(true);
     try {
@@ -114,7 +116,7 @@ export default function PlanosAdminPage() {
         .update({
           nome: form.nome.trim(),
           laudos_por_mes: form.laudos_por_mes,
-          preco_mensal: form.preco_mensal,
+          preco_mensal: preco,
           link_pagamento_asaas: form.link_pagamento_asaas.trim() || null,
         })
         .eq('id', form.id);
@@ -135,7 +137,7 @@ export default function PlanosAdminPage() {
       if (reajustar && precoMudou) {
         const { data, error: errAsaas } = await supabase.functions.invoke(
           'reajustar-assinaturas-plano',
-          { body: { plano_id: form.id, novo_valor: form.preco_mensal } },
+          { body: { plano_id: form.id, novo_valor: preco } },
         );
         if (errAsaas) {
           toast.error('Plano salvo, mas houve erro ao reajustar as assinaturas no Asaas.');
@@ -254,35 +256,41 @@ export default function PlanosAdminPage() {
                 <div className="space-y-1.5">
                   <Label>Laudos por mês</Label>
                   <Input
-                    type="number"
-                    min={0}
-                    value={form.laudos_por_mes}
-                    onChange={(e) =>
-                      setForm({ ...form, laudos_por_mes: Math.max(0, Number(e.target.value) || 0) })
-                    }
+                    type="text"
+                    inputMode="numeric"
+                    value={String(form.laudos_por_mes)}
+                    onChange={(e) => {
+                      const d = e.target.value.replace(/\D/g, '');
+                      setForm({ ...form, laudos_por_mes: d ? Number(d) : 0 });
+                    }}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Preço (R$/mês)</Label>
                   <Input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={form.preco_mensal}
-                    onChange={(e) =>
-                      setForm({ ...form, preco_mensal: Math.max(0, Number(e.target.value) || 0) })
-                    }
+                    type="text"
+                    inputMode="decimal"
+                    value={form.preco_str}
+                    onChange={(e) => {
+                      // dígitos + um separador decimal (vírgula vira ponto)
+                      let v = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+                      const p = v.split('.');
+                      if (p.length > 2) v = `${p[0]}.${p.slice(1).join('')}`;
+                      setForm({ ...form, preco_str: v });
+                    }}
                   />
                 </div>
               </div>
 
-              <p className="flex items-start gap-2 rounded-md bg-muted/60 p-2.5 text-xs text-muted-foreground">
-                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                O preço vale para <strong className="font-medium">novas assinaturas</strong> (o valor cobrado
-                de quem assinar a partir de agora). As <strong className="font-medium">assinaturas atuais</strong> só
-                mudam se você escolher <strong className="font-medium">"Reajustar geral"</strong> — aí o novo valor
-                é aplicado às cobranças ativas no Asaas.
-              </p>
+              <div className="flex items-start gap-2 rounded-md bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground">
+                <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>
+                  O preço vale para <strong className="font-medium text-foreground">novas assinaturas</strong>.
+                  As assinaturas atuais só mudam se você escolher{' '}
+                  <strong className="font-medium text-foreground">"Reajustar geral"</strong> (aí o novo valor é
+                  aplicado às cobranças ativas no Asaas).
+                </p>
+              </div>
 
               <div className="space-y-1.5">
                 <Label>Link de pagamento (Asaas)</Label>
@@ -318,7 +326,7 @@ export default function PlanosAdminPage() {
                   <p className="text-sm font-medium text-foreground">
                     Você alterou {laudosMudou && `laudos/mês (${form.laudos_original} → ${form.laudos_por_mes})`}
                     {laudosMudou && precoMudou && ' e '}
-                    {precoMudou && `preço (${fmtPreco(form.preco_original)} → ${fmtPreco(form.preco_mensal)})`}. Aplicar a quem?
+                    {precoMudou && `preço (${fmtPreco(form.preco_original)} → ${fmtPreco(precoNum)})`}. Aplicar a quem?
                   </p>
                   <RadioGroup
                     value={form.propagacao}
@@ -374,7 +382,7 @@ export default function PlanosAdminPage() {
               {form && (
                 <>
                   Isso vai alterar a <strong>cobrança real</strong> das assinaturas ativas deste plano no
-                  Asaas para <strong>{fmtPreco(form.preco_mensal)}/mês</strong>
+                  Asaas para <strong>{fmtPreco(precoNum)}/mês</strong>
                   {afetados ? <> (até {afetados} cliente(s))</> : null}. Os clientes atuais passarão a pagar o
                   novo valor. Esta ação afeta faturamento e não se desfaz sozinha.
                 </>
