@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { Loader2, Info, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { BarraFiltrosGlobais } from "@/components/admin/BarraFiltrosGlobais";
 import { mockMetricasDiagnosticos } from "@/lib/mockMetricasDiagnosticos";
 import { useAdminFiltros } from "@/contexts/AdminFiltrosContext";
 import {
