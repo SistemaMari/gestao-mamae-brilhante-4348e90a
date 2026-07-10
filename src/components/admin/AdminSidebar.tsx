@@ -111,22 +111,27 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
               {items.map((item) => {
                 const active = isActive(item.url, item.exact);
                 return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={active}>
-                      <NavLink
-                        to={item.url}
-                        end={item.exact}
-                        className={
-                          active
-                            ? "flex items-center gap-3 bg-[#E8E0FF] text-[#7E69AB] font-medium rounded-md"
-                            : "flex items-center gap-3 text-[#64748B] hover:bg-[#F1F5F9] rounded-md"
-                        }
-                      >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span className="text-sm">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <div key={item.title}>
+                    {item.path === "/tutorial" && (
+                      <div className="my-1 border-t border-[#E2E8F0]" />
+                    )}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={active}>
+                        <NavLink
+                          to={item.url}
+                          end={item.exact}
+                          className={
+                            active
+                              ? "flex items-center gap-3 bg-[#E8E0FF] text-[#7E69AB] font-medium rounded-md"
+                              : "flex items-center gap-3 text-[#64748B] hover:bg-[#F1F5F9] rounded-md"
+                          }
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="text-sm">{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </div>
                 );
               })}
             </SidebarMenu>
