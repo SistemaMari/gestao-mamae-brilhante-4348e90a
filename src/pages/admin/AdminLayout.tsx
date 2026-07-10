@@ -63,12 +63,15 @@ export default function AdminLayout() {
     <AdminFiltrosProvider>
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-[#F8FAFC]">
-          <AdminSidebar />
+          <AdminSidebar nome={nomeAdmin} email={user?.email} />
           <div className="flex-1 flex flex-col min-w-0">
-            <AdminHeader nomeAdmin={nomeAdmin} />
-            {!["/admin/admins", "/admin/institucionais", "/admin/profissionais", "/admin/laudos", "/admin/tutorial", "/admin/tutoriais"].includes(pathname) && <BarraFiltrosGlobais />}
+            <AdminHeader />
+            {/* Barra de filtros: escondida na Visão Geral (/admin) — lá ela é
+                renderizada dentro da página, acima dos gráficos que realmente
+                filtra. Nas demais páginas segue no topo. */}
+            {!["/admin", "/admin/admins", "/admin/institucionais", "/admin/profissionais", "/admin/laudos", "/admin/tutorial", "/admin/tutoriais"].includes(pathname) && <BarraFiltrosGlobais />}
             <main className="flex-1 p-4 md:p-6 lg:p-8">
-              <Outlet />
+              <Outlet context={{ nomeAdmin }} />
             </main>
           </div>
         </div>

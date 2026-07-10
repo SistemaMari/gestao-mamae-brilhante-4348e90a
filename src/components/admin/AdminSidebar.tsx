@@ -1,8 +1,9 @@
-import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, LogOut } from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
@@ -10,6 +11,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const baseItems = [
   { title: "Painel", path: "", icon: BarChart3, exact: true },
@@ -23,10 +27,38 @@ const baseItems = [
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
 ];
 
-export function AdminSidebar() {
+function iniciais(nome?: string | null) {
+  if (!nome) return "AD";
+  return nome
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
+}
+
+interface AdminSidebarProps {
+  nome?: string;
+  email?: string;
+  onSair?: () => void;
+}
+
+export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const nomeFinal = nome || "Administrador";
+  const emailFinal = email ?? user?.email ?? "";
+
+  const sair =
+    onSair ??
+    (async () => {
+      await supabase.auth.signOut();
+      navigate("/login", { replace: true });
+    });
 
   // Detecta se estamos no modo vitrine para prefixar as URLs.
   const prefix = pathname.startsWith("/vitrine/admin") ? "/vitrine/admin" : "/admin";
@@ -83,6 +115,52 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Rodapé: identidade + sair */}
+      <SidebarFooter className="border-t border-[#E2E8F0] bg-white p-3">
+        {!collapsed ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+                style={{ background: "linear-gradient(135deg, #7E69AB, #9b87f5)", fontFamily: "Sora, sans-serif" }}
+              >
+                {iniciais(nomeFinal)}
+              </div>
+              <div className="min-w-0">
+                <p
+                  className="truncate text-sm font-semibold text-[#1E293B]"
+                  style={{ fontFamily: "Sora, sans-serif" }}
+                >
+                  {nomeFinal}
+                </p>
+                {emailFinal && (
+                  <p className="truncate text-xs text-[#94A3B8]">{emailFinal}</p>
+                )}
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={sair}
+              className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={sair}
+            className="text-[#64748B] hover:bg-[#F1F5F9]"
+            aria-label="Sair"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }
