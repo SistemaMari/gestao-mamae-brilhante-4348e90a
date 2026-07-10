@@ -16,40 +16,40 @@ export default function AdminLayout() {
   const [verificando, setVerificando] = useState(true);
   const [nomeAdmin, setNomeAdmin] = useState("");
 
-  // Verificação de admin — roda em toda navegação dentro de /admin/*
+  const verificar = async () => {
+    if (!user?.id) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("admins")
+      .select("nome")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error || !data) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    setNomeAdmin(data.nome ?? "Administrador");
+    setVerificando(false);
+  };
+
   useEffect(() => {
-    let cancelado = false;
-
-    const verificar = async () => {
-      if (!user?.id) {
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("admins")
-        .select("nome")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (cancelado) return;
-
-      if (error || !data) {
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      setNomeAdmin(data.nome ?? "Administrador");
-      setVerificando(false);
-    };
-
     setVerificando(true);
     verificar();
-
-    return () => {
-      cancelado = true;
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, pathname, navigate]);
+
+  // Atualiza o nome quando a página de Configurações dispara o evento
+  useEffect(() => {
+    const handler = () => verificar();
+    window.addEventListener("admin:nome-atualizado", handler);
+    return () => window.removeEventListener("admin:nome-atualizado", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   if (verificando) {
     return (
