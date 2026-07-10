@@ -702,6 +702,15 @@ export default function Retorno1Form({
       recursoTipo: editingConsulta ? 'consulta' : 'retorno',
     });
 
+    // Persiste o laudo desta consulta → contador + histórico. Fire-and-forget,
+    // não-bloqueante (idempotente por consulta; institucional é ilimitado).
+    const laudoConsultaId = consultaId;
+    if (laudoConsultaId) {
+      void import('@/lib/registrarLaudo').then(({ registrarLaudo }) =>
+        registrarLaudo(paciente.id, laudoConsultaId),
+      );
+    }
+
     setSaving(false);
     // 34B.1 seção 3.3.4: ao finalizar com sucesso no servidor, limpa rascunho local.
     clearLocalDraft();

@@ -404,6 +404,15 @@ export default function GttForm({
       recursoTipo: editingConsulta ? 'consulta' : 'gtt',
     });
 
+    // Persiste o laudo desta consulta → contador + histórico. Fire-and-forget,
+    // não-bloqueante (idempotente por consulta; institucional é ilimitado).
+    const laudoConsultaId = gttConsultaId;
+    if (laudoConsultaId) {
+      void import('@/lib/registrarLaudo').then(({ registrarLaudo }) =>
+        registrarLaudo(paciente.id, laudoConsultaId),
+      );
+    }
+
     setSaving(false);
     setResultado(diag);
     if (diag.tipo !== 'negativo') {

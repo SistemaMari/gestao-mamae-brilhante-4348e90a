@@ -501,6 +501,15 @@ export default function FichaBDForm({
         recursoTipo: editingConsulta ? 'consulta' : 'ficha',
       });
 
+      // Persiste o laudo desta consulta → contador + histórico. Fire-and-forget,
+      // não-bloqueante (idempotente por consulta; institucional é ilimitado).
+      const laudoConsultaId = consultaId;
+      if (laudoConsultaId) {
+        void import('@/lib/registrarLaudo').then(({ registrarLaudo }) =>
+          registrarLaudo(paciente.id, laudoConsultaId),
+        );
+      }
+
       setSavedResult({ percentual: percentual!, adequado: isAdequado });
       setSaving(false);
       setShowImpact(true);
