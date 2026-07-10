@@ -48,6 +48,7 @@ export default function ConfiguracoesAdminPage() {
     if (error) {
       toast.error(`Erro ao salvar: ${error.message}`);
     } else {
+      window.dispatchEvent(new CustomEvent("admin:nome-atualizado"));
       toast.success('Nome atualizado. Ele aparece na saudação e no menu.');
     }
   }
