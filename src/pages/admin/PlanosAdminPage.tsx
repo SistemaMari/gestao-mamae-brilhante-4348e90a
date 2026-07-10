@@ -192,7 +192,9 @@ export default function PlanosAdminPage() {
 
       {!isLoading && !isError && (
         <div className="space-y-3">
-          {planos.map((p) => (
+          {planos.map((p) => {
+            const nAssinantes = contagem[p.id] ?? 0;
+            return (
             <div
               key={p.id}
               className="flex items-center gap-4 rounded-lg border border-border bg-card p-4"
@@ -210,7 +212,6 @@ export default function PlanosAdminPage() {
                 </div>
                 <p className="mt-0.5 text-sm text-muted-foreground">
                   {p.laudos_por_mes} laudos/mês · {fmtPreco(p.preco_mensal)}/mês
-                  {contagem[p.id] ? ` · ${contagem[p.id]} cliente(s)` : ''}
                 </p>
                 {p.link_pagamento_asaas && (
                   <a
@@ -225,11 +226,27 @@ export default function PlanosAdminPage() {
                   </a>
                 )}
               </div>
+              <div
+                className="flex shrink-0 flex-col items-center rounded-lg px-4 py-2"
+                style={{ backgroundColor: '#F5F0FF' }}
+                aria-label={`${nAssinantes} assinante${nAssinantes === 1 ? '' : 's'}`}
+              >
+                <span
+                  className="font-heading text-2xl font-bold leading-none"
+                  style={{ color: '#7C4DBA' }}
+                >
+                  {nAssinantes}
+                </span>
+                <span className="mt-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {nAssinantes === 1 ? 'assinante' : 'assinantes'}
+                </span>
+              </div>
               <Button variant="ghost" size="icon" onClick={() => editar(p)} aria-label="Editar">
                 <Pencil className="h-4 w-4" />
               </Button>
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 
