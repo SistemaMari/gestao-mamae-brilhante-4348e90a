@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CreditCard, Pencil, Loader2, AlertTriangle, Info } from 'lucide-react';
+import { CreditCard, Pencil, Loader2, AlertTriangle, Info, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ interface Plano {
   nome: string;
   laudos_por_mes: number;
   preco_mensal: number;
+  link_pagamento_asaas: string | null;
   ordem: number;
 }
 
@@ -29,6 +30,7 @@ interface FormState {
   laudos_por_mes: number;
   laudos_original: number;
   preco_mensal: number;
+  link_pagamento_asaas: string;
   propagacao: 'preservar' | 'reajustar';
 }
 
@@ -46,7 +48,7 @@ export default function PlanosAdminPage() {
       const [resPlanos, resProfs] = await Promise.all([
         supabase
           .from('planos')
-          .select('id, slug, nome, laudos_por_mes, preco_mensal, ordem')
+          .select('id, slug, nome, laudos_por_mes, preco_mensal, link_pagamento_asaas, ordem')
           .order('ordem', { ascending: true }),
         supabase.from('profissionais').select('plano_id'),
       ]);
@@ -71,6 +73,7 @@ export default function PlanosAdminPage() {
       laudos_por_mes: p.laudos_por_mes,
       laudos_original: p.laudos_por_mes,
       preco_mensal: p.preco_mensal,
+      link_pagamento_asaas: p.link_pagamento_asaas ?? '',
       propagacao: 'preservar',
     });
   }
@@ -89,6 +92,7 @@ export default function PlanosAdminPage() {
           nome: form.nome.trim(),
           laudos_por_mes: form.laudos_por_mes,
           preco_mensal: form.preco_mensal,
+          link_pagamento_asaas: form.link_pagamento_asaas.trim() || null,
         })
         .eq('id', form.id);
       if (error) throw error;
@@ -162,6 +166,18 @@ export default function PlanosAdminPage() {
                   {p.laudos_por_mes} laudos/mês · {fmtPreco(p.preco_mensal)}/mês
                   {contagem[p.id] ? ` · ${contagem[p.id]} cliente(s)` : ''}
                 </p>
+                {p.link_pagamento_asaas && (
+                  <a
+                    href={p.link_pagamento_asaas}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 text-xs font-medium"
+                    style={{ color: '#7C4DBA' }}
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Link Asaas
+                  </a>
+                )}
               </div>
               <Button variant="ghost" size="icon" onClick={() => editar(p)} aria-label="Editar">
                 <Pencil className="h-4 w-4" />
@@ -221,6 +237,35 @@ export default function PlanosAdminPage() {
                 O preço aqui é <strong className="font-medium">apenas o valor exibido</strong> (vitrine/planos).
                 Não altera a cobrança real, que é feita no gateway de pagamento.
               </p>
+
+              <div className="space-y-1.5">
+                <Label>Link de pagamento (Asaas)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="url"
+                    placeholder="https://www.asaas.com/c/..."
+                    value={form.link_pagamento_asaas}
+                    onChange={(e) => setForm({ ...form, link_pagamento_asaas: e.target.value })}
+                  />
+                  {form.link_pagamento_asaas.trim() && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={() =>
+                        window.open(form.link_pagamento_asaas.trim(), '_blank', 'noopener,noreferrer')
+                      }
+                      aria-label="Abrir link do Asaas"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Link do produto no Asaas — facilita o acesso na hora de conferir/editar a cobrança.
+                </p>
+              </div>
 
               {laudosMudou && (
                 <div className="space-y-2 rounded-md border border-[#E8E0FF] bg-[#F5F0FF] p-3">
