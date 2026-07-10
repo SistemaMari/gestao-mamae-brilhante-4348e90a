@@ -253,8 +253,19 @@ export default function VisaoGeralPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <CardResumo label="Total de profissionais" valor={resumo.profissionais} loading={loadingResumo} />
         <CardResumo label="Total de unidades" valor={resumo.unidades} loading={loadingResumo} />
-        <CardResumo label="Total de pacientes" valor={resumo.pacientes} loading={loadingResumo} />
-        <CardResumo label="Total de laudos gerados" valor={resumo.laudos} loading={loadingResumo} />
+        {/* Pacientes e laudos vêm da MV agregada (resumo_global) — o admin não
+            tem RLS pra contar essas tabelas no cliente (privacidade do dado
+            clínico). Na vitrine segue o mock. */}
+        <CardResumo
+          label="Total de pacientes"
+          valor={isPreview ? resumo.pacientes : (r0?.total_pacientes ?? null)}
+          loading={isPreview ? loadingResumo : resumoGlobal.isLoading}
+        />
+        <CardResumo
+          label="Total de laudos gerados"
+          valor={isPreview ? resumo.laudos : (r0?.total_laudos ?? null)}
+          loading={isPreview ? loadingResumo : resumoGlobal.isLoading}
+        />
       </div>
 
       {/* Alertas operacionais */}
