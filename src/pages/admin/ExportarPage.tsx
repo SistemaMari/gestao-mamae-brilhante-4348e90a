@@ -15,6 +15,7 @@ import { useAdminFiltros } from "@/contexts/AdminFiltrosContext";
 import { exportarCsvAdmin } from "@/lib/exportarCsvAdmin";
 import { todayLocalISO } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
+import { BarraFiltrosGlobais } from "@/components/admin/BarraFiltrosGlobais";
 import type { AdminViewSlug } from "@/lib/adminMetrics";
 
 type Formato = "csv" | "xlsx" | "pdf";
