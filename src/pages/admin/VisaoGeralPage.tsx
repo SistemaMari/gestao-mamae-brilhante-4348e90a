@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useOutletContext } from "react-router-dom";
 import { Users, Building2 } from "lucide-react";
+import { BarraFiltrosGlobais } from "@/components/admin/BarraFiltrosGlobais";
 import { CardResumo } from "@/components/admin/CardResumo";
 import { TabelaOrdenavel } from "@/components/admin/TabelaOrdenavel";
 import { AlertaOperacionalCard, ALERTAS_CONFIG } from "@/components/admin/AlertaOperacionalCard";
@@ -38,6 +39,8 @@ const fmtMes = (mes: string) => {
 export default function VisaoGeralPage() {
   const { pathname } = useLocation();
   const isPreview = pathname.startsWith("/vitrine");
+  const outletCtx = useOutletContext<{ nomeAdmin?: string } | null>();
+  const nomeAdmin = outletCtx?.nomeAdmin || "Administrador";
 
   // ----- Cards de resumo do topo (mantidos do código original) -----
   const [resumo, setResumo] = useState<Resumo>({
@@ -221,6 +224,19 @@ export default function VisaoGeralPage() {
 
   return (
     <div className="space-y-10">
+      {/* Saudação */}
+      <div>
+        <h1
+          className="text-3xl font-bold"
+          style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
+        >
+          Olá, {nomeAdmin} ✨
+        </h1>
+        <p className="mt-1 text-sm" style={{ color: "#64748B" }}>
+          Bem-vindo ao painel administrativo da MARI.
+        </p>
+      </div>
+
       <div>
         <h2
           className="text-2xl font-semibold mb-1"
@@ -264,6 +280,26 @@ export default function VisaoGeralPage() {
           ))}
         </div>
       </SecaoBloco>
+
+      {/* Filtros — só afetam as análises abaixo (não os totais/alertas acima).
+          Na vitrine a barra já vem do PreviewAdminLayout, então não repetir. */}
+      {!isPreview && (
+        <div className="space-y-3">
+          <div>
+            <h2
+              className="text-2xl font-semibold mb-1"
+              style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
+            >
+              Análises detalhadas
+            </h2>
+            <p className="text-sm" style={{ color: "#64748B" }}>
+              Filtre por período, região e tipo de conta. Os totais e alertas acima
+              consideram sempre a base completa.
+            </p>
+          </div>
+          <BarraFiltrosGlobais />
+        </div>
+      )}
 
       {/* Evolução mensal de profissionais */}
       <SecaoBloco
