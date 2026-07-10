@@ -1,4 +1,5 @@
 import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, Settings, LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -27,7 +28,6 @@ const baseItems = [
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
   { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
-  { title: "Configurações", path: "/configuracoes", icon: Settings, exact: false },
 ];
 
 function iniciais(nome?: string | null) {
@@ -157,6 +157,22 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
                 )}
               </div>
             </div>
+            {!isVitrine && (
+              <NavLink
+                to={`${prefix}/configuracoes`}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-2 rounded-md px-2 py-2 text-sm",
+                    isActive
+                      ? "bg-[#E8E0FF] text-[#7E69AB] font-medium"
+                      : "text-[#64748B] hover:bg-[#F1F5F9]",
+                  )
+                }
+              >
+                <Settings className="h-4 w-4 shrink-0" />
+                Configurações
+              </NavLink>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -168,15 +184,33 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
             </Button>
           </div>
         ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={sair}
-            className="text-[#64748B] hover:bg-[#F1F5F9]"
-            aria-label="Sair"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
+          <div className="flex flex-col items-center gap-2">
+            {!isVitrine && (
+              <NavLink
+                to={`${prefix}/configuracoes`}
+                className={({ isActive }) =>
+                  cn(
+                    "flex h-9 w-9 items-center justify-center rounded-md",
+                    isActive
+                      ? "bg-[#E8E0FF] text-[#7E69AB]"
+                      : "text-[#64748B] hover:bg-[#F1F5F9]",
+                  )
+                }
+                aria-label="Configurações"
+              >
+                <Settings className="h-4 w-4" />
+              </NavLink>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={sair}
+              className="text-[#64748B] hover:bg-[#F1F5F9]"
+              aria-label="Sair"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </SidebarFooter>
     </Sidebar>
