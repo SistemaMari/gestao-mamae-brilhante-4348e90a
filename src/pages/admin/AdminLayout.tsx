@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { AdminHeader } from "@/components/admin/AdminHeader";
+
 import { BarraFiltrosGlobais } from "@/components/admin/BarraFiltrosGlobais";
 import { AdminFiltrosProvider } from "@/contexts/AdminFiltrosContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -65,7 +65,7 @@ export default function AdminLayout() {
         <div className="min-h-screen flex w-full bg-[#F8FAFC]">
           <AdminSidebar nome={nomeAdmin} email={user?.email} />
           <div className="flex-1 flex flex-col min-w-0">
-            <AdminHeader />
+            
             {/* Barra de filtros: escondida na Visão Geral (/admin) — lá ela é
                 renderizada dentro da página, acima dos gráficos que realmente
                 filtra. Nas demais páginas segue no topo. */}
