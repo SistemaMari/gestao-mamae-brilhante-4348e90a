@@ -211,6 +211,15 @@ Deno.serve(async (req) => {
     const consultaAtual = consultas?.find((c: any) => c.id === consulta_id);
     if (!consultaAtual) return jsonResp({ error: "Consulta não encontrada" }, 404);
 
+    // Idempotência: 1 laudo por consulta. Se já existe, é re-geração (edição/
+    // reabertura) → atualiza o conteúdo SEM consumir cota nem duplicar o carimbo.
+    const { data: laudoPrevio } = await supabaseAdmin
+      .from("laudos")
+      .select("id")
+      .eq("consulta_id", consulta_id)
+      .maybeSingle();
+    const ehRegeracao = Boolean(laudoPrevio);
+
     // Bloqueia se ficha não está completa
     if (consultaAtual.status_ficha && !["completa", "laudo_gerado"].includes(consultaAtual.status_ficha)) {
       const faltantes: string[] = [];
@@ -235,12 +244,8 @@ Deno.serve(async (req) => {
       }, 422);
     }
 
-    // Quota
-    const { data: quota, error: quotaErr } = await supabaseAdmin.rpc("pode_gerar_laudo", { p_profissional_id: profissional.id });
-    if (quotaErr) return jsonResp({ error: "Erro ao verificar quota", details: quotaErr.message }, 500);
-    if (quota && (quota as any).allowed === false) {
-      return jsonResp({ error: "Limite de laudos atingido", laudos_limite: (quota as any).laudos_limite }, 402);
-    }
+    // (Cota verificada mais abaixo, DEPOIS de garantir que os textos existem —
+    //  assim não gasta cota quando o laudo não será produzido.)
 
     // Cenário e ficha_tipo
     const cenarioId = normalizarCenario(consultaAtual.cenario_clinico) ?? normalizarCenario(cenarioBody);
@@ -298,9 +303,19 @@ Deno.serve(async (req) => {
       .map((b) => (b.titulo_bloco ? `## ${b.titulo_bloco}\n\n${b.texto}` : b.texto))
       .join("\n\n");
 
+    // Cota: só na PRIMEIRA geração e só para consultório (pode_gerar_laudo isenta
+    // institucional). Reordenada para cá — só consome cota quando o laudo sai.
+    if (!ehRegeracao) {
+      const { data: quota, error: quotaErr } = await supabaseAdmin.rpc("pode_gerar_laudo", { p_profissional_id: profissional.id });
+      if (quotaErr) return jsonResp({ error: "Erro ao verificar quota", details: quotaErr.message }, 500);
+      if (quota && (quota as any).allowed === false) {
+        return jsonResp({ error: "Limite de laudos atingido", laudos_limite: (quota as any).laudos_limite }, 402);
+      }
+    }
+
     const { data: laudo, error: laudoErr } = await supabaseAdmin
       .from("laudos")
-      .insert({
+      .upsert({
         paciente_id,
         consulta_id,
         profissional_id: profissional.id,
@@ -351,7 +366,7 @@ Deno.serve(async (req) => {
             ig_dias: igAtual.dias,
           },
         },
-      })
+      }, { onConflict: "consulta_id" })
       .select()
       .single();
 
@@ -365,7 +380,8 @@ Deno.serve(async (req) => {
       .update({ status_ficha: "laudo_gerado" })
       .eq("id", consulta_id);
 
-    if (profissional.unidade_id) {
+    // Carimbo do laudo só na PRIMEIRA geração (não duplicar em re-geração).
+    if (profissional.unidade_id && !ehRegeracao) {
       await supabaseAdmin.from("registros_atendimento").insert({
         paciente_id,
         profissional_id: profissional.id,

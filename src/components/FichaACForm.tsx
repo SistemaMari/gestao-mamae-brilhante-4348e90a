@@ -601,6 +601,15 @@ export default function FichaACForm({
         recursoTipo: editingConsulta ? 'consulta' : 'ficha',
       });
 
+      // Persiste o laudo desta consulta → contador + histórico. Fire-and-forget,
+      // não-bloqueante (idempotente por consulta; institucional é ilimitado).
+      const laudoConsultaId = consultaId;
+      if (laudoConsultaId) {
+        void import('@/lib/registrarLaudo').then(({ registrarLaudo }) =>
+          registrarLaudo(paciente.id, laudoConsultaId),
+        );
+      }
+
       // 36B REV3 — Persistência auditável da decisão (apenas Ficha A com checklist completo)
       if (isFichaAC && decisaoFichaA && consultaId) {
         await supabase
