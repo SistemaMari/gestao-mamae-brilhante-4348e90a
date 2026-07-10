@@ -1,4 +1,4 @@
-import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, LogOut } from "lucide-react";
+import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, Settings, LogOut } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -6,6 +6,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import mariLogo from "@/assets/mari-logo.png";
 
 const baseItems = [
   { title: "Painel", path: "", icon: BarChart3, exact: true },
@@ -25,6 +27,7 @@ const baseItems = [
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
   { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
+  { title: "Configurações", path: "/configuracoes", icon: Settings, exact: false },
 ];
 
 function iniciais(nome?: string | null) {
@@ -64,8 +67,8 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
   const prefix = pathname.startsWith("/vitrine/admin") ? "/vitrine/admin" : "/admin";
   const isVitrine = prefix === "/vitrine/admin";
   const items = baseItems
-    // Tutorial (ver/gerenciar) só no admin real; a vitrine não tem essas rotas.
-    .filter((it) => !(isVitrine && it.path.startsWith("/tutorial")))
+    // Tutorial e Configurações só no admin real; a vitrine não tem essas rotas.
+    .filter((it) => !(isVitrine && (it.path.startsWith("/tutorial") || it.path === "/configuracoes")))
     .map((it) => ({
       ...it,
       url: it.path === "" ? prefix : `${prefix}${it.path}`,
@@ -86,6 +89,21 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
         ["--sidebar-accent-foreground" as string]: "260 25% 54%", // #7E69AB
       }}
     >
+      <SidebarHeader className="bg-white border-r border-[#E2E8F0] p-3">
+        {collapsed ? (
+          <img
+            src={mariLogo}
+            alt="MARI"
+            className="h-9 w-9 rounded-md object-cover"
+          />
+        ) : (
+          <img
+            src={mariLogo}
+            alt="MARI — Maternal ARtificial Intelligence"
+            className="w-full rounded-lg"
+          />
+        )}
+      </SidebarHeader>
       <SidebarContent className="bg-white border-r border-[#E2E8F0]">
         <SidebarGroup>
           <SidebarGroupContent>
