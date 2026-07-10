@@ -26,8 +26,8 @@ const baseItems = [
   { title: "Contas Institucionais", path: "/institucionais", icon: Building2, exact: false },
   { title: "Contas Profissionais", path: "/profissionais", icon: Stethoscope, exact: false },
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
-  { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
+  { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
 ];
 
 function iniciais(nome?: string | null) {
@@ -111,22 +111,27 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
               {items.map((item) => {
                 const active = isActive(item.url, item.exact);
                 return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={active}>
-                      <NavLink
-                        to={item.url}
-                        end={item.exact}
-                        className={
-                          active
-                            ? "flex items-center gap-3 bg-[#E8E0FF] text-[#7E69AB] font-medium rounded-md"
-                            : "flex items-center gap-3 text-[#64748B] hover:bg-[#F1F5F9] rounded-md"
-                        }
-                      >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span className="text-sm">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <div key={item.title}>
+                    {item.path === "/tutorial" && (
+                      <div className="my-1 border-t border-[#E2E8F0]" />
+                    )}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={active}>
+                        <NavLink
+                          to={item.url}
+                          end={item.exact}
+                          className={
+                            active
+                              ? "flex items-center gap-3 bg-[#E8E0FF] text-[#7E69AB] font-medium rounded-md"
+                              : "flex items-center gap-3 text-[#64748B] hover:bg-[#F1F5F9] rounded-md"
+                          }
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="text-sm">{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </div>
                 );
               })}
             </SidebarMenu>
@@ -135,7 +140,7 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
       </SidebarContent>
 
       {/* Rodapé: identidade + sair */}
-      <SidebarFooter className="border-t border-[#E2E8F0] bg-white p-3">
+      <SidebarFooter className="border-t border-[#E2E8F0] bg-[#F5F0FF] p-3">
         {!collapsed ? (
           <div className="space-y-2">
             <div className="flex items-center gap-3">
