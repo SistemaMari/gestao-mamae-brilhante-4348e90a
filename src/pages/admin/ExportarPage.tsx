@@ -15,6 +15,7 @@ import { useAdminFiltros } from "@/contexts/AdminFiltrosContext";
 import { exportarCsvAdmin } from "@/lib/exportarCsvAdmin";
 import { todayLocalISO } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
+import { BarraFiltrosGlobais } from "@/components/admin/BarraFiltrosGlobais";
 import type { AdminViewSlug } from "@/lib/adminMetrics";
 
 type Formato = "csv" | "xlsx" | "pdf";
@@ -257,9 +258,11 @@ export default function ExportarPage() {
           Exportar relatórios
         </h2>
         <p className="text-sm text-slate-600">
-          Gere arquivos consolidados respeitando os filtros aplicados na barra superior.
+          Gere arquivos consolidados respeitando os filtros aplicados abaixo.
         </p>
       </div>
+
+      <BarraFiltrosGlobais />
 
       <ResumoFiltros />
 
