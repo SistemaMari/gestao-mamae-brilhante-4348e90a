@@ -2158,6 +2158,8 @@ export type Database = {
           singleton: number | null
           total_consolidacoes: number | null
           total_gestores_gerais: number | null
+          total_laudos: number | null
+          total_pacientes: number | null
           total_profissionais: number | null
           total_unidades: number | null
         }
