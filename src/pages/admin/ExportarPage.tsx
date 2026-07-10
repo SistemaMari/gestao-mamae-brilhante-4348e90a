@@ -258,9 +258,11 @@ export default function ExportarPage() {
           Exportar relatórios
         </h2>
         <p className="text-sm text-slate-600">
-          Gere arquivos consolidados respeitando os filtros aplicados na barra superior.
+          Gere arquivos consolidados respeitando os filtros aplicados abaixo.
         </p>
       </div>
+
+      <BarraFiltrosGlobais />
 
       <ResumoFiltros />
 
