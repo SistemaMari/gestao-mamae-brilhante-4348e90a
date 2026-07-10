@@ -1,4 +1,4 @@
-import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, LogOut } from "lucide-react";
+import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, Settings, LogOut } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -25,6 +25,7 @@ const baseItems = [
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
   { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
+  { title: "Configurações", path: "/configuracoes", icon: Settings, exact: false },
 ];
 
 function iniciais(nome?: string | null) {
@@ -64,8 +65,8 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
   const prefix = pathname.startsWith("/vitrine/admin") ? "/vitrine/admin" : "/admin";
   const isVitrine = prefix === "/vitrine/admin";
   const items = baseItems
-    // Tutorial (ver/gerenciar) só no admin real; a vitrine não tem essas rotas.
-    .filter((it) => !(isVitrine && it.path.startsWith("/tutorial")))
+    // Tutorial e Configurações só no admin real; a vitrine não tem essas rotas.
+    .filter((it) => !(isVitrine && (it.path.startsWith("/tutorial") || it.path === "/configuracoes")))
     .map((it) => ({
       ...it,
       url: it.path === "" ? prefix : `${prefix}${it.path}`,
