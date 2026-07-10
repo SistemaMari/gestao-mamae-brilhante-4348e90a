@@ -6,6 +6,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import mariLogo from "@/assets/mari-logo.png";
 
 const baseItems = [
   { title: "Painel", path: "", icon: BarChart3, exact: true },
@@ -87,6 +89,21 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
         ["--sidebar-accent-foreground" as string]: "260 25% 54%", // #7E69AB
       }}
     >
+      <SidebarHeader className="bg-white border-r border-[#E2E8F0] p-3">
+        {collapsed ? (
+          <img
+            src={mariLogo}
+            alt="MARI"
+            className="h-9 w-9 rounded-md object-cover"
+          />
+        ) : (
+          <img
+            src={mariLogo}
+            alt="MARI — Maternal ARtificial Intelligence"
+            className="w-full rounded-lg"
+          />
+        )}
+      </SidebarHeader>
       <SidebarContent className="bg-white border-r border-[#E2E8F0]">
         <SidebarGroup>
           <SidebarGroupContent>
