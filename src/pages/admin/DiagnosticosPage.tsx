@@ -623,69 +623,7 @@ export default function DiagnosticosPage() {
         destaque
       />
 
-      {/* 9–11. Pizzas de desfechos perinatais */}
-      <CardContainer>
-        <SecaoTitulo>Desfechos perinatais</SecaoTitulo>
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h4
-              className="mb-2 text-base font-medium"
-              style={{ color: "#475569", fontFamily: FONT_TITULO }}
-            >
-              Via de parto
-            </h4>
-            <Pizza
-              data={[
-                { name: "Vaginal", value: desfechos?.via_vaginal ?? 0 },
-                { name: "Cesárea", value: desfechos?.via_cesarea ?? 0 },
-              ]}
-              cores={[COR_VERDE, COR_LILAS]}
-              vazioMsg="Sem partos registrados ainda."
-            />
-          </div>
-          <div>
-            <h4
-              className="mb-2 text-base font-medium"
-              style={{ color: "#475569", fontFamily: FONT_TITULO }}
-            >
-              Classificação do RN
-            </h4>
-            <Pizza
-              data={[
-                { name: "AIG", value: desfechos?.rn_aig ?? 0 },
-                { name: "GIG", value: desfechos?.rn_gig ?? 0 },
-                { name: "PIG", value: desfechos?.rn_pig ?? 0 },
-              ]}
-              cores={[COR_VERDE, COR_LARANJA, COR_VERMELHO]}
-              vazioMsg="Sem partos registrados ainda."
-            />
-          </div>
-        </div>
-
-        {/* 12. Cards de desfecho */}
-        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricaCard
-            label="Partos registrados"
-            valor={desfechos?.partos_total ?? 0}
-          />
-          <MetricaCard
-            label="IG média no parto"
-            valor={
-              desfechos?.ig_parto_media
-                ? `${desfechos.ig_parto_media.toFixed(1)} sem`
-                : "—"
-            }
-          />
-          <MetricaCard
-            label="Peso médio do RN"
-            valor={desfechos?.peso_medio_g ? `${desfechos.peso_medio_g} g` : "—"}
-          />
-          <MetricaCard
-            label="Intercorrências (mãe / RN)"
-            valor={`${desfechos?.interc_maternas ?? 0} / ${desfechos?.interc_neonatais ?? 0}`}
-          />
-        </div>
-      </CardContainer>
+      {/* Desfechos perinatais — ocultado do ADMIN até o registro de parto voltar. */}
 
       {/* 13–14. Quebras regionais */}
       <div className="space-y-6">
