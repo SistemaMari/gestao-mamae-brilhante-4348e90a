@@ -1,4 +1,4 @@
-import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, Settings, LogOut } from "lucide-react";
+import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, CreditCard, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -25,6 +25,7 @@ const baseItems = [
   { title: "Administradores", path: "/admins", icon: Users, exact: false },
   { title: "Contas Institucionais", path: "/institucionais", icon: Building2, exact: false },
   { title: "Contas Profissionais", path: "/profissionais", icon: Stethoscope, exact: false },
+  { title: "Planos", path: "/planos", icon: CreditCard, exact: false },
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
   { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
@@ -68,7 +69,7 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
   const isVitrine = prefix === "/vitrine/admin";
   const items = baseItems
     // Tutorial e Configurações só no admin real; a vitrine não tem essas rotas.
-    .filter((it) => !(isVitrine && (it.path.startsWith("/tutorial") || it.path === "/configuracoes")))
+    .filter((it) => !(isVitrine && (it.path.startsWith("/tutorial") || it.path === "/configuracoes" || it.path === "/planos")))
     .map((it) => ({
       ...it,
       url: it.path === "" ? prefix : `${prefix}${it.path}`,

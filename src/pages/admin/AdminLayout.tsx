@@ -69,7 +69,7 @@ export default function AdminLayout() {
             {/* Barra de filtros: escondida na Visão Geral (/admin) — lá ela é
                 renderizada dentro da página, acima dos gráficos que realmente
                 filtra. Nas demais páginas segue no topo. */}
-            {!["/admin", "/admin/admins", "/admin/institucionais", "/admin/profissionais", "/admin/laudos", "/admin/tutorial", "/admin/tutoriais", "/admin/configuracoes", "/admin/diagnosticos", "/admin/exportar"].includes(pathname) && <BarraFiltrosGlobais />}
+            {!["/admin", "/admin/admins", "/admin/institucionais", "/admin/profissionais", "/admin/laudos", "/admin/tutorial", "/admin/tutoriais", "/admin/configuracoes", "/admin/planos", "/admin/diagnosticos", "/admin/exportar"].includes(pathname) && <BarraFiltrosGlobais />}
             <main className="flex-1 p-4 md:p-6 lg:p-8">
               <Outlet context={{ nomeAdmin }} />
             </main>
