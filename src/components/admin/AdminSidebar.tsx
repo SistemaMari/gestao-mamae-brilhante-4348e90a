@@ -28,7 +28,6 @@ const baseItems = [
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
   { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
-  { title: "Configurações", path: "/configuracoes", icon: Settings, exact: false },
 ];
 
 function iniciais(nome?: string | null) {
