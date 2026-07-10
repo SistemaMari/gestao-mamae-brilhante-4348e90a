@@ -140,7 +140,7 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
       </SidebarContent>
 
       {/* Rodapé: identidade + sair */}
-      <SidebarFooter className="border-t border-[#E2E8F0] bg-white p-3">
+      <SidebarFooter className="border-t border-[#E2E8F0] bg-[#F5F0FF] p-3">
         {!collapsed ? (
           <div className="space-y-2">
             <div className="flex items-center gap-3">
