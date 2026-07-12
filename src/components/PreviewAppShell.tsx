@@ -111,6 +111,18 @@ export default function PreviewAppShell() {
           <UserCog className="h-4 w-4 shrink-0" />
           Meu perfil
         </button>
+        <button
+          onClick={() => navigate('/vitrine/planos')}
+          className={cn(
+            'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors',
+            location.pathname === '/vitrine/planos'
+              ? 'bg-[#E8E0FF] text-[#7E69AB] font-medium'
+              : 'text-[#64748B] hover:bg-[#F1F5F9]'
+          )}
+        >
+          <CreditCard className="h-4 w-4 shrink-0" />
+          Meu plano
+        </button>
         <Button
           variant="outline"
           size="sm"
@@ -118,7 +130,7 @@ export default function PreviewAppShell() {
           className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Voltar à vitrine
+          Sair
         </Button>
       </div>
     </>
