@@ -123,9 +123,13 @@ export default function FeedbacksAdminPage() {
   const construirCorpoResposta = (f: Feedback) => {
     const dataStr = formatDateBR(f.created_at);
     const tipoStr = TIPO_LABEL[f.tipo] || f.tipo;
+    const notaCc = (f.tipo_perfil === 'institucional' && f.email_gestor_unidade)
+      ? `\n(Com cópia para a gestão da unidade${f.unidade_nome ? ` — ${f.unidade_nome}` : ''}.)\n`
+      : '';
     return (
       `Olá ${f.autor || ''},\n\n` +
-      `Obrigada pelo seu contato com o suporte MARI. Segue nossa resposta abaixo.\n\n` +
+      `Obrigada pelo seu contato com o suporte MARI. Segue nossa resposta abaixo.\n` +
+      notaCc +
       `\n\n---\n` +
       `Histórico da sua solicitação\n` +
       `Data: ${dataStr}\n` +
