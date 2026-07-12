@@ -40,7 +40,9 @@
     "tryAgain": "Try again",
     "noData": "No data",
     "of": "of",
-    "loadingData": "Loading data..."
+    "loadingData": "Loading data...",
+    "pageNotFound": "Oops! Page not found",
+    "returnToHome": "Return to Home"
   },
   "languages": {
     "pt-BR": "Portuguese (Brazil)",
@@ -126,7 +128,21 @@
     "updatePasswordError": "Error updating password. Please try again.",
     "invalidCredentials": "Invalid credentials",
     "logout": "Sign out",
-    "loggedOut": "Signed out"
+    "loggedOut": "Signed out",
+    "googleNotRegistered": "This Google email is not registered. Please request access from the administrator.",
+    "googleSignInFailed": "Could not start sign-in with Google. Please try again.",
+    "or": "or",
+    "signInWithGoogle": "Sign in with Google",
+    "passwordMustBeDifferent": "The new password must be different from your current password. Please choose another.",
+    "passwordBreached": "This password appears in public data breaches. Please choose a stronger password.",
+    "passwordTooShort": "The password does not meet the minimum length requirements.",
+    "passwordMinLength": "The password must be at least 6 characters.",
+    "invalidRecoveryLink": "Invalid or expired recovery link.",
+    "resetPasswordTitle": "Reset password",
+    "passwordUpdatedRedirecting": "Password updated successfully! Redirecting...",
+    "minCharsPlaceholder": "Minimum 6 characters",
+    "confirmNewPassword": "Confirm new password",
+    "repeatPasswordPlaceholder": "Repeat the password"
   },
   "dashboard": {
     "title": "Professional dashboard",
@@ -392,5 +408,40 @@
   "language": {
     "selectLanguage": "Select language",
     "changed": "Language changed to {{lang}}"
+  },
+  "completeProfile": {
+    "title": "Complete your professional profile",
+    "subtitle": "We need a few details to set up your account.",
+    "saveError": "Error saving profile. Please try again.",
+    "saveSuccess": "Profile saved successfully!"
+  },
+  "invite": {
+    "fillRequired": "Please fill in all required fields.",
+    "passwordMinError": "The password must be at least 6 characters.",
+    "accountCreated": "Account created successfully!",
+    "createError": "Error creating account.",
+    "invalidTitle": "This invitation is not valid.",
+    "invalidDesc": "The link may be incorrect or the invitation was canceled.",
+    "goToLogin": "Go to login",
+    "expiredTitle": "This invitation has expired.",
+    "expiredDesc": "Request a new one from your unit manager.",
+    "usedTitle": "This invitation has already been used.",
+    "usedDesc": "If you already have an account, log in.",
+    "emailInUseTitle": "This email is already in use on MARI",
+    "emailInUseP1": "You already have a MARI account using this email (likely as a private practice professional). On MARI, each email belongs to a single usage model — private practice OR institutional unit.",
+    "emailInUseHowLabel": "How to proceed:",
+    "emailInUseP2": "ask the person who sent the invitation to resend it using a different email — it can be a secondary professional or personal email. You can keep both accounts in parallel, each with its own care model.",
+    "backToLogin": "Back to login",
+    "redirectingLoginPrefix": "Redirecting to login in",
+    "invitedTo": "You have been invited to {{unidade}}",
+    "fillDataSubtitle": "Fill in your details to access the system.",
+    "fullNameLabel": "Full name *",
+    "passwordLabel": "Password *",
+    "confirmPasswordLabel": "Confirm password *",
+    "crmCorenLabel": "CRM / COREN *",
+    "specialtyLabel": "Specialty *",
+    "selectPlaceholder": "Select",
+    "preferredLanguageLabel": "Preferred language",
+    "createAccount": "Create my account"
   }
 }

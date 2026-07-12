@@ -40,7 +40,9 @@
     "tryAgain": "Tentar novamente",
     "noData": "Sem dados",
     "of": "de",
-    "loadingData": "Carregando dados..."
+    "loadingData": "Carregando dados...",
+    "pageNotFound": "Ops! Página não encontrada",
+    "returnToHome": "Voltar para o início"
   },
   "languages": {
     "pt-BR": "Português (Brasil)",
@@ -126,7 +128,21 @@
     "updatePasswordError": "Erro ao atualizar senha. Tente novamente.",
     "invalidCredentials": "Credenciais inválidas",
     "logout": "Sair",
-    "loggedOut": "Sessão encerrada"
+    "loggedOut": "Sessão encerrada",
+    "googleNotRegistered": "Este e-mail Google não está cadastrado. Solicite acesso ao administrador.",
+    "googleSignInFailed": "Não foi possível iniciar o login com Google. Tente novamente.",
+    "or": "ou",
+    "signInWithGoogle": "Entrar com Google",
+    "passwordMustBeDifferent": "A nova senha deve ser diferente da senha atual. Escolha outra.",
+    "passwordBreached": "Esta senha aparece em vazamentos públicos. Escolha uma senha mais forte.",
+    "passwordTooShort": "A senha não atende aos requisitos mínimos de tamanho.",
+    "passwordMinLength": "A senha deve ter no mínimo 6 caracteres.",
+    "invalidRecoveryLink": "Link de recuperação inválido ou expirado.",
+    "resetPasswordTitle": "Redefinir senha",
+    "passwordUpdatedRedirecting": "Senha atualizada com sucesso! Redirecionando...",
+    "minCharsPlaceholder": "Mínimo 6 caracteres",
+    "confirmNewPassword": "Confirmar nova senha",
+    "repeatPasswordPlaceholder": "Repita a senha"
   },
   "dashboard": {
     "title": "Painel do profissional",
@@ -392,5 +408,40 @@
   "language": {
     "selectLanguage": "Selecionar idioma",
     "changed": "Idioma alterado para {{lang}}"
+  },
+  "completeProfile": {
+    "title": "Complete seu perfil profissional",
+    "subtitle": "Precisamos de algumas informações para configurar sua conta.",
+    "saveError": "Erro ao salvar perfil. Tente novamente.",
+    "saveSuccess": "Perfil salvo com sucesso!"
+  },
+  "invite": {
+    "fillRequired": "Preencha todos os campos obrigatórios.",
+    "passwordMinError": "A senha deve ter no mínimo 6 caracteres.",
+    "accountCreated": "Conta criada com sucesso!",
+    "createError": "Erro ao criar conta.",
+    "invalidTitle": "Este convite não é válido.",
+    "invalidDesc": "O link pode estar incorreto ou o convite foi cancelado.",
+    "goToLogin": "Ir para o login",
+    "expiredTitle": "Este convite expirou.",
+    "expiredDesc": "Solicite um novo ao gestor da sua unidade.",
+    "usedTitle": "Este convite já foi utilizado.",
+    "usedDesc": "Se você já tem conta, faça login.",
+    "emailInUseTitle": "Este e-mail já está em uso no MARI",
+    "emailInUseP1": "Você já tem uma conta MARI usando este e-mail (provavelmente como profissional de consultório particular). No MARI, cada e-mail pertence a um único modelo de uso — consultório OU unidade institucional.",
+    "emailInUseHowLabel": "Como prosseguir:",
+    "emailInUseP2": "peça à pessoa que enviou o convite para reenviá-lo usando um e-mail diferente — pode ser um e-mail profissional secundário ou pessoal. Você poderá ter as duas contas em paralelo, cada uma com seu modelo de atendimento.",
+    "backToLogin": "Voltar ao login",
+    "redirectingLoginPrefix": "Redirecionando para o login em",
+    "invitedTo": "Você foi convidado(a) para a {{unidade}}",
+    "fillDataSubtitle": "Preencha seus dados para acessar o sistema.",
+    "fullNameLabel": "Nome completo *",
+    "passwordLabel": "Senha *",
+    "confirmPasswordLabel": "Confirmar senha *",
+    "crmCorenLabel": "CRM / COREN *",
+    "specialtyLabel": "Especialidade *",
+    "selectPlaceholder": "Selecione",
+    "preferredLanguageLabel": "Idioma preferido",
+    "createAccount": "Criar minha conta"
   }
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -35,12 +37,12 @@ export default function ResetPasswordPage() {
     setError('');
 
     if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres.');
+      setError(t('auth.passwordMinLength'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('As senhas não coincidem.');
+      setError(t('auth.passwordsDontMatch'));
       return;
     }
 
@@ -49,7 +51,7 @@ export default function ResetPasswordPage() {
     setIsLoading(false);
 
     if (error) {
-      setError('Erro ao atualizar senha. Tente novamente.');
+      setError(t('auth.updatePasswordError'));
       return;
     }
 
@@ -61,9 +63,9 @@ export default function ResetPasswordPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="text-center animate-fade-in">
-          <p className="text-muted-foreground">Link de recuperação inválido ou expirado.</p>
+          <p className="text-muted-foreground">{t('auth.invalidRecoveryLink')}</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate('/login')}>
-            Voltar ao login
+            {t('auth.backToLogin')}
           </Button>
         </div>
       </div>
@@ -78,7 +80,7 @@ export default function ResetPasswordPage() {
             <span className="font-heading text-2xl font-bold text-primary">DM</span>
           </div>
           <h1 className="font-heading text-xl font-semibold text-foreground">
-            Redefinir senha
+            {t('auth.resetPasswordTitle')}
           </h1>
         </div>
 
@@ -86,17 +88,17 @@ export default function ResetPasswordPage() {
           {success ? (
             <div className="space-y-4 text-center">
               <CheckCircle className="mx-auto h-12 w-12 text-clinical-normal-icon" />
-              <p className="text-sm text-foreground">Senha atualizada com sucesso! Redirecionando...</p>
+              <p className="text-sm text-foreground">{t('auth.passwordUpdatedRedirecting')}</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Nova senha</Label>
+                <Label htmlFor="password">{t('auth.newPassword')}</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder={t('auth.minCharsPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     minLength={6}
@@ -115,11 +117,11 @@ export default function ResetPasswordPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+                <Label htmlFor="confirmPassword">{t('auth.confirmNewPassword')}</Label>
                 <Input
                   id="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Repita a senha"
+                  placeholder={t('auth.repeatPasswordPlaceholder')}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -138,9 +140,9 @@ export default function ResetPasswordPage() {
                 disabled={password.length < 6 || password !== confirmPassword || isLoading}
               >
                 {isLoading ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>
+                  <><Loader2 className="h-4 w-4 animate-spin" /> {t('auth.saving')}</>
                 ) : (
-                  'Salvar nova senha'
+                  t('auth.saveNewPassword')
                 )}
               </Button>
             </form>

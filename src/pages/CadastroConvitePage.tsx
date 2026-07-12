@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ interface ConviteData {
 }
 
 export default function CadastroConvitePage() {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
 
@@ -91,17 +93,17 @@ export default function CadastroConvitePage() {
     e.preventDefault();
 
     if (!nome || !senha || !crmCoren || !especialidade) {
-      toast.error('Preencha todos os campos obrigatórios.');
+      toast.error(t('invite.fillRequired'));
       return;
     }
 
     if (senha.length < 6) {
-      toast.error('A senha deve ter no mínimo 6 caracteres.');
+      toast.error(t('invite.passwordMinError'));
       return;
     }
 
     if (senha !== confirmarSenha) {
-      toast.error('As senhas não coincidem.');
+      toast.error(t('auth.passwordsDontMatch'));
       return;
     }
 
@@ -122,17 +124,17 @@ export default function CadastroConvitePage() {
       const data = res.data;
 
       if (data?.status === 'sucesso') {
-        toast.success('Conta criada com sucesso!');
+        toast.success(t('invite.accountCreated'));
         setCountdown(3);
       } else if (data?.status === 'email_existente') {
         // E-mail já tem conta no MARI. Fluxo de vinculação foi descontinuado:
         // cada e-mail = um único modelo (consultório OU institucional).
         setStatus('email_existente');
       } else {
-        toast.error(data?.mensagem || 'Erro ao criar conta.');
+        toast.error(data?.mensagem || t('invite.createError'));
       }
     } catch {
-      toast.error('Erro ao criar conta.');
+      toast.error(t('invite.createError'));
     }
 
     setSubmitting(false);
@@ -151,8 +153,9 @@ export default function CadastroConvitePage() {
     return (
       <StatusScreen
         icon={<XCircle className="h-12 w-12 text-destructive" />}
-        title="Este convite não é válido."
-        description="O link pode estar incorreto ou o convite foi cancelado."
+        title={t('invite.invalidTitle')}
+        description={t('invite.invalidDesc')}
+        loginLabel={t('invite.goToLogin')}
       />
     );
   }
@@ -161,8 +164,9 @@ export default function CadastroConvitePage() {
     return (
       <StatusScreen
         icon={<AlertTriangle className="h-12 w-12 text-amber-500" />}
-        title="Este convite expirou."
-        description="Solicite um novo ao gestor da sua unidade."
+        title={t('invite.expiredTitle')}
+        description={t('invite.expiredDesc')}
+        loginLabel={t('invite.goToLogin')}
       />
     );
   }
@@ -171,8 +175,9 @@ export default function CadastroConvitePage() {
     return (
       <StatusScreen
         icon={<CheckCircle2 className="h-12 w-12 text-secondary" />}
-        title="Este convite já foi utilizado."
-        description="Se você já tem conta, faça login."
+        title={t('invite.usedTitle')}
+        description={t('invite.usedDesc')}
+        loginLabel={t('invite.goToLogin')}
       />
     );
   }
@@ -183,21 +188,14 @@ export default function CadastroConvitePage() {
         <div className="w-full max-w-[560px] rounded-xl border border-border bg-card p-8 shadow-sm text-center">
           <AlertTriangle className="mx-auto h-12 w-12 text-amber-500" />
           <h2 className="mt-4 font-heading text-xl font-bold text-foreground">
-            Este e-mail já está em uso no MARI
+            {t('invite.emailInUseTitle')}
           </h2>
           <div className="mt-3 space-y-3 text-left text-sm text-muted-foreground">
             <p>
-              Você já tem uma conta MARI usando este e-mail (provavelmente como
-              profissional de consultório particular). No MARI, cada e-mail
-              pertence a um único modelo de uso — consultório OU unidade
-              institucional.
+              {t('invite.emailInUseP1')}
             </p>
             <p>
-              <strong className="text-foreground">Como prosseguir:</strong> peça
-              à pessoa que enviou o convite para reenviá-lo usando um e-mail
-              diferente — pode ser um e-mail profissional secundário ou pessoal.
-              Você poderá ter as duas contas em paralelo, cada uma com seu
-              modelo de atendimento.
+              <strong className="text-foreground">{t('invite.emailInUseHowLabel')}</strong> {t('invite.emailInUseP2')}
             </p>
           </div>
           <Button
@@ -205,7 +203,7 @@ export default function CadastroConvitePage() {
             className="mt-6"
             onClick={() => navigate('/login')}
           >
-            Voltar ao login
+            {t('invite.backToLogin')}
           </Button>
         </div>
       </div>
@@ -219,10 +217,10 @@ export default function CadastroConvitePage() {
         <div className="w-full max-w-[500px] rounded-xl border border-border bg-card p-8 shadow-sm text-center">
           <CheckCircle2 className="mx-auto h-12 w-12 text-secondary" />
           <h2 className="mt-4 font-heading text-xl font-bold text-foreground">
-            Conta criada com sucesso!
+            {t('invite.accountCreated')}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Redirecionando para o login em <span className="font-bold text-foreground">{countdown}</span>...
+            {t('invite.redirectingLoginPrefix')} <span className="font-bold text-foreground">{countdown}</span>...
           </p>
         </div>
       </div>
@@ -236,29 +234,29 @@ export default function CadastroConvitePage() {
         {/* Header */}
         <div className="mb-6 text-center">
           <h1 className="font-heading text-xl font-bold text-foreground">
-            Você foi convidado(a) para a {convite?.unidade_nome}
+            {t('invite.invitedTo', { unidade: convite?.unidade_nome })}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Preencha seus dados para acessar o sistema.
+            {t('invite.fillDataSubtitle')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email (readonly) */}
           <div>
-            <Label>E-mail</Label>
+            <Label>{t('common.email')}</Label>
             <Input value={convite?.email_convidado || ''} disabled className="bg-muted" />
           </div>
 
           {/* Nome */}
           <div>
-            <Label htmlFor="nome">Nome completo *</Label>
+            <Label htmlFor="nome">{t('invite.fullNameLabel')}</Label>
             <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
           </div>
 
           {/* Senha */}
           <div>
-            <Label htmlFor="senha">Senha *</Label>
+            <Label htmlFor="senha">{t('invite.passwordLabel')}</Label>
             <div className="relative">
               <Input
                 id="senha"
@@ -278,13 +276,13 @@ export default function CadastroConvitePage() {
               </button>
             </div>
             {senha && senha.length < 6 && (
-              <p className="mt-1 text-xs text-destructive">Mínimo 6 caracteres</p>
+              <p className="mt-1 text-xs text-destructive">{t('auth.minChars')}</p>
             )}
           </div>
 
           {/* Confirmar senha */}
           <div>
-            <Label htmlFor="confirmar-senha">Confirmar senha *</Label>
+            <Label htmlFor="confirmar-senha">{t('invite.confirmPasswordLabel')}</Label>
             <Input
               id="confirmar-senha"
               type={showPassword ? 'text' : 'password'}
@@ -293,22 +291,22 @@ export default function CadastroConvitePage() {
               required
             />
             {confirmarSenha && senha !== confirmarSenha && (
-              <p className="mt-1 text-xs text-destructive">As senhas não coincidem</p>
+              <p className="mt-1 text-xs text-destructive">{t('auth.passwordsDontMatch')}</p>
             )}
           </div>
 
           {/* CRM/COREN */}
           <div>
-            <Label htmlFor="crm">CRM / COREN *</Label>
+            <Label htmlFor="crm">{t('invite.crmCorenLabel')}</Label>
             <Input id="crm" value={crmCoren} onChange={(e) => setCrmCoren(e.target.value)} required />
           </div>
 
           {/* Especialidade */}
           <div>
-            <Label>Especialidade *</Label>
+            <Label>{t('invite.specialtyLabel')}</Label>
             <Select value={especialidade} onValueChange={setEspecialidade}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
+                <SelectValue placeholder={t('invite.selectPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {especialidades.map((e) => (
@@ -320,7 +318,7 @@ export default function CadastroConvitePage() {
 
           {/* Idioma */}
           <div>
-            <Label>Idioma preferido</Label>
+            <Label>{t('invite.preferredLanguageLabel')}</Label>
             <Select value={idioma} onValueChange={setIdioma}>
               <SelectTrigger>
                 <SelectValue />
@@ -335,7 +333,7 @@ export default function CadastroConvitePage() {
 
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Criar minha conta
+            {t('invite.createAccount')}
           </Button>
         </form>
       </div>
@@ -343,7 +341,7 @@ export default function CadastroConvitePage() {
   );
 }
 
-function StatusScreen({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function StatusScreen({ icon, title, description, loginLabel }: { icon: React.ReactNode; title: string; description: string; loginLabel: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-[500px] rounded-xl border border-border bg-card p-8 shadow-sm text-center">
@@ -351,7 +349,7 @@ function StatusScreen({ icon, title, description }: { icon: React.ReactNode; tit
         <h2 className="mt-4 font-heading text-xl font-bold text-foreground">{title}</h2>
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
         <Link to="/login">
-          <Button variant="outline" className="mt-6">Ir para o login</Button>
+          <Button variant="outline" className="mt-6">{loginLabel}</Button>
         </Link>
       </div>
     </div>
