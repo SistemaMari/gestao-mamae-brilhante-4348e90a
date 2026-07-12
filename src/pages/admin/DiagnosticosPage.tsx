@@ -16,6 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { GrupoEscopo } from "@/components/admin/GrupoEscopo";
 
 // =============================================================================
 // Tipos espelhando o JSON da função public.metricas_diagnosticos_admin().
