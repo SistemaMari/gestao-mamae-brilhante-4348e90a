@@ -238,33 +238,40 @@ function Pizza({
           <Tooltip formatter={(v: number) => [`${v} (${((v / total) * 100).toFixed(1)}%)`, "Pacientes"]} />
         </PieChart>
       </ResponsiveContainer>
-      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-        {data.map((d, i) => {
-          const pct = ((d.value / total) * 100).toFixed(0);
-          const cor = cores[i % cores.length];
-          return (
-            <div
-              key={d.name}
-              className="flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1.5 shadow-sm backdrop-blur transition-all hover:shadow-md"
-              style={{ borderColor: `${cor}33`, fontFamily: FONT_CORPO }}
-            >
-              <span
-                className="inline-block h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: cor, boxShadow: `0 0 0 3px ${cor}22` }}
-              />
-              <span className="text-[13px] font-medium" style={{ color: "#1F1B2E" }}>
-                {d.name}
-              </span>
-              <span
-                className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                style={{ backgroundColor: `${cor}1A`, color: cor }}
+      <div className="flex flex-col items-center gap-2 pt-1">
+        <p className="text-[11px] uppercase tracking-wide" style={{ color: "#94A3B8", fontFamily: FONT_CORPO }}>
+          Gestantes diagnosticadas por rota · {total} no total
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {data.map((d, i) => {
+            const pct = ((d.value / total) * 100).toFixed(0);
+            const cor = cores[i % cores.length];
+            return (
+              <div
+                key={d.name}
+                className="flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1.5 shadow-sm backdrop-blur transition-all hover:shadow-md"
+                style={{ borderColor: `${cor}33`, fontFamily: FONT_CORPO }}
+                title={`${d.value} gestantes (${pct}%) diagnosticadas via ${d.name}`}
               >
-                {d.value} · {pct}%
-              </span>
-            </div>
-          );
-        })}
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: cor, boxShadow: `0 0 0 3px ${cor}22` }}
+                />
+                <span className="text-[13px] font-medium" style={{ color: "#1F1B2E" }}>
+                  {d.name}
+                </span>
+                <span
+                  className="rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums"
+                  style={{ backgroundColor: `${cor}1A`, color: cor }}
+                >
+                  {d.value} gestantes · {pct}%
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
+
     </div>
   );
 }
