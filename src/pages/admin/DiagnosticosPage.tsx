@@ -760,19 +760,8 @@ export default function DiagnosticosPage() {
                 sublabel="cenário 7 — quanto antes, melhor"
                 cor={COR_LARANJA}
               />
-              <div>
-                <SecaoTitulo>Laudos gerados por mês</SecaoTitulo>
-                <ResponsiveContainer width="100%" height={160}>
-                  <LineChart data={encerr.laudos_mensais}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="qtd" name="Laudos" stroke={COR_LILAS} strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
             </div>
+
           </div>
         </CardContainer>
       )}
@@ -807,7 +796,35 @@ export default function DiagnosticosPage() {
         />
       </div>
 
+      {/* Volume de laudos — série mensal full-width */}
+      {encerr && (
+        <CardContainer>
+          <div className="flex items-baseline justify-between gap-3 flex-wrap">
+            <SecaoTitulo>Volume de laudos gerados por mês</SecaoTitulo>
+            <span className="text-xs" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
+              últimos 12 meses · atualizado em tempo real
+            </span>
+          </div>
+          <p className="mt-1 mb-4 text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
+            Cada laudo corresponde a uma consulta finalizada na MARI. A série pode aparecer zerada
+            enquanto o histórico de laudos não é populado (ex.: base recém-migrada ou período sem
+            atendimentos finalizados).
+          </p>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={encerr.laudos_mensais} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+              <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Line type="monotone" dataKey="qtd" name="Laudos" stroke={COR_LILAS} strokeWidth={2} dot={{ r: 3 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContainer>
+      )}
+
       {/* Desfechos perinatais — ocultado do ADMIN até o registro de parto voltar. */}
+
+
 
       {/* 13–14. Quebras regionais */}
       <div className="space-y-6">
