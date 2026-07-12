@@ -6,6 +6,7 @@ import { CardResumo } from "@/components/admin/CardResumo";
 import { TabelaOrdenavel } from "@/components/admin/TabelaOrdenavel";
 import { AlertaOperacionalCard, ALERTAS_CONFIG } from "@/components/admin/AlertaOperacionalCard";
 import { BadgeEscopo } from "@/components/admin/BadgeEscopo";
+import { GrupoEscopo } from "@/components/admin/GrupoEscopo";
 import { GraficoLinhaEvolucao } from "@/components/admin/GraficoLinhaEvolucao";
 import { GraficoPizzaPlanos } from "@/components/admin/GraficoPizzaPlanos";
 import { GraficoPizzaTiposUnidade } from "@/components/admin/GraficoPizzaTiposUnidade";
