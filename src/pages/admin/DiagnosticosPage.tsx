@@ -738,27 +738,32 @@ export default function DiagnosticosPage() {
             />
           </div>
 
-          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <SecaoTitulo>Encerramentos por motivo</SecaoTitulo>
-              <Pizza
-                data={[
-                  { name: "Parto", value: encerr.por_motivo.parto },
-                  { name: "Aborto", value: encerr.por_motivo.aborto },
-                  { name: "Insulinização → endócrino", value: encerr.por_motivo.insulinizacao },
-                  { name: "Não retornou", value: encerr.por_motivo.nao_retornou },
-                  { name: "Outro", value: encerr.por_motivo.outro },
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <div className="flex items-baseline justify-between mb-4">
+                <SecaoTitulo>Encerramentos por motivo</SecaoTitulo>
+                <span className="text-xs" style={{ color: COR_CINZA, fontFamily: FONT_CORPO }}>
+                  {encerr.encerradas} encerramento{encerr.encerradas === 1 ? "" : "s"} no total
+                </span>
+              </div>
+              <BarrasMotivo
+                total={encerr.encerradas}
+                itens={[
+                  { nome: "Parto", valor: encerr.por_motivo.parto, cor: COR_VERDE },
+                  { nome: "Aborto", valor: encerr.por_motivo.aborto, cor: COR_VERMELHO },
+                  { nome: "Insulinização → endócrino", valor: encerr.por_motivo.insulinizacao, cor: COR_LARANJA },
+                  { nome: "Não retornou", valor: encerr.por_motivo.nao_retornou, cor: "#94A3B8" },
+                  { nome: "Outro", valor: encerr.por_motivo.outro, cor: COR_LILAS },
                 ]}
-                cores={[COR_VERDE, COR_VERMELHO, COR_LARANJA, "#94A3B8", COR_LILAS]}
-                vazioMsg="Nenhum acompanhamento encerrado ainda."
               />
             </div>
             <div className="flex flex-col gap-4">
               <MetricaCard
                 label="IG média no encaminhamento ao endócrino"
                 valor={encerr.ig_ao_endocrino != null ? `${encerr.ig_ao_endocrino} sem` : "—"}
-                sublabel="cenário 7 — quanto antes, melhor"
+                sublabel="quanto antes, melhor"
                 cor={COR_LARANJA}
+                tooltip="Idade gestacional média em que as pacientes que precisaram de insulina foram encaminhadas ao endócrino. Referência: quanto mais cedo, melhor o prognóstico."
               />
             </div>
 
