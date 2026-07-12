@@ -1,4 +1,4 @@
-import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, CreditCard, Lightbulb, Settings, LogOut } from "lucide-react";
+import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, CreditCard, Lightbulb, MessageSquareHeart, Heart, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -28,6 +28,8 @@ const baseItems = [
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
   { title: "Planos", path: "/planos", icon: CreditCard, exact: false },
   { title: "Dicas do Dashboard", path: "/dicas", icon: Lightbulb, exact: false },
+  { title: "Feedbacks", path: "/feedbacks", icon: MessageSquareHeart, exact: false, badge: "feedbacks_novos" as const },
+  { title: "Depoimentos", path: "/depoimentos", icon: Heart, exact: false, badge: "depoimentos_pendentes" as const },
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
   { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
 ];
