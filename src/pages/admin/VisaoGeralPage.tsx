@@ -370,8 +370,9 @@ export default function VisaoGeralPage() {
       {/* Evolução de planos */}
       <SecaoBloco
         titulo="Evolução mensal de planos"
-        descricao="Novos profissionais por plano nos últimos 12 meses."
-        tooltip="Quantos profissionais assinaram cada plano em cada mês. Ajuda a identificar tendências comerciais e migração entre planos."
+        descricao="Novos profissionais de consultório por plano (Inicial, Intermediária, Profissional) nos últimos 12 meses."
+        tooltip="Assinaturas mensais dos planos comerciais de consultório. Contas institucionais não entram nesta série — elas são contratadas por unidade e aparecem em Diagnósticos/Painel institucional."
+        acao={<BadgeEscopo escopo="consultorio" />}
         loading={evolPlanos.isLoading}
         skeletonHeight={280}
       >
