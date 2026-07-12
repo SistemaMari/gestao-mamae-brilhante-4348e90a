@@ -351,18 +351,18 @@ export default function DashboardPage() {
 
         {/* Search + New Patient */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary/70 transition-colors group-focus-within:text-primary" />
             <Input
               placeholder="Buscar paciente por nome..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="pl-10 pr-10"
+              className="h-14 pl-12 pr-12 text-base bg-card border-2 border-border rounded-xl shadow-sm transition-all placeholder:text-muted-foreground/70 hover:border-primary/40 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:shadow-md"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -436,13 +436,13 @@ export default function DashboardPage() {
             <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden shadow-sm">
               <table className="w-full table-fixed text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="w-8 px-2 py-3" aria-label="Atenção"></th>
-                    <th className="w-auto px-4 py-3 text-left font-medium text-muted-foreground">Paciente</th>
-                    <th className="w-[88px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">IG hoje</th>
-                    <th className="w-[120px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Última consulta</th>
-                    <th className="w-[160px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Status</th>
-                    <th className="w-[220px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Retorno</th>
+                  <tr className="border-b-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+                    <th className="w-8 px-2 py-4" aria-label="Atenção"></th>
+                    <th className="w-auto px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">Paciente</th>
+                    <th className="w-[88px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">IG hoje</th>
+                    <th className="w-[120px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">Última consulta</th>
+                    <th className="w-[160px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">Status</th>
+                    <th className="w-[220px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">Retorno</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
