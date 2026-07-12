@@ -173,9 +173,12 @@ const AJUDA_CENARIO: Record<string, string> = {
 };
 
 /** Ajuda contextual do cenário (tooltip). Ficha C↔A e Ficha D↔B compartilham. */
-export function ajudaCenario(tipo: string, desfecho: string): string | null {
+export function ajudaCenario(tipo: string, desfecho: string, tt?: RotuloTr): string | null {
   const t = tipo === 'ficha_c' ? 'ficha_a' : tipo === 'ficha_d' ? 'ficha_b' : tipo;
-  return AJUDA_CENARIO[`${t}::${desfecho}`] ?? null;
+  const pt = AJUDA_CENARIO[`${t}::${desfecho}`];
+  if (!pt) return null;
+  // Chave i18n usa '__' (não '::') porque ':' é o nsSeparator do i18next.
+  return tt ? tt(`${K}.ajuda.${t}__${desfecho}`, { defaultValue: pt }) : pt;
 }
 
 /**

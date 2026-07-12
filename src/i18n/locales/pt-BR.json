@@ -877,6 +877,27 @@
         "notaFamilia": {
           "ac": "Texto único para até 30 semanas (Ficha A) e após 30 semanas (Ficha C) — editar aqui atualiza os dois.",
           "bd": "Texto único para até 30 semanas (Ficha B) e após 30 semanas (Ficha D) — editar aqui atualiza os dois."
+        },
+        "ajuda": {
+          "retorno_1__negativo": "Retorno 1 com glicemia de jejum abaixo de 92 mg/dL: NÃO há DMG neste momento. O texto deve orientar seguir o pré-natal e realizar o GTT 75g entre 24 e 28 semanas.",
+          "retorno_1__1": "Retorno 1 com glicemia de jejum entre 92 e 125 mg/dL: DMG confirmado. O texto confirma o diagnóstico e orienta iniciar o tratamento (dieta, exercício e monitorização de 4 pontos).",
+          "retorno_1__6": "Rede de segurança — Retorno 1 com DMG confirmado pela glicemia de jejum (mesmo conteúdo do cenário \"DMG confirmado pela glicemia de jejum\").",
+          "retorno_1__8": "Retorno 1 com glicemia de jejum igual ou acima de 126 mg/dL: Overt DM (diabetes diagnosticado na gestação). O texto confirma e orienta tratamento imediato.",
+          "gtt__negativo": "GTT 75g normal (a partir de 24 semanas): afasta o DMG. O texto encerra a investigação — sem tratamento e sem repetir o exame.",
+          "gtt__6": "GTT 75g com pelo menos um valor alterado: DMG confirmado. O texto confirma o diagnóstico e orienta iniciar o tratamento.",
+          "gtt__6B": "GTT 75g positivo com idade gestacional tardia (acima de 28 semanas): DMG. O texto reforça que o início do tratamento é urgente.",
+          "gtt__8": "GTT 75g com valores de Overt DM. O texto confirma o diagnóstico e orienta tratamento imediato.",
+          "ficha_a__r1_manter": "Retorno 2 com pelo menos 70% das glicemias na meta, boa adesão (dieta, exercício e peso) e indicadores fetais normais: manter dieta e exercício, sem insulina.",
+          "ficha_a__r2_reforcar": "Retorno 2 com menos de 70% na meta e falha de adesão, mas a gestante pactua melhorar: reforçar a adesão e manter o perfil de 4 pontos (ainda sem insulina).",
+          "ficha_a__r2_insulina": "Retorno 2 com menos de 70% na meta e falha de adesão, e a gestante RECUSA pactuar: indicar insulina. (texto em rascunho do assistente — validar)",
+          "ficha_a__r3_insulina": "Retorno 2 com menos de 70% na meta apesar de boa adesão: dieta e exercício foram insuficientes, então iniciar insulina.",
+          "ficha_a__r4a_fichae": "Retorno 2 com pelo menos 70% na meta, porém com falha de adesão/ganho de peso (ou sinal fetal), e a memória do glicosímetro CONFIRMA o controle: ampliar para o perfil de 6 pontos (Ficha E), sem insulina ainda.",
+          "ficha_a__r4_reforcar": "Retorno 2 com pelo menos 70% na meta, falha de adesão e memória que NÃO confirma, mas a gestante aceita reforçar: manter o perfil de 4 pontos e reavaliar. (texto em rascunho — validar)",
+          "ficha_a__r4b_insulina": "Retorno 2 com pelo menos 70% na meta, falha de adesão, memória que NÃO confirma e a gestante RECUSA: iniciar insulina.",
+          "ficha_a__2": "Rede de segurança — controle adequado quando o sistema não calculou a conduta detalhada (mesmo texto da Regra 1 — manter).",
+          "ficha_a__3": "Rede de segurança — controle inadequado com insulina quando o sistema não calculou a conduta detalhada (mesmo texto da Regra 3 — insulina).",
+          "ficha_b__4": "Acompanhamento com insulina (perfil de 6 pontos) e pelo menos 70% na meta: manter a dose atual de insulina, a dieta e o exercício.",
+          "ficha_b__7": "Acompanhamento com insulina (perfil de 6 pontos) e MENOS de 70% na meta: a dose de insulina está insuficiente e precisa ser reajustada. A MARI encerra o suporte automatizado (não calcula reajuste de dose). O texto deve explicar o próximo passo — ajustar a dose (pelo obstetra, com endocrinologista ou por referenciamento a serviço especializado) — e reforçar que as metas que valem seguem sendo as obstétricas do DMG."
         }
       },
       "rascunhosPendentes": "{{count}} rascunho(s) aguardando publicação.",

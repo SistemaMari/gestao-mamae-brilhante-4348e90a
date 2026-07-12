@@ -877,6 +877,27 @@
         "notaFamilia": {
           "ac": "Texto único para hasta 30 semanas (Ficha A) y después de 30 semanas (Ficha C) — editar aquí actualiza ambos.",
           "bd": "Texto único para hasta 30 semanas (Ficha B) y después de 30 semanas (Ficha D) — editar aquí actualiza ambos."
+        },
+        "ajuda": {
+          "retorno_1__negativo": "Retorno 1 con glucemia en ayunas por debajo de 92 mg/dL: NO hay DMG en este momento. El texto debe orientar a continuar el prenatal y realizar la PTOG 75g entre las 24 y 28 semanas.",
+          "retorno_1__1": "Retorno 1 con glucemia en ayunas entre 92 y 125 mg/dL: DMG confirmada. El texto confirma el diagnóstico y orienta a iniciar el tratamiento (dieta, ejercicio y monitorización de 4 puntos).",
+          "retorno_1__6": "Red de seguridad — Retorno 1 con DMG confirmada por la glucemia en ayunas (mismo contenido del escenario \"DMG confirmada por glucemia en ayunas\").",
+          "retorno_1__8": "Retorno 1 con glucemia en ayunas igual o superior a 126 mg/dL: DM manifiesta (diabetes diagnosticada en la gestación). El texto lo confirma y orienta a tratamiento inmediato.",
+          "gtt__negativo": "PTOG 75g normal (a partir de las 24 semanas): descarta la DMG. El texto cierra la investigación — sin tratamiento y sin repetir el examen.",
+          "gtt__6": "PTOG 75g con al menos un valor alterado: DMG confirmada. El texto confirma el diagnóstico y orienta a iniciar el tratamiento.",
+          "gtt__6B": "PTOG 75g positiva con edad gestacional tardía (más de 28 semanas): DMG. El texto refuerza que el inicio del tratamiento es urgente.",
+          "gtt__8": "PTOG 75g con valores de DM manifiesta. El texto confirma el diagnóstico y orienta a tratamiento inmediato.",
+          "ficha_a__r1_manter": "Retorno 2 con al menos el 70% de las glucemias en la meta, buena adherencia (dieta, ejercicio y peso) e indicadores fetales normales: mantener dieta y ejercicio, sin insulina.",
+          "ficha_a__r2_reforcar": "Retorno 2 con menos del 70% en la meta y fallo de adherencia, pero la gestante se compromete a mejorar: reforzar la adherencia y mantener el perfil de 4 puntos (aún sin insulina).",
+          "ficha_a__r2_insulina": "Retorno 2 con menos del 70% en la meta y fallo de adherencia, y la gestante RECHAZA comprometerse: indicar insulina. (texto en borrador del asistente — validar)",
+          "ficha_a__r3_insulina": "Retorno 2 con menos del 70% en la meta a pesar de buena adherencia: la dieta y el ejercicio fueron insuficientes, por lo que se inicia insulina.",
+          "ficha_a__r4a_fichae": "Retorno 2 con al menos el 70% en la meta, pero con fallo de adherencia/aumento de peso (o señal fetal), y la memoria del glucómetro CONFIRMA el control: ampliar al perfil de 6 puntos (Ficha E), aún sin insulina.",
+          "ficha_a__r4_reforcar": "Retorno 2 con al menos el 70% en la meta, fallo de adherencia y memoria que NO confirma, pero la gestante acepta reforzar: mantener el perfil de 4 puntos y reevaluar. (texto en borrador — validar)",
+          "ficha_a__r4b_insulina": "Retorno 2 con al menos el 70% en la meta, fallo de adherencia, memoria que NO confirma y la gestante RECHAZA: iniciar insulina.",
+          "ficha_a__2": "Red de seguridad — control adecuado cuando el sistema no calculó la conducta detallada (mismo texto de la Regla 1 — mantener).",
+          "ficha_a__3": "Red de seguridad — control inadecuado con insulina cuando el sistema no calculó la conducta detallada (mismo texto de la Regla 3 — insulina).",
+          "ficha_b__4": "Seguimiento con insulina (perfil de 6 puntos) y al menos el 70% en la meta: mantener la dosis actual de insulina, la dieta y el ejercicio.",
+          "ficha_b__7": "Seguimiento con insulina (perfil de 6 puntos) y MENOS del 70% en la meta: la dosis de insulina es insuficiente y necesita reajustarse. MARI finaliza el soporte automatizado (no calcula el reajuste de dosis). El texto debe explicar el próximo paso — ajustar la dosis (por el obstetra, con endocrinólogo o mediante derivación a un servicio especializado) — y reforzar que las metas que valen siguen siendo las obstétricas de la DMG."
         }
       },
       "rascunhosPendentes": "{{count}} borrador(es) esperando publicación.",

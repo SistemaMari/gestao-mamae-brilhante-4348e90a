@@ -137,8 +137,14 @@ describe('laudoTextosAdmin', () => {
       'Retorno 1 (glucemia en ayunas) · Negativo (descarta DMG)',
     );
 
+    // Tooltips (ajudaCenario) traduzidos; Ficha C↔A compartilham a chave
+    expect(ajudaCenario('ficha_a', 'r3_insulina', en)).toContain('start insulin');
+    expect(ajudaCenario('ficha_c', 'r3_insulina', es)).toContain('inicia insulina');
+    expect(ajudaCenario('gtt', 'negativo', en)).toContain('rules out GDM');
+
     // Sem tradutor OU idioma pt-BR → texto pt-BR (mesmo resultado)
     expect(labelDesfecho('7')).toBe('encerrar MARI');
     expect(labelDesfecho('7', pt)).toBe('encerrar MARI');
+    expect(ajudaCenario('gtt', 'negativo')).toContain('afasta o DMG');
   });
 });

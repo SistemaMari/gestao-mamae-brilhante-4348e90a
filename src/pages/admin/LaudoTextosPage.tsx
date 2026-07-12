@@ -278,7 +278,7 @@ export default function LaudoTextosPage() {
         <Accordion type="multiple" className="space-y-2">
           {cenarios.map((cen) => {
             const rascunhosNoCenario = cen.blocos.filter((b) => b.rascunhos.length > 0).length;
-            const ajuda = ajudaCenario(tipoRepresentante(cen.familia), cen.desfecho_clinico);
+            const ajuda = ajudaCenario(tipoRepresentante(cen.familia), cen.desfecho_clinico, tt);
             const nota = notaFamilia(cen.familia, tt);
             return (
               <AccordionItem
