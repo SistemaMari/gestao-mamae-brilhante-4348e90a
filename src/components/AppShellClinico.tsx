@@ -382,30 +382,8 @@ export default function AppShellClinico() {
           </button>
         )}
 
-        {/* Greeting */}
-        <span className="hidden md:inline text-sm mr-3" style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-          {t('dashboard.welcome', { name: `Dr(a). ${firstName}` })}
-        </span>
-
         {/* Language switcher */}
         <LanguageSwitcher variant="compact" />
-
-        {/* Profile dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="shrink-0">
-              <User className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => navigate('/perfil')}>
-              <UserCog className="h-4 w-4 mr-2" /> {t('nav.profile')}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={signOut} className="text-destructive">
-              <LogOut className="h-4 w-4 mr-2" /> {t('common.logout')}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </header>
 
       {/* Banners globais */}
