@@ -595,6 +595,7 @@ export default function PerfilPage() {
   const location = useLocation();
   const isPreview = location.pathname.startsWith('/vitrine');
   const [data, setData] = useState<PerfilData | null>(isPreview ? DUMMY_PROFILE : null);
+  const [unidadeNome, setUnidadeNome] = useState<string | null>(null);
   const [loading, setLoading] = useState(!isPreview);
 
   useEffect(() => {
@@ -605,9 +606,18 @@ export default function PerfilPage() {
     (async () => {
       setLoading(true);
       const { data: p } = await supabase.from('profissionais')
-        .select('id, nome, crm, especialidade, estado, pais, telefone, avatar_url, data_aniversario')
+        .select('id, nome, crm, especialidade, estado, pais, telefone, avatar_url, data_aniversario, unidade_id')
         .eq('user_id', user.id).maybeSingle();
-      if (!cancel) { setData(p as PerfilData | null); setLoading(false); }
+      if (cancel) return;
+      setData(p as PerfilData | null);
+      if (p && (p as any).unidade_id) {
+        const { data: u } = await supabase.from('unidades')
+          .select('nome').eq('id', (p as any).unidade_id).maybeSingle();
+        if (!cancel) setUnidadeNome((u as any)?.nome ?? null);
+      } else {
+        setUnidadeNome(null);
+      }
+      setLoading(false);
     })();
     return () => { cancel = true; };
   }, [authLoading, isPreview, user]);
@@ -620,9 +630,17 @@ export default function PerfilPage() {
     return <div className="mx-auto max-w-md p-8 text-center text-muted-foreground">Perfil não encontrado.</div>;
   }
 
-  // Editor completo só para consultório real
-  if (!isPreview && profile === 'consultorio' && user) {
-    return <PerfilConsultorio initial={data} email={user.email || ''} userId={user.id} />;
+  // Editor completo para consultório e institucional
+  if (!isPreview && (profile === 'consultorio' || profile === 'institucional') && user) {
+    return (
+      <PerfilConsultorio
+        initial={data}
+        email={user.email || ''}
+        userId={user.id}
+        perfilTipo={profile as 'consultorio' | 'institucional'}
+        unidadeNome={unidadeNome}
+      />
+    );
   }
 
   return <PerfilReadOnly data={data} email={isPreview ? DUMMY_EMAIL : user?.email} />;
