@@ -216,8 +216,91 @@ export default function DashboardPage() {
     );
   }
 
+  const nomeExibicao = (profissionalData?.nome || profile?.email || '').split(' ')[0] || 'boas-vindas';
+  const hora = new Date().getHours();
+  const saudacaoHorario = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+  const dataExtenso = format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
+  const DICAS = [
+    'Registre a IG correta antes de gerar o laudo — ela guia toda a conduta.',
+    'Confira sempre o valor de jejum ao classificar o perfil glicêmico.',
+    'Uma anamnese completa reduz retrabalho nos retornos.',
+    'Pactuações claras com a paciente aumentam a adesão ao tratamento.',
+    'Revise a data do próximo retorno antes de encerrar a consulta.',
+    'Fichas encerradas por parto podem ser reabertas se necessário.',
+    'Tire alguns minutos para revisar as pacientes com retorno vencido.',
+  ];
+  const dicaHoje = DICAS[new Date().getDay()];
+
   return (
     <div>
+      {ehInstitucional && (
+        <section className="mb-8">
+          <div className="pb-6 border-b" style={{ borderColor: '#E2E8F0' }}>
+            <h1
+              className="text-4xl md:text-5xl font-bold tracking-tight"
+              style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
+            >
+              Olá, {nomeExibicao} ✨
+            </h1>
+            <p className="mt-2 text-base" style={{ color: '#64748B' }}>
+              {saudacaoHorario}, tenha um atendimento tranquilo.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border bg-white p-4 flex items-start gap-3" style={{ borderColor: '#E2E8F0' }}>
+              <div className="rounded-xl p-2" style={{ background: '#F5F0FF' }}>
+                <Building2 className="h-5 w-5" style={{ color: '#9b87f5' }} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-wide" style={{ color: '#64748B' }}>Sua unidade</div>
+                <div className="text-sm font-medium truncate" style={{ color: '#1E293B' }}>
+                  {profissionalData?.unidade_id ? (unidadeNome ?? 'Carregando…') : 'Consultório particular'}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border bg-white p-4 flex items-start gap-3" style={{ borderColor: '#E2E8F0' }}>
+              <div className="rounded-xl p-2" style={{ background: '#F5F0FF' }}>
+                <CalendarDays className="h-5 w-5" style={{ color: '#9b87f5' }} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-wide" style={{ color: '#64748B' }}>Hoje é</div>
+                <div className="text-sm font-medium capitalize" style={{ color: '#1E293B' }}>{dataExtenso}</div>
+                <div className="text-xs mt-0.5" style={{ color: '#64748B' }}>Ótimo dia para cuidar das suas gestantes.</div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleNovaPaciente}
+              className="rounded-2xl border bg-white p-4 flex items-start gap-3 text-left hover:shadow-md transition"
+              style={{ borderColor: '#E2E8F0' }}
+            >
+              <div className="rounded-xl p-2" style={{ background: '#F5F0FF' }}>
+                <UserPlus className="h-5 w-5" style={{ color: '#9b87f5' }} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-wide" style={{ color: '#64748B' }}>Atalho</div>
+                <div className="text-sm font-medium" style={{ color: '#1E293B' }}>Cadastrar nova paciente</div>
+                <div className="text-xs mt-0.5" style={{ color: '#64748B' }}>Inicia uma nova ficha clínica.</div>
+              </div>
+            </button>
+          </div>
+
+          <div
+            className="mt-4 rounded-2xl border p-4 flex items-start gap-3"
+            style={{ background: '#F5F0FF', borderColor: '#E9E3FA' }}
+          >
+            <Sparkles className="h-5 w-5 mt-0.5 shrink-0" style={{ color: '#7E69AB' }} />
+            <div>
+              <div className="text-xs uppercase tracking-wide font-semibold" style={{ color: '#7E69AB' }}>Dica do dia</div>
+              <div className="text-sm" style={{ color: '#1E293B' }}>{dicaHoje}</div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Usage warning banner */}
       {profissionalData && !ehInstitucional && (
         <UsageWarningBanner
@@ -225,6 +308,8 @@ export default function DashboardPage() {
           laudosLimite={profissionalData.laudos_limite}
         />
       )}
+
+
 
       <div>
 
