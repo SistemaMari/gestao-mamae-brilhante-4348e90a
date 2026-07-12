@@ -638,18 +638,24 @@ export default function DiagnosticosPage() {
 
       {/* 1. Cards de resumo */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <MetricaCard label="Total de gestantes" valor={resumo.total_gestantes} />
+        <MetricaCard
+          label="Total de gestantes"
+          valor={resumo.total_gestantes}
+          tooltip="Todas as gestantes cadastradas no sistema (com consulta 1 finalizada), respeitando os filtros regionais aplicados."
+        />
         <MetricaCard
           label="DMG confirmado"
           valor={resumo.dmg}
           sublabel={pctSobreTotal(resumo.dmg) + " do total"}
           cor={COR_LARANJA}
+          tooltip="Gestantes com diagnóstico confirmado de Diabete Mellitus Gestacional (cenários 1, 6 e 6b) — critério Febrasgo."
         />
         <MetricaCard
           label="OVERT DM"
           valor={resumo.overt}
           sublabel={pctSobreTotal(resumo.overt) + " do total"}
           cor={COR_VERMELHO}
+          tooltip="Diabete Overt (pré-existente identificado na gestação, cenário 8): glicemia de jejum ≥ 126 mg/dL ou pós-carga ≥ 200 mg/dL."
         />
         <MetricaCard
           label="DMG + OVERT DM combinados"
@@ -657,7 +663,7 @@ export default function DiagnosticosPage() {
           sublabel={pctSobreTotal(resumo.dmg_overt_total) + " do total"}
           cor={COR_ROXO}
           destaque
-          tooltip="Soma automática de pacientes com DMG ou OVERT DM."
+          tooltip="Soma automática de pacientes com DMG ou OVERT DM — total de gestantes com diabete diagnosticado."
         />
         <MetricaCard
           label="Taxa de controle adequado"
@@ -665,6 +671,7 @@ export default function DiagnosticosPage() {
           sublabel="Dieta + insulina suficiente / DMG"
           cor={COR_VERDE}
           destaque
+          tooltip="Percentual de pacientes com DMG que atingiram controle glicêmico adequado só com dieta e exercício, sem necessidade de encaminhamento ao endócrino."
         />
       </div>
 
@@ -761,10 +768,12 @@ export default function DiagnosticosPage() {
             label="Pacientes com histórico"
             valor={historico_dmg.pacientes_com_historico}
             sublabel={pctSobreTotal(historico_dmg.pacientes_com_historico) + " do total"}
+            tooltip="Gestantes que relataram diagnóstico de DMG em gestação anterior no cadastro inicial."
           />
           <MetricaCard
             label="Tiveram DMG novamente"
             valor={historico_dmg.dmg_entre_com_historico}
+            tooltip="Dentre as pacientes com histórico prévio, quantas foram confirmadas com DMG nesta gestação."
           />
           <MetricaCard
             label="Taxa de recorrência"
@@ -791,11 +800,13 @@ export default function DiagnosticosPage() {
               valor={encerr.ativas}
               sublabel="pacientes ativas na MARI"
               cor={COR_VERDE}
+              tooltip="Pacientes com acompanhamento ativo na MARI (ainda não encerradas por parto, aborto, insulinização ou abandono)."
             />
             <MetricaCard
               label="Acompanhamentos encerrados"
               valor={encerr.encerradas}
               sublabel="parto, aborto, insulinização, não retornou…"
+              tooltip="Total de acompanhamentos encerrados por qualquer motivo. Detalhamento por motivo no gráfico abaixo."
             />
             <MetricaCard
               label="Não retornaram"
@@ -856,6 +867,7 @@ export default function DiagnosticosPage() {
           valor={tratamento.so_dieta}
           sublabel={pct(tratamento.so_dieta) + " das pacientes com DMG"}
           cor={COR_VERDE}
+          tooltip="Pacientes com DMG que atingiram controle glicêmico adequado sem necessidade de insulina — cenário ideal, manejo integral pela GO."
         />
         <MetricaCard
           label="Necessidade de associar endócrino"
@@ -866,6 +878,7 @@ export default function DiagnosticosPage() {
           }
           cor={COR_LARANJA}
           destaque
+          tooltip="Pacientes que precisaram iniciar insulina (cenário 7) e foram encaminhadas ao endócrino. A GO segue protagonista do pré-natal; a MARI encerra o manejo da glicemia neste ponto."
         />
       </div>
 
