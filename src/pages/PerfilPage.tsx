@@ -180,6 +180,23 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
     window.dispatchEvent(new CustomEvent('admin:nome-atualizado'));
   };
 
+  const removerFoto = async () => {
+    setRemovendoFoto(true);
+    // apaga arquivo se path pertence ao bucket
+    if (avatarUrl) {
+      await supabase.storage.from('avatares-profissionais').remove([avatarUrl]).catch(() => {});
+    }
+    const { error } = await supabase.from('profissionais')
+      .update({ avatar_url: null }).eq('user_id', userId);
+    setRemovendoFoto(false);
+    setConfirmRemoverFoto(false);
+    if (error) { toast.error('Erro ao remover foto.'); return; }
+    setAvatarUrl(null);
+    setAvatarSigned(null);
+    toast.success('Foto removida.');
+    window.dispatchEvent(new CustomEvent('admin:nome-atualizado'));
+  };
+
   const salvarBasico = async () => {
     if (!nome.trim()) { toast.error('Informe seu nome.'); return; }
     setSavingBasico(true);
@@ -210,13 +227,23 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
   };
 
   const salvarSenha = async () => {
+    if (!senhaAtual) { toast.error('Informe sua senha atual.'); return; }
     if (!senha1 || !senha2) { toast.error('Preencha os dois campos.'); return; }
     if (senha1 !== senha2) { toast.error('As senhas não coincidem.'); return; }
     setSavingSenha(true);
+    // Reautentica com a senha atual
+    const email = user?.email;
+    if (!email) { setSavingSenha(false); toast.error('Sessão inválida.'); return; }
+    const { error: reauthErr } = await supabase.auth.signInWithPassword({ email, password: senhaAtual });
+    if (reauthErr) {
+      setSavingSenha(false);
+      toast.error('Senha atual incorreta.');
+      return;
+    }
     const { error } = await supabase.auth.updateUser({ password: senha1 });
     setSavingSenha(false);
     if (error) { toast.error(error.message || 'Erro ao trocar senha.'); return; }
-    setSenha1(''); setSenha2('');
+    setSenhaAtual(''); setSenha1(''); setSenha2('');
     toast.success('Senha atualizada!');
   };
 
