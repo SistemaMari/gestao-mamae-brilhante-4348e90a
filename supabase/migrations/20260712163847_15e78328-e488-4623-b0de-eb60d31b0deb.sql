@@ -1,0 +1,1 @@
+CREATE POLICY "admin read avatares-profissionais" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'avatares-profissionais' AND public.has_role(auth.uid(), 'admin'));

@@ -99,10 +99,50 @@ export default function FeedbacksAdminPage() {
   };
 
   const verAnexo = async (path: string) => {
-    const { data } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from('avatares-profissionais')
       .createSignedUrl(path, 300);
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+    if (error || !data?.signedUrl) {
+      toast.error('Não foi possível abrir o anexo.');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
+
+  const construirCorpoResposta = (f: Feedback) => {
+    const dataStr = formatDateBR(f.created_at);
+    const tipoStr = TIPO_LABEL[f.tipo] || f.tipo;
+    return (
+      `Olá ${f.autor || ''},\n\n` +
+      `Obrigada pelo seu contato com o suporte MARI. Segue nossa resposta abaixo.\n\n` +
+      `\n\n---\n` +
+      `Histórico da sua solicitação\n` +
+      `Data: ${dataStr}\n` +
+      `Tipo: ${tipoStr}\n` +
+      `Mensagem enviada:\n"${f.mensagem}"\n` +
+      `---\n\n` +
+      `Equipe MARI — Diagnóstico e Gestão da Diabetes Mellitus Gestacional`
+    );
+  };
+
+  const responderPorEmail = (f: Feedback) => {
+    if (!f.email) return;
+    const subject = `Re: seu feedback no MARI (${TIPO_LABEL[f.tipo] || f.tipo} — ${formatDateBR(f.created_at)})`;
+    const body = construirCorpoResposta(f);
+    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(f.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const responderPorWhatsapp = (f: Feedback) => {
+    if (!f.telefone) return;
+    const numero = f.telefone.replace(/\D/g, '');
+    const texto =
+      `Olá ${f.autor || ''}, aqui é do suporte MARI 💜\n\n` +
+      `Sobre sua solicitação de ${formatDateBR(f.created_at)} (${TIPO_LABEL[f.tipo] || f.tipo}):\n` +
+      `"${f.mensagem}"\n\n` +
+      `Nossa resposta:\n`;
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   if (loading) {
@@ -209,21 +249,22 @@ export default function FeedbacksAdminPage() {
                 {!f.email && !f.telefone && <span className="italic">Sem contato cadastrado</span>}
                 <div className="ml-auto flex flex-wrap gap-2">
                   {f.email && (
-                    <a
-                      href={`mailto:${f.email}?subject=${encodeURIComponent('Re: seu feedback no MARI')}&body=${encodeURIComponent(`Olá ${f.autor || ''},\n\nSobre sua mensagem:\n"${f.mensagem}"\n\n`)}`}
+                    <button
+                      type="button"
+                      onClick={() => responderPorEmail(f)}
                       className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/5 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
                     >
                       <Mail className="h-3.5 w-3.5" /> Responder por e-mail
-                    </a>
+                    </button>
                   )}
                   {f.telefone && (
-                    <a
-                      href={`https://wa.me/${f.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${f.autor || ''}, aqui é do suporte MARI. Recebemos seu feedback: "${f.mensagem}"`)}`}
-                      target="_blank" rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => responderPorWhatsapp(f)}
                       className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10"
                     >
                       <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-                    </a>
+                    </button>
                   )}
                 </div>
               </div>
