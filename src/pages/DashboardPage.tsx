@@ -92,10 +92,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!profissionalData?.unidade_id) { setUnidadeNome(null); return; }
-    supabase.from('unidades').select('nome, cidade, uf').eq('id', profissionalData.unidade_id).maybeSingle()
+    supabase.from('unidades').select('nome, cidade, estado').eq('id', profissionalData.unidade_id).maybeSingle()
       .then(({ data }) => {
         if (!data) return;
-        const local = [data.cidade, data.uf].filter(Boolean).join(' / ');
+        const local = [data.cidade, data.estado].filter(Boolean).join(' / ');
         setUnidadeNome(local ? `${data.nome} — ${local}` : data.nome);
       });
   }, [profissionalData?.unidade_id]);
