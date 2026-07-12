@@ -19,6 +19,7 @@ import type {
   CidadeRow,
   EvolucaoPlanosRow,
   EvolucaoProfissionaisRow,
+  EvolucaoProfissionaisTipoRow,
   GeoRow,
   PlanoRow,
   ResumoGlobalRow,
