@@ -244,6 +244,7 @@ export default function AppShellClinico() {
     navRodapeFallback;
 
   const ehInstitucional = perfilSidebar === 'institucional';
+  const usaEstiloInstitucional = ehInstitucional || ehConsultorio;
   const perfilAtivo = location.pathname === '/perfil' || location.pathname.startsWith('/perfil/');
 
   const SidebarContent = () => (
