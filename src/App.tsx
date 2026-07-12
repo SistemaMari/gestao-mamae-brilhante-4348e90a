@@ -223,6 +223,7 @@ const App = () => (
               <Route path="/admin/tutoriais" element={<TutoriaisAdminPage />} />
               <Route path="/admin/configuracoes" element={<ConfiguracoesAdminPage />} />
               <Route path="/admin/planos" element={<PlanosAdminPage />} />
+              <Route path="/admin/dicas" element={<DicasAdminPage />} />
             </Route>
             {/* Gestor Geral — shell dedicado. /consolidar é exclusivo de gestor_geral.
                 Dívida técnica: criar /admin/consolidar futuramente para suporte/debug do admin. */}
