@@ -56,13 +56,15 @@ export default function FeedbacksAdminPage() {
     const rows = (data as Feedback[]) || [];
     const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
     if (userIds.length > 0) {
-      const { data: profs } = await supabase
-        .from('profissionais')
-        .select('user_id, nome')
-        .in('user_id', userIds);
-      const map = new Map<string, string>();
-      (profs || []).forEach((p: any) => map.set(p.user_id, p.nome));
-      rows.forEach((r) => { r.autor = map.get(r.user_id) || '—'; });
+      const { data: contatos } = await supabase.rpc('admin_get_contatos_usuarios', { _user_ids: userIds });
+      const map = new Map<string, { nome: string; email: string | null; telefone: string | null }>();
+      (contatos || []).forEach((c: any) => map.set(c.user_id, { nome: c.nome, email: c.email, telefone: c.telefone }));
+      rows.forEach((r) => {
+        const c = map.get(r.user_id);
+        r.autor = c?.nome || '—';
+        r.email = c?.email ?? null;
+        r.telefone = c?.telefone ?? null;
+      });
     }
     setLista(rows);
     setLoading(false);
