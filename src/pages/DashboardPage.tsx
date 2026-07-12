@@ -216,7 +216,7 @@ export default function DashboardPage() {
     );
   }
 
-  const nomeExibicao = (profissionalData?.nome || profile?.email || '').split(' ')[0] || 'boas-vindas';
+  const nomeExibicao = (profissionalData?.nome || '').split(' ')[0] || 'boas-vindas';
   const hora = new Date().getHours();
   const saudacaoHorario = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
   const dataExtenso = format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
