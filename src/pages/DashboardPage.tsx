@@ -402,12 +402,6 @@ export default function DashboardPage() {
               </button>
             )}
           </div>
-          {!ehInstitucional && (
-            <Button onClick={handleNovaPaciente} className="shrink-0">
-              <Plus className="h-4 w-4" />
-              Nova Paciente
-            </Button>
-          )}
 
         </div>
 
