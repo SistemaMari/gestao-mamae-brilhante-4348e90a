@@ -34,6 +34,7 @@ export const mockResumoGlobal: ResumoGlobalRow[] = [
     total_profissionais: 84,
     total_unidades: 12,
     total_gestores_gerais: 4,
+    total_gestores_unidade: 8,
     total_consolidacoes: 9,
     total_pacientes: 1248,
     total_laudos: 3672,
