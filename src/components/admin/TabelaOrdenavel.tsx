@@ -14,6 +14,7 @@ interface TabelaOrdenavelProps {
   dados: any[];
   paginacao?: boolean;
   itensPorPagina?: number;
+  denso?: boolean;
 }
 
 type Dir = "asc" | "desc";
@@ -23,6 +24,7 @@ export function TabelaOrdenavel({
   dados,
   paginacao = true,
   itensPorPagina = 20,
+  denso = false,
 }: TabelaOrdenavelProps) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<Dir>("asc");
@@ -75,10 +77,13 @@ export function TabelaOrdenavel({
     );
   }
 
+  const padCell = denso ? "6px 8px" : "10px 12px";
+  const fontSize = denso ? 13 : 14;
+
   return (
     <div className="rounded-lg border bg-white overflow-hidden" style={{ borderColor: "#E2E8F0" }}>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm" style={{ fontFamily: "Plus Jakarta Sans, sans-serif" }}>
+        <table className={denso ? "w-full text-[13px]" : "w-full text-sm"} style={{ fontFamily: "Plus Jakarta Sans, sans-serif" }}>
           <thead>
             <tr style={{ background: "#E8E0FF" }}>
               {colunas.map((col) => {
@@ -92,10 +97,11 @@ export function TabelaOrdenavel({
                     style={{
                       fontFamily: "Sora, sans-serif",
                       color: "#1E293B",
-                      fontSize: 14,
+                      fontSize,
                       fontWeight: 700,
-                      padding: "10px 12px",
+                      padding: padCell,
                       textAlign: col.alinhamento ?? "left",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     <span className="inline-flex items-center gap-1">
@@ -123,9 +129,10 @@ export function TabelaOrdenavel({
                     <td
                       key={col.chave}
                       style={{
-                        padding: "10px 12px",
+                        padding: padCell,
                         textAlign: col.alinhamento ?? "left",
                         color: "#1E293B",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {exibido}

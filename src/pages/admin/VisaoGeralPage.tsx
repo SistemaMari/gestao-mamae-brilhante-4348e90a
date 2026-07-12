@@ -427,68 +427,72 @@ export default function VisaoGeralPage() {
           </div>
         </SecaoBloco>
 
-        <SecaoBloco
-          titulo="Distribuição por país"
-          tooltip="Profissionais de consultório (sem vínculo com unidade) por país, com o percentual sobre o total."
-          acao={<BadgeEscopo escopo="consultorio" />}
-          loading={distribuicao.isLoading}
-          skeletonHeight={180}
-        >
-          <TabelaOrdenavel
-            colunas={[
-              { chave: "pais", titulo: "País" },
-              { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-              {
-                chave: "pct",
-                titulo: "% profissionais",
-                alinhamento: "right",
-                formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
-              },
-            ]}
-            dados={distPais}
-          />
-        </SecaoBloco>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <SecaoBloco
+            titulo="Distribuição por país"
+            tooltip="Profissionais de consultório (sem vínculo com unidade) por país, com o percentual sobre o total."
+            acao={<BadgeEscopo escopo="consultorio" />}
+            loading={distribuicao.isLoading}
+            skeletonHeight={180}
+          >
+            <TabelaOrdenavel
+              denso
+              colunas={[
+                { chave: "pais", titulo: "País" },
+                { chave: "total_profissionais", titulo: "Prof.", alinhamento: "right" },
+                {
+                  chave: "pct",
+                  titulo: "%",
+                  alinhamento: "right",
+                  formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
+                },
+              ]}
+              dados={distPais}
+            />
+          </SecaoBloco>
 
-        <SecaoBloco
-          titulo="Distribuição por estado"
-          tooltip="Profissionais de consultório (sem vínculo com unidade) por estado, com o percentual sobre o total do país."
-          acao={<BadgeEscopo escopo="consultorio" />}
-          loading={distribuicao.isLoading}
-          skeletonHeight={220}
-        >
-          <TabelaOrdenavel
-            colunas={[
-              { chave: "estado", titulo: "Estado" },
-              { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-              {
-                chave: "pct",
-                titulo: "% no país",
-                alinhamento: "right",
-                formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
-              },
-            ]}
-            dados={distEstado}
-          />
-        </SecaoBloco>
+          <SecaoBloco
+            titulo="Distribuição por estado"
+            tooltip="Profissionais de consultório (sem vínculo com unidade) por estado, com o percentual sobre o total do país."
+            acao={<BadgeEscopo escopo="consultorio" />}
+            loading={distribuicao.isLoading}
+            skeletonHeight={220}
+          >
+            <TabelaOrdenavel
+              denso
+              colunas={[
+                { chave: "estado", titulo: "Estado" },
+                { chave: "total_profissionais", titulo: "Prof.", alinhamento: "right" },
+                {
+                  chave: "pct",
+                  titulo: "% país",
+                  alinhamento: "right",
+                  formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
+                },
+              ]}
+              dados={distEstado}
+            />
+          </SecaoBloco>
 
-        <SecaoBloco
-          titulo="Top 20 cidades"
-          tooltip="Ranking das 20 cidades com mais profissionais de consultório (sem vínculo com unidade)."
-          acao={<BadgeEscopo escopo="consultorio" />}
-          loading={topCidades.isLoading}
-          skeletonHeight={220}
-        >
-          <TabelaOrdenavel
-            colunas={[
-              { chave: "posicao", titulo: "#", alinhamento: "right" },
-              { chave: "cidade", titulo: "Cidade" },
-              { chave: "estado", titulo: "Estado" },
-              { chave: "pais", titulo: "País" },
-              { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-            ]}
-            dados={topCidadesFiltradas}
-          />
-        </SecaoBloco>
+          <SecaoBloco
+            titulo="Top 20 cidades"
+            tooltip="Ranking das 20 cidades com mais profissionais de consultório (sem vínculo com unidade)."
+            acao={<BadgeEscopo escopo="consultorio" />}
+            loading={topCidades.isLoading}
+            skeletonHeight={220}
+          >
+            <TabelaOrdenavel
+              denso
+              colunas={[
+                { chave: "posicao", titulo: "#", alinhamento: "right" },
+                { chave: "cidade", titulo: "Cidade" },
+                { chave: "estado", titulo: "UF" },
+                { chave: "total_profissionais", titulo: "Prof.", alinhamento: "right" },
+              ]}
+              dados={topCidadesFiltradas}
+            />
+          </SecaoBloco>
+        </div>
       </GrupoEscopo>
 
       {/* ========== GRUPO INSTITUCIONAL ========== */}
