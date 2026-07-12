@@ -17,7 +17,8 @@ interface Feedback {
   status: 'novo' | 'lido' | 'resolvido';
   created_at: string;
   autor?: string;
-  email?: string;
+  email?: string | null;
+  telefone?: string | null;
 }
 
 const TIPO_LABEL: Record<string, string> = {
