@@ -23,7 +23,6 @@ const navItemsClinical = [
   { label: 'Nova Paciente', icon: UserPlus, path: '/vitrine/paciente/nova' },
   { label: 'Tutorial', icon: PlayCircle, path: '/vitrine/tutorial' },
   { label: 'Meu Dashboard', icon: BarChart3, path: '/vitrine/dashboard/metricas' },
-  { label: 'Meu Plano', icon: CreditCard, path: '/vitrine/planos' },
 ];
 
 function iniciaisNome(nome: string) {
