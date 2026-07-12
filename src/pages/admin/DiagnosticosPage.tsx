@@ -603,20 +603,55 @@ export default function DiagnosticosPage() {
           />
         </CardContainer>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <MetricaCard
-            label="IG média — Retorno 1"
-            valor={momento_diagnostico.ig_retorno1 != null ? `${momento_diagnostico.ig_retorno1} sem` : "—"}
-          />
-          <MetricaCard
-            label="IG média — GTT 75g janela"
-            valor={momento_diagnostico.ig_gtt_janela != null ? `${momento_diagnostico.ig_gtt_janela} sem` : "—"}
-          />
-          <MetricaCard
-            label="IG média — GTT 75g tardio"
-            valor={momento_diagnostico.ig_gtt_tardio != null ? `${momento_diagnostico.ig_gtt_tardio} sem` : "—"}
-          />
-        </div>
+        <CardContainer>
+          <SecaoTitulo>IG média no diagnóstico</SecaoTitulo>
+          <p className="mb-4 text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
+            Idade gestacional média (semanas) em que o diagnóstico foi confirmado por rota.
+          </p>
+          <div className="flex flex-col divide-y" style={{ borderColor: "#EEF2F7" }}>
+            {[
+              { label: "Retorno 1", valor: momento_diagnostico.ig_retorno1, cor: COR_LILAS, hint: "Glicemia de jejum alterada" },
+              { label: "GTT 75g janela", valor: momento_diagnostico.ig_gtt_janela, cor: COR_LARANJA, hint: "24–28 semanas" },
+              { label: "GTT 75g tardio", valor: momento_diagnostico.ig_gtt_tardio, cor: COR_VERMELHO, hint: "Após 28 semanas" },
+            ].map((row) => (
+              <div key={row.label} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                    style={{ backgroundColor: `${row.cor}1A` }}
+                  >
+                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: row.cor }} />
+                  </span>
+                  <div className="min-w-0">
+                    <div
+                      className="text-[13px] font-semibold truncate"
+                      style={{ color: "#1F1B2E", fontFamily: FONT_CORPO }}
+                    >
+                      {row.label}
+                    </div>
+                    <div className="text-[11px]" style={{ color: "#94A3B8", fontFamily: FONT_CORPO }}>
+                      {row.hint}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-1 shrink-0">
+                  <span
+                    className="text-3xl font-bold tabular-nums"
+                    style={{ color: row.valor != null ? "#1F1B2E" : "#CBD5E1", fontFamily: FONT_TITULO }}
+                  >
+                    {row.valor != null ? row.valor : "—"}
+                  </span>
+                  {row.valor != null && (
+                    <span className="text-xs font-medium" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
+                      sem
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContainer>
+
       </div>
 
       {/* 5. Histórico de DMG anterior */}
