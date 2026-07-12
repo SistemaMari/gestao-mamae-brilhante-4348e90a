@@ -102,54 +102,56 @@ const App = () => (
             <Route path="/cadastro-convite/:token" element={<CadastroConvitePage />} />
             <Route path="/checkout/:slug" element={<CheckoutPage />} />
 
-            {/* Vitrine pública (sem login) — acessível por URL direta */}
-            <Route path="/vitrine" element={<PreviewHubPage />} />
-            <Route path="/vitrine/completar-perfil" element={<PreviewCompletarPerfilPage />} />
-            <Route element={<AppShellGestor />}>
-              <Route path="/vitrine/gestao" element={<GestaoPage />} />
-              <Route path="/vitrine/gestao/equipe" element={<PreviewGestaoEquipePage />} />
-              <Route path="/vitrine/gestao/fichas" element={<FichasUnidadePage />} />
-              <Route path="/vitrine/gestao/fichas/:id" element={<PacientePage />} />
-              <Route path="/vitrine/gestao/configuracoes" element={<ConfiguracoesPage />} />
-            </Route>
-            <Route element={<AppShellGestorGeral />}>
-              <Route element={<ConsolidarLayout />}>
-                <Route path="/vitrine/consolidar" element={<Navigate to="/vitrine/consolidar/visao-geral" replace />} />
-                <Route path="/vitrine/consolidar/visao-geral" element={<VisaoGeralRedePage />} />
-                <Route path="/vitrine/consolidar/consolidador" element={<ConsolidadorPage />} />
-                <Route path="/vitrine/consolidar/diagnostico" element={<DiagnosticoPage />} />
-                <Route path="/vitrine/consolidar/comparador" element={<ComparadorPage />} />
-                <Route path="/vitrine/consolidar/configuracoes" element={<ConfiguracoesGestorGeralPage />} />
+            {/* Vitrine pública (sem login) — bloqueada em domínios comerciais */}
+            <Route element={<VitrineGuard />}>
+              <Route path="/vitrine" element={<PreviewHubPage />} />
+              <Route path="/vitrine/completar-perfil" element={<PreviewCompletarPerfilPage />} />
+              <Route element={<AppShellGestor />}>
+                <Route path="/vitrine/gestao" element={<GestaoPage />} />
+                <Route path="/vitrine/gestao/equipe" element={<PreviewGestaoEquipePage />} />
+                <Route path="/vitrine/gestao/fichas" element={<FichasUnidadePage />} />
+                <Route path="/vitrine/gestao/fichas/:id" element={<PacientePage />} />
+                <Route path="/vitrine/gestao/configuracoes" element={<ConfiguracoesPage />} />
               </Route>
-              <Route path="/vitrine/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />
-            </Route>
-            <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
-            <Route path="/vitrine/ficha-carimbada" element={<FichaCarimbadaDemo />} />
+              <Route element={<AppShellGestorGeral />}>
+                <Route element={<ConsolidarLayout />}>
+                  <Route path="/vitrine/consolidar" element={<Navigate to="/vitrine/consolidar/visao-geral" replace />} />
+                  <Route path="/vitrine/consolidar/visao-geral" element={<VisaoGeralRedePage />} />
+                  <Route path="/vitrine/consolidar/consolidador" element={<ConsolidadorPage />} />
+                  <Route path="/vitrine/consolidar/diagnostico" element={<DiagnosticoPage />} />
+                  <Route path="/vitrine/consolidar/comparador" element={<ComparadorPage />} />
+                  <Route path="/vitrine/consolidar/configuracoes" element={<ConfiguracoesGestorGeralPage />} />
+                </Route>
+                <Route path="/vitrine/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />
+              </Route>
+              <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
+              <Route path="/vitrine/ficha-carimbada" element={<FichaCarimbadaDemo />} />
 
-            {/* Vitrine com App Shell de demonstração */}
-            <Route element={<PreviewAppShell />}>
-              <Route path="/vitrine/dashboard" element={<DashboardPage />} />
-              <Route path="/vitrine/dashboard/metricas" element={<DashboardMetricasPage />} />
-              <Route path="/vitrine/paciente/nova" element={<PacientePage />} />
-              <Route path="/vitrine/paciente/:id" element={<PacientePage />} />
-              <Route path="/vitrine/laudos" element={<HistoricoLaudosPage />} />
-              <Route path="/vitrine/laudo/:id" element={<LaudoViewerPage />} />
-              <Route path="/vitrine/meus-cursos" element={<MeusCursosPage />} />
-              <Route path="/vitrine/planos" element={<PlanosPage />} />
-              <Route path="/vitrine/perfil" element={<PerfilPage />} />
-            </Route>
+              {/* Vitrine com App Shell de demonstração */}
+              <Route element={<PreviewAppShell />}>
+                <Route path="/vitrine/dashboard" element={<DashboardPage />} />
+                <Route path="/vitrine/dashboard/metricas" element={<DashboardMetricasPage />} />
+                <Route path="/vitrine/paciente/nova" element={<PacientePage />} />
+                <Route path="/vitrine/paciente/:id" element={<PacientePage />} />
+                <Route path="/vitrine/laudos" element={<HistoricoLaudosPage />} />
+                <Route path="/vitrine/laudo/:id" element={<LaudoViewerPage />} />
+                <Route path="/vitrine/meus-cursos" element={<MeusCursosPage />} />
+                <Route path="/vitrine/planos" element={<PlanosPage />} />
+                <Route path="/vitrine/perfil" element={<PerfilPage />} />
+              </Route>
 
-            {/* Vitrine do painel admin (sem auth) */}
-            <Route element={<PreviewAdminLayout />}>
-              <Route path="/vitrine/admin" element={<VisaoGeralPage />} />
-              <Route path="/vitrine/admin/diagnosticos" element={<DiagnosticosPage />} />
-              <Route path="/vitrine/admin/exportar" element={<ExportarPage />} />
-              <Route path="/vitrine/admin/admins" element={<AdminsPage />} />
-              <Route path="/vitrine/admin/institucionais" element={<InstitucionaisPage />} />
-            </Route>
+              {/* Vitrine do painel admin (sem auth) */}
+              <Route element={<PreviewAdminLayout />}>
+                <Route path="/vitrine/admin" element={<VisaoGeralPage />} />
+                <Route path="/vitrine/admin/diagnosticos" element={<DiagnosticosPage />} />
+                <Route path="/vitrine/admin/exportar" element={<ExportarPage />} />
+                <Route path="/vitrine/admin/admins" element={<AdminsPage />} />
+                <Route path="/vitrine/admin/institucionais" element={<InstitucionaisPage />} />
+              </Route>
 
-            {/* Vitrine de componentes admin (sem layout/auth) — AJ1 */}
-            <Route path="/vitrine/admin/componentes" element={<ComponentesDemoPage />} />
+              {/* Vitrine de componentes admin (sem layout/auth) — AJ1 */}
+              <Route path="/vitrine/admin/componentes" element={<ComponentesDemoPage />} />
+            </Route>
 
             {/* App Shell do profissional clínico — rotas clínicas (consultorio + institucional) */}
             <Route element={<ProtectedRoute allowedProfiles={['consultorio', 'institucional']}><AppShellClinico /></ProtectedRoute>}>
