@@ -535,6 +535,33 @@ export type Database = {
           },
         ]
       }
+      depoimentos_usuario: {
+        Row: {
+          aprovado: boolean
+          created_at: string
+          id: string
+          rating: number
+          texto: string | null
+          user_id: string
+        }
+        Insert: {
+          aprovado?: boolean
+          created_at?: string
+          id?: string
+          rating: number
+          texto?: string | null
+          user_id: string
+        }
+        Update: {
+          aprovado?: boolean
+          created_at?: string
+          id?: string
+          rating?: number
+          texto?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       dicas_dashboard: {
         Row: {
           ativa: boolean
@@ -826,6 +853,33 @@ export type Database = {
           total_sucesso?: number | null
           total_unidades?: number | null
           total_vazias?: number | null
+        }
+        Relationships: []
+      }
+      feedbacks_usuario: {
+        Row: {
+          anexo_url: string | null
+          created_at: string
+          id: string
+          mensagem: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          anexo_url?: string | null
+          created_at?: string
+          id?: string
+          mensagem: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          anexo_url?: string | null
+          created_at?: string
+          id?: string
+          mensagem?: string
+          tipo?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1592,10 +1646,13 @@ export type Database = {
           acesso_revogado_por: string | null
           asaas_customer_id: string | null
           asaas_subscription_id: string | null
+          avatar_url: string | null
           cidade: string | null
           created_at: string
           crm: string | null
+          data_aniversario: string | null
           data_inicio_assinatura: string | null
+          deleted_at: string | null
           especialidade: string | null
           estado: string | null
           id: string
@@ -1626,10 +1683,13 @@ export type Database = {
           acesso_revogado_por?: string | null
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
+          avatar_url?: string | null
           cidade?: string | null
           created_at?: string
           crm?: string | null
+          data_aniversario?: string | null
           data_inicio_assinatura?: string | null
+          deleted_at?: string | null
           especialidade?: string | null
           estado?: string | null
           id?: string
@@ -1660,10 +1720,13 @@ export type Database = {
           acesso_revogado_por?: string | null
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
+          avatar_url?: string | null
           cidade?: string | null
           created_at?: string
           crm?: string | null
+          data_aniversario?: string | null
           data_inicio_assinatura?: string | null
+          deleted_at?: string | null
           especialidade?: string | null
           estado?: string | null
           id?: string
