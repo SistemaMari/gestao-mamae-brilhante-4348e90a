@@ -89,6 +89,13 @@ export interface EvolucaoProfissionaisRow {
   profissionais_ativos: number;
 }
 
+export interface EvolucaoProfissionaisTipoRow {
+  mes: string;
+  tipo_conta: "consultorio" | "institucional";
+  novos_profissionais: number;
+  profissionais_ativos: number;
+}
+
 export type EvolucaoRow = EvolucaoProfissionaisRow | EvolucaoPlanosRow;
 
 export type TipoAlerta =
