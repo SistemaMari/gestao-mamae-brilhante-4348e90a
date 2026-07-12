@@ -97,10 +97,11 @@ export function TabelaOrdenavel({
                     style={{
                       fontFamily: "Sora, sans-serif",
                       color: "#1E293B",
-                      fontSize: 14,
+                      fontSize,
                       fontWeight: 700,
-                      padding: "10px 12px",
+                      padding: padCell,
                       textAlign: col.alinhamento ?? "left",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     <span className="inline-flex items-center gap-1">
