@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ interface Membro {
 }
 
 export default function GestaoEquipePage() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [membros, setMembros] = useState<Membro[]>([]);
@@ -265,18 +267,13 @@ export default function GestaoEquipePage() {
   useEffect(() => { fetchEquipe(); }, [user]);
 
   const STATUS_MENSAGENS: Record<string, string> = {
-    ja_vinculado: 'Este profissional já faz parte da unidade.',
-    email_em_uso_admin:
-      'Este e-mail está cadastrado como administrador da MARI. Cada e-mail só pode ter um perfil — peça à pessoa que use outro e-mail.',
-    email_em_uso_gestor_unidade:
-      'Este e-mail está cadastrado como gestor de outra unidade. Cada e-mail só pode ter um perfil — peça à pessoa que use outro e-mail.',
-    email_em_uso_gestor_geral:
-      'Este e-mail está cadastrado como gestor geral. Cada e-mail só pode ter um perfil — peça à pessoa que use outro e-mail.',
-    email_em_uso_outra_unidade:
-      'Este e-mail já é profissional de outra unidade. No MVP atual, um profissional não pode estar em duas unidades simultaneamente — peça à pessoa que use outro e-mail.',
-    email_em_uso_consultorio:
-      'Este e-mail já tem conta de consultório particular (assinatura Asaas individual). Cada e-mail pertence a um único modelo no MARI. Peça à pessoa que use outro e-mail para vincular à sua unidade.',
-    email_em_uso_outro: 'Este e-mail já está em uso no sistema. Use outro e-mail.',
+    ja_vinculado: t('gestaoEquipe.status.jaVinculado'),
+    email_em_uso_admin: t('gestaoEquipe.status.emailEmUsoAdmin'),
+    email_em_uso_gestor_unidade: t('gestaoEquipe.status.emailEmUsoGestorUnidade'),
+    email_em_uso_gestor_geral: t('gestaoEquipe.status.emailEmUsoGestorGeral'),
+    email_em_uso_outra_unidade: t('gestaoEquipe.status.emailEmUsoOutraUnidade'),
+    email_em_uso_consultorio: t('gestaoEquipe.status.emailEmUsoConsultorio'),
+    email_em_uso_outro: t('gestaoEquipe.status.emailEmUsoOutro'),
   };
 
   const handleEnviarConvite = async () => {
@@ -294,20 +291,20 @@ export default function GestaoEquipePage() {
       const status = data?.status;
 
       if (status === 'enviado') {
-        toast.success(`Convite enviado para ${inviteEmail}!`);
+        toast.success(t('gestaoEquipe.toast.conviteEnviado', { email: inviteEmail }));
         setShowInviteModal(false);
         setInviteEmail('');
         fetchEquipe();
       } else if (status === 'convite_pendente') {
-        setInviteError('Já existe um convite pendente para este e-mail. Deseja reenviar?');
+        setInviteError(t('gestaoEquipe.status.convitePendenteReenviar'));
         setShowResendOption(true);
       } else if (status && STATUS_MENSAGENS[status]) {
         setInviteError(STATUS_MENSAGENS[status]);
       } else {
-        setInviteError(data?.mensagem || 'Erro ao enviar convite.');
+        setInviteError(data?.mensagem || t('gestaoEquipe.toast.erroEnviarConvite'));
       }
     } catch {
-      setInviteError('Erro ao enviar convite.');
+      setInviteError(t('gestaoEquipe.toast.erroEnviarConvite'));
     }
 
     setSendingInvite(false);
@@ -330,15 +327,15 @@ export default function GestaoEquipePage() {
           body: { unidade_id: unidadeId, email_convidado: email, convidado_por: user.id },
         });
         if (res2.data?.status === 'enviado') {
-          toast.success(`Convite reenviado para ${email}!`);
+          toast.success(t('gestaoEquipe.toast.conviteReenviado', { email }));
           fetchEquipe();
         }
       } else if (res.data?.status === 'enviado') {
-        toast.success(`Convite reenviado para ${email}!`);
+        toast.success(t('gestaoEquipe.toast.conviteReenviado', { email }));
         fetchEquipe();
       }
     } catch {
-      toast.error('Erro ao reenviar convite.');
+      toast.error(t('gestaoEquipe.toast.erroReenviarConvite'));
     }
   };
 
@@ -354,10 +351,10 @@ export default function GestaoEquipePage() {
         setRemoveTarget(null);
         fetchEquipe();
       } else {
-        toast.error(res.data?.mensagem || 'Erro ao remover profissional.');
+        toast.error(res.data?.mensagem || t('gestaoEquipe.toast.erroRemoverProfissional'));
       }
     } catch {
-      toast.error('Erro ao remover profissional.');
+      toast.error(t('gestaoEquipe.toast.erroRemoverProfissional'));
     }
     setRemoving(false);
   };
@@ -365,11 +362,11 @@ export default function GestaoEquipePage() {
   const getStatusBadge = (tipo: Membro['tipo']) => {
     switch (tipo) {
       case 'ativo':
-        return <Badge className="bg-secondary/20 text-secondary border-secondary/30">Ativo</Badge>;
+        return <Badge className="bg-secondary/20 text-secondary border-secondary/30">{t('gestaoEquipe.badge.ativo')}</Badge>;
       case 'pendente':
-        return <Badge variant="outline" className="border-amber-400/50 text-amber-600">Convite pendente</Badge>;
+        return <Badge variant="outline" className="border-amber-400/50 text-amber-600">{t('gestaoEquipe.badge.convitePendente')}</Badge>;
       case 'expirado':
-        return <Badge variant="outline" className="border-destructive/50 text-destructive">Convite expirado</Badge>;
+        return <Badge variant="outline" className="border-destructive/50 text-destructive">{t('gestaoEquipe.badge.conviteExpirado')}</Badge>;
     }
   };
 
@@ -385,51 +382,51 @@ export default function GestaoEquipePage() {
             <div>
               <h1 className="font-heading text-2xl font-bold text-foreground flex items-center gap-2">
                 <Users className="h-6 w-6 text-primary" />
-                Gerenciar Equipe
+                {t('gestaoEquipe.title')}
               </h1>
-              <p className="text-sm text-muted-foreground">Gerencie os profissionais da sua unidade</p>
+              <p className="text-sm text-muted-foreground">{t('gestaoEquipe.subtitle')}</p>
             </div>
           </div>
           <Button onClick={() => setShowInviteModal(true)}>
             <Plus className="h-4 w-4" />
-            Convidar profissional
+            {t('gestaoEquipe.inviteProfessional')}
           </Button>
         </div>
 
         {/* Bloco 1 — cards de resumo */}
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <CardResumoEquipe
-            titulo="Profissionais ativos"
+            titulo={t('gestaoEquipe.cards.ativos.titulo')}
             valor={totalAtivos}
-            sublabel="incluindo você"
-            tooltip="Total de profissionais ativos vinculados à sua unidade, incluindo você. Profissionais com acesso revogado não são contabilizados."
+            sublabel={t('gestaoEquipe.cards.ativos.sublabel')}
+            tooltip={t('gestaoEquipe.cards.ativos.tooltip')}
             icon={Users}
             loading={loading}
             erro={errosCards.ativos}
           />
           <CardResumoEquipe
-            titulo="Convites pendentes"
+            titulo={t('gestaoEquipe.cards.pendentes.titulo')}
             valor={totalPendentes}
-            sublabel="aguardando aceite"
-            tooltip="Convites enviados que ainda não foram aceitos pelo profissional convidado e estão dentro do prazo de validade."
+            sublabel={t('gestaoEquipe.cards.pendentes.sublabel')}
+            tooltip={t('gestaoEquipe.cards.pendentes.tooltip')}
             icon={UserPlus}
             loading={loading}
             erro={errosCards.pendentes}
           />
           <CardResumoEquipe
-            titulo="Convites expirados"
+            titulo={t('gestaoEquipe.cards.expirados.titulo')}
             valor={totalExpirados}
-            sublabel="reenviar disponível"
-            tooltip="Convites cujo prazo de aceitação já expirou. Você pode reenviar o convite a partir da lista de convites pendentes."
+            sublabel={t('gestaoEquipe.cards.expirados.sublabel')}
+            tooltip={t('gestaoEquipe.cards.expirados.tooltip')}
             icon={MailWarning}
             loading={loading}
             erro={errosCards.expirados}
           />
           <CardResumoEquipe
-            titulo="Laudos gerados pela equipe"
+            titulo={t('gestaoEquipe.cards.laudos.titulo')}
             valor={totalLaudos}
-            sublabel="total histórico"
-            tooltip="Total de laudos de DMG já emitidos pela equipe da sua unidade desde o início. Para laudos recentes, veja o painel principal."
+            sublabel={t('gestaoEquipe.cards.laudos.sublabel')}
+            tooltip={t('gestaoEquipe.cards.laudos.tooltip')}
             icon={FileCheck}
             loading={loading}
             erro={errosCards.laudos}
@@ -466,7 +463,7 @@ export default function GestaoEquipePage() {
         </div>
 
         {/* Tabela — rodapé */}
-        <h2 className="mb-3 font-heading text-lg font-semibold text-foreground">Equipe da unidade</h2>
+        <h2 className="mb-3 font-heading text-lg font-semibold text-foreground">{t('gestaoEquipe.teamTable.heading')}</h2>
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -474,13 +471,13 @@ export default function GestaoEquipePage() {
         ) : membros.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-12 text-center">
             <Users className="mx-auto h-12 w-12 text-muted-foreground/40" />
-            <p className="mt-4 text-lg font-medium text-foreground">Nenhum profissional na equipe</p>
+            <p className="mt-4 text-lg font-medium text-foreground">{t('gestaoEquipe.empty.title')}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Convide profissionais para começarem a trabalhar na sua unidade.
+              {t('gestaoEquipe.empty.description')}
             </p>
             <Button className="mt-6" onClick={() => setShowInviteModal(true)}>
               <Plus className="h-4 w-4" />
-              Convidar profissional
+              {t('gestaoEquipe.inviteProfessional')}
             </Button>
           </div>
         ) : (
@@ -488,12 +485,12 @@ export default function GestaoEquipePage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome / E-mail</TableHead>
-                  <TableHead>CRM/COREN</TableHead>
-                  <TableHead>Especialidade</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data de adesão</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead>{t('gestaoEquipe.teamTable.colNameEmail')}</TableHead>
+                  <TableHead>{t('gestaoEquipe.teamTable.colCrm')}</TableHead>
+                  <TableHead>{t('gestaoEquipe.teamTable.colSpecialty')}</TableHead>
+                  <TableHead>{t('common.status')}</TableHead>
+                  <TableHead>{t('gestaoEquipe.teamTable.colJoinDate')}</TableHead>
+                  <TableHead className="text-right">{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -504,7 +501,7 @@ export default function GestaoEquipePage() {
                     <TableCell>{m.especialidade || '—'}</TableCell>
                     <TableCell>{getStatusBadge(m.tipo)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(m.created_at).toLocaleDateString('pt-BR')}
+                      {new Date(m.created_at).toLocaleDateString(i18n.language)}
                     </TableCell>
                     <TableCell className="text-right">
                       {m.tipo === 'ativo' && (
@@ -524,7 +521,7 @@ export default function GestaoEquipePage() {
                           onClick={() => handleReenviar(m.email_convidado!)}
                         >
                           <RefreshCw className="h-4 w-4" />
-                          Reenviar
+                          {t('gestaoEquipe.actions.resend')}
                         </Button>
                       )}
                       {m.tipo === 'expirado' && (
@@ -534,7 +531,7 @@ export default function GestaoEquipePage() {
                           onClick={() => handleReenviar(m.email_convidado!)}
                         >
                           <RefreshCw className="h-4 w-4" />
-                          Novo convite
+                          {t('gestaoEquipe.actions.newInvite')}
                         </Button>
                       )}
                     </TableCell>
@@ -561,20 +558,22 @@ export default function GestaoEquipePage() {
         <DialogContent className="sm:max-w-[480px] rounded-[12px]">
           <DialogHeader>
             <DialogTitle className="font-heading">
-              Convidar profissional{unidadeNome ? ` para ${unidadeNome}` : ''}
+              {unidadeNome
+                ? t('gestaoEquipe.inviteModal.titleWithUnit', { unidade: unidadeNome })
+                : t('gestaoEquipe.inviteModal.title')}
             </DialogTitle>
             <DialogDescription>
-              Informe o e-mail do profissional para enviar o convite.
+              {t('gestaoEquipe.inviteModal.description')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div>
-              <Label htmlFor="invite-email">E-mail do profissional</Label>
+              <Label htmlFor="invite-email">{t('gestaoEquipe.inviteModal.emailLabel')}</Label>
               <Input
                 id="invite-email"
                 type="email"
-                placeholder="profissional@email.com"
+                placeholder={t('gestaoEquipe.inviteModal.emailPlaceholder')}
                 value={inviteEmail}
                 onChange={(e) => {
                   setInviteEmail(e.target.value);
@@ -590,10 +589,7 @@ export default function GestaoEquipePage() {
             >
               <Info className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#7C4DBA' }} />
               <span>
-                Cada e-mail só pode ter um perfil no sistema. Se a pessoa já usa a MARI em
-                outro contexto — como administrador, gestor de outra unidade, gestor geral,
-                profissional de outra unidade institucional, ou profissional de consultório
-                particular — ela precisará usar um e-mail diferente para esta unidade.
+                {t('gestaoEquipe.inviteModal.uniqueEmailInfo')}
               </span>
             </div>
 
@@ -615,7 +611,7 @@ export default function GestaoEquipePage() {
                     }}
                   >
                     <RefreshCw className="h-4 w-4" />
-                    Reenviar
+                    {t('gestaoEquipe.actions.resend')}
                   </Button>
                 )}
               </div>
@@ -624,11 +620,11 @@ export default function GestaoEquipePage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowInviteModal(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleEnviarConvite} disabled={!inviteEmail || sendingInvite}>
               {sendingInvite && <Loader2 className="h-4 w-4 animate-spin" />}
-              Enviar convite
+              {t('gestaoEquipe.inviteModal.sendInvite')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -637,21 +633,20 @@ export default function GestaoEquipePage() {
       <AlertDialog open={!!removeTarget} onOpenChange={() => setRemoveTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remover profissional</AlertDialogTitle>
+            <AlertDialogTitle>{t('gestaoEquipe.removeDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja remover <strong>{removeTarget?.nome}</strong> da unidade?
-              As fichas criadas por ele permanecem acessíveis.
+              {t('gestaoEquipe.removeDialog.descBefore')} <strong>{removeTarget?.nome}</strong> {t('gestaoEquipe.removeDialog.descAfter')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleRemover}
               disabled={removing}
             >
               {removing && <Loader2 className="h-4 w-4 animate-spin" />}
-              Sim, remover
+              {t('gestaoEquipe.removeDialog.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

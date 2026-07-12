@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,8 +18,7 @@ import {
   Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
   User, Info, Loader2, Building2, CalendarDays, UserPlus, Sparkles
 } from 'lucide-react';
-import { differenceInDays, format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { differenceInDays } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 import { STATUS_CONFIG } from '@/lib/fichaUtils';
 import { useIgBatch, formatIg } from '@/lib/getIg';
@@ -26,7 +26,9 @@ import { useIgBatch, formatIg } from '@/lib/getIg';
 interface Paciente extends PreviewPaciente {}
 
 // 38B-C (#16): semáforo de 3 estados a partir de data_proximo_retorno.
-function getReturnBadge(paciente: Paciente): {
+type TFunc = (key: string, options?: Record<string, unknown>) => string;
+
+function getReturnBadge(paciente: Paciente, t: TFunc): {
   type: 'vencido' | 'proximo' | 'em_dia';
   label: string;
   tooltip: string;
@@ -43,23 +45,23 @@ function getReturnBadge(paciente: Paciente): {
     const dias = Math.abs(diff);
     return {
       type: 'vencido',
-      label: `Vencido há ${dias} ${dias === 1 ? 'dia' : 'dias'}`,
-      tooltip: `O prazo de retorno (${dataLimite}) já passou há ${dias} ${dias === 1 ? 'dia' : 'dias'}. Este aviso não pode ser ocultado.`,
+      label: t('dashboard.returnBadge.overdueLabel', { count: dias }),
+      tooltip: t('dashboard.returnBadge.overdueTooltip', { count: dias, date: dataLimite }),
     };
   }
 
   if (diff <= 3) {
     return {
       type: 'proximo',
-      label: `Retorno próximo — até ${dataLimite}`,
-      tooltip: `Faltam ${diff} ${diff === 1 ? 'dia' : 'dias'} para o prazo de retorno (${dataLimite}).`,
+      label: t('dashboard.returnBadge.soonLabel', { date: dataLimite }),
+      tooltip: t('dashboard.returnBadge.soonTooltip', { count: diff, date: dataLimite }),
     };
   }
 
   return {
     type: 'em_dia',
-    label: `Em dia — até ${dataLimite}`,
-    tooltip: `Próximo retorno até ${dataLimite}.`,
+    label: t('dashboard.returnBadge.onTrackLabel', { date: dataLimite }),
+    tooltip: t('dashboard.returnBadge.onTrackTooltip', { date: dataLimite }),
   };
 }
 
@@ -73,6 +75,7 @@ function derivarOvertIds(lista: PreviewPaciente[]): Set<string> {
 const PAGE_SIZE = 20;
 
 export default function DashboardPage() {
+  const { t, i18n } = useTranslation();
   const { profissionalData, loading: profLoading } = useProfissionalData();
   const { profile, user } = useAuth();
   const ehInstitucional = profile === 'institucional';
@@ -92,16 +95,16 @@ export default function DashboardPage() {
   const [aniversario, setAniversario] = useState<string | null>(null);
 
   const DICAS_FALLBACK = useMemo(() => [
-    'Diagnóstico precoce de DMG salva vidas — da mãe e do bebê.',
-    'Não permita DMG tardio: rastreie no tempo certo.',
-    'DMG confirmado NÃO se repete exame — a conduta é seguir o protocolo.',
-    'Rastreio universal entre 24 e 28 semanas. Sem exceção.',
-    'Glicemia de jejum ≥ 92 mg/dL na 1ª consulta já é DMG.',
-    'DMG tratado é desfecho materno-fetal preservado.',
-    'TOTG 75g é o padrão-ouro entre 24-28 semanas; jejum, 1h e 2h.',
-    'Insulinização em DMG segue com o obstetra — o endócrino apoia, não assume o pré-natal.',
-    'Reclassificação pós-parto (6-12 semanas) é obrigatória em toda paciente com DMG.',
-  ], []);
+    t('dashboard.tips.tip1'),
+    t('dashboard.tips.tip2'),
+    t('dashboard.tips.tip3'),
+    t('dashboard.tips.tip4'),
+    t('dashboard.tips.tip5'),
+    t('dashboard.tips.tip6'),
+    t('dashboard.tips.tip7'),
+    t('dashboard.tips.tip8'),
+    t('dashboard.tips.tip9'),
+  ], [t]);
   const [dicasPool, setDicasPool] = useState<string[]>(DICAS_FALLBACK);
 
   useEffect(() => {
@@ -261,14 +264,23 @@ export default function DashboardPage() {
     const partes = (profissionalData?.nome || '').trim().split(/\s+/).filter(Boolean);
     const honorificos = /^(dr|dra|dr\.|dra\.|prof|prof\.|sr|sra|sr\.|sra\.)$/i;
     const primeiro = partes.find((p) => !honorificos.test(p));
-    if (!primeiro) return 'boas-vindas';
+    if (!primeiro) return t('dashboard.welcomeFallback');
     // Se havia um honorífico antes, mostra "Dr. Nome"
     const temHonorifico = partes[0] && honorificos.test(partes[0]);
     return temHonorifico ? `${partes[0]} ${primeiro}` : primeiro;
   })();
   const hora = new Date().getHours();
-  const saudacaoHorario = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
-  const dataExtenso = format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
+  const saudacaoHorario = hora < 12
+    ? t('dashboard.greetingMorning')
+    : hora < 18
+      ? t('dashboard.greetingAfternoon')
+      : t('dashboard.greetingEvening');
+  const dataExtenso = new Date().toLocaleDateString(i18n.language, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   const diaDoAno = Math.floor(
     (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86_400_000,
   );
@@ -299,12 +311,14 @@ export default function DashboardPage() {
               className="text-4xl md:text-5xl font-bold tracking-tight"
               style={{ color: hojeAniversario ? '#7E69AB' : '#1E293B', fontFamily: 'Sora, sans-serif' }}
             >
-              {hojeAniversario ? `🎉 Feliz aniversário, ${nomeExibicao}!` : `Olá, ${nomeExibicao} ✨`}
+              {hojeAniversario
+                ? t('dashboard.birthdayTitle', { name: nomeExibicao })
+                : t('dashboard.greetingTitle', { name: nomeExibicao })}
             </h1>
             <p className="mt-2 text-base" style={{ color: hojeAniversario ? '#7E69AB' : '#64748B' }}>
               {hojeAniversario
-                ? 'Que este novo ciclo seja repleto de conquistas e realizações. Toda a equipe MARI deseja um dia muito especial! 💜'
-                : `${saudacaoHorario}, tenha um atendimento tranquilo.`}
+                ? t('dashboard.birthdayMessage')
+                : t('dashboard.greetingSubtitle', { greeting: saudacaoHorario })}
             </p>
           </div>
 
@@ -314,9 +328,9 @@ export default function DashboardPage() {
                 <Building2 className="h-5 w-5" style={{ color: '#9b87f5' }} />
               </div>
               <div className="min-w-0">
-                <div className="text-xs uppercase tracking-wide" style={{ color: '#64748B' }}>Sua unidade</div>
+                <div className="text-xs uppercase tracking-wide" style={{ color: '#64748B' }}>{t('dashboard.yourUnit')}</div>
                 <div className="text-sm font-medium truncate" style={{ color: '#1E293B' }}>
-                  {profissionalData?.unidade_id ? (unidadeNome ?? 'Carregando…') : 'Consultório particular'}
+                  {profissionalData?.unidade_id ? (unidadeNome ?? t('common.loading')) : t('dashboard.privateOffice')}
                 </div>
               </div>
             </div>
@@ -326,9 +340,9 @@ export default function DashboardPage() {
                 <CalendarDays className="h-5 w-5" style={{ color: '#9b87f5' }} />
               </div>
               <div className="min-w-0">
-                <div className="text-xs uppercase tracking-wide" style={{ color: '#64748B' }}>Hoje é</div>
+                <div className="text-xs uppercase tracking-wide" style={{ color: '#64748B' }}>{t('dashboard.todayIs')}</div>
                 <div className="text-sm font-medium capitalize" style={{ color: '#1E293B' }}>{dataExtenso}</div>
-                <div className="text-xs mt-0.5" style={{ color: '#64748B' }}>Ótimo dia para cuidar das suas gestantes.</div>
+                <div className="text-xs mt-0.5" style={{ color: '#64748B' }}>{t('dashboard.todaySubtitle')}</div>
               </div>
             </div>
 
@@ -345,9 +359,9 @@ export default function DashboardPage() {
                 <Plus className="h-5 w-5 text-white" strokeWidth={2.5} />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs uppercase tracking-wide font-semibold text-white/80">Ação rápida</div>
-                <div className="text-base font-semibold text-white">Cadastrar nova paciente</div>
-                <div className="text-xs text-white/80 mt-0.5">Iniciar uma nova ficha clínica →</div>
+                <div className="text-xs uppercase tracking-wide font-semibold text-white/80">{t('dashboard.quickAction')}</div>
+                <div className="text-base font-semibold text-white">{t('dashboard.registerNewPatient')}</div>
+                <div className="text-xs text-white/80 mt-0.5">{t('dashboard.startNewFile')}</div>
               </div>
             </button>
           </div>
@@ -358,7 +372,7 @@ export default function DashboardPage() {
           >
             <Sparkles className="h-5 w-5 mt-0.5 shrink-0" style={{ color: '#7E69AB' }} />
             <div>
-              <div className="text-xs uppercase tracking-wide font-semibold" style={{ color: '#7E69AB' }}>Dica do dia</div>
+              <div className="text-xs uppercase tracking-wide font-semibold" style={{ color: '#7E69AB' }}>{t('dashboard.tipOfTheDay')}</div>
               <div className="text-sm" style={{ color: '#1E293B' }}>{dicaHoje}</div>
             </div>
           </div>
@@ -385,24 +399,24 @@ export default function DashboardPage() {
           <div className="mb-6 rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-medium text-foreground">
-                {isPreview ? 'Plano Teste' : `Plano ${profissionalData?.planos?.nome ?? ''}`}
+                {isPreview ? t('dashboard.testPlan') : t('dashboard.planName', { name: profissionalData?.planos?.nome ?? '' })}
               </span>
               <button
                 onClick={() => navigate(`${isPreview ? '/vitrine' : ''}/planos`)}
                 className="text-xs font-medium text-primary hover:underline"
               >
-                Gerenciar plano
+                {t('dashboard.managePlan')}
               </button>
             </div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground">Laudos utilizados</span>
+              <span className="text-sm text-muted-foreground">{t('dashboard.reportsUsed')}</span>
               <span className="text-sm text-muted-foreground">
                 {isPreview ? '3' : profissionalData?.laudos_usados}/{isPreview ? '10' : profissionalData?.laudos_limite}
               </span>
             </div>
             <Progress value={isPreview ? 30 : usagePercent} className="h-2" />
             <div className="mt-2 flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Pacientes</span>
+              <span className="text-sm text-muted-foreground">{t('nav.patients')}</span>
               <span className="text-sm text-muted-foreground">
                 {pacientes.length}
               </span>
@@ -415,7 +429,7 @@ export default function DashboardPage() {
           <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary/70 transition-colors group-focus-within:text-primary" />
             <Input
-              placeholder="Buscar paciente por nome..."
+              placeholder={t('dashboard.searchPlaceholder')}
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               className="h-14 pl-12 pr-12 text-base bg-card border-2 border-border rounded-xl shadow-sm transition-all placeholder:text-muted-foreground/70 hover:border-primary/40 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:shadow-md"
@@ -445,14 +459,14 @@ export default function DashboardPage() {
             htmlFor="show-encerradas"
             className="text-xs text-muted-foreground cursor-pointer select-none"
           >
-            Mostrar fichas encerradas
+            {t('dashboard.showClosedFiles')}
           </label>
           <Tooltip>
             <TooltipTrigger asChild>
               <Info className="h-3.5 w-3.5 text-muted-foreground/70" />
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
-              Inclui pacientes com status "Resultado do parto", "DMG afastado" e "Associar endocrino".
+              {t('dashboard.showClosedFilesTooltip')}
             </TooltipContent>
           </Tooltip>
           </div>
@@ -468,21 +482,21 @@ export default function DashboardPage() {
           <div className="rounded-xl border border-border bg-card p-12 text-center">
             <User className="mx-auto h-14 w-14 text-muted-foreground/30" />
             <p className="mt-4 font-heading text-lg font-semibold text-foreground">
-              Você ainda não tem pacientes cadastradas
+              {t('dashboard.noPatients')}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Clique em "+Nova Paciente" para começar.
+              {t('dashboard.noPatientsHint')}
             </p>
             <Button className="mt-6" onClick={handleNovaPaciente}>
               <Plus className="h-4 w-4" />
-              Nova Paciente
+              {t('dashboard.newPatient')}
             </Button>
           </div>
         ) : paginated.length === 0 && search ? (
           <div className="rounded-xl border border-border bg-card p-12 text-center">
             <Search className="mx-auto h-10 w-10 text-muted-foreground/30" />
             <p className="mt-4 text-sm text-muted-foreground">
-              Nenhuma paciente encontrada para "{search}".
+              {t('dashboard.noResults', { search })}
             </p>
           </div>
         ) : (
@@ -492,17 +506,17 @@ export default function DashboardPage() {
               <table className="w-full table-fixed text-sm">
                 <thead>
                   <tr className="border-b-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-                    <th className="w-8 px-2 py-4" aria-label="Atenção"></th>
-                    <th className="w-auto px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">Paciente</th>
-                    <th className="w-[88px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">IG hoje</th>
-                    <th className="w-[120px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">Última consulta</th>
-                    <th className="w-[160px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">Status</th>
-                    <th className="w-[220px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">Retorno</th>
+                    <th className="w-8 px-2 py-4" aria-label={t('dashboard.attention')}></th>
+                    <th className="w-auto px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">{t('dashboard.colPatient')}</th>
+                    <th className="w-[88px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colGaToday')}</th>
+                    <th className="w-[120px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colLastConsultation')}</th>
+                    <th className="w-[160px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('common.status')}</th>
+                    <th className="w-[220px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colReturn')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {paginated.map((pac) => {
-                    const returnBadge = getReturnBadge(pac);
+                    const returnBadge = getReturnBadge(pac, t);
                     const statusCfg = STATUS_CONFIG[pac.status_ficha] || STATUS_CONFIG.aguardando_gj;
 
                     return (
@@ -518,7 +532,7 @@ export default function DashboardPage() {
                               <TooltipTrigger asChild>
                                 <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
                               </TooltipTrigger>
-                              <TooltipContent>Histórico de DMG em gestação anterior.</TooltipContent>
+                              <TooltipContent>{t('dashboard.dmgPriorTooltip')}</TooltipContent>
                             </Tooltip>
                           )}
                         </td>
@@ -539,7 +553,7 @@ export default function DashboardPage() {
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                           {pac.data_ultima_consulta
                             ? formatDateBR(pac.data_ultima_consulta)
-                            : '—'}
+                            : t('dashboard.noDate')}
                         </td>
 
                         <td className="px-4 py-3">
@@ -552,7 +566,7 @@ export default function DashboardPage() {
                                   <Info className="h-3 w-3 opacity-70" />
                                 </span>
                               </TooltipTrigger>
-                              <TooltipContent className="max-w-xs">Diabete pré-existente diagnosticado na gestação (OVERT DM). Conduta distinta do DMG gestacional.</TooltipContent>
+                              <TooltipContent className="max-w-xs">{t('dashboard.overtTooltip')}</TooltipContent>
                             </Tooltip>
                           ) : (
                             <Tooltip>
@@ -600,7 +614,7 @@ export default function DashboardPage() {
             {/* Mobile cards */}
             <div className="md:hidden space-y-3">
               {paginated.map((pac) => {
-                const returnBadge = getReturnBadge(pac);
+                const returnBadge = getReturnBadge(pac, t);
                 const statusCfg = STATUS_CONFIG[pac.status_ficha] || STATUS_CONFIG.aguardando_gj;
 
                 return (
@@ -635,11 +649,11 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                      <span>IG: {formatIg(igMap.get(pac.id) ?? null)}</span>
+                      <span>{t('dashboard.gaShort')}: {formatIg(igMap.get(pac.id) ?? null)}</span>
                       <span>
-                        Última: {pac.data_ultima_consulta
+                        {t('dashboard.lastShort')}: {pac.data_ultima_consulta
                           ? formatDateBR(pac.data_ultima_consulta)
-                          : '—'}
+                          : t('dashboard.noDate')}
                       </span>
                     </div>
                     {returnBadge && (
@@ -672,10 +686,10 @@ export default function DashboardPage() {
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
                 >
-                  Anterior
+                  {t('dashboard.previous')}
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  {page} de {totalPages}
+                  {t('dashboard.pageOf', { page, total: totalPages })}
                 </span>
                 <Button
                   variant="outline"
@@ -683,7 +697,7 @@ export default function DashboardPage() {
                   disabled={page >= totalPages}
                   onClick={() => setPage(page + 1)}
                 >
-                  Próxima
+                  {t('dashboard.next')}
                 </Button>
               </div>
             )}

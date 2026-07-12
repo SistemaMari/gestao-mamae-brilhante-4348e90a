@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,9 +45,9 @@ const PLANOS: Record<string, { nome: string; preco: string; laudos: number }> = 
 
 // ─── Schema de validação ─────────────────────────────────────────────────────
 const schema = z.object({
-  nome:     z.string().min(3, 'Nome muito curto'),
-  email:    z.string().email('E-mail inválido'),
-  cpf:      z.string().min(14, 'CPF inválido'),
+  nome:     z.string().min(3, 'checkout.errNomeCurto'),
+  email:    z.string().email('checkout.errEmailInvalido'),
+  cpf:      z.string().min(14, 'checkout.errCpfInvalido'),
   telefone: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
@@ -59,6 +60,7 @@ type PaymentResult =
 
 // ─── Componente principal ────────────────────────────────────────────────────
 export default function CheckoutPage() {
+  const { t, i18n } = useTranslation();
   const { slug = '' } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const planoInfo = PLANOS[slug];
@@ -84,8 +86,8 @@ export default function CheckoutPage() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <AlertCircle className="mx-auto h-10 w-10 text-destructive mb-3" />
-          <p className="text-foreground font-semibold mb-4">Plano não encontrado.</p>
-          <Button onClick={() => navigate('/vitrine/planos')}>Ver planos</Button>
+          <p className="text-foreground font-semibold mb-4">{t('checkout.planoNaoEncontrado')}</p>
+          <Button onClick={() => navigate('/vitrine/planos')}>{t('checkout.verPlanos')}</Button>
         </div>
       </div>
     );
@@ -99,7 +101,7 @@ export default function CheckoutPage() {
   const handleConfirmarPagamento = async () => {
     if (!formValues) return;
     if (billingType === 'CREDIT_CARD' && (!cardNumber || !cardExpiry || !cardCvv || !cardCep)) {
-      toast.error('Preencha todos os dados do cartão.');
+      toast.error(t('checkout.preenchaCartao'));
       return;
     }
     setLoading(true);
@@ -128,7 +130,7 @@ export default function CheckoutPage() {
       setResult(data as PaymentResult);
       setStep('confirmacao');
     } catch (e: any) {
-      toast.error(e.message ?? 'Erro ao processar pagamento. Tente novamente.');
+      toast.error(e.message ?? t('checkout.erroProcessar'));
     } finally {
       setLoading(false);
     }
@@ -137,7 +139,7 @@ export default function CheckoutPage() {
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
-    toast.success('Copiado!');
+    toast.success(t('checkout.copiado'));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -158,7 +160,7 @@ export default function CheckoutPage() {
           </div>
           <span className="font-heading font-bold text-sm tracking-widest uppercase text-foreground">MARI</span>
         </div>
-        <span className="text-muted-foreground text-sm ml-auto">Checkout seguro</span>
+        <span className="text-muted-foreground text-sm ml-auto">{t('checkout.checkoutSeguro')}</span>
       </header>
 
       <div className="flex-1 flex items-start justify-center px-4 py-8">
@@ -168,9 +170,9 @@ export default function CheckoutPage() {
           <div className="bg-white rounded-xl border border-border p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Plano selecionado</p>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">{t('checkout.planoSelecionado')}</p>
                 <p className="font-heading text-xl font-bold text-foreground mt-1">{planoInfo.nome}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{planoInfo.laudos} laudos/mês</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('checkout.laudosPorMes', { count: planoInfo.laudos })}</p>
               </div>
               <p className="font-heading text-2xl font-bold text-primary">{planoInfo.preco}</p>
             </div>
@@ -186,7 +188,7 @@ export default function CheckoutPage() {
                   'bg-muted text-muted-foreground'
                 }`}>{i + 1}</div>
                 <span className={step === s ? 'text-foreground' : 'text-muted-foreground'}>
-                  {s === 'dados' ? 'Seus dados' : s === 'pagamento' ? 'Pagamento' : 'Confirmação'}
+                  {s === 'dados' ? t('checkout.stepDados') : s === 'pagamento' ? t('checkout.stepPagamento') : t('checkout.stepConfirmacao')}
                 </span>
                 {i < 2 && <div className="w-6 h-px bg-border mx-1" />}
               </div>
@@ -196,33 +198,33 @@ export default function CheckoutPage() {
           {/* ── Step 1: Dados pessoais ── */}
           {step === 'dados' && (
             <form onSubmit={handleSubmit(onSubmitDados)} className="bg-white rounded-xl border border-border p-6 shadow-sm space-y-4">
-              <h2 className="font-heading text-lg font-semibold text-foreground">Seus dados</h2>
+              <h2 className="font-heading text-lg font-semibold text-foreground">{t('checkout.stepDados')}</h2>
 
               <div className="space-y-1">
-                <Label htmlFor="nome">Nome completo</Label>
-                <Input id="nome" placeholder="Dr(a). Maria Silva" {...register('nome')} />
-                {errors.nome && <p className="text-xs text-destructive">{errors.nome.message}</p>}
+                <Label htmlFor="nome">{t('checkout.nomeCompleto')}</Label>
+                <Input id="nome" placeholder={t('checkout.nomePlaceholder')} {...register('nome')} />
+                {errors.nome && <p className="text-xs text-destructive">{t(errors.nome.message as string)}</p>}
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">{t('common.email')}</Label>
                 <Input id="email" type="email" placeholder="seu@email.com" {...register('email')} />
-                {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+                {errors.email && <p className="text-xs text-destructive">{t(errors.email.message as string)}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label htmlFor="cpf">CPF</Label>
+                  <Label htmlFor="cpf">{t('checkout.cpf')}</Label>
                   <Input
                     id="cpf"
                     placeholder="000.000.000-00"
                     value={watch('cpf') ?? ''}
                     onChange={e => setValue('cpf', maskCpf(e.target.value))}
                   />
-                  {errors.cpf && <p className="text-xs text-destructive">{errors.cpf.message}</p>}
+                  {errors.cpf && <p className="text-xs text-destructive">{t(errors.cpf.message as string)}</p>}
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="telefone">Celular <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+                  <Label htmlFor="telefone">{t('checkout.celular')} <span className="text-muted-foreground text-xs">{t('common.optional')}</span></Label>
                   <Input
                     id="telefone"
                     placeholder="(11) 99999-0000"
@@ -232,20 +234,20 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full h-11 font-bold mt-2">Continuar</Button>
+              <Button type="submit" className="w-full h-11 font-bold mt-2">{t('checkout.continuar')}</Button>
             </form>
           )}
 
           {/* ── Step 2: Forma de pagamento ── */}
           {step === 'pagamento' && (
             <div className="bg-white rounded-xl border border-border p-6 shadow-sm space-y-5">
-              <h2 className="font-heading text-lg font-semibold text-foreground">Forma de pagamento</h2>
+              <h2 className="font-heading text-lg font-semibold text-foreground">{t('checkout.formaPagamento')}</h2>
 
               <div className="grid grid-cols-3 gap-3">
                 {([
-                  { bt: 'PIX',         icon: QrCode,      label: 'Pix',    sub: 'Aprovação imediata' },
-                  { bt: 'BOLETO',      icon: FileText,    label: 'Boleto', sub: 'Até 3 dias úteis'   },
-                  { bt: 'CREDIT_CARD', icon: CreditCard,  label: 'Cartão', sub: 'Crédito à vista'    },
+                  { bt: 'PIX',         icon: QrCode,      label: t('checkout.pix'),    sub: t('checkout.pixSub') },
+                  { bt: 'BOLETO',      icon: FileText,    label: t('checkout.boleto'), sub: t('checkout.boletoSub')   },
+                  { bt: 'CREDIT_CARD', icon: CreditCard,  label: t('checkout.cartao'), sub: t('checkout.cartaoSub')    },
                 ] as const).map(({ bt, icon: Icon, label, sub }) => (
                   <button
                     key={bt}
@@ -269,7 +271,7 @@ export default function CheckoutPage() {
               {billingType === 'CREDIT_CARD' && (
                 <div className="space-y-3 pt-1">
                   <div className="space-y-1">
-                    <Label>Número do cartão</Label>
+                    <Label>{t('checkout.numeroCartao')}</Label>
                     <Input
                       placeholder="0000 0000 0000 0000"
                       value={cardNumber}
@@ -280,9 +282,9 @@ export default function CheckoutPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label>Validade</Label>
+                      <Label>{t('checkout.validade')}</Label>
                       <Input
-                        placeholder="MM/AA"
+                        placeholder={t('checkout.validadePlaceholder')}
                         value={cardExpiry}
                         onChange={e => setCardExpiry(maskExpiry(e.target.value))}
                         maxLength={5}
@@ -290,7 +292,7 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label>CVV</Label>
+                      <Label>{t('checkout.cvv')}</Label>
                       <Input
                         placeholder="123"
                         value={cardCvv}
@@ -302,7 +304,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label>CEP</Label>
+                      <Label>{t('checkout.cep')}</Label>
                       <Input
                         placeholder="00000-000"
                         value={cardCep}
@@ -312,7 +314,7 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label>Número <span className="text-muted-foreground text-xs">(endereço)</span></Label>
+                      <Label>{t('checkout.numero')} <span className="text-muted-foreground text-xs">{t('checkout.numeroEndereco')}</span></Label>
                       <Input
                         placeholder="123"
                         value={cardAddressNumber}
@@ -324,7 +326,7 @@ export default function CheckoutPage() {
               )}
 
               <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
-                Após confirmar o pagamento, você receberá um <strong>e-mail para definir sua senha</strong> e acessar o sistema.
+                {t('checkout.aposConfirmarPre')} <strong>{t('checkout.aposConfirmarStrong')}</strong> {t('checkout.aposConfirmarPos')}
               </div>
 
               <Button
@@ -333,10 +335,10 @@ export default function CheckoutPage() {
                 className="w-full h-11 font-bold"
               >
                 {loading
-                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processando…</>
-                  : billingType === 'PIX' ? 'Gerar QR Code Pix'
-                  : billingType === 'BOLETO' ? 'Gerar Boleto'
-                  : 'Pagar com Cartão'
+                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('checkout.processando')}</>
+                  : billingType === 'PIX' ? t('checkout.gerarQrCodePix')
+                  : billingType === 'BOLETO' ? t('checkout.gerarBoleto')
+                  : t('checkout.pagarComCartao')
                 }
               </Button>
             </div>
@@ -348,9 +350,9 @@ export default function CheckoutPage() {
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-secondary" />
                 <h2 className="font-heading text-lg font-semibold text-foreground">
-                  {result.billing_type === 'PIX' ? 'QR Code Pix gerado!'
-                  : result.billing_type === 'BOLETO' ? 'Boleto gerado!'
-                  : 'Pagamento confirmado!'}
+                  {result.billing_type === 'PIX' ? t('checkout.qrCodePixGerado')
+                  : result.billing_type === 'BOLETO' ? t('checkout.boletoGerado')
+                  : t('checkout.pagamentoConfirmado')}
                 </h2>
               </div>
 
@@ -359,9 +361,9 @@ export default function CheckoutPage() {
                   <div className="rounded-lg bg-secondary/10 border border-secondary/30 p-4 flex items-start gap-3">
                     <CreditCard className="h-5 w-5 text-secondary mt-0.5 shrink-0" />
                     <div>
-                      <p className="font-semibold text-sm text-foreground">Assinatura ativa</p>
+                      <p className="font-semibold text-sm text-foreground">{t('checkout.assinaturaAtiva')}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Plano <strong>{result.plano.nome}</strong> assinado com sucesso. A cobrança no cartão será processada em breve.
+                        {t('checkout.planoPrefix')} <strong>{result.plano.nome}</strong> {t('checkout.assinadoSucesso')}
                       </p>
                     </div>
                   </div>
@@ -374,13 +376,13 @@ export default function CheckoutPage() {
                     <div className="flex justify-center">
                       <img
                         src={`data:image/png;base64,${result.pix_qr_code_image}`}
-                        alt="QR Code Pix"
+                        alt={t('checkout.qrCodePixAlt')}
                         className="w-48 h-48 rounded-lg border border-border"
                       />
                     </div>
                   )}
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">Pix Copia e Cola</p>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">{t('checkout.pixCopiaCola')}</p>
                     <div className="flex gap-2">
                       <Input
                         readOnly
@@ -402,7 +404,7 @@ export default function CheckoutPage() {
               {result.billing_type === 'BOLETO' && (
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">Linha Digitável</p>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">{t('checkout.linhaDigitavel')}</p>
                     <div className="flex gap-2">
                       <Input
                         readOnly
@@ -418,22 +420,22 @@ export default function CheckoutPage() {
                       </Button>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">Vencimento: {new Date(result.due_date + 'T12:00:00').toLocaleDateString('pt-BR')}</p>
+                  <p className="text-xs text-muted-foreground">{t('checkout.vencimento', { data: new Date(result.due_date + 'T12:00:00').toLocaleDateString(i18n.language) })}</p>
                   <Button
                     variant="outline"
                     className="w-full"
                     onClick={() => window.open(result.boleto_pdf_url, '_blank')}
                   >
                     <FileText className="mr-2 h-4 w-4" />
-                    Abrir boleto PDF
+                    {t('checkout.abrirBoletoPdf')}
                   </Button>
                 </div>
               )}
 
               <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 text-sm text-foreground">
-                <p className="font-semibold mb-1">O que acontece depois?</p>
+                <p className="font-semibold mb-1">{t('checkout.oQueAconteceDepois')}</p>
                 <p className="text-muted-foreground text-xs">
-                  Após a confirmação do pagamento, você receberá um <strong>e-mail</strong> com o link para criar sua senha e acessar o MARI.
+                  {t('checkout.aposConfirmacaoPre')} <strong>{t('checkout.aposConfirmacaoStrong')}</strong> {t('checkout.aposConfirmacaoPos')}
                 </p>
               </div>
             </div>

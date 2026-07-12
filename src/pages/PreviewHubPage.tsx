@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowRight,
   ClipboardList,
@@ -24,6 +25,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { especialidades, idiomas } from '@/data/locationData';
 
+interface PreviewCardConfig {
+  to: string;
+  titleKey: string;
+  descriptionKey: string;
+  icon: LucideIcon;
+}
+
 interface PreviewCardProps {
   to: string;
   title: string;
@@ -31,71 +39,71 @@ interface PreviewCardProps {
   icon: LucideIcon;
 }
 
-const previewCards: PreviewCardProps[] = [
+const previewCards: PreviewCardConfig[] = [
   {
     to: '/vitrine/completar-perfil',
-    title: 'Completar perfil',
-    description: 'Veja e edite visualmente o formulário real sem bloqueio de login.',
+    titleKey: 'previewHub.cards.completarPerfil.title',
+    descriptionKey: 'previewHub.cards.completarPerfil.description',
     icon: ClipboardList,
   },
   {
     to: '/recuperar-senha',
-    title: 'Recuperar senha',
-    description: 'Tela de solicitação de recuperação de senha por e-mail.',
+    titleKey: 'previewHub.cards.recuperarSenha.title',
+    descriptionKey: 'previewHub.cards.recuperarSenha.description',
     icon: KeyRound,
   },
   {
     to: '/vitrine/planos',
-    title: 'Planos',
-    description: 'Abra a página de planos dentro do shell do sistema, sem autenticação.',
+    titleKey: 'previewHub.cards.planos.title',
+    descriptionKey: 'previewHub.cards.planos.description',
     icon: Stethoscope,
   },
   {
     to: '/vitrine/dashboard',
-    title: 'Minhas Pacientes',
-    description: 'Gerencie suas pacientes, acompanhe status e retornos.',
+    titleKey: 'previewHub.cards.dashboard.title',
+    descriptionKey: 'previewHub.cards.dashboard.description',
     icon: LayoutDashboard,
   },
   {
     to: '/vitrine/perfil',
-    title: 'Meu Perfil',
-    description: 'Veja a área de perfil no shell do sistema com dados fictícios.',
+    titleKey: 'previewHub.cards.perfil.title',
+    descriptionKey: 'previewHub.cards.perfil.description',
     icon: UserPlus,
   },
   {
     to: '/vitrine/gestao',
-    title: 'Dashboard de gestão',
-    description: 'Abra a área institucional em construção sem depender de perfil.',
+    titleKey: 'previewHub.cards.gestao.title',
+    descriptionKey: 'previewHub.cards.gestao.description',
     icon: Shield,
   },
   {
     to: '/vitrine/admin',
-    title: 'Dashboard admin',
-    description: 'Confira a tela administrativa atual sem passar pelo login.',
+    titleKey: 'previewHub.cards.admin.title',
+    descriptionKey: 'previewHub.cards.admin.description',
     icon: Shield,
   },
   {
     to: '/vitrine/consolidar',
-    title: 'Consolidação',
-    description: 'Veja a área de consolidação em construção em um clique.',
+    titleKey: 'previewHub.cards.consolidar.title',
+    descriptionKey: 'previewHub.cards.consolidar.description',
     icon: ClipboardList,
   },
   {
     to: '/vitrine/gestao/equipe',
-    title: 'Gerenciar Equipe',
-    description: 'Prévia funcional da tela do gestor para convidar e gerenciar profissionais.',
+    titleKey: 'previewHub.cards.equipe.title',
+    descriptionKey: 'previewHub.cards.equipe.description',
     icon: Users,
   },
   {
     to: '/vitrine/cadastro-convite',
-    title: 'Cadastro via Convite',
-    description: 'Prévia funcional do formulário público recebido por convite.',
+    titleKey: 'previewHub.cards.cadastroConvite.title',
+    descriptionKey: 'previewHub.cards.cadastroConvite.description',
     icon: UserPlus,
   },
   {
     to: '/vitrine/ficha-carimbada',
-    title: 'Ficha carimbada (demo)',
-    description: 'Visualize uma ficha de paciente com o carimbo CFM do profissional atendente.',
+    titleKey: 'previewHub.cards.fichaCarimbada.title',
+    descriptionKey: 'previewHub.cards.fichaCarimbada.description',
     icon: CheckCircle2,
   },
 ];
@@ -121,25 +129,33 @@ function PreviewCard({ to, title, description, icon: Icon }: PreviewCardProps) {
 }
 
 export default function PreviewHubPage() {
+  const { t } = useTranslation();
+
   return (
     <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <section className="rounded-[28px] border border-border bg-card p-6 shadow-sm sm:p-8">
           <div className="max-w-2xl">
             <p className="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-              Vitrine liberada sem login
+              {t('previewHub.badge')}
             </p>
             <h1 className="mt-4 font-heading text-3xl font-bold text-foreground sm:text-4xl">
-              Veja tudo o que está sendo criado
+              {t('previewHub.title')}
             </h1>
             <p className="mt-3 text-base text-muted-foreground sm:text-lg">
-              Agora o preview abre direto nesta vitrine pública para você acompanhar a construção antes dos testes reais com autenticação.
+              {t('previewHub.subtitle')}
             </p>
           </div>
 
           <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {previewCards.map((card) => (
-              <PreviewCard key={card.to} {...card} />
+              <PreviewCard
+                key={card.to}
+                to={card.to}
+                title={t(card.titleKey)}
+                description={t(card.descriptionKey)}
+                icon={card.icon}
+              />
             ))}
           </div>
 
@@ -148,13 +164,13 @@ export default function PreviewHubPage() {
               to="/login"
               className="inline-flex items-center justify-center rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
             >
-              Ir para o login real
+              {t('previewHub.goToRealLogin')}
             </Link>
             <a
               href="https://id-preview--8b197c7e-b34e-494b-a96f-525cfb50face.lovable.app/"
               className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
-              Abrir link direto da vitrine
+              {t('previewHub.openDirectLink')}
             </a>
           </div>
         </section>
@@ -164,8 +180,10 @@ export default function PreviewHubPage() {
 }
 
 export function PreviewCompletarPerfilPage() {
+  const { t } = useTranslation();
+
   const handleSubmit = async (_data: ProfileFormData) => {
-    toast.success('Prévia visual liberada. O salvamento real fica para a etapa de testes.');
+    toast.success(t('previewHub.completarPerfil.saveToast'));
   };
 
   return (
@@ -173,13 +191,13 @@ export function PreviewCompletarPerfilPage() {
       <div className="mx-auto w-full max-w-[500px]">
         <div className="mb-6 text-center">
           <p className="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-            Prévia visual do formulário real
+            {t('previewHub.completarPerfil.badge')}
           </p>
           <h1 className="mt-4 font-heading text-2xl font-semibold text-foreground">
-            Complete seu perfil profissional
+            {t('previewHub.completarPerfil.title')}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Precisamos de algumas informações para configurar sua conta.
+            {t('previewHub.completarPerfil.subtitle')}
           </p>
         </div>
 
@@ -194,13 +212,13 @@ export function PreviewCompletarPerfilPage() {
             }}
             onSubmit={handleSubmit}
             isLoading={false}
-            submitLabel="Salvar e continuar"
+            submitLabel={t('previewHub.completarPerfil.submitLabel')}
           />
         </div>
 
         <div className="mt-4 text-center">
           <Link to="/" className="text-sm font-medium text-primary transition-colors hover:opacity-80">
-            Voltar para a vitrine
+            {t('previewHub.completarPerfil.backToShowcase')}
           </Link>
         </div>
       </div>
@@ -255,18 +273,21 @@ const initialMembers: PreviewMember[] = [
 ];
 
 function StatusBadge({ status }: { status: PreviewMemberStatus }) {
+  const { t } = useTranslation();
+
   if (status === 'ativo') {
-    return <Badge className="border-primary/20 bg-primary/10 text-primary hover:bg-primary/10">Ativo</Badge>;
+    return <Badge className="border-primary/20 bg-primary/10 text-primary hover:bg-primary/10">{t('previewHub.equipe.statusAtivo')}</Badge>;
   }
 
   if (status === 'pendente') {
-    return <Badge variant="outline" className="bg-accent text-accent-foreground">Convite pendente</Badge>;
+    return <Badge variant="outline" className="bg-accent text-accent-foreground">{t('previewHub.equipe.statusPendente')}</Badge>;
   }
 
-  return <Badge variant="outline" className="bg-muted text-muted-foreground">Convite expirado</Badge>;
+  return <Badge variant="outline" className="bg-muted text-muted-foreground">{t('previewHub.equipe.statusExpirado')}</Badge>;
 }
 
 export function PreviewGestaoEquipePage() {
+  const { t } = useTranslation();
   const [members, setMembers] = useState<PreviewMember[]>(initialMembers);
   const [inviteEmail, setInviteEmail] = useState('');
 
@@ -276,7 +297,7 @@ export function PreviewGestaoEquipePage() {
 
   const handleInvite = () => {
     if (!inviteEmail.trim() || !inviteEmail.includes('@')) {
-      toast.error('Digite um e-mail válido para a prévia.');
+      toast.error(t('previewHub.equipe.invalidEmail'));
       return;
     }
 
@@ -292,13 +313,13 @@ export function PreviewGestaoEquipePage() {
       ...current,
     ]);
     setInviteEmail('');
-    toast.success('Convite simulado enviado na vitrine.');
+    toast.success(t('previewHub.equipe.inviteSent'));
   };
 
   const handleAction = (member: PreviewMember) => {
     if (member.status === 'ativo') {
       setMembers((current) => current.filter((item) => item.id !== member.id));
-      toast.success('Profissional removido da lista de prévia.');
+      toast.success(t('previewHub.equipe.removed'));
       return;
     }
 
@@ -309,7 +330,7 @@ export function PreviewGestaoEquipePage() {
           : item
       )
     );
-    toast.success('Convite simulado reenviado.');
+    toast.success(t('previewHub.equipe.inviteResent'));
   };
 
   return (
@@ -317,28 +338,28 @@ export function PreviewGestaoEquipePage() {
       <div className="mx-auto max-w-6xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-heading text-3xl font-bold text-foreground">Gerenciar Equipe</h1>
+            <h1 className="font-heading text-3xl font-bold text-foreground">{t('previewHub.equipe.title')}</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Prévia funcional da área do gestor para convidar, reenviar e remover profissionais.
+              {t('previewHub.equipe.subtitle')}
             </p>
           </div>
           <Button onClick={handleInvite} disabled={!inviteEmail.trim()}>
             <Mail className="h-4 w-4" />
-            Enviar convite
+            {t('previewHub.equipe.sendInvite')}
           </Button>
         </div>
 
         <section className="grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground">Profissionais ativos</p>
+            <p className="text-sm text-muted-foreground">{t('previewHub.equipe.activeProfessionals')}</p>
             <p className="mt-2 font-heading text-3xl font-bold text-foreground">{activeCount}</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground">Convites pendentes</p>
+            <p className="text-sm text-muted-foreground">{t('previewHub.equipe.pendingInvites')}</p>
             <p className="mt-2 font-heading text-3xl font-bold text-foreground">{pendingCount}</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground">Convites expirados</p>
+            <p className="text-sm text-muted-foreground">{t('previewHub.equipe.expiredInvites')}</p>
             <p className="mt-2 font-heading text-3xl font-bold text-foreground">{expiredCount}</p>
           </div>
         </section>
@@ -346,7 +367,7 @@ export function PreviewGestaoEquipePage() {
         <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
             <div className="space-y-2">
-              <Label htmlFor="preview-invite-email">Convidar profissional</Label>
+              <Label htmlFor="preview-invite-email">{t('previewHub.equipe.inviteProfessional')}</Label>
               <Input
                 id="preview-invite-email"
                 type="email"
@@ -357,14 +378,14 @@ export function PreviewGestaoEquipePage() {
             </div>
             <Button onClick={handleInvite} disabled={!inviteEmail.trim()}>
               <UserPlus className="h-4 w-4" />
-              Convidar profissional
+              {t('previewHub.equipe.inviteProfessional')}
             </Button>
           </div>
         </section>
 
         <section className="rounded-2xl border border-border bg-card shadow-sm">
           <div className="border-b border-border px-5 py-4">
-            <h2 className="font-heading text-lg font-semibold text-foreground">Equipe da unidade</h2>
+            <h2 className="font-heading text-lg font-semibold text-foreground">{t('previewHub.equipe.unitTeam')}</h2>
           </div>
           <div className="divide-y divide-border">
             {members.map((member) => (
@@ -384,12 +405,12 @@ export function PreviewGestaoEquipePage() {
                   {member.status === 'ativo' ? (
                     <Button variant="outline" onClick={() => handleAction(member)}>
                       <Trash2 className="h-4 w-4" />
-                      Remover da unidade
+                      {t('previewHub.equipe.removeFromUnit')}
                     </Button>
                   ) : (
                     <Button variant="outline" onClick={() => handleAction(member)}>
                       <RefreshCw className="h-4 w-4" />
-                      {member.status === 'pendente' ? 'Reenviar convite' : 'Gerar novo convite'}
+                      {member.status === 'pendente' ? t('previewHub.equipe.resendInvite') : t('previewHub.equipe.generateNewInvite')}
                     </Button>
                   )}
                 </div>
@@ -403,6 +424,7 @@ export function PreviewGestaoEquipePage() {
 }
 
 export function PreviewCadastroConvitePage() {
+  const { t } = useTranslation();
   const [nome, setNome] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
@@ -415,22 +437,22 @@ export function PreviewCadastroConvitePage() {
     event.preventDefault();
 
     if (!nome || !senha || !confirmarSenha || !crmCoren || !especialidade) {
-      toast.error('Preencha todos os campos da prévia.');
+      toast.error(t('previewHub.cadastroConvite.fillAll'));
       return;
     }
 
     if (senha.length < 6) {
-      toast.error('A senha precisa ter no mínimo 6 caracteres.');
+      toast.error(t('previewHub.cadastroConvite.passwordMinLength'));
       return;
     }
 
     if (senha !== confirmarSenha) {
-      toast.error('As senhas não coincidem.');
+      toast.error(t('previewHub.cadastroConvite.passwordsDontMatch'));
       return;
     }
 
     setSubmitted(true);
-    toast.success('Cadastro simulado com sucesso na vitrine.');
+    toast.success(t('previewHub.cadastroConvite.successToast'));
   };
 
   if (submitted) {
@@ -440,13 +462,13 @@ export function PreviewCadastroConvitePage() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <CheckCircle2 className="h-7 w-7" />
           </div>
-          <h1 className="mt-5 font-heading text-2xl font-bold text-foreground">Conta criada com sucesso!</h1>
+          <h1 className="mt-5 font-heading text-2xl font-bold text-foreground">{t('previewHub.cadastroConvite.accountCreated')}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Redirecionando para o login...
+            {t('previewHub.cadastroConvite.redirecting')}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link to="/login">
-              <Button>Ir para o login</Button>
+              <Button>{t('previewHub.cadastroConvite.goToLogin')}</Button>
             </Link>
           </div>
         </div>
@@ -459,28 +481,28 @@ export function PreviewCadastroConvitePage() {
       <div className="mx-auto w-full max-w-[500px]">
         <div className="mb-6 text-center">
           <h1 className="font-heading text-2xl font-bold text-foreground">
-            Você foi convidado(a) para a Clínica Materna Exemplo
+            {t('previewHub.cadastroConvite.title')}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Preencha seus dados para acessar o sistema.
+            {t('previewHub.cadastroConvite.subtitle')}
           </p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>E-mail</Label>
+              <Label>{t('previewHub.cadastroConvite.emailLabel')}</Label>
               <Input value="convidado@dramari.com" disabled className="bg-muted" />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="preview-nome">Nome completo *</Label>
+              <Label htmlFor="preview-nome">{t('previewHub.cadastroConvite.fullNameLabel')}</Label>
               <Input id="preview-nome" value={nome} onChange={(event) => setNome(event.target.value)} />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="preview-senha">Senha *</Label>
+                <Label htmlFor="preview-senha">{t('previewHub.cadastroConvite.passwordLabel')}</Label>
                 <Input
                   id="preview-senha"
                   type="password"
@@ -489,7 +511,7 @@ export function PreviewCadastroConvitePage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="preview-confirmar">Confirmar senha *</Label>
+                <Label htmlFor="preview-confirmar">{t('previewHub.cadastroConvite.confirmPasswordLabel')}</Label>
                 <Input
                   id="preview-confirmar"
                   type="password"
@@ -500,15 +522,15 @@ export function PreviewCadastroConvitePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="preview-crm">CRM / COREN *</Label>
+              <Label htmlFor="preview-crm">{t('previewHub.cadastroConvite.crmLabel')}</Label>
               <Input id="preview-crm" value={crmCoren} onChange={(event) => setCrmCoren(event.target.value)} />
             </div>
 
             <div className="space-y-2">
-              <Label>Especialidade *</Label>
+              <Label>{t('previewHub.cadastroConvite.specialtyLabel')}</Label>
               <Select value={especialidade} onValueChange={setEspecialidade}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione sua especialidade" />
+                  <SelectValue placeholder={t('previewHub.cadastroConvite.specialtyPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {especialidades.map((item) => (
@@ -521,7 +543,7 @@ export function PreviewCadastroConvitePage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Idioma preferido</Label>
+              <Label>{t('previewHub.cadastroConvite.languageLabel')}</Label>
               <Select value={idioma} onValueChange={setIdioma}>
                 <SelectTrigger>
                   <SelectValue />
@@ -537,7 +559,7 @@ export function PreviewCadastroConvitePage() {
             </div>
 
             <Button type="submit" className="w-full">
-              Criar minha conta
+              {t('previewHub.cadastroConvite.createAccount')}
             </Button>
           </form>
         </div>

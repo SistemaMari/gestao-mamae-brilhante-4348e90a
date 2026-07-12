@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS, es } from 'date-fns/locale';
 import { FileText, Loader2, Search, Filter, History, Eye, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,24 +29,35 @@ interface LaudoRow {
   medico_crm: string | null;
 }
 
-function fmtData(iso: string) {
+const DATE_LOCALES: Record<string, typeof ptBR> = {
+  'pt-BR': ptBR,
+  'en-US': enUS,
+  es,
+};
+
+function fmtData(iso: string, lang: string, at: string) {
   try {
-    return format(new Date(iso), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+    const locale = DATE_LOCALES[lang] ?? ptBR;
+    return format(new Date(iso), `dd/MM/yyyy '${at}' HH:mm`, { locale });
   } catch {
     return iso;
   }
 }
 
-function formatMedico(nome: string | null, crm: string | null): string {
-  if (!nome) return '—';
-  const partes = [`Dr(a). ${nome}`];
-  if (crm) partes.push(`CRM ${crm}`);
-  return partes.join(' — ');
-}
-
 export default function HistoricoLaudosPage() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const formatMedico = useCallback(
+    (nome: string | null, crm: string | null): string => {
+      if (!nome) return '—';
+      const partes = [t('historicoLaudos.doctorPrefix', { nome })];
+      if (crm) partes.push(t('historicoLaudos.crm', { crm }));
+      return partes.join(' — ');
+    },
+    [t],
+  );
   const [loading, setLoading] = useState(true);
   const [laudos, setLaudos] = useState<LaudoRow[]>([]);
   const [busca, setBusca] = useState('');
@@ -134,16 +146,16 @@ export default function HistoricoLaudosPage() {
     <div>
       <div className="mb-6 flex items-center gap-2 text-sm text-primary">
         <History className="h-4 w-4" />
-        <span>Histórico</span>
+        <span>{t('nav.history')}</span>
       </div>
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-heading text-2xl font-bold text-foreground">
-            Histórico de laudos
+            {t('historicoLaudos.title')}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Todos os laudos gerados, em ordem do mais recente para o mais antigo.
+            {t('historicoLaudos.subtitle')}
           </p>
         </div>
         <RealtimeIndicator status={rtStatus} />
@@ -153,13 +165,13 @@ export default function HistoricoLaudosPage() {
       <section className="mt-6 rounded-xl border border-border bg-card p-4">
         <div className="mb-3 flex items-center gap-2">
           <Filter className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-semibold text-foreground">Filtros</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t('common.filters')}</h2>
         </div>
 
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar por paciente..."
+            placeholder={t('historicoLaudos.searchPlaceholder')}
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="pl-9"
@@ -177,22 +189,24 @@ export default function HistoricoLaudosPage() {
           <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
             <FileText className="h-8 w-8 text-muted-foreground/60" />
             <p className="text-sm font-medium text-foreground">
-              {laudos.length === 0 ? 'Nenhum laudo ainda' : 'Nenhum laudo corresponde aos filtros'}
+              {laudos.length === 0
+                ? t('historicoLaudos.emptyTitle')
+                : t('historicoLaudos.noMatchTitle')}
             </p>
             <p className="text-xs text-muted-foreground">
               {laudos.length === 0
-                ? 'Os laudos gerados nas fichas das pacientes aparecerão aqui.'
-                : 'Ajuste os filtros para ver mais resultados.'}
+                ? t('historicoLaudos.emptyDesc')
+                : t('historicoLaudos.noMatchDesc')}
             </p>
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Paciente</TableHead>
-                <TableHead>Médico</TableHead>
-                <TableHead className="w-[200px]">Gerado em</TableHead>
-                <TableHead className="w-[200px] text-right">Ações</TableHead>
+                <TableHead>{t('management.patient')}</TableHead>
+                <TableHead>{t('historicoLaudos.colDoctor')}</TableHead>
+                <TableHead className="w-[200px]">{t('historicoLaudos.colGeneratedAt')}</TableHead>
+                <TableHead className="w-[200px] text-right">{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -204,14 +218,14 @@ export default function HistoricoLaudosPage() {
 
                 const handleDownload = () => {
                   if (!l.conteudo_laudo) {
-                    toast.error('Este laudo ainda não tem conteúdo para baixar.');
+                    toast.error(t('historicoLaudos.noContentToast'));
                     return;
                   }
                   downloadLaudoPdf({
                     pacienteNome: l.paciente_nome,
                     medicoNome: l.medico_nome,
                     medicoCrm: l.medico_crm,
-                    geradoEm: fmtData(l.created_at),
+                    geradoEm: fmtData(l.created_at, i18n.language, t('historicoLaudos.dateAt')),
                     conteudo: laudoConteudoToText(l.conteudo_laudo),
                   });
                 };
@@ -227,37 +241,37 @@ export default function HistoricoLaudosPage() {
                       {formatMedico(l.medico_nome, l.medico_crm)}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {fmtData(l.created_at)}
+                      {fmtData(l.created_at, i18n.language, t('historicoLaudos.dateAt'))}
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
                         {emProcessamento ? (
                           <Badge variant="secondary" className="gap-1">
                             <Loader2 className="h-3 w-3 animate-spin" />
-                            Gerando...
+                            {t('historicoLaudos.generating')}
                           </Badge>
                         ) : comErro ? (
-                          <Badge variant="destructive">Falha na geração</Badge>
+                          <Badge variant="destructive">{t('historicoLaudos.generationFailed')}</Badge>
                         ) : (
                           <>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => navigate(`/laudo/${l.id}`)}
-                              title="Visualizar laudo"
+                              title={t('historicoLaudos.viewReport')}
                             >
                               <Eye className="h-4 w-4" />
-                              <span className="sr-only md:not-sr-only md:ml-2">Ver</span>
+                              <span className="sr-only md:not-sr-only md:ml-2">{t('historicoLaudos.view')}</span>
                             </Button>
                             <Button
                               variant="default"
                               size="sm"
                               onClick={handleDownload}
                               disabled={!podeBaixar}
-                              title={podeBaixar ? 'Baixar PDF' : 'Laudo ainda não está pronto'}
+                              title={podeBaixar ? t('report.downloadPdf') : t('historicoLaudos.notReady')}
                             >
                               <Download className="h-4 w-4" />
-                              <span className="sr-only md:not-sr-only md:ml-2">PDF</span>
+                              <span className="sr-only md:not-sr-only md:ml-2">{t('historicoLaudos.pdf')}</span>
                             </Button>
                           </>
                         )}

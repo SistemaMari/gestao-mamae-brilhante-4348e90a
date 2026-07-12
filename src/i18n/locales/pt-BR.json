@@ -153,7 +153,67 @@
     "createFirst": "Cadastrar primeira paciente",
     "lastUpdate": "Última atualização",
     "status": "Status",
-    "viewMetrics": "Ver métricas"
+    "viewMetrics": "Ver métricas",
+    "returnBadge": {
+      "overdueLabel": "Vencido há {{count}} dia",
+      "overdueLabel_other": "Vencido há {{count}} dias",
+      "overdueTooltip": "O prazo de retorno ({{date}}) já passou há {{count}} dia. Este aviso não pode ser ocultado.",
+      "overdueTooltip_other": "O prazo de retorno ({{date}}) já passou há {{count}} dias. Este aviso não pode ser ocultado.",
+      "soonLabel": "Retorno próximo — até {{date}}",
+      "soonTooltip": "Falta {{count}} dia para o prazo de retorno ({{date}}).",
+      "soonTooltip_other": "Faltam {{count}} dias para o prazo de retorno ({{date}}).",
+      "onTrackLabel": "Em dia — até {{date}}",
+      "onTrackTooltip": "Próximo retorno até {{date}}."
+    },
+    "tips": {
+      "tip1": "Diagnóstico precoce de DMG salva vidas — da mãe e do bebê.",
+      "tip2": "Não permita DMG tardio: rastreie no tempo certo.",
+      "tip3": "DMG confirmado NÃO se repete exame — a conduta é seguir o protocolo.",
+      "tip4": "Rastreio universal entre 24 e 28 semanas. Sem exceção.",
+      "tip5": "Glicemia de jejum ≥ 92 mg/dL na 1ª consulta já é DMG.",
+      "tip6": "DMG tratado é desfecho materno-fetal preservado.",
+      "tip7": "TOTG 75g é o padrão-ouro entre 24-28 semanas; jejum, 1h e 2h.",
+      "tip8": "Insulinização em DMG segue com o obstetra — o endócrino apoia, não assume o pré-natal.",
+      "tip9": "Reclassificação pós-parto (6-12 semanas) é obrigatória em toda paciente com DMG."
+    },
+    "greetingMorning": "Bom dia",
+    "greetingAfternoon": "Boa tarde",
+    "greetingEvening": "Boa noite",
+    "welcomeFallback": "boas-vindas",
+    "birthdayTitle": "🎉 Feliz aniversário, {{name}}!",
+    "greetingTitle": "Olá, {{name}} ✨",
+    "birthdayMessage": "Que este novo ciclo seja repleto de conquistas e realizações. Toda a equipe MARI deseja um dia muito especial! 💜",
+    "greetingSubtitle": "{{greeting}}, tenha um atendimento tranquilo.",
+    "yourUnit": "Sua unidade",
+    "privateOffice": "Consultório particular",
+    "todayIs": "Hoje é",
+    "todaySubtitle": "Ótimo dia para cuidar das suas gestantes.",
+    "quickAction": "Ação rápida",
+    "registerNewPatient": "Cadastrar nova paciente",
+    "startNewFile": "Iniciar uma nova ficha clínica →",
+    "tipOfTheDay": "Dica do dia",
+    "testPlan": "Plano Teste",
+    "planName": "Plano {{name}}",
+    "managePlan": "Gerenciar plano",
+    "reportsUsed": "Laudos utilizados",
+    "searchPlaceholder": "Buscar paciente por nome...",
+    "showClosedFiles": "Mostrar fichas encerradas",
+    "showClosedFilesTooltip": "Inclui pacientes com status \"Resultado do parto\", \"DMG afastado\" e \"Associar endocrino\".",
+    "noPatientsHint": "Clique em \"+Nova Paciente\" para começar.",
+    "noResults": "Nenhuma paciente encontrada para \"{{search}}\".",
+    "attention": "Atenção",
+    "colPatient": "Paciente",
+    "colGaToday": "IG hoje",
+    "colLastConsultation": "Última consulta",
+    "colReturn": "Retorno",
+    "dmgPriorTooltip": "Histórico de DMG em gestação anterior.",
+    "overtTooltip": "Diabete pré-existente diagnosticado na gestação (OVERT DM). Conduta distinta do DMG gestacional.",
+    "noDate": "—",
+    "gaShort": "IG",
+    "lastShort": "Última",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "pageOf": "{{page}} de {{total}}"
   },
   "management": {
     "title": "Painel de Gestão",
@@ -192,7 +252,18 @@
     "jsonExported": "JSON exportado!",
     "pdfGenerated": "Relatório PDF gerado e arquivado.",
     "pdfArchiveFailed": "PDF baixado, mas falha ao arquivar: {{error}}",
-    "pdfError": "Erro ao gerar PDF"
+    "pdfError": "Erro ao gerar PDF",
+    "demoUnitName": "Hospital Demo MARI",
+    "panelLoadError": "Não foi possível carregar o painel. Tente novamente em instantes.",
+    "noUnitLinkedTitle": "Você ainda não está vinculado a uma unidade",
+    "noUnitLinkedDesc": "Sua conta de gestor está ativa, mas ainda não foi associada a nenhuma unidade. Aguarde a vinculação por um administrador.",
+    "unitFallback": "Unidade",
+    "pdfGeneratedTitle": "PDF gerado",
+    "pdfDoneIn": "Concluído em {{seconds}}s",
+    "pdfFailTitle": "Falha ao gerar PDF",
+    "unexpectedError": "Erro inesperado",
+    "unitPanelTitle": "Painel da unidade",
+    "unitPanelSubtitle": "Visão estratégica da operação clínica"
   },
   "fileStatus": {
     "aguardando_gj": "Aguardando GJ",
@@ -267,7 +338,98 @@
     "country": "País",
     "city": "Cidade",
     "save": "Salvar alterações",
-    "saved": "Perfil atualizado"
+    "saved": "Perfil atualizado",
+    "institutionalManaged": "Os dados do seu perfil institucional são gerenciados pela sua unidade.",
+    "crmShort": "CRM",
+    "customizeSpace": "Personalize seu espaço.",
+    "institutionalLink": "Vínculo institucional",
+    "unit": "Unidade",
+    "managedByUnitManager": "Gerenciado pelo(a) Gestor(a) da unidade",
+    "unitChangeNote": "A troca de unidade é feita pela pessoa gestora responsável.",
+    "sectionProfile": "Perfil",
+    "avatarAlt": "Avatar",
+    "changePhoto": "Trocar foto",
+    "removePhoto": "Remover foto",
+    "photoHint": "PNG ou JPG, até 2 MB.",
+    "requestChange": "Solicitar alteração",
+    "phoneWhatsapp": "Telefone / WhatsApp",
+    "birthdate": "Data de aniversário",
+    "selectPlaceholder": "Selecione...",
+    "council": "Conselho",
+    "councilNumber": "Número",
+    "uf": "UF",
+    "ufPlaceholder": "UF",
+    "changePassword": "Alterar senha",
+    "currentPassword": "Senha atual",
+    "currentPasswordPlaceholder": "Sua senha atual",
+    "newPassword": "Nova senha",
+    "newPasswordPlaceholder": "Digite a nova senha",
+    "confirmNewPassword": "Confirmar nova senha",
+    "repeatNewPasswordPlaceholder": "Repita a nova senha",
+    "saveNewPassword": "Salvar nova senha",
+    "sendFeedback": "Enviar feedback",
+    "feedbackType": "Tipo",
+    "feedbackTypes": {
+      "sugestao": "Sugestão",
+      "elogio": "Elogio",
+      "erro": "Reportar erro",
+      "duvida": "Dúvida"
+    },
+    "message": "Mensagem",
+    "feedbackPlaceholder": "Conta pra gente...",
+    "attachScreenshot": "Anexar print",
+    "testimonial": "Depoimento",
+    "testimonialIntro": "Está gostando do MARI? Deixe seu depoimento — isso nos ajuda muito 💜",
+    "starsAria": "{{count}} estrelas",
+    "testimonialPlaceholder": "Conte como o MARI tem ajudado na sua rotina...",
+    "sendRating": "Enviar avaliação",
+    "dangerZone": "Zona de perigo",
+    "deleteAccountWarning": "Ao excluir sua conta, seus dados pessoais serão marcados para remoção conforme a LGPD. Esta ação não pode ser desfeita.",
+    "confirmWithPassword": "Confirme com sua senha",
+    "deleteMyAccount": "Excluir minha conta",
+    "emailChangeTitle": "Solicitar alteração de e-mail",
+    "emailChangeDescBefore": "Por segurança, a troca de e-mail é feita pela nossa equipe. Envie um pedido para",
+    "emailChangeDescAfter": "informando o novo e-mail desejado.",
+    "understood": "Entendi",
+    "removePhotoConfirmTitle": "Remover foto de perfil?",
+    "removePhotoConfirmDesc": "Sua foto atual será excluída. Você poderá enviar uma nova a qualquer momento.",
+    "notFound": "Perfil não encontrado.",
+    "errors": {
+      "imageMaxSize": "A imagem deve ter no máximo 2 MB.",
+      "imageFormat": "Envie uma imagem PNG ou JPG.",
+      "imageUpload": "Falha ao enviar imagem.",
+      "photoSave": "Não foi possível salvar a foto no perfil.",
+      "photoRemove": "Erro ao remover foto.",
+      "nameRequired": "Informe seu nome.",
+      "saveGeneric": "Erro ao salvar.",
+      "specialtyRequired": "Selecione a especialidade.",
+      "councilRequired": "Preencha o conselho e a UF.",
+      "saveProfessional": "Erro ao salvar dados profissionais.",
+      "currentPasswordRequired": "Informe sua senha atual.",
+      "bothFieldsRequired": "Preencha os dois campos.",
+      "passwordsDontMatch": "As senhas não coincidem.",
+      "invalidSession": "Sessão inválida.",
+      "currentPasswordWrong": "Senha atual incorreta.",
+      "passwordChange": "Erro ao trocar senha.",
+      "messageRequired": "Escreva sua mensagem.",
+      "attachmentMaxSize": "Anexo deve ter no máximo 3 MB.",
+      "feedbackSend": "Erro ao enviar feedback.",
+      "ratingRequired": "Escolha uma nota de 1 a 5 estrelas.",
+      "testimonialSend": "Erro ao enviar depoimento.",
+      "passwordConfirmRequired": "Digite sua senha para confirmar.",
+      "passwordWrong": "Senha incorreta.",
+      "deleteProcess": "Erro ao processar exclusão."
+    },
+    "toasts": {
+      "photoUpdated": "Foto atualizada!",
+      "photoRemoved": "Foto removida.",
+      "dataUpdated": "Dados atualizados!",
+      "professionalUpdated": "Dados profissionais atualizados!",
+      "passwordUpdated": "Senha atualizada!",
+      "feedbackThanks": "Obrigada pelo seu feedback! 💜",
+      "testimonialThanks": "Depoimento enviado! Obrigada 💜",
+      "accountDeleted": "Conta marcada para exclusão. Você será desconectado."
+    }
   },
   "admin": {
     "title": "Administração do sistema",
@@ -2120,5 +2282,565 @@
       "gestaoUnidade": "Gestão da Unidade",
       "demoNome": "Dra. Demonstração"
     }
+  },
+  "fichaPaciente": {
+    "status": {
+      "aguardando_gj": "Aguardando GJ",
+      "aguardando_gtt": "Aguardando GTT 75g",
+      "dmg_afastado": "DMG afastado",
+      "dmg_confirmado": "DMG confirmado",
+      "resultado_parto": "Resultado do parto",
+      "encaminhada_endocrino": "Associar endocrino",
+      "encerrada_insulinizacao": "Encerrada por insulinização"
+    },
+    "displayName": {
+      "registroPartoEvento": "REGISTRO DO PARTO",
+      "casoNovoPrefix": "CASO NOVO",
+      "retornoPrefix": "RETORNO {{index}}",
+      "consulta1": "{{prefix}} — Hora de rastrear o DMG (glicemia plasmática de jejum)",
+      "retorno1": "{{prefix}} — Hora de avaliar a Glicemia de Jejum",
+      "gtt": "{{prefix}} — GTT 75g (24-28 semanas)",
+      "fichaACPrimeiro": "{{prefix}} — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo",
+      "fichaACAcompanhamento": "{{prefix}} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × {{dias}} dias)",
+      "fichaBDPrimeiro": "{{prefix}} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo",
+      "fichaBDAcompanhamento": "{{prefix}} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × {{dias}} dias)",
+      "fichaE": "{{prefix}} — Perfil de 6 pontos (sem insulina) × 7 a 10 dias",
+      "registroParto": "{{prefix}} — Registro do parto"
+    },
+    "nextStep": {
+      "retorno1": "+ RETORNO 1 — Hora de avaliar a Glicemia de Jejum",
+      "gtt": "+ RETORNO GTT 75g (24-28 semanas)",
+      "fichaE": "+ Retorno — Perfil de 6 pontos (sem insulina) × 7 a 10 dias",
+      "fichaACPrimeiro": "+ RETORNO {{num}} — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo",
+      "fichaACAcompanhamento": "+ RETORNO {{num}} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × {{dias}} dias)",
+      "fichaBDPrimeiro": "+ RETORNO {{num}} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo",
+      "fichaBDAcompanhamento": "+ RETORNO {{num}} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × {{dias}} dias)"
+    },
+    "reteste": {
+      "origemParto": "a partir da data do parto",
+      "origemAborto": "a partir da data do aborto",
+      "origemDpp": "a partir da DPP estimada"
+    },
+    "toast": {
+      "encerrarError": "Erro ao encerrar acompanhamento. Nada foi gravado.",
+      "encerrarSuccess": "Acompanhamento encerrado.",
+      "whatsappInvalid": "WhatsApp inválido.",
+      "dadosAtualizados": "Dados atualizados com sucesso.",
+      "atualizarError": "Erro ao atualizar dados.",
+      "proximoRetornoNaoImplementado": "Próximo retorno ainda não implementado."
+    },
+    "notFound": "Paciente não encontrada.",
+    "backToDashboard": "Voltar ao dashboard",
+    "fichasDaUnidade": "Fichas da unidade",
+    "modoVisualizacao": "Modo visualização",
+    "dmgAnteriorBanner": "ATENÇÃO — Histórico de DMG em gestação anterior. Fator de risco elevado para recorrência. Monitorar com atenção redobrada.",
+    "nomeCompletoPlaceholder": "Nome completo",
+    "anos": "{{count}} anos",
+    "encerrarAcompanhamento": "Encerrar acompanhamento",
+    "proximaFichaGtt": "GTT 75g entre {{inicio}} e {{fim}}.",
+    "form": {
+      "dataNascimento": "Data de nascimento",
+      "numeroIdentificacao": "Número de identificação",
+      "opcionalPlaceholder": "Opcional",
+      "whatsappOpcional": "WhatsApp (opcional)",
+      "dataCasoNovo": "Data da caso novo",
+      "dum": "DUM (Data da última menstruação)",
+      "dumPlaceholder": "Deixe em branco se desconhecida",
+      "dumHint": "Atualizar a DUM recalcula automaticamente as IGs e o card de Referência de IG.",
+      "dmgAnterior": "DMG em gestação anterior",
+      "observacoesClinicas": "Observações clínicas",
+      "salvarAlteracoes": "Salvar alterações"
+    },
+    "info": {
+      "dum": "DUM:",
+      "dataCasoNovo": "Data da caso novo:",
+      "igCasoNovo": "IG no caso novo:",
+      "dadosIdentificacao": "Dados de identificação",
+      "nascimento": "Nascimento:",
+      "identificacao": "Identificação:",
+      "whatsapp": "WhatsApp:",
+      "observacoesClinicas": "Observações clínicas:"
+    },
+    "gttBanner": {
+      "ultrapassadaTitle": "ATENÇÃO: Janela do GTT 75g ultrapassada. Solicitar imediatamente.",
+      "ultrapassadaDesc": "A janela ideal (24-28 sem) já foi ultrapassada. Realizar o quanto antes.",
+      "naJanelaTitle": "O GTT 75g já está na janela — solicitar o mais breve possível.",
+      "naJanelaDesc": "Janela: até 28 semanas (limite: {{limite}}).",
+      "normalTitlePrefix": "GTT 75g deverá ser realizado entre",
+      "normalTitleConnector": "e",
+      "normalDesc": "O mais próximo possível da 24ª semana."
+    },
+    "bannerClinico": {
+      "diagnosticoTardio": "Diagnóstico tardio (GTT após 28 semanas). Início imediato do tratamento é crítico.",
+      "acompanhamentoAmpliado": "Acompanhamento ampliado para perfil de 6 pontos sem insulina por controle adequado com falha de adesão. Memória do glicosímetro confirma o controle."
+    },
+    "historico": {
+      "titulo": "Histórico de consultas ({{count}})",
+      "periodoPerfil": "Período do perfil: {{inicio}} a {{fim}}",
+      "igLabel": "IG:",
+      "semObservacoes": "Sem observações.",
+      "editarValores": "Editar valores"
+    },
+    "placeholderBloco": {
+      "titulo": "Conduta clínica aguardando decisão",
+      "mensagem": "Esta Ficha A foi registrada antes da implantação do motor de decisão ou a decisão ainda não foi calculada. Reabra a ficha e salve novamente para gerar conduta e doses."
+    }
+  },
+  "dashboardMetricas": {
+    "title": "Meu Dashboard",
+    "dateRangeSep": "a",
+    "exportPdf": "Exportar PDF",
+    "overdueReturns": "Retornos vencidos: {{count}}",
+    "reportsGenerated": "Laudos gerados: {{usados}}/{{limite}}",
+    "pctOfTotal": "{{pct}}% do total",
+    "pctOfDmg": "{{pct}}% dos DMG",
+    "empty": {
+      "title": "Seu dashboard aparecerá aqui",
+      "desc": "Cadastre pacientes e registre consultas para visualizar suas métricas clínicas."
+    },
+    "sections": {
+      "overview": "Visão Geral",
+      "diagnosis": "Diagnóstico",
+      "treatment": "Tratamento",
+      "outcomes": "Desfechos"
+    },
+    "overview": {
+      "awaitingGj": "Aguardando GJ",
+      "awaitingGtt": "Aguardando GTT 75g",
+      "dmgConfirmed": "DMG confirmado",
+      "dmgRuledOut": "DMG afastado",
+      "deliveryResult": "Resultado do parto",
+      "associateEndo": "Associar endocrino"
+    },
+    "diagnosis": {
+      "totalPatients": "Total de pacientes",
+      "dmgConfirmedGj": "DMG confirmado na GJ",
+      "dmgConfirmedGtt": "DMG confirmado no GTT 75g",
+      "dmgRuledOutGtt": "DMG afastado no GTT 75g"
+    },
+    "pie": {
+      "title": "Momento do diagnóstico",
+      "diagGj": "Diagnóstico na GJ",
+      "gttNormal": "GTT 75g (24-28 sem)",
+      "gttTardio": "GTT 75g tardio (>29 sem)"
+    },
+    "treatment": {
+      "dietOnly": "Controle só com dieta",
+      "withInsulin": "Pacientes com insulina",
+      "withEndo": "Associadas ao endocrino"
+    },
+    "outcomes": {
+      "noDeliveries": "Nenhum registro de parto no período selecionado.",
+      "deliveriesRecorded": "Partos registrados"
+    },
+    "chart": {
+      "title": "Evolução mensal",
+      "newPatients": "Novas pacientes",
+      "dmgConfirmed": "DMG confirmado"
+    },
+    "pdf": {
+      "title": "Dashboard Clínico — Dr(a). {{nome}}",
+      "period": "Período: {{inicio}} a {{fim}}",
+      "generatedOn": "Gerado em: {{data}}",
+      "generatedBy": "Gerado por MARI — {{data}}"
+    }
+  },
+  "gestaoEquipe": {
+    "title": "Gerenciar Equipe",
+    "subtitle": "Gerencie os profissionais da sua unidade",
+    "inviteProfessional": "Convidar profissional",
+    "cards": {
+      "ativos": {
+        "titulo": "Profissionais ativos",
+        "sublabel": "incluindo você",
+        "tooltip": "Total de profissionais ativos vinculados à sua unidade, incluindo você. Profissionais com acesso revogado não são contabilizados."
+      },
+      "pendentes": {
+        "titulo": "Convites pendentes",
+        "sublabel": "aguardando aceite",
+        "tooltip": "Convites enviados que ainda não foram aceitos pelo profissional convidado e estão dentro do prazo de validade."
+      },
+      "expirados": {
+        "titulo": "Convites expirados",
+        "sublabel": "reenviar disponível",
+        "tooltip": "Convites cujo prazo de aceitação já expirou. Você pode reenviar o convite a partir da lista de convites pendentes."
+      },
+      "laudos": {
+        "titulo": "Laudos gerados pela equipe",
+        "sublabel": "total histórico",
+        "tooltip": "Total de laudos de DMG já emitidos pela equipe da sua unidade desde o início. Para laudos recentes, veja o painel principal."
+      }
+    },
+    "badge": {
+      "ativo": "Ativo",
+      "convitePendente": "Convite pendente",
+      "conviteExpirado": "Convite expirado"
+    },
+    "teamTable": {
+      "heading": "Equipe da unidade",
+      "colNameEmail": "Nome / E-mail",
+      "colCrm": "CRM/COREN",
+      "colSpecialty": "Especialidade",
+      "colJoinDate": "Data de adesão"
+    },
+    "empty": {
+      "title": "Nenhum profissional na equipe",
+      "description": "Convide profissionais para começarem a trabalhar na sua unidade."
+    },
+    "actions": {
+      "resend": "Reenviar",
+      "newInvite": "Novo convite"
+    },
+    "inviteModal": {
+      "title": "Convidar profissional",
+      "titleWithUnit": "Convidar profissional para {{unidade}}",
+      "description": "Informe o e-mail do profissional para enviar o convite.",
+      "emailLabel": "E-mail do profissional",
+      "emailPlaceholder": "profissional@email.com",
+      "uniqueEmailInfo": "Cada e-mail só pode ter um perfil no sistema. Se a pessoa já usa a MARI em outro contexto — como administrador, gestor de outra unidade, gestor geral, profissional de outra unidade institucional, ou profissional de consultório particular — ela precisará usar um e-mail diferente para esta unidade.",
+      "sendInvite": "Enviar convite"
+    },
+    "removeDialog": {
+      "title": "Remover profissional",
+      "descBefore": "Tem certeza que deseja remover",
+      "descAfter": "da unidade? As fichas criadas por ele permanecem acessíveis.",
+      "confirm": "Sim, remover"
+    },
+    "status": {
+      "jaVinculado": "Este profissional já faz parte da unidade.",
+      "emailEmUsoAdmin": "Este e-mail está cadastrado como administrador da MARI. Cada e-mail só pode ter um perfil — peça à pessoa que use outro e-mail.",
+      "emailEmUsoGestorUnidade": "Este e-mail está cadastrado como gestor de outra unidade. Cada e-mail só pode ter um perfil — peça à pessoa que use outro e-mail.",
+      "emailEmUsoGestorGeral": "Este e-mail está cadastrado como gestor geral. Cada e-mail só pode ter um perfil — peça à pessoa que use outro e-mail.",
+      "emailEmUsoOutraUnidade": "Este e-mail já é profissional de outra unidade. No MVP atual, um profissional não pode estar em duas unidades simultaneamente — peça à pessoa que use outro e-mail.",
+      "emailEmUsoConsultorio": "Este e-mail já tem conta de consultório particular (assinatura Asaas individual). Cada e-mail pertence a um único modelo no MARI. Peça à pessoa que use outro e-mail para vincular à sua unidade.",
+      "emailEmUsoOutro": "Este e-mail já está em uso no sistema. Use outro e-mail.",
+      "convitePendenteReenviar": "Já existe um convite pendente para este e-mail. Deseja reenviar?"
+    },
+    "toast": {
+      "conviteEnviado": "Convite enviado para {{email}}!",
+      "conviteReenviado": "Convite reenviado para {{email}}!",
+      "erroEnviarConvite": "Erro ao enviar convite.",
+      "erroReenviarConvite": "Erro ao reenviar convite.",
+      "erroRemoverProfissional": "Erro ao remover profissional."
+    }
+  },
+  "previewHub": {
+    "badge": "Vitrine liberada sem login",
+    "title": "Veja tudo o que está sendo criado",
+    "subtitle": "Agora o preview abre direto nesta vitrine pública para você acompanhar a construção antes dos testes reais com autenticação.",
+    "goToRealLogin": "Ir para o login real",
+    "openDirectLink": "Abrir link direto da vitrine",
+    "cards": {
+      "completarPerfil": {
+        "title": "Completar perfil",
+        "description": "Veja e edite visualmente o formulário real sem bloqueio de login."
+      },
+      "recuperarSenha": {
+        "title": "Recuperar senha",
+        "description": "Tela de solicitação de recuperação de senha por e-mail."
+      },
+      "planos": {
+        "title": "Planos",
+        "description": "Abra a página de planos dentro do shell do sistema, sem autenticação."
+      },
+      "dashboard": {
+        "title": "Minhas Pacientes",
+        "description": "Gerencie suas pacientes, acompanhe status e retornos."
+      },
+      "perfil": {
+        "title": "Meu Perfil",
+        "description": "Veja a área de perfil no shell do sistema com dados fictícios."
+      },
+      "gestao": {
+        "title": "Dashboard de gestão",
+        "description": "Abra a área institucional em construção sem depender de perfil."
+      },
+      "admin": {
+        "title": "Dashboard admin",
+        "description": "Confira a tela administrativa atual sem passar pelo login."
+      },
+      "consolidar": {
+        "title": "Consolidação",
+        "description": "Veja a área de consolidação em construção em um clique."
+      },
+      "equipe": {
+        "title": "Gerenciar Equipe",
+        "description": "Prévia funcional da tela do gestor para convidar e gerenciar profissionais."
+      },
+      "cadastroConvite": {
+        "title": "Cadastro via Convite",
+        "description": "Prévia funcional do formulário público recebido por convite."
+      },
+      "fichaCarimbada": {
+        "title": "Ficha carimbada (demo)",
+        "description": "Visualize uma ficha de paciente com o carimbo CFM do profissional atendente."
+      }
+    },
+    "completarPerfil": {
+      "saveToast": "Prévia visual liberada. O salvamento real fica para a etapa de testes.",
+      "badge": "Prévia visual do formulário real",
+      "title": "Complete seu perfil profissional",
+      "subtitle": "Precisamos de algumas informações para configurar sua conta.",
+      "submitLabel": "Salvar e continuar",
+      "backToShowcase": "Voltar para a vitrine"
+    },
+    "equipe": {
+      "statusAtivo": "Ativo",
+      "statusPendente": "Convite pendente",
+      "statusExpirado": "Convite expirado",
+      "invalidEmail": "Digite um e-mail válido para a prévia.",
+      "inviteSent": "Convite simulado enviado na vitrine.",
+      "removed": "Profissional removido da lista de prévia.",
+      "inviteResent": "Convite simulado reenviado.",
+      "title": "Gerenciar Equipe",
+      "subtitle": "Prévia funcional da área do gestor para convidar, reenviar e remover profissionais.",
+      "sendInvite": "Enviar convite",
+      "activeProfessionals": "Profissionais ativos",
+      "pendingInvites": "Convites pendentes",
+      "expiredInvites": "Convites expirados",
+      "inviteProfessional": "Convidar profissional",
+      "unitTeam": "Equipe da unidade",
+      "removeFromUnit": "Remover da unidade",
+      "resendInvite": "Reenviar convite",
+      "generateNewInvite": "Gerar novo convite"
+    },
+    "cadastroConvite": {
+      "fillAll": "Preencha todos os campos da prévia.",
+      "passwordMinLength": "A senha precisa ter no mínimo 6 caracteres.",
+      "passwordsDontMatch": "As senhas não coincidem.",
+      "successToast": "Cadastro simulado com sucesso na vitrine.",
+      "accountCreated": "Conta criada com sucesso!",
+      "redirecting": "Redirecionando para o login...",
+      "goToLogin": "Ir para o login",
+      "title": "Você foi convidado(a) para a Clínica Materna Exemplo",
+      "subtitle": "Preencha seus dados para acessar o sistema.",
+      "emailLabel": "E-mail",
+      "fullNameLabel": "Nome completo *",
+      "passwordLabel": "Senha *",
+      "confirmPasswordLabel": "Confirmar senha *",
+      "crmLabel": "CRM / COREN *",
+      "specialtyLabel": "Especialidade *",
+      "specialtyPlaceholder": "Selecione sua especialidade",
+      "languageLabel": "Idioma preferido",
+      "createAccount": "Criar minha conta"
+    }
+  },
+  "checkout": {
+    "errNomeCurto": "Nome muito curto",
+    "errEmailInvalido": "E-mail inválido",
+    "errCpfInvalido": "CPF inválido",
+    "planoNaoEncontrado": "Plano não encontrado.",
+    "verPlanos": "Ver planos",
+    "preenchaCartao": "Preencha todos os dados do cartão.",
+    "erroProcessar": "Erro ao processar pagamento. Tente novamente.",
+    "copiado": "Copiado!",
+    "checkoutSeguro": "Checkout seguro",
+    "planoSelecionado": "Plano selecionado",
+    "laudosPorMes": "{{count}} laudos/mês",
+    "stepDados": "Seus dados",
+    "stepPagamento": "Pagamento",
+    "stepConfirmacao": "Confirmação",
+    "nomeCompleto": "Nome completo",
+    "nomePlaceholder": "Dr(a). Maria Silva",
+    "cpf": "CPF",
+    "celular": "Celular",
+    "continuar": "Continuar",
+    "formaPagamento": "Forma de pagamento",
+    "pix": "Pix",
+    "pixSub": "Aprovação imediata",
+    "boleto": "Boleto",
+    "boletoSub": "Até 3 dias úteis",
+    "cartao": "Cartão",
+    "cartaoSub": "Crédito à vista",
+    "numeroCartao": "Número do cartão",
+    "validade": "Validade",
+    "validadePlaceholder": "MM/AA",
+    "cvv": "CVV",
+    "cep": "CEP",
+    "numero": "Número",
+    "numeroEndereco": "(endereço)",
+    "aposConfirmarPre": "Após confirmar o pagamento, você receberá um",
+    "aposConfirmarStrong": "e-mail para definir sua senha",
+    "aposConfirmarPos": "e acessar o sistema.",
+    "processando": "Processando…",
+    "gerarQrCodePix": "Gerar QR Code Pix",
+    "gerarBoleto": "Gerar Boleto",
+    "pagarComCartao": "Pagar com Cartão",
+    "qrCodePixGerado": "QR Code Pix gerado!",
+    "boletoGerado": "Boleto gerado!",
+    "pagamentoConfirmado": "Pagamento confirmado!",
+    "assinaturaAtiva": "Assinatura ativa",
+    "planoPrefix": "Plano",
+    "assinadoSucesso": "assinado com sucesso. A cobrança no cartão será processada em breve.",
+    "qrCodePixAlt": "QR Code Pix",
+    "pixCopiaCola": "Pix Copia e Cola",
+    "linhaDigitavel": "Linha Digitável",
+    "vencimento": "Vencimento: {{data}}",
+    "abrirBoletoPdf": "Abrir boleto PDF",
+    "oQueAconteceDepois": "O que acontece depois?",
+    "aposConfirmacaoPre": "Após a confirmação do pagamento, você receberá um",
+    "aposConfirmacaoStrong": "e-mail",
+    "aposConfirmacaoPos": "com o link para criar sua senha e acessar o MARI."
+  },
+  "baseConhecimento": {
+    "title": "Base de Conhecimento",
+    "subtitle": "Módulos clínicos consultados pela Mari ao gerar laudos",
+    "adminBadge": "Admin",
+    "loadError": "Erro ao carregar arquivos",
+    "uploadError": "Erro ao enviar {{name}}: {{message}}",
+    "uploadSuccess": "{{count}} arquivo(s) enviado(s) com sucesso",
+    "removeConfirm": "Remover \"{{name}}\"?",
+    "removeError": "Erro ao remover arquivo",
+    "removed": "Arquivo removido",
+    "status": {
+      "readyTitle": "Sistema pronto para gerar laudos",
+      "readyDesc": "Todos os {{count}} arquivos obrigatórios estão presentes. A Mari pode atender aos 9 cenários clínicos.",
+      "blockedTitle": "Geração de laudos BLOQUEADA",
+      "blockedDescBefore": "O ",
+      "blockedDescAfter": " é obrigatório para QUALQUER laudo. Faça o upload antes de prosseguir.",
+      "partialTitle": "{{missing}} arquivo(s) faltando — {{scenarios}} cenário(s) com qualidade reduzida",
+      "partialDesc": "A Mari ainda gera laudos com os arquivos disponíveis, mas pula trechos que dependem de módulos ausentes.",
+      "affectedScenarios": "Cenários afetados:"
+    },
+    "upload": {
+      "title": "Envie os PDFs com os nomes EXATOS abaixo",
+      "hint": "Você pode selecionar vários arquivos de uma vez. Reenvio sobrescreve a versão anterior.",
+      "uploading": "Enviando...",
+      "selectFiles": "Selecionar arquivos"
+    },
+    "checklist": {
+      "title": "Checklist v5.2 — Arquivos esperados",
+      "uploadedOn": "enviado em {{date}}",
+      "affectedScenarios": "Cenários afetados: {{scenarios}}"
+    },
+    "extras": {
+      "title": "Outros arquivos no bucket ({{count}})",
+      "note": "Não consultados pela Mari (nome fora do checklist v5.2)"
+    },
+    "files": {
+      "protocolo": {
+        "rotulo": "Protocolo Brasileiro DMG 2016",
+        "descricao": "Fonte exclusiva do Bloco 2 (Justificativa Científica). Sem ele NENHUM laudo é gerado."
+      },
+      "m2": {
+        "rotulo": "Módulo 2 — Magnitude e riscos",
+        "descricao": "Epidemiologia, complicações imediatas, riscos a longo prazo."
+      },
+      "m3": {
+        "rotulo": "Módulo 3 — Fisiopatologia",
+        "descricao": "Hiperinsulinismo fetal, cascata neonatal, perfis Lancet."
+      },
+      "m4": {
+        "rotulo": "Módulo 4 — Classificação",
+        "descricao": "Critérios diagnósticos e classificação clínica."
+      },
+      "m6": {
+        "rotulo": "Módulo 6 — Tratamento (Aula 2)",
+        "descricao": "Aula 2: dieta detalhada, atividade física, perfil glicêmico. CRÍTICO para profundidade."
+      },
+      "m7": {
+        "rotulo": "Módulo 7 — Insulinoterapia",
+        "descricao": "Critérios de insulinização, NPH, metformina como exceção."
+      },
+      "m9": {
+        "rotulo": "Módulo 9 — Acompanhamento pré-natal",
+        "descricao": "Frequência de retornos, AAS+cálcio, apoio multiprofissional."
+      },
+      "m10": {
+        "rotulo": "Módulo 10 — Vigilância fetal",
+        "descricao": "A1: ≥34 sem; A2: ≥32 sem; OVERT DM: ≥28 sem."
+      },
+      "m12": {
+        "rotulo": "Módulo 12 — Pós-parto",
+        "descricao": "Suspensão de insulina, TOTG 6-12 sem, aleitamento."
+      },
+      "m13": {
+        "rotulo": "Módulo 13 — Follow-up de longo prazo",
+        "descricao": "Janela de oportunidade, rastreamento DM2, MANTRA FINAL."
+      }
+    }
+  },
+  "historicoLaudos": {
+    "title": "Histórico de laudos",
+    "subtitle": "Todos os laudos gerados, em ordem do mais recente para o mais antigo.",
+    "searchPlaceholder": "Buscar por paciente...",
+    "emptyTitle": "Nenhum laudo ainda",
+    "noMatchTitle": "Nenhum laudo corresponde aos filtros",
+    "emptyDesc": "Os laudos gerados nas fichas das pacientes aparecerão aqui.",
+    "noMatchDesc": "Ajuste os filtros para ver mais resultados.",
+    "colDoctor": "Médico",
+    "colGeneratedAt": "Gerado em",
+    "doctorPrefix": "Dr(a). {{nome}}",
+    "crm": "CRM {{crm}}",
+    "dateAt": "às",
+    "noContentToast": "Este laudo ainda não tem conteúdo para baixar.",
+    "generating": "Gerando...",
+    "generationFailed": "Falha na geração",
+    "viewReport": "Visualizar laudo",
+    "view": "Ver",
+    "notReady": "Laudo ainda não está pronto",
+    "pdf": "PDF"
+  },
+  "tutorial": {
+    "title": "Tutorial",
+    "titleConsultorio": "Tutorial — Consultório",
+    "titleInstitucional": "Tutorial — Institucional",
+    "titleGestor": "Tutorial — Gestor",
+    "titleGestorGeral": "Tutorial — Gestor Geral",
+    "titleAdmin": "Tutorial — Administrador",
+    "subtitle": "Vídeos de capacitação para você aproveitar a MARI ao máximo.",
+    "loadError": "Não foi possível carregar os vídeos.",
+    "comingSoonTitle": "Vídeos em breve",
+    "comingSoonDesc": "Os tutoriais deste perfil ainda estão sendo preparados. Volte em breve!",
+    "watchAria": "Assistir: {{titulo}}",
+    "watch": "Assistir",
+    "comingSoon": "Em breve",
+    "videoUnavailable": "Vídeo indisponível."
+  },
+  "laudoViewer": {
+    "datePattern": "dd/MM/yyyy 'às' HH:mm",
+    "notFound": "Laudo não encontrado ou sem acesso.",
+    "unavailable": "Laudo indisponível",
+    "backToHistory": "Voltar ao histórico",
+    "reportsHistory": "Histórico de laudos",
+    "print": "Imprimir",
+    "downloadPdf": "Baixar PDF",
+    "headerTitle": "Laudo de apoio diagnóstico — DMG",
+    "patientLabel": "Paciente:",
+    "scenario": "Cenário {{cenario}}",
+    "generatedOn": "Gerado em {{data}}",
+    "noContent": "Este laudo ainda não possui conteúdo gerado."
+  },
+  "meusCursos": {
+    "title": "Meus Cursos",
+    "subtitle": "Conteúdos exclusivos incluídos no seu plano para aprofundar sua prática em DMG.",
+    "linkSoon": "Link em breve. Configurando acesso ao curso.",
+    "loadError": "Não foi possível carregar seus cursos.",
+    "noActivePlan": "Você ainda não tem plano ativo.",
+    "viewPlans": "Ver planos",
+    "noCourses": "Nenhum curso disponível no momento.",
+    "unlockedByPlan": "✓ Liberado pelo seu plano",
+    "availableInPlan": "Disponível no plano {{plano}}",
+    "accessCourse": "Acessar curso →",
+    "upgrade": "Fazer upgrade"
+  },
+  "planos": {
+    "chooseYourPlan": "Escolha seu plano",
+    "chooseSubtitle": "Comece com o plano ideal para sua prática e evolua quando precisar",
+    "perMonth": "/mês",
+    "supportEmail": "Suporte por e-mail",
+    "supportPriority": "Suporte prioritário",
+    "loadError": "Não foi possível carregar os planos. Tente recarregar a página.",
+    "noPlans": "Nenhum plano disponível no momento.",
+    "subscribeTo": "Assinar {{plano}}",
+    "currentPlan": "Plano atual",
+    "upgrade": "Fazer upgrade",
+    "downgrade": "Fazer downgrade",
+    "unlimitedPatients": "Pacientes ilimitados",
+    "upToPatients": "Até {{count}} pacientes",
+    "yourCurrentPlan": "Seu plano atual",
+    "mostPopular": "Mais popular",
+    "upToReportsPerMonth": "Até {{count}} laudos por mês",
+    "launchPricingNote": "Preços de lançamento. Valores podem ser ajustados após o período promocional."
   }
 }

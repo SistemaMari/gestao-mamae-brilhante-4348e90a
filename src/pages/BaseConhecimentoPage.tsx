@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import AppSidebar from '@/components/AppSidebar';
 import { ShieldCheck, Upload, Trash2, FileText, File, Loader2, CheckCircle2, AlertCircle, Info } from 'lucide-react';
@@ -37,7 +38,22 @@ const ARQUIVOS_ESPERADOS: ExpectedFile[] = [
 
 const TODOS_CENARIOS = ['1','2','3','4','5','6','6B','7','8'];
 
+// Slug de chave i18n derivado do nome do arquivo (para rótulo/descrição traduzidos)
+const FILE_KEY: Record<string, string> = {
+  'PROTOCOLO_DMG_Brasil_2016.pdf': 'protocolo',
+  'M2.pdf': 'm2',
+  'M3.pdf': 'm3',
+  'M4.pdf': 'm4',
+  'M6.pdf': 'm6',
+  'M7.pdf': 'm7',
+  'M9.pdf': 'm9',
+  'M10.pdf': 'm10',
+  'M12.pdf': 'm12',
+  'M13.pdf': 'm13',
+};
+
 export default function BaseConhecimentoPage() {
+  const { t, i18n } = useTranslation();
   const [files, setFiles] = useState<StorageFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -49,7 +65,7 @@ export default function BaseConhecimentoPage() {
       .from('base-conhecimento')
       .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
     if (error) {
-      toast.error('Erro ao carregar arquivos');
+      toast.error(t('baseConhecimento.loadError'));
       console.error(error);
     }
     setFiles((data as StorageFile[] | null) ?? []);
@@ -92,14 +108,14 @@ export default function BaseConhecimentoPage() {
         .from('base-conhecimento')
         .upload(file.name, file, { upsert: true, contentType: file.type || 'application/pdf' });
       if (error) {
-        toast.error(`Erro ao enviar ${file.name}: ${error.message}`);
+        toast.error(t('baseConhecimento.uploadError', { name: file.name, message: error.message }));
       } else {
         successCount++;
       }
     }
 
     if (successCount > 0) {
-      toast.success(`${successCount} arquivo(s) enviado(s) com sucesso`);
+      toast.success(t('baseConhecimento.uploadSuccess', { count: successCount }));
     }
     setUploading(false);
     if (fileRef.current) fileRef.current.value = '';
@@ -107,14 +123,14 @@ export default function BaseConhecimentoPage() {
   };
 
   const handleDelete = async (fileName: string) => {
-    if (!confirm(`Remover "${fileName}"?`)) return;
+    if (!confirm(t('baseConhecimento.removeConfirm', { name: fileName }))) return;
     const { error } = await supabase.storage
       .from('base-conhecimento')
       .remove([fileName]);
     if (error) {
-      toast.error('Erro ao remover arquivo');
+      toast.error(t('baseConhecimento.removeError'));
     } else {
-      toast.success('Arquivo removido');
+      toast.success(t('baseConhecimento.removed'));
       fetchFiles();
     }
   };
@@ -144,10 +160,10 @@ export default function BaseConhecimentoPage() {
               <ShieldCheck className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="font-heading text-2xl font-bold text-foreground">Base de Conhecimento</h1>
-              <p className="text-sm text-muted-foreground">Módulos clínicos consultados pela Mari ao gerar laudos</p>
+              <h1 className="font-heading text-2xl font-bold text-foreground">{t('baseConhecimento.title')}</h1>
+              <p className="text-sm text-muted-foreground">{t('baseConhecimento.subtitle')}</p>
             </div>
-            <Badge className="ml-auto bg-primary/10 text-primary border-primary/20">Admin</Badge>
+            <Badge className="ml-auto bg-primary/10 text-primary border-primary/20">{t('baseConhecimento.adminBadge')}</Badge>
           </div>
 
           {/* Status Banner */}
@@ -155,9 +171,9 @@ export default function BaseConhecimentoPage() {
             <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold text-emerald-900 text-sm">Sistema pronto para gerar laudos</p>
+                <p className="font-semibold text-emerald-900 text-sm">{t('baseConhecimento.status.readyTitle')}</p>
                 <p className="text-xs text-emerald-700 mt-0.5">
-                  Todos os {ARQUIVOS_ESPERADOS.length} arquivos obrigatórios estão presentes. A Mari pode atender aos 9 cenários clínicos.
+                  {t('baseConhecimento.status.readyDesc', { count: ARQUIVOS_ESPERADOS.length })}
                 </p>
               </div>
             </div>
@@ -165,9 +181,9 @@ export default function BaseConhecimentoPage() {
             <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold text-destructive text-sm">Geração de laudos BLOQUEADA</p>
+                <p className="font-semibold text-destructive text-sm">{t('baseConhecimento.status.blockedTitle')}</p>
                 <p className="text-xs text-destructive/80 mt-0.5">
-                  O <strong>PROTOCOLO_DMG_Brasil_2016.pdf</strong> é obrigatório para QUALQUER laudo. Faça o upload antes de prosseguir.
+                  {t('baseConhecimento.status.blockedDescBefore')}<strong>PROTOCOLO_DMG_Brasil_2016.pdf</strong>{t('baseConhecimento.status.blockedDescAfter')}
                 </p>
               </div>
             </div>
@@ -176,11 +192,11 @@ export default function BaseConhecimentoPage() {
               <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold text-amber-900 text-sm">
-                  {status.faltando.length} arquivo(s) faltando — {status.cenariosBloqueados.size} cenário(s) com qualidade reduzida
+                  {t('baseConhecimento.status.partialTitle', { missing: status.faltando.length, scenarios: status.cenariosBloqueados.size })}
                 </p>
                 <p className="text-xs text-amber-800 mt-0.5">
-                  A Mari ainda gera laudos com os arquivos disponíveis, mas pula trechos que dependem de módulos ausentes.
-                  Cenários afetados: <strong>{Array.from(status.cenariosBloqueados).sort().join(', ')}</strong>
+                  {t('baseConhecimento.status.partialDesc')}{' '}
+                  {t('baseConhecimento.status.affectedScenarios')} <strong>{Array.from(status.cenariosBloqueados).sort().join(', ')}</strong>
                 </p>
               </div>
             </div>
@@ -190,10 +206,10 @@ export default function BaseConhecimentoPage() {
           <div className="mb-6 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-6 text-center">
             <Upload className="mx-auto mb-2 h-8 w-8 text-primary/50" />
             <p className="mb-1 text-sm text-foreground font-medium">
-              Envie os PDFs com os nomes EXATOS abaixo
+              {t('baseConhecimento.upload.title')}
             </p>
             <p className="mb-3 text-xs text-muted-foreground">
-              Você pode selecionar vários arquivos de uma vez. Reenvio sobrescreve a versão anterior.
+              {t('baseConhecimento.upload.hint')}
             </p>
             <input
               ref={fileRef}
@@ -209,7 +225,7 @@ export default function BaseConhecimentoPage() {
               className="gap-2"
             >
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              {uploading ? 'Enviando...' : 'Selecionar arquivos'}
+              {uploading ? t('baseConhecimento.upload.uploading') : t('baseConhecimento.upload.selectFiles')}
             </Button>
           </div>
 
@@ -217,7 +233,7 @@ export default function BaseConhecimentoPage() {
           <div className="mb-6 rounded-xl border border-border bg-card overflow-hidden">
             <div className="border-b border-border px-5 py-3 flex items-center justify-between">
               <h2 className="font-heading text-sm font-semibold text-foreground">
-                Checklist v5.2 — Arquivos esperados
+                {t('baseConhecimento.checklist.title')}
               </h2>
               <span className="text-xs text-muted-foreground">
                 {status.items.filter((i) => i.presente).length} / {ARQUIVOS_ESPERADOS.length}
@@ -242,18 +258,18 @@ export default function BaseConhecimentoPage() {
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline gap-2 flex-wrap">
-                            <p className="text-sm font-medium text-foreground">{item.rotulo}</p>
+                            <p className="text-sm font-medium text-foreground">{t(`baseConhecimento.files.${FILE_KEY[item.name]}.rotulo`)}</p>
                             <code className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{item.name}</code>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">{item.descricao}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t(`baseConhecimento.files.${FILE_KEY[item.name]}.descricao`)}</p>
                           <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                             {item.presente && meta?.metadata?.size ? (
                               <span className="text-xs text-emerald-700">
-                                {formatSize(meta.metadata.size)} · enviado em {new Date(meta.created_at).toLocaleDateString('pt-BR')}
+                                {formatSize(meta.metadata.size)} · {t('baseConhecimento.checklist.uploadedOn', { date: new Date(meta.created_at).toLocaleDateString(i18n.language) })}
                               </span>
                             ) : (
                               <span className="text-xs text-amber-700 font-medium">
-                                Cenários afetados: {item.cenarios.join(', ')}
+                                {t('baseConhecimento.checklist.affectedScenarios', { scenarios: item.cenarios.join(', ') })}
                               </span>
                             )}
                           </div>
@@ -282,10 +298,10 @@ export default function BaseConhecimentoPage() {
               <div className="border-b border-border px-5 py-3 flex items-center gap-2">
                 <Info className="h-4 w-4 text-muted-foreground" />
                 <h2 className="font-heading text-sm font-semibold text-foreground">
-                  Outros arquivos no bucket ({arquivosExtras.length})
+                  {t('baseConhecimento.extras.title', { count: arquivosExtras.length })}
                 </h2>
                 <span className="text-xs text-muted-foreground ml-auto">
-                  Não consultados pela Mari (nome fora do checklist v5.2)
+                  {t('baseConhecimento.extras.note')}
                 </span>
               </div>
               <ul className="divide-y divide-border">
@@ -295,7 +311,7 @@ export default function BaseConhecimentoPage() {
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-sm font-medium text-foreground">{f.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {f.metadata?.size ? formatSize(f.metadata.size) : '—'} · {new Date(f.created_at).toLocaleDateString('pt-BR')}
+                        {f.metadata?.size ? formatSize(f.metadata.size) : '—'} · {new Date(f.created_at).toLocaleDateString(i18n.language)}
                       </p>
                     </div>
                     <Button
