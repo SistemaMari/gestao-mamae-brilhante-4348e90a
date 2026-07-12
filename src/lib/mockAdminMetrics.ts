@@ -42,14 +42,14 @@ export const mockResumoGlobal: ResumoGlobalRow[] = [
 ];
 
 export const mockDistribuicaoGeografica: GeoRow[] = [
-  { pais: "Brasil", estado: "SP", cidade: "São Paulo", total_profissionais: 28, total_unidades: 4 },
-  { pais: "Brasil", estado: "SP", cidade: "Campinas", total_profissionais: 9, total_unidades: 1 },
-  { pais: "Brasil", estado: "RJ", cidade: "Rio de Janeiro", total_profissionais: 14, total_unidades: 2 },
-  { pais: "Brasil", estado: "MG", cidade: "Belo Horizonte", total_profissionais: 11, total_unidades: 2 },
-  { pais: "Brasil", estado: "RS", cidade: "Porto Alegre", total_profissionais: 7, total_unidades: 1 },
-  { pais: "Brasil", estado: "PR", cidade: "Curitiba", total_profissionais: 6, total_unidades: 1 },
-  { pais: "Brasil", estado: "BA", cidade: "Salvador", total_profissionais: 5, total_unidades: 1 },
-  { pais: "Portugal", estado: "Lisboa", cidade: "Lisboa", total_profissionais: 4, total_unidades: 0 },
+  { pais: "Brasil", estado: "SP", cidade: "São Paulo", total_profissionais: 28 },
+  { pais: "Brasil", estado: "SP", cidade: "Campinas", total_profissionais: 9 },
+  { pais: "Brasil", estado: "RJ", cidade: "Rio de Janeiro", total_profissionais: 14 },
+  { pais: "Brasil", estado: "MG", cidade: "Belo Horizonte", total_profissionais: 11 },
+  { pais: "Brasil", estado: "RS", cidade: "Porto Alegre", total_profissionais: 7 },
+  { pais: "Brasil", estado: "PR", cidade: "Curitiba", total_profissionais: 6 },
+  { pais: "Brasil", estado: "BA", cidade: "Salvador", total_profissionais: 5 },
+  { pais: "Portugal", estado: "Lisboa", cidade: "Lisboa", total_profissionais: 4 },
 ];
 
 export const mockTopCidades: CidadeRow[] = mockDistribuicaoGeografica
