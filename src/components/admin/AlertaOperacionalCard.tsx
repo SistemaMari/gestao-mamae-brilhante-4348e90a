@@ -98,6 +98,24 @@ export function AlertaOperacionalCard({ config, total }: AlertaOperacionalCardPr
           {total.toLocaleString("pt-BR")}
         </span>
       </div>
+      {(() => {
+        const s = ESCOPO_STYLES[config.escopo];
+        return (
+          <span
+            className="inline-flex items-center self-start rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+            style={{
+              background: s.bg,
+              color: s.fg,
+              border: `1px solid ${s.border}`,
+              fontFamily: "Plus Jakarta Sans, sans-serif",
+              letterSpacing: "0.04em",
+            }}
+            title={`Aplica-se a: ${s.label}`}
+          >
+            {s.label}
+          </span>
+        );
+      })()}
       <div
         style={{
           fontFamily: "Sora, sans-serif",
