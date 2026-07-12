@@ -324,11 +324,11 @@ export default function VisaoGeralPage() {
       )}
 
       {/* Evolução mensal de profissionais */}
-      {/* Evolução mensal de profissionais */}
       <SecaoBloco
         titulo="Evolução mensal de profissionais"
-        descricao="Novos cadastros e profissionais ativos nos últimos 12 meses."
-        tooltip="Série mensal dos últimos 12 meses. Novos = profissionais cadastrados no mês. Ativos = profissionais com pelo menos uma atividade no mês."
+        descricao="Novos cadastros e profissionais ativos nos últimos 12 meses (consultório + institucional agregados)."
+        tooltip="Série mensal dos últimos 12 meses. Novos = profissionais cadastrados no mês. Ativos = profissionais com pelo menos uma atividade no mês. Considera tanto profissionais de consultório quanto institucionais."
+        acao={<BadgeEscopo escopo="ambos" />}
         loading={evolProf.isLoading}
         skeletonHeight={280}
       >
