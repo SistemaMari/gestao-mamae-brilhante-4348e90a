@@ -2,30 +2,33 @@ import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Users, UserPlus, CreditCard, UserCog, LogOut, Menu, X,
-  ChevronRight, User, BarChart3
+  ChevronRight, BarChart3, PlayCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import mariLogo from '@/assets/mari-logo.png';
 
 const DUMMY = {
   firstName: 'Mari',
-  planoLabel: 'Plano Inicial — 0/10 laudos',
-  planoSlug: 'inicial',
+  fullName: 'Dra. Mari Demo',
+  email: 'demo@mari.health',
+  planoLabel: 'Plano Inicial',
+  planoUsados: 0,
+  planoLimite: 10,
 };
 
 const navItemsClinical = [
   { label: 'Pacientes', icon: Users, path: '/vitrine/dashboard' },
   { label: 'Nova Paciente', icon: UserPlus, path: '/vitrine/paciente/nova' },
+  { label: 'Tutorial', icon: PlayCircle, path: '/vitrine/tutorial' },
   { label: 'Meu Dashboard', icon: BarChart3, path: '/vitrine/dashboard/metricas' },
+  { label: 'Meu Plano', icon: CreditCard, path: '/vitrine/planos' },
 ];
 
-const navItemsAdmin = [
-  { label: 'Meu Plano', icon: CreditCard, path: '/vitrine/planos' },
-  { label: 'Meu Perfil', icon: UserCog, path: '/vitrine/perfil' },
-];
+function iniciaisNome(nome: string) {
+  return nome.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
+}
 
 function usePreviewBreadcrumb() {
   const path = useLocation().pathname;
@@ -53,6 +56,9 @@ export default function PreviewAppShell() {
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/');
   };
 
+  const perfilAtivo = location.pathname === '/vitrine/perfil';
+  const consumoPct = Math.min(100, Math.round((DUMMY.planoUsados / DUMMY.planoLimite) * 100));
+
   const renderNavButton = (item: typeof navItemsClinical[0]) => (
     <button
       key={item.label}
@@ -66,88 +72,95 @@ export default function PreviewAppShell() {
     >
       <item.icon className="h-5 w-5 shrink-0" />
       <span>{item.label}</span>
-      {item.path === '/vitrine/planos' && (
-        <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
-          {DUMMY.planoSlug}
-        </span>
-      )}
     </button>
   );
 
   const SidebarContent = () => (
     <>
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <div className="shrink-0 border-b border-[#E2E8F0] p-3 bg-white">
+        <img src={mariLogo} alt="MARI — Maternal ARtificial Intelligence" className="w-full rounded-lg" />
+      </div>
+
+      <nav className="flex-1 min-h-0 overflow-y-auto space-y-1 px-3 py-4">
         {navItemsClinical.map(renderNavButton)}
-        <div className="my-2 border-t" style={{ borderColor: '#E2E8F0' }} />
-        {navItemsAdmin.map(renderNavButton)}
       </nav>
 
-      <div className="border-t border-border px-3 py-3">
+      <div className="shrink-0 border-t border-[#E2E8F0] bg-[#F5F0FF] p-3 space-y-2">
+        <div className="flex items-center gap-3">
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+            style={{ background: 'linear-gradient(135deg, #7E69AB, #9b87f5)', fontFamily: 'Sora, sans-serif' }}
+          >
+            {iniciaisNome(DUMMY.fullName)}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>
+              {DUMMY.fullName}
+            </p>
+            <p className="truncate text-xs text-[#94A3B8]">{DUMMY.email}</p>
+          </div>
+        </div>
         <button
-          onClick={() => navigate('/')}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+          onClick={() => navigate('/vitrine/perfil')}
+          className={cn(
+            'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors',
+            perfilAtivo
+              ? 'bg-[#E8E0FF] text-[#7E69AB] font-medium'
+              : 'text-[#64748B] hover:bg-[#F1F5F9]'
+          )}
         >
-          <LogOut className="h-5 w-5 shrink-0" />
-          <span>Voltar à vitrine</span>
+          <UserCog className="h-4 w-4 shrink-0" />
+          Meu perfil
         </button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Voltar à vitrine
+        </Button>
       </div>
     </>
   );
 
   return (
-    <div className="flex min-h-screen flex-col print:block">
-      {/* Header */}
-      <header className="sticky top-0 z-50 flex h-16 items-center border-b border-border bg-card px-4 print:hidden">
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="mr-3 md:hidden text-muted-foreground hover:text-foreground"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-
-        <Link to="/vitrine/dashboard" className="flex items-center gap-2 shrink-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-            <span className="font-heading text-xs font-bold text-primary">DM</span>
-          </div>
-          <span className="hidden sm:inline font-heading text-base font-semibold" style={{ color: '#2D2B55' }}>
-            MARI
-          </span>
-        </Link>
-
-        <div className="flex-1" />
-
+    <div className="flex h-screen flex-col print:block print:h-auto">
+      {/* Floating top-right controls (no header bar) */}
+      <div className="pointer-events-none fixed top-3 right-4 z-50 flex items-center gap-3 print:hidden">
         <button
           onClick={() => navigate('/vitrine/planos')}
-          className="hidden lg:inline-flex items-center rounded-full px-3 py-1 text-xs font-medium mr-4"
+          className="pointer-events-auto hidden lg:flex items-center gap-3 rounded-full pl-3 pr-4 py-1.5 text-xs font-medium hover:opacity-90 transition shadow-sm"
           style={{ backgroundColor: '#F1F0FB', color: '#7E69AB' }}
         >
-          {DUMMY.planoLabel}
+          <span className="font-semibold">{DUMMY.planoLabel}</span>
+          <span className="flex items-center gap-2">
+            <span className="relative block h-1.5 w-24 rounded-full overflow-hidden" style={{ backgroundColor: '#E2DEF5' }}>
+              <span className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${consumoPct}%`, backgroundColor: '#7E69AB' }} />
+            </span>
+            <span className="tabular-nums" style={{ color: '#7E69AB' }}>
+              {DUMMY.planoUsados}/{DUMMY.planoLimite}
+            </span>
+          </span>
         </button>
+        <div className="pointer-events-auto">
+          <LanguageSwitcher variant="compact" />
+        </div>
+      </div>
 
-        <span className="hidden md:inline text-sm mr-4" style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-          Olá, Dr(a). {DUMMY.firstName}
-        </span>
+      {/* Mobile hamburger */}
+      <button
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="pointer-events-auto fixed top-3 left-3 z-50 md:hidden rounded-md bg-card/80 backdrop-blur p-2 text-muted-foreground hover:text-foreground shadow-sm print:hidden"
+        aria-label="Menu"
+      >
+        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="shrink-0">
-              <User className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => navigate('/vitrine/perfil')}>
-              <UserCog className="h-4 w-4 mr-2" /> Meu perfil
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/')} className="text-destructive">
-              <LogOut className="h-4 w-4 mr-2" /> Voltar à vitrine
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden print:block print:overflow-visible print:h-auto print:min-h-0">
         {/* Desktop sidebar */}
-        <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-card print:hidden">
+        <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-[#E2E8F0] bg-white print:hidden h-full overflow-hidden">
           <SidebarContent />
         </aside>
 
@@ -155,7 +168,7 @@ export default function PreviewAppShell() {
         {mobileOpen && (
           <>
             <div className="fixed inset-0 z-40 bg-foreground/20 md:hidden print:hidden" onClick={() => setMobileOpen(false)} />
-            <aside className="fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-card shadow-xl md:hidden print:hidden animate-fade-in" style={{ top: '64px' }}>
+            <aside className="fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-white shadow-xl md:hidden print:hidden animate-fade-in overflow-hidden" style={{ top: '0' }}>
               <SidebarContent />
             </aside>
           </>
