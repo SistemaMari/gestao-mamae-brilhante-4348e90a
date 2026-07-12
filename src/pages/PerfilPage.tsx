@@ -307,6 +307,25 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
         <p className="mt-1 text-muted-foreground">Personalize seu espaço.</p>
       </header>
 
+      {isInstitucional && (
+        <Card>
+          <CardTitle icon={Building2}>Vínculo institucional</CardTitle>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Unidade</p>
+              <p className="mt-1 font-medium text-foreground">{unidadeNome || '—'}</p>
+            </div>
+            <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+              Gerenciado pelo(a) Gestor(a) da unidade
+            </span>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            A troca de unidade é feita pela pessoa gestora responsável.
+          </p>
+        </Card>
+      )}
+
+
       {/* 1. Perfil */}
       <Card>
         <CardTitle icon={UserCog}>Perfil</CardTitle>
