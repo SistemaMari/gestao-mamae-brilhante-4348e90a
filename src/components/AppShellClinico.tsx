@@ -21,6 +21,12 @@ import TelaInadimplente from '@/components/TelaInadimplente';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { avaliarPlanoStatus } from '@/lib/planoStatus';
 import { toast } from '@/hooks/use-toast';
+import mariLogo from '@/assets/mari-logo.png';
+
+function iniciaisNome(nome?: string | null) {
+  if (!nome) return 'US';
+  return nome.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
+}
 
 function useBreadcrumb() {
   const { t } = useTranslation();
@@ -88,9 +94,8 @@ const navRodapeConsultorio: NavItem[] = [
   { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
 ];
 
-const navRodapeInstitucional: NavItem[] = [
-  { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
-];
+const navRodapeInstitucional: NavItem[] = [];
+
 
 const navRodapeGestor: NavItem[] = [
   { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
@@ -241,27 +246,91 @@ export default function AppShellClinico() {
     perfilSidebar === 'gestor' || perfilSidebar === 'gestor_geral' ? navRodapeGestor :
     navRodapeFallback;
 
+  const ehInstitucional = perfilSidebar === 'institucional';
+  const perfilAtivo = location.pathname === '/perfil' || location.pathname.startsWith('/perfil/');
+
   const SidebarContent = () => (
     <>
+      {ehInstitucional && (
+        <div className="shrink-0 border-b border-[#E2E8F0] p-3 bg-white">
+          <img
+            src={mariLogo}
+            alt="MARI — Maternal ARtificial Intelligence"
+            className="w-full rounded-lg"
+          />
+        </div>
+      )}
+
       <nav className="flex-1 min-h-0 overflow-y-auto space-y-1 px-3 py-4">
-        {itensClinicos.map(renderNavButton)}
-        {itensClinicos.length > 0 && (
+        {itensClinicos.map((item) => (
+          <div key={item.path}>
+            {ehInstitucional && item.path === '/tutorial' && (
+              <div className="my-2 border-t" style={{ borderColor: '#E2E8F0' }} />
+            )}
+            {renderNavButton(item)}
+          </div>
+        ))}
+        {itensClinicos.length > 0 && itensRodape.length > 0 && (
           <div className="my-2 border-t" style={{ borderColor: '#E2E8F0' }} />
         )}
         {itensRodape.map(renderNavButton)}
       </nav>
 
-      <div className="shrink-0 border-t border-border px-3 py-3 bg-card">
-        <button
-          onClick={signOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-        >
-          <LogOut className="h-5 w-5 shrink-0" />
-          <span>{t('common.logout')}</span>
-        </button>
-      </div>
+
+      {ehInstitucional ? (
+        <div className="shrink-0 border-t border-[#E2E8F0] bg-[#F5F0FF] p-3 space-y-2">
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+              style={{ background: 'linear-gradient(135deg, #7E69AB, #9b87f5)', fontFamily: 'Sora, sans-serif' }}
+            >
+              {iniciaisNome(profissionalData?.nome || firstName)}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>
+                {profissionalData?.nome || firstName || 'Usuário'}
+              </p>
+              {user?.email && (
+                <p className="truncate text-xs text-[#94A3B8]">{user.email}</p>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/perfil')}
+            className={cn(
+              'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors',
+              perfilAtivo
+                ? 'bg-[#E8E0FF] text-[#7E69AB] font-medium'
+                : 'text-[#64748B] hover:bg-[#F1F5F9]'
+            )}
+          >
+            <UserCog className="h-4 w-4 shrink-0" />
+            {t('nav.profile')}
+          </button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={signOut}
+            className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {t('common.logout')}
+          </Button>
+        </div>
+      ) : (
+        <div className="shrink-0 border-t border-border px-3 py-3 bg-card">
+          <button
+            onClick={signOut}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+          >
+            <LogOut className="h-5 w-5 shrink-0" />
+            <span>{t('common.logout')}</span>
+          </button>
+        </div>
+      )}
     </>
   );
+
 
   return (
     <div className="flex h-screen flex-col print:block print:h-auto">
