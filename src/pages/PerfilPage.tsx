@@ -425,6 +425,21 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
         <CardTitle icon={Lock}>Alterar senha</CardTitle>
         <div className="grid gap-4">
           <div>
+            <Label>Senha atual</Label>
+            <div className="relative">
+              <Input
+                type={showSenhaAtual ? 'text' : 'password'}
+                value={senhaAtual}
+                onChange={(e) => setSenhaAtual(e.target.value)}
+                placeholder="Sua senha atual"
+                autoComplete="current-password"
+              />
+              <button type="button" onClick={() => setShowSenhaAtual(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                {showSenhaAtual ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div>
             <Label>Nova senha</Label>
             <div className="relative">
               <Input type={showSenha ? 'text' : 'password'} value={senha1} onChange={(e) => setSenha1(e.target.value)} placeholder="Digite a nova senha" />
