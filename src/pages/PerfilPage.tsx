@@ -94,8 +94,9 @@ function PerfilReadOnly({ data, email }: { data: PerfilData; email: string | und
   );
 }
 
-/* -------------------- Consultório: full editor -------------------- */
-function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; email: string; userId: string }) {
+/* -------------------- Consultório / Institucional: editor -------------------- */
+function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: { initial: PerfilData; email: string; userId: string; perfilTipo: 'consultorio' | 'institucional'; unidadeNome?: string | null }) {
+  const isInstitucional = perfilTipo === 'institucional';
   const [data, setData] = useState<PerfilData>(initial);
 
   const parseConselho = (raw: string | null) => {
