@@ -535,6 +535,33 @@ export type Database = {
           },
         ]
       }
+      dicas_dashboard: {
+        Row: {
+          ativa: boolean
+          id: string
+          slot: number
+          texto: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ativa?: boolean
+          id?: string
+          slot: number
+          texto?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ativa?: boolean
+          id?: string
+          slot?: number
+          texto?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
