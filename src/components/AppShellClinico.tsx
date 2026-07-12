@@ -7,7 +7,7 @@ import { useSyncLanguageWithProfile } from '@/hooks/useSyncLanguageWithProfile';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Users, UserPlus, CreditCard, UserCog, LogOut, Menu, X,
-  ChevronRight, User, Loader2, BarChart3, FileText, GraduationCap, Lock, PlayCircle
+  ChevronRight, User, Loader2, BarChart3, FileText, Lock, PlayCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -73,9 +73,9 @@ interface NavItem {
 const navClinicoConsultorio: NavItem[] = [
   { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
-  { labelKey: 'Meus Cursos', icon: GraduationCap, path: '/meus-cursos' },
   { labelKey: 'Tutorial', icon: PlayCircle, path: '/tutorial' },
   { labelKey: 'nav.metrics', icon: BarChart3, path: '/dashboard/metricas' },
+  { labelKey: 'nav.plans', icon: CreditCard, path: '/planos' },
 ];
 
 const navClinicoInstitucional: NavItem[] = [
@@ -89,10 +89,7 @@ const navClinicoInstitucional: NavItem[] = [
 const navClinicoGestor: NavItem[] = [];
 const navClinicoFallback: NavItem[] = [];
 
-const navRodapeConsultorio: NavItem[] = [
-  { labelKey: 'nav.plans', icon: CreditCard, path: '/planos' },
-  { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
-];
+const navRodapeConsultorio: NavItem[] = [];
 
 const navRodapeInstitucional: NavItem[] = [];
 
@@ -247,11 +244,12 @@ export default function AppShellClinico() {
     navRodapeFallback;
 
   const ehInstitucional = perfilSidebar === 'institucional';
+  const usaEstiloInstitucional = ehInstitucional || ehConsultorio;
   const perfilAtivo = location.pathname === '/perfil' || location.pathname.startsWith('/perfil/');
 
   const SidebarContent = () => (
     <>
-      {ehInstitucional && (
+      {usaEstiloInstitucional && (
         <div className="shrink-0 border-b border-[#E2E8F0] p-3 bg-white">
           <img
             src={mariLogo}
@@ -277,7 +275,7 @@ export default function AppShellClinico() {
       </nav>
 
 
-      {ehInstitucional ? (
+      {usaEstiloInstitucional ? (
         <div className="shrink-0 border-t border-[#E2E8F0] bg-[#F5F0FF] p-3 space-y-2">
           <div className="flex items-center gap-3">
             <div

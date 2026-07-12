@@ -267,7 +267,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {ehInstitucional && (
+      {(ehInstitucional || profile === 'consultorio') && (
         <section className="mb-8">
           <div className="pb-6 border-b" style={{ borderColor: '#E2E8F0' }}>
             <h1
