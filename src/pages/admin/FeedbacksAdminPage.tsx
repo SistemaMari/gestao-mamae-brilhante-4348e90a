@@ -140,8 +140,15 @@ export default function FeedbacksAdminPage() {
     if (!f.email) return;
     const subject = `Re: seu feedback no MARI (${TIPO_LABEL[f.tipo] || f.tipo} — ${formatDateBR(f.created_at)})`;
     const body = construirCorpoResposta(f);
-    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(f.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // Institucional: envia cópia (Cc) para o Gestor da unidade, para transparência.
+    const ccParam = (f.tipo_perfil === 'institucional' && f.email_gestor_unidade && f.email_gestor_unidade !== f.email)
+      ? `&cc=${encodeURIComponent(f.email_gestor_unidade)}`
+      : '';
+    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(f.email)}${ccParam}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
+    if (f.tipo_perfil === 'institucional' && !f.email_gestor_unidade) {
+      toast.info('Feedback institucional sem gestor cadastrado na unidade — enviado sem cópia.');
+    }
   };
 
   const responderPorWhatsapp = (f: Feedback) => {
