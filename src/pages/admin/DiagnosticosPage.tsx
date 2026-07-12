@@ -71,6 +71,21 @@ interface Metricas {
 // Paleta semântica conforme Prompt 24, Seção 3.8.
 // (Cores fixas em hex porque são parte do espec clínico, não do tema do app.)
 // =============================================================================
+interface Encerramentos {
+  ativas: number;
+  encerradas: number;
+  por_motivo: {
+    parto: number;
+    aborto: number;
+    insulinizacao: number;
+    nao_retornou: number;
+    outro: number;
+  };
+  taxa_nao_retornou: number;
+  ig_ao_endocrino: number | null;
+  laudos_mensais: Array<{ mes: string; qtd: number }>;
+}
+
 const COR_VERDE = "#22C55E";
 const COR_LARANJA = "#F59E0B";
 const COR_VERMELHO = "#EF4444";
@@ -279,19 +294,22 @@ function Pizza({
 
 
 function FunilTratamento({ funil }: { funil: Metricas["funil"] }) {
-  // Gradiente de cores: verde → laranja, conforme Prompt 24 Seção 3.8.
-  const cores = [
-    "#16A34A", // total gestantes
-    "#22C55E", // DMG
-    "#5EEAD4", // só dieta
-    COR_LILAS, // insulina iniciada
-    "#7E69AB", // insulina suficiente
-    COR_LARANJA, // associar endócrino
-  ];
-  const max = Math.max(...funil.map((f) => f.valor), 1);
+  // Insulina não é mais manejada pela MARI (insulinização encerra o
+  // acompanhamento → endócrino). Ocultamos as etapas de insulina do funil.
+  const ETAPAS_OCULTAS = new Set(["Insulina iniciada", "Insulina suficiente"]);
+  const etapas = funil.filter((f) => !ETAPAS_OCULTAS.has(f.etapa));
+
+  // Cor por etapa (não por índice — assim não desalinha ao ocultar passos).
+  const CORES_ETAPA: Record<string, string> = {
+    "Total gestantes": "#16A34A",
+    "DMG confirmado": "#22C55E",
+    "Só dieta": "#5EEAD4",
+    "Associar endócrino": COR_LARANJA,
+  };
+  const max = Math.max(...etapas.map((f) => f.valor), 1);
   return (
     <div className="space-y-3">
-      {funil.map((etapa, i) => {
+      {etapas.map((etapa) => {
         const pct = (etapa.valor / max) * 100;
         return (
           <div key={etapa.etapa}>
@@ -304,7 +322,7 @@ function FunilTratamento({ funil }: { funil: Metricas["funil"] }) {
                 className="h-full rounded-md transition-all"
                 style={{
                   width: `${Math.max(pct, 2)}%`,
-                  background: cores[i % cores.length],
+                  background: CORES_ETAPA[etapa.etapa] ?? COR_LILAS,
                 }}
               />
             </div>
@@ -459,6 +477,7 @@ export default function DiagnosticosPage() {
   const isPreview = pathname.startsWith("/vitrine");
 
   const [dados, setDados] = useState<Metricas | null>(null);
+  const [encerr, setEncerr] = useState<Encerramentos | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { filtros } = useAdminFiltros();
@@ -474,13 +493,18 @@ export default function DiagnosticosPage() {
     }
 
     (async () => {
-      const { data, error } = await supabase.rpc("metricas_diagnosticos_admin");
+      const [diag, enc] = await Promise.all([
+        supabase.rpc("metricas_diagnosticos_admin"),
+        supabase.rpc("metricas_encerramentos_admin"),
+      ]);
       if (cancelado) return;
-      if (error) {
-        setErro(error.message ?? "Falha ao carregar métricas.");
+      if (diag.error) {
+        setErro(diag.error.message ?? "Falha ao carregar métricas.");
       } else {
-        setDados(data as unknown as Metricas);
+        setDados(diag.data as unknown as Metricas);
       }
+      // Encerramentos: não bloqueia a tela se falhar (seção some).
+      if (!enc.error) setEncerr(enc.data as unknown as Encerramentos);
       setLoading(false);
     })();
     return () => { cancelado = true; };
@@ -684,9 +708,74 @@ export default function DiagnosticosPage() {
                   )}%`
             }
             cor={COR_LARANJA}
+            tooltip="Das pacientes que tiveram DMG em gestação anterior, quantas foram confirmadas com DMG aqui. As demais não desenvolveram DMG desta vez, ainda não foram confirmadas, ou foram classificadas como OVERT DM. Recorrência esperada na literatura: ~40–70%."
           />
         </div>
       </CardContainer>
+
+      {/* 5b. Encerramentos e adesão (novas métricas) */}
+      {encerr && (
+        <CardContainer>
+          <SecaoTitulo>Encerramentos e adesão</SecaoTitulo>
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <MetricaCard
+              label="Em acompanhamento"
+              valor={encerr.ativas}
+              sublabel="pacientes ativas na MARI"
+              cor={COR_VERDE}
+            />
+            <MetricaCard
+              label="Acompanhamentos encerrados"
+              valor={encerr.encerradas}
+              sublabel="parto, aborto, insulinização, não retornou…"
+            />
+            <MetricaCard
+              label="Não retornaram"
+              valor={`${encerr.taxa_nao_retornou}%`}
+              sublabel={`${encerr.por_motivo.nao_retornou} de ${encerr.encerradas} encerradas`}
+              cor={COR_LARANJA}
+              tooltip="Pacientes cujo acompanhamento foi encerrado por não terem retornado — indicador de adesão/abandono."
+            />
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <SecaoTitulo>Encerramentos por motivo</SecaoTitulo>
+              <Pizza
+                data={[
+                  { name: "Parto", value: encerr.por_motivo.parto },
+                  { name: "Aborto", value: encerr.por_motivo.aborto },
+                  { name: "Insulinização → endócrino", value: encerr.por_motivo.insulinizacao },
+                  { name: "Não retornou", value: encerr.por_motivo.nao_retornou },
+                  { name: "Outro", value: encerr.por_motivo.outro },
+                ]}
+                cores={[COR_VERDE, COR_VERMELHO, COR_LARANJA, "#94A3B8", COR_LILAS]}
+                vazioMsg="Nenhum acompanhamento encerrado ainda."
+              />
+            </div>
+            <div className="flex flex-col gap-4">
+              <MetricaCard
+                label="IG média no encaminhamento ao endócrino"
+                valor={encerr.ig_ao_endocrino != null ? `${encerr.ig_ao_endocrino} sem` : "—"}
+                sublabel="cenário 7 — quanto antes, melhor"
+                cor={COR_LARANJA}
+              />
+              <div>
+                <SecaoTitulo>Laudos gerados por mês</SecaoTitulo>
+                <ResponsiveContainer width="100%" height={160}>
+                  <LineChart data={encerr.laudos_mensais}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="qtd" name="Laudos" stroke={COR_LILAS} strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </CardContainer>
+      )}
 
       {/* 6. Funil */}
       <CardContainer>
@@ -697,7 +786,8 @@ export default function DiagnosticosPage() {
         <FunilTratamento funil={funil} />
       </CardContainer>
 
-      {/* 7. Tratamento — dieta vs insulina inicial OK */}
+      {/* 7. Desfecho do tratamento — controle com dieta vs. encaminhamento ao endócrino.
+             (Insulina não é mais manejada pela MARI → cards de insulina removidos.) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <MetricaCard
           label="Controle só com dieta + exercício"
@@ -706,24 +796,16 @@ export default function DiagnosticosPage() {
           cor={COR_VERDE}
         />
         <MetricaCard
-          label="Dose inicial de insulina suficiente"
-          valor={tratamento.insulina_inicial_ok}
-          sublabel={pct(tratamento.insulina_inicial_ok) + " das pacientes com DMG"}
-          cor={COR_LILAS}
+          label="Cenário 7 — necessidade de associar endócrino"
+          valor={tratamento.cenario7}
+          sublabel={
+            pct(tratamento.cenario7) +
+            " das pacientes com DMG · GO permanece protagonista do pré-natal."
+          }
+          cor={COR_LARANJA}
+          destaque
         />
       </div>
-
-      {/* 8. Cenário 7 */}
-      <MetricaCard
-        label="Cenário 7 — necessidade de associar endócrino"
-        valor={tratamento.cenario7}
-        sublabel={
-          pct(tratamento.cenario7) +
-          " das pacientes com DMG · GO permanece protagonista do pré-natal e da insulinoterapia."
-        }
-        cor={COR_LARANJA}
-        destaque
-      />
 
       {/* Desfechos perinatais — ocultado do ADMIN até o registro de parto voltar. */}
 
