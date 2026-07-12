@@ -542,29 +542,31 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
         </div>
       </Card>
 
-      {/* 6. Zona de perigo */}
-      <Card className="border-destructive/30">
-        <button type="button" onClick={() => setZonaAberta(v => !v)}
-          className="flex w-full items-center justify-between text-left">
-          <span className="flex items-center gap-2 font-heading text-lg font-semibold text-destructive">
-            <AlertTriangle className="h-5 w-5" /> Zona de perigo
-          </span>
-          {zonaAberta ? <ChevronUp className="h-5 w-5 text-destructive" /> : <ChevronDown className="h-5 w-5 text-destructive" />}
-        </button>
-        {zonaAberta && (
-          <div className="mt-4 space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Ao excluir sua conta, seus dados pessoais serão marcados para remoção conforme a LGPD.
-              Esta ação não pode ser desfeita.
-            </p>
-            <Label>Confirme com sua senha</Label>
-            <Input type="password" value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} placeholder="Sua senha atual" />
-            <Button variant="destructive" onClick={excluirConta} disabled={excluindo}>
-              {excluindo && <Loader2 className="h-4 w-4 animate-spin" />} Excluir minha conta
-            </Button>
-          </div>
-        )}
-      </Card>
+      {/* 6. Zona de perigo — apenas consultório */}
+      {!isInstitucional && (
+        <Card className="border-destructive/30">
+          <button type="button" onClick={() => setZonaAberta(v => !v)}
+            className="flex w-full items-center justify-between text-left">
+            <span className="flex items-center gap-2 font-heading text-lg font-semibold text-destructive">
+              <AlertTriangle className="h-5 w-5" /> Zona de perigo
+            </span>
+            {zonaAberta ? <ChevronUp className="h-5 w-5 text-destructive" /> : <ChevronDown className="h-5 w-5 text-destructive" />}
+          </button>
+          {zonaAberta && (
+            <div className="mt-4 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Ao excluir sua conta, seus dados pessoais serão marcados para remoção conforme a LGPD.
+                Esta ação não pode ser desfeita.
+              </p>
+              <Label>Confirme com sua senha</Label>
+              <Input type="password" value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} placeholder="Sua senha atual" />
+              <Button variant="destructive" onClick={excluirConta} disabled={excluindo}>
+                {excluindo && <Loader2 className="h-4 w-4 animate-spin" />} Excluir minha conta
+              </Button>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Modal solicitar alteração de e-mail */}
       <Dialog open={emailModal} onOpenChange={setEmailModal}>
