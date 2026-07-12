@@ -247,7 +247,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border bg-white p-4 flex items-start gap-3" style={{ borderColor: '#E2E8F0' }}>
               <div className="rounded-xl p-2" style={{ background: '#F5F0FF' }}>
                 <Building2 className="h-5 w-5" style={{ color: '#9b87f5' }} />
@@ -274,22 +274,25 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={handleNovaPaciente}
-              className="rounded-2xl border bg-white p-4 flex items-start gap-3 text-left hover:shadow-md transition"
-              style={{ borderColor: '#E2E8F0' }}
+              className="group rounded-2xl p-4 flex items-center gap-3 text-left transition-all hover:shadow-lg hover:-translate-y-0.5"
+              style={{
+                background: 'linear-gradient(135deg, #9b87f5 0%, #7E69AB 100%)',
+                boxShadow: '0 4px 14px -4px rgba(155, 135, 245, 0.5)',
+              }}
             >
-              <div className="rounded-xl p-2" style={{ background: '#F5F0FF' }}>
-                <UserPlus className="h-5 w-5" style={{ color: '#9b87f5' }} />
+              <div className="rounded-xl bg-white/20 p-2.5 backdrop-blur-sm">
+                <Plus className="h-5 w-5 text-white" strokeWidth={2.5} />
               </div>
-              <div className="min-w-0">
-                <div className="text-xs uppercase tracking-wide" style={{ color: '#64748B' }}>Atalho</div>
-                <div className="text-sm font-medium" style={{ color: '#1E293B' }}>Cadastrar nova paciente</div>
-                <div className="text-xs mt-0.5" style={{ color: '#64748B' }}>Inicia uma nova ficha clínica.</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-xs uppercase tracking-wide font-semibold text-white/80">Ação rápida</div>
+                <div className="text-base font-semibold text-white">Cadastrar nova paciente</div>
+                <div className="text-xs text-white/80 mt-0.5">Iniciar uma nova ficha clínica →</div>
               </div>
             </button>
           </div>
 
           <div
-            className="mt-4 rounded-2xl border p-4 flex items-start gap-3"
+            className="mt-6 rounded-2xl border p-4 flex items-start gap-3"
             style={{ background: '#F5F0FF', borderColor: '#E9E3FA' }}
           >
             <Sparkles className="h-5 w-5 mt-0.5 shrink-0" style={{ color: '#7E69AB' }} />
@@ -298,8 +301,11 @@ export default function DashboardPage() {
               <div className="text-sm" style={{ color: '#1E293B' }}>{dicaHoje}</div>
             </div>
           </div>
+
+          <div className="mt-8 border-b" style={{ borderColor: '#E2E8F0' }} />
         </section>
       )}
+
 
       {/* Usage warning banner */}
       {profissionalData && !ehInstitucional && (
@@ -362,10 +368,13 @@ export default function DashboardPage() {
               </button>
             )}
           </div>
-          <Button onClick={handleNovaPaciente} className="shrink-0">
-            <Plus className="h-4 w-4" />
-            Nova Paciente
-          </Button>
+          {!ehInstitucional && (
+            <Button onClick={handleNovaPaciente} className="shrink-0">
+              <Plus className="h-4 w-4" />
+              Nova Paciente
+            </Button>
+          )}
+
         </div>
 
         {/* Toggle: mostrar fichas encerradas */}
