@@ -1,5 +1,6 @@
-import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, CreditCard, Lightbulb, Settings, LogOut } from "lucide-react";
+import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, CreditCard, Lightbulb, MessageSquareHeart, Heart, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -28,6 +29,8 @@ const baseItems = [
   { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
   { title: "Planos", path: "/planos", icon: CreditCard, exact: false },
   { title: "Dicas do Dashboard", path: "/dicas", icon: Lightbulb, exact: false },
+  { title: "Feedbacks", path: "/feedbacks", icon: MessageSquareHeart, exact: false, badge: "feedbacks_novos" as const },
+  { title: "Depoimentos", path: "/depoimentos", icon: Heart, exact: false, badge: "depoimentos_pendentes" as const },
   { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
   { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
 ];
@@ -64,6 +67,24 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
       await supabase.auth.signOut();
       navigate("/login", { replace: true });
     });
+
+  // Badges: feedbacks novos + depoimentos pendentes
+  const [badges, setBadges] = useState<{ feedbacks_novos: number; depoimentos_pendentes: number }>({
+    feedbacks_novos: 0, depoimentos_pendentes: 0,
+  });
+  useEffect(() => {
+    let cancel = false;
+    const load = async () => {
+      const [{ count: fCount }, { count: dCount }] = await Promise.all([
+        supabase.from('feedbacks_usuario').select('id', { count: 'exact', head: true }).eq('status', 'novo'),
+        supabase.from('depoimentos_usuario').select('id', { count: 'exact', head: true }).is('aprovado', null),
+      ]);
+      if (!cancel) setBadges({ feedbacks_novos: fCount ?? 0, depoimentos_pendentes: dCount ?? 0 });
+    };
+    load();
+    const t = setInterval(load, 60_000);
+    return () => { cancel = true; clearInterval(t); };
+  }, [pathname]);
 
   // Detecta se estamos no modo vitrine para prefixar as URLs.
   const prefix = pathname.startsWith("/vitrine/admin") ? "/vitrine/admin" : "/admin";
@@ -129,7 +150,12 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
                           }
                         >
                           <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span className="text-sm">{item.title}</span>}
+                          {!collapsed && <span className="text-sm flex-1">{item.title}</span>}
+                          {!collapsed && (item as any).badge && badges[(item as any).badge as keyof typeof badges] > 0 && (
+                            <span className="ml-auto rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                              {badges[(item as any).badge as keyof typeof badges]}
+                            </span>
+                          )}
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

@@ -862,6 +862,7 @@ export type Database = {
           created_at: string
           id: string
           mensagem: string
+          status: string
           tipo: string
           user_id: string
         }
@@ -870,6 +871,7 @@ export type Database = {
           created_at?: string
           id?: string
           mensagem: string
+          status?: string
           tipo: string
           user_id: string
         }
@@ -878,6 +880,7 @@ export type Database = {
           created_at?: string
           id?: string
           mensagem?: string
+          status?: string
           tipo?: string
           user_id?: string
         }

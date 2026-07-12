@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   UserCog, Loader2, Camera, Lock, MessageSquareHeart, Heart, Star,
-  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp,
+  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp, Trash2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const ESPECIALIDADES = ['Médico(a)', 'Enfermeiro(a) Obstétrica', 'Outros'];
 const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
@@ -115,8 +119,10 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
   const [conselhoUf, setConselhoUf] = useState(initConselho.uf || initial.estado || '');
   const [savingProf, setSavingProf] = useState(false);
 
+  const [senhaAtual, setSenhaAtual] = useState('');
   const [senha1, setSenha1] = useState('');
   const [senha2, setSenha2] = useState('');
+  const [showSenhaAtual, setShowSenhaAtual] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
   const [savingSenha, setSavingSenha] = useState(false);
 
@@ -133,6 +139,8 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
   const [confirmSenha, setConfirmSenha] = useState('');
   const [excluindo, setExcluindo] = useState(false);
   const [emailModal, setEmailModal] = useState(false);
+  const [confirmRemoverFoto, setConfirmRemoverFoto] = useState(false);
+  const [removendoFoto, setRemovendoFoto] = useState(false);
 
   useEffect(() => {
     let cancel = false;
@@ -172,6 +180,23 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
     window.dispatchEvent(new CustomEvent('admin:nome-atualizado'));
   };
 
+  const removerFoto = async () => {
+    setRemovendoFoto(true);
+    // apaga arquivo se path pertence ao bucket
+    if (avatarUrl) {
+      await supabase.storage.from('avatares-profissionais').remove([avatarUrl]).catch(() => {});
+    }
+    const { error } = await supabase.from('profissionais')
+      .update({ avatar_url: null }).eq('user_id', userId);
+    setRemovendoFoto(false);
+    setConfirmRemoverFoto(false);
+    if (error) { toast.error('Erro ao remover foto.'); return; }
+    setAvatarUrl(null);
+    setAvatarSignedUrl(null);
+    toast.success('Foto removida.');
+    window.dispatchEvent(new CustomEvent('admin:nome-atualizado'));
+  };
+
   const salvarBasico = async () => {
     if (!nome.trim()) { toast.error('Informe seu nome.'); return; }
     setSavingBasico(true);
@@ -202,13 +227,22 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
   };
 
   const salvarSenha = async () => {
+    if (!senhaAtual) { toast.error('Informe sua senha atual.'); return; }
     if (!senha1 || !senha2) { toast.error('Preencha os dois campos.'); return; }
     if (senha1 !== senha2) { toast.error('As senhas não coincidem.'); return; }
     setSavingSenha(true);
+    // Reautentica com a senha atual
+    if (!email) { setSavingSenha(false); toast.error('Sessão inválida.'); return; }
+    const { error: reauthErr } = await supabase.auth.signInWithPassword({ email, password: senhaAtual });
+    if (reauthErr) {
+      setSavingSenha(false);
+      toast.error('Senha atual incorreta.');
+      return;
+    }
     const { error } = await supabase.auth.updateUser({ password: senha1 });
     setSavingSenha(false);
     if (error) { toast.error(error.message || 'Erro ao trocar senha.'); return; }
-    setSenha1(''); setSenha2('');
+    setSenhaAtual(''); setSenha1(''); setSenha2('');
     toast.success('Senha atualizada!');
   };
 
@@ -229,8 +263,8 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
         .from('avatares-profissionais').upload(path, fbAnexo, { upsert: false });
       if (!upErr) anexo_url = path;
     }
-    const { error } = await supabase.from('feedbacks_usuario').insert({
-      user_id: userId, tipo: fbTipo, mensagem: msg, anexo_url,
+    const { error } = await supabase.functions.invoke('enviar-feedback', {
+      body: { tipo: fbTipo, mensagem: msg, anexo_url },
     });
     setSavingFb(false);
     if (error) { toast.error('Erro ao enviar feedback.'); return; }
@@ -285,16 +319,29 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
               </div>
             )}
           </div>
-          <label className="cursor-pointer">
-            <input
-              type="file" accept="image/png,image/jpeg" className="hidden"
-              onChange={(e) => e.target.files?.[0] && handleAvatar(e.target.files[0])}
-            />
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10">
-              <Camera className="h-4 w-4" /> Trocar foto
-            </span>
-            <p className="mt-2 text-xs text-muted-foreground">PNG ou JPG, até 2 MB.</p>
-          </label>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+              <label className="cursor-pointer">
+                <input
+                  type="file" accept="image/png,image/jpeg" className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleAvatar(e.target.files[0])}
+                />
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10">
+                  <Camera className="h-4 w-4" /> Trocar foto
+                </span>
+              </label>
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmRemoverFoto(true)}
+                  className="inline-flex items-center gap-2 rounded-full border border-destructive/40 bg-destructive/5 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" /> Remover foto
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">PNG ou JPG, até 2 MB.</p>
+          </div>
         </div>
 
         <div className="grid gap-4">
@@ -377,6 +424,21 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
       <Card>
         <CardTitle icon={Lock}>Alterar senha</CardTitle>
         <div className="grid gap-4">
+          <div>
+            <Label>Senha atual</Label>
+            <div className="relative">
+              <Input
+                type={showSenhaAtual ? 'text' : 'password'}
+                value={senhaAtual}
+                onChange={(e) => setSenhaAtual(e.target.value)}
+                placeholder="Sua senha atual"
+                autoComplete="current-password"
+              />
+              <button type="button" onClick={() => setShowSenhaAtual(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                {showSenhaAtual ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
           <div>
             <Label>Nova senha</Label>
             <div className="relative">
@@ -500,6 +562,28 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmação — remover foto */}
+      <AlertDialog open={confirmRemoverFoto} onOpenChange={setConfirmRemoverFoto}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover foto de perfil?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sua foto atual será excluída. Você poderá enviar uma nova a qualquer momento.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removendoFoto}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); removerFoto(); }}
+              disabled={removendoFoto}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {removendoFoto && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
