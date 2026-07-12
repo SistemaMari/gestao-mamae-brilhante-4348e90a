@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   UserCog, Loader2, Camera, Lock, MessageSquareHeart, Heart, Star,
-  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp, Trash2,
+  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp, Trash2, Building2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -94,8 +94,9 @@ function PerfilReadOnly({ data, email }: { data: PerfilData; email: string | und
   );
 }
 
-/* -------------------- Consultório: full editor -------------------- */
-function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; email: string; userId: string }) {
+/* -------------------- Consultório / Institucional: editor -------------------- */
+function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: { initial: PerfilData; email: string; userId: string; perfilTipo: 'consultorio' | 'institucional'; unidadeNome?: string | null }) {
+  const isInstitucional = perfilTipo === 'institucional';
   const [data, setData] = useState<PerfilData>(initial);
 
   const parseConselho = (raw: string | null) => {
@@ -305,6 +306,25 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
         <h1 className="font-heading text-3xl font-bold text-foreground">Meu perfil</h1>
         <p className="mt-1 text-muted-foreground">Personalize seu espaço.</p>
       </header>
+
+      {isInstitucional && (
+        <Card>
+          <CardTitle icon={Building2}>Vínculo institucional</CardTitle>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Unidade</p>
+              <p className="mt-1 font-medium text-foreground">{unidadeNome || '—'}</p>
+            </div>
+            <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+              Gerenciado pelo(a) Gestor(a) da unidade
+            </span>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            A troca de unidade é feita pela pessoa gestora responsável.
+          </p>
+        </Card>
+      )}
+
 
       {/* 1. Perfil */}
       <Card>
@@ -522,29 +542,31 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
         </div>
       </Card>
 
-      {/* 6. Zona de perigo */}
-      <Card className="border-destructive/30">
-        <button type="button" onClick={() => setZonaAberta(v => !v)}
-          className="flex w-full items-center justify-between text-left">
-          <span className="flex items-center gap-2 font-heading text-lg font-semibold text-destructive">
-            <AlertTriangle className="h-5 w-5" /> Zona de perigo
-          </span>
-          {zonaAberta ? <ChevronUp className="h-5 w-5 text-destructive" /> : <ChevronDown className="h-5 w-5 text-destructive" />}
-        </button>
-        {zonaAberta && (
-          <div className="mt-4 space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Ao excluir sua conta, seus dados pessoais serão marcados para remoção conforme a LGPD.
-              Esta ação não pode ser desfeita.
-            </p>
-            <Label>Confirme com sua senha</Label>
-            <Input type="password" value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} placeholder="Sua senha atual" />
-            <Button variant="destructive" onClick={excluirConta} disabled={excluindo}>
-              {excluindo && <Loader2 className="h-4 w-4 animate-spin" />} Excluir minha conta
-            </Button>
-          </div>
-        )}
-      </Card>
+      {/* 6. Zona de perigo — apenas consultório */}
+      {!isInstitucional && (
+        <Card className="border-destructive/30">
+          <button type="button" onClick={() => setZonaAberta(v => !v)}
+            className="flex w-full items-center justify-between text-left">
+            <span className="flex items-center gap-2 font-heading text-lg font-semibold text-destructive">
+              <AlertTriangle className="h-5 w-5" /> Zona de perigo
+            </span>
+            {zonaAberta ? <ChevronUp className="h-5 w-5 text-destructive" /> : <ChevronDown className="h-5 w-5 text-destructive" />}
+          </button>
+          {zonaAberta && (
+            <div className="mt-4 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Ao excluir sua conta, seus dados pessoais serão marcados para remoção conforme a LGPD.
+                Esta ação não pode ser desfeita.
+              </p>
+              <Label>Confirme com sua senha</Label>
+              <Input type="password" value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} placeholder="Sua senha atual" />
+              <Button variant="destructive" onClick={excluirConta} disabled={excluindo}>
+                {excluindo && <Loader2 className="h-4 w-4 animate-spin" />} Excluir minha conta
+              </Button>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Modal solicitar alteração de e-mail */}
       <Dialog open={emailModal} onOpenChange={setEmailModal}>
@@ -594,6 +616,7 @@ export default function PerfilPage() {
   const location = useLocation();
   const isPreview = location.pathname.startsWith('/vitrine');
   const [data, setData] = useState<PerfilData | null>(isPreview ? DUMMY_PROFILE : null);
+  const [unidadeNome, setUnidadeNome] = useState<string | null>(null);
   const [loading, setLoading] = useState(!isPreview);
 
   useEffect(() => {
@@ -604,9 +627,18 @@ export default function PerfilPage() {
     (async () => {
       setLoading(true);
       const { data: p } = await supabase.from('profissionais')
-        .select('id, nome, crm, especialidade, estado, pais, telefone, avatar_url, data_aniversario')
+        .select('id, nome, crm, especialidade, estado, pais, telefone, avatar_url, data_aniversario, unidade_id')
         .eq('user_id', user.id).maybeSingle();
-      if (!cancel) { setData(p as PerfilData | null); setLoading(false); }
+      if (cancel) return;
+      setData(p as PerfilData | null);
+      if (p && (p as any).unidade_id) {
+        const { data: u } = await supabase.from('unidades')
+          .select('nome').eq('id', (p as any).unidade_id).maybeSingle();
+        if (!cancel) setUnidadeNome((u as any)?.nome ?? null);
+      } else {
+        setUnidadeNome(null);
+      }
+      setLoading(false);
     })();
     return () => { cancel = true; };
   }, [authLoading, isPreview, user]);
@@ -619,9 +651,17 @@ export default function PerfilPage() {
     return <div className="mx-auto max-w-md p-8 text-center text-muted-foreground">Perfil não encontrado.</div>;
   }
 
-  // Editor completo só para consultório real
-  if (!isPreview && profile === 'consultorio' && user) {
-    return <PerfilConsultorio initial={data} email={user.email || ''} userId={user.id} />;
+  // Editor completo para consultório e institucional
+  if (!isPreview && (profile === 'consultorio' || profile === 'institucional') && user) {
+    return (
+      <PerfilConsultorio
+        initial={data}
+        email={user.email || ''}
+        userId={user.id}
+        perfilTipo={profile as 'consultorio' | 'institucional'}
+        unidadeNome={unidadeNome}
+      />
+    );
   }
 
   return <PerfilReadOnly data={data} email={isPreview ? DUMMY_EMAIL : user?.email} />;

@@ -19,6 +19,9 @@ interface Feedback {
   autor?: string;
   email?: string | null;
   telefone?: string | null;
+  tipo_perfil?: string | null;
+  unidade_nome?: string | null;
+  email_gestor_unidade?: string | null;
 }
 
 const TIPO_LABEL: Record<string, string> = {
@@ -57,13 +60,21 @@ export default function FeedbacksAdminPage() {
     const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
     if (userIds.length > 0) {
       const { data: contatos } = await supabase.rpc('admin_get_contatos_usuarios', { _user_ids: userIds });
-      const map = new Map<string, { nome: string; email: string | null; telefone: string | null }>();
-      (contatos || []).forEach((c: any) => map.set(c.user_id, { nome: c.nome, email: c.email, telefone: c.telefone }));
+      const map = new Map<string, { nome: string; email: string | null; telefone: string | null; tipo_perfil: string | null; unidade_nome: string | null; email_gestor_unidade: string | null }>();
+      (contatos || []).forEach((c: any) => map.set(c.user_id, {
+        nome: c.nome, email: c.email, telefone: c.telefone,
+        tipo_perfil: c.tipo_perfil ?? null,
+        unidade_nome: c.unidade_nome ?? null,
+        email_gestor_unidade: c.email_gestor_unidade ?? null,
+      }));
       rows.forEach((r) => {
         const c = map.get(r.user_id);
         r.autor = c?.nome || '—';
         r.email = c?.email ?? null;
         r.telefone = c?.telefone ?? null;
+        r.tipo_perfil = c?.tipo_perfil ?? null;
+        r.unidade_nome = c?.unidade_nome ?? null;
+        r.email_gestor_unidade = c?.email_gestor_unidade ?? null;
       });
     }
     setLista(rows);
@@ -112,9 +123,13 @@ export default function FeedbacksAdminPage() {
   const construirCorpoResposta = (f: Feedback) => {
     const dataStr = formatDateBR(f.created_at);
     const tipoStr = TIPO_LABEL[f.tipo] || f.tipo;
+    const notaCc = (f.tipo_perfil === 'institucional' && f.email_gestor_unidade)
+      ? `\n(Com cópia para a gestão da unidade${f.unidade_nome ? ` — ${f.unidade_nome}` : ''}.)\n`
+      : '';
     return (
       `Olá ${f.autor || ''},\n\n` +
-      `Obrigada pelo seu contato com o suporte MARI. Segue nossa resposta abaixo.\n\n` +
+      `Obrigada pelo seu contato com o suporte MARI. Segue nossa resposta abaixo.\n` +
+      notaCc +
       `\n\n---\n` +
       `Histórico da sua solicitação\n` +
       `Data: ${dataStr}\n` +
@@ -129,8 +144,15 @@ export default function FeedbacksAdminPage() {
     if (!f.email) return;
     const subject = `Re: seu feedback no MARI (${TIPO_LABEL[f.tipo] || f.tipo} — ${formatDateBR(f.created_at)})`;
     const body = construirCorpoResposta(f);
-    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(f.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // Institucional: envia cópia (Cc) para o Gestor da unidade, para transparência.
+    const ccParam = (f.tipo_perfil === 'institucional' && f.email_gestor_unidade && f.email_gestor_unidade !== f.email)
+      ? `&cc=${encodeURIComponent(f.email_gestor_unidade)}`
+      : '';
+    const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(f.email)}${ccParam}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
+    if (f.tipo_perfil === 'institucional' && !f.email_gestor_unidade) {
+      toast.info('Feedback institucional sem gestor cadastrado na unidade — enviado sem cópia.');
+    }
   };
 
   const responderPorWhatsapp = (f: Feedback) => {

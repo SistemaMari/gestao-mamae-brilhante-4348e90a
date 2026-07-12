@@ -1,79 +1,73 @@
-## Ajustes no perfil do consultório + moderação no admin
+## Objetivo
 
-Refinamentos sobre o que já foi construído em `/perfil`, mais duas novas abas no admin e uma saudação especial de aniversário.
+Habilitar edição de perfil para o usuário **Institucional**, reaproveitando o máximo possível da tela do Consultório, com escopo ajustado à natureza corporativa do perfil.
 
-### 1. Card Perfil — botão "Remover foto"
+## Escopo funcional
 
-- Ao lado de "Trocar foto", novo botão outline lilás "Remover foto" (só aparece quando já existe avatar).
-- Ação: apaga o arquivo do bucket `avatares-profissionais` e seta `avatar_url = null` em `profissionais`.
-- Confirmação via `AlertDialog` ("Remover sua foto de perfil?").
+**Habilitado (igual ao consultório):**
+- Foto de perfil (upload + remover, com confirmação)
+- Nome completo
+- Telefone/WhatsApp
+- Data de aniversário (dispara saudação no dashboard institucional)
+- Alterar senha (exige senha atual)
+- Dados profissionais: Especialidade, Conselho, Número, UF
+- Enviar depoimento público (mesmo fluxo de moderação do admin)
+- Enviar feedback (com anexo opcional)
 
-### 2. Card Alterar senha — exigir senha atual
+**Diferente do consultório:**
+- **E-mail**: read-only + botão "Solicitar alteração" (idem consultório hoje).
+- **Vínculo institucional**: novo card read-only exibindo o nome da **Unidade** vinculada (buscado via `profissionais.unidade_id → unidades.nome`). Sem edição.
+- **Excluir conta**: NÃO exibir. Apenas o Gestor desliga via "Gestão de Equipe".
+- **Plano/cota**: não exibir (não se aplica ao institucional).
+- **Feedback com cópia ao Gestor**: quando o admin responder o feedback por e-mail (Gmail Compose), o **e-mail do Gestor da unidade** entra automaticamente no campo **Cc**. Assim o profissional pode reportar problemas sem esconder do gestor, mas o gestor fica ciente da resposta.
 
-- Novo campo "Senha atual" no topo do card (com toggle olho).
-- Fluxo: antes do `updateUser({ password })`, chamar `signInWithPassword({ email: user.email, password: senhaAtual })` para revalidar.
-- Se falhar → erro "Senha atual incorreta" e não avança.
-- Sem regras mínimas de complexidade (mantido).
+## Estrutura de código
 
-### 3. Feedback → aba admin + e-mail para suporte
+**Nova rota**: `/institucional/perfil` (dentro do `AppShellInstitucional`), reutilizando a estrutura visual do `PerfilPage.tsx` do consultório.
 
-**Admin (nova aba `/admin/feedbacks`)**
-- Item no `AdminSidebar.tsx` abaixo de "Dicas de dashboards".
-- Página `FeedbacksAdminPage.tsx`: tabela ordenável (data, usuário, tipo, mensagem, anexo, status).
-- Coluna `status` (`novo` | `lido` | `resolvido`) com toggle inline.
-- Filtro por tipo e busca por texto.
-- Contador de "novos" como badge no menu.
+**Refactor**: extrair de `src/pages/PerfilPage.tsx` os cards reutilizáveis em componentes:
+- `PerfilCardFoto`
+- `PerfilCardDadosPessoais`
+- `PerfilCardDadosProfissionais`
+- `PerfilCardSenha`
+- `PerfilCardFeedback`
+- `PerfilCardDepoimento`
+- **Novo**: `PerfilCardVinculoInstitucional` (só na versão institucional)
 
-**E-mail para suporte**
-- Novo template app-email `feedback-recebido.tsx` em `supabase/functions/_shared/transactional-email-templates/`.
-- Registrar em `registry.ts`.
-- Edge function `enviar-feedback` (ou disparo direto do envio existente): após inserir em `feedbacks_usuario`, invoca `send-transactional-email` para `suporte@maridmg.com.br` (configurável via secret `EMAIL_SUPORTE`).
-- Idempotência: `idempotencyKey = feedback-${row.id}`.
-- Se a infraestrutura de e-mail ainda não estiver configurada, executar `setup_email_infra` + `scaffold_transactional_email` antes.
+Cada card recebe props para controlar visibilidade (ex.: `mostrarExcluirConta`, `mostrarPlano`) — evita duplicação.
 
-**Schema**
-- `ALTER TABLE feedbacks_usuario ADD COLUMN status text DEFAULT 'novo' CHECK (status IN ('novo','lido','resolvido'))`.
-- Nova policy: admin lê tudo via `has_role(auth.uid(),'admin')`; admin pode `UPDATE status`.
+**Novo arquivo**: `src/pages/institucional/PerfilInstitucionalPage.tsx` compõe os cards com as flags corretas.
 
-### 4. Depoimento → aba admin para moderação
+**Navegação**: adicionar item "Meu perfil" no rodapé da sidebar institucional (padrão já usado no consultório), abaixo dos itens principais.
 
-- Item no `AdminSidebar.tsx` abaixo de "Feedbacks".
-- Página `DepoimentosAdminPage.tsx`: cards com estrelas, texto, nome do autor, data.
-- Ações: "Aprovar", "Reprovar", "Excluir".
-- Filtros: pendentes / aprovados / reprovados.
-- Sem publicação automática em vitrine ainda (fora deste escopo).
-- Policy admin: `SELECT` e `UPDATE aprovado` via `has_role`.
+## Backend
 
-### 5. Aniversário → saudação especial no dashboard
+**Migration**: nenhuma nova tabela. Reaproveita `profissionais`, `feedbacks_usuario`, `depoimentos_usuario`, `avatares-profissionais` (bucket).
 
-- `DashboardPage.tsx` (consultório e institucional): busca `data_aniversario` do profissional.
-- Se `to_char(data_aniversario,'MM-DD') = to_char(now(),'MM-DD')` → substitui o header:
-  - Título: "🎉 Feliz aniversário, {Dr(a). Nome}!"
-  - Subtítulo: "Que seu dia seja tão especial quanto o cuidado que você entrega às pacientes 💜"
-  - Card lilás com gradient sutil (mesmos tokens `--gradient-primary`) em vez do fundo normal.
-- Não afeta cards de métricas nem "Dica do dia".
+**Ajuste no FeedbacksAdminPage**: quando o autor do feedback for `tipo_perfil = 'institucional'`, a função `admin_get_contatos_usuarios` (já existente) passa a retornar também o `email_gestor_unidade`. O helper `responderPorEmail` inclui esse e-mail no parâmetro `cc=` do Gmail Compose. Se não houver gestor definido, envia sem Cc e mostra um aviso discreto.
 
-### 6. Formato da data de aniversário (screenshot 3)
+**RPC a ajustar** (via migration): expandir `admin_get_contatos_usuarios` para retornar `email_gestor_unidade` (nullable) — busca o profissional com `tipo_perfil='gestor'` na mesma `unidade_id`. Sem mudança de schema, só a função.
 
-- Manter `<input type="date">` (nativo), mas envolver em wrapper com placeholder pt-BR visível ("dd/mm/aaaa") — já está assim, sem alteração adicional.
+## Detalhes técnicos
 
-### Fora de escopo
+- Aniversário: reaproveita a lógica de saudação especial já implementada no `DashboardPage` — precisa ser replicada no dashboard institucional (verificar se já existe; se não, extrair para hook `useSaudacaoAniversario`).
+- Bucket `avatares-profissionais`: já tem policy para admin ler; usuário institucional já tem upload próprio via `user_id` — nenhuma mudança de RLS.
+- Depoimento: sem alteração (mesma tabela, mesmo fluxo pendente → aprovação admin).
+- Feedback: sem alteração de tabela; apenas UI do admin ganha Cc automático.
 
-- Publicação de depoimentos em landing pública.
-- Purge efetivo de contas com `deleted_at`.
-- Configurações da ferramenta (logo no laudo, notificações etc.) — iteração separada.
+## Fora de escopo (não fazer agora)
 
-### Detalhes técnicos resumidos
+- Edição de `unidade_id` pelo próprio institucional.
+- Notificar o gestor toda vez que o institucional abre feedback (só quando admin responde).
+- Auto-exclusão de conta.
+- Trocar e-mail sem intervenção do admin.
 
-**Backend**
-- `feedbacks_usuario`: coluna `status` + policies admin.
-- `depoimentos_usuario`: policies admin já cobrem `aprovado`.
-- E-mail: verificar `check_email_domain_status`; se ok, scaffold do template `feedback-recebido` e deploy do `send-transactional-email`.
-- Secret novo: `EMAIL_SUPORTE` (default `suporte@maridmg.com.br`).
+## Ordem de execução
 
-**Frontend**
-- `PerfilPage.tsx`: adicionar botão remover foto + campo senha atual.
-- Novas páginas: `src/pages/admin/FeedbacksAdminPage.tsx`, `src/pages/admin/DepoimentosAdminPage.tsx`.
-- Rotas em `AdminLayout`/`App.tsx`.
-- `AdminSidebar.tsx`: dois itens novos + badge de "novos" em Feedbacks.
-- `DashboardPage.tsx`: hook `useIsBirthday` + variante visual do header.
+1. Migration: expandir `admin_get_contatos_usuarios` para retornar `email_gestor_unidade`.
+2. Refactor `PerfilPage` do consultório em cards reutilizáveis (sem mudança visual/comportamental para o consultório).
+3. Criar `PerfilCardVinculoInstitucional`.
+4. Criar `PerfilInstitucionalPage` compondo os cards com flags.
+5. Rota + item de sidebar no `AppShellInstitucional`.
+6. Ajustar `FeedbacksAdminPage.responderPorEmail` para incluir Cc do gestor quando autor for institucional.
+7. Verificar saudação de aniversário no dashboard institucional; adicionar se ausente.
