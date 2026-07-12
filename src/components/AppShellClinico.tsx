@@ -73,9 +73,9 @@ interface NavItem {
 const navClinicoConsultorio: NavItem[] = [
   { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
-  { labelKey: 'Meus Cursos', icon: GraduationCap, path: '/meus-cursos' },
   { labelKey: 'Tutorial', icon: PlayCircle, path: '/tutorial' },
   { labelKey: 'nav.metrics', icon: BarChart3, path: '/dashboard/metricas' },
+  { labelKey: 'nav.plans', icon: CreditCard, path: '/planos' },
 ];
 
 const navClinicoInstitucional: NavItem[] = [
@@ -89,10 +89,7 @@ const navClinicoInstitucional: NavItem[] = [
 const navClinicoGestor: NavItem[] = [];
 const navClinicoFallback: NavItem[] = [];
 
-const navRodapeConsultorio: NavItem[] = [
-  { labelKey: 'nav.plans', icon: CreditCard, path: '/planos' },
-  { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
-];
+const navRodapeConsultorio: NavItem[] = [];
 
 const navRodapeInstitucional: NavItem[] = [];
 
