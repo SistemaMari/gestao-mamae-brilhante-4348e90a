@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import i18n, { normalizeLang } from "@/i18n";
 
 /**
  * Persiste o laudo de uma consulta (via Edge Function `gerar-laudo`), fazendo o
@@ -13,7 +14,9 @@ import { toast } from "sonner";
 export async function registrarLaudo(pacienteId: string, consultaId: string): Promise<void> {
   try {
     const { error } = await supabase.functions.invoke("gerar-laudo", {
-      body: { paciente_id: pacienteId, consulta_id: consultaId },
+      // Fase 2 — o laudo persistido sai no idioma atual do app (mesmo critério
+      // do preview em useLaudoTextos). Default 'pt-BR' na Edge Function.
+      body: { paciente_id: pacienteId, consulta_id: consultaId, idioma: normalizeLang(i18n.language) },
     });
 
     if (error) {

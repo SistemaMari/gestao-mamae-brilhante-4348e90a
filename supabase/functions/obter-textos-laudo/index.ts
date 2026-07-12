@@ -17,6 +17,15 @@ function jsonResp(body: unknown, status = 200) {
   });
 }
 
+// Fase 2 — normaliza o idioma recebido para um dos valores suportados por
+// laudo_textos.idioma. Espelha `normalizeLang` do front (src/i18n/index.ts).
+function normalizarIdioma(value: unknown): "pt-BR" | "en-US" | "es" {
+  const v = typeof value === "string" ? value.toLowerCase() : "";
+  if (v.startsWith("en")) return "en-US";
+  if (v.startsWith("es")) return "es";
+  return "pt-BR";
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -44,6 +53,9 @@ Deno.serve(async (req) => {
 
     const tipo_consulta = typeof body?.tipo_consulta === "string" ? body.tipo_consulta.trim() : "";
     const desfecho_clinico = typeof body?.desfecho_clinico === "string" ? body.desfecho_clinico.trim() : "";
+    // Fase 2 — laudo multilíngue. Default 'pt-BR' preserva o comportamento
+    // pré-idioma (retrocompatível). Só 'pt-BR' | 'en-US' | 'es' são aceitos.
+    const idioma = normalizarIdioma(body?.idioma);
 
     if (!tipo_consulta || !desfecho_clinico) {
       return jsonResp({ error: "tipo_consulta e desfecho_clinico são obrigatórios" }, 400);
@@ -55,6 +67,7 @@ Deno.serve(async (req) => {
       .eq("tipo_consulta", tipo_consulta)
       .eq("desfecho_clinico", desfecho_clinico)
       .eq("status", "publicado")
+      .eq("idioma", idioma)
       .order("ordem_bloco", { ascending: true });
 
     if (error) {

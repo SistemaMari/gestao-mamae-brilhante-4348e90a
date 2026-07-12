@@ -15,6 +15,7 @@ export interface LaudoTextoRow {
   versao: number;
   status: 'rascunho' | 'publicado' | 'arquivado';
   observacoes: string | null;
+  idioma: string;
 }
 
 /** Variáveis substituídas no laudo (espelha src/lib/laudoVariaveis.ts). */

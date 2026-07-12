@@ -819,6 +819,8 @@
     "laudoTextos": {
       "title": "Textos de Laudo",
       "subtitleBase": "Edite os textos exibidos nos laudos.",
+      "idiomaLabel": "Idioma do laudo",
+      "idiomaAjuda": "Cada idioma é editado separadamente. Um ajuste feito no português precisa ser replicado aqui manualmente.",
       "rascunhosPendentes": "{{count}} rascunho(s) aguardando publicação.",
       "nenhumRascunho": "Nenhum rascunho pendente.",
       "variaveisSummary": "Variáveis disponíveis (escreva entre colchetes, ex.: [nome da paciente])",
