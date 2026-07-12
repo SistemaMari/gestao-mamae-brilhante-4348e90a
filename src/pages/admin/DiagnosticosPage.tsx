@@ -16,6 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { GrupoEscopo } from "@/components/admin/GrupoEscopo";
 
 // =============================================================================
 // Tipos espelhando o JSON da função public.metricas_diagnosticos_admin().
@@ -912,60 +913,74 @@ export default function DiagnosticosPage() {
 
 
 
-      {/* 13–14. Quebras regionais */}
-      <div className="space-y-6">
+      {/* 13–14. Quebras regionais — agrupadas por escopo (padrão Painel) */}
+      <div className="space-y-8">
         <SecaoTitulo>Quebra por região</SecaoTitulo>
-        <TabelaOrdenavel
-          titulo="Consultório — Taxa de DMG por estado"
-          colunas={[
-            { key: "estado", label: "Estado" },
-            { key: "gestantes", label: "Gestantes", numerica: true },
-            { key: "dmg", label: "DMG", numerica: true },
-            { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
-          ]}
-          linhas={regionalFiltrado.por_estado as unknown as Array<Record<string, unknown>>}
-          vazioMsg="Sem pacientes de consultório ainda."
-        />
-        <TabelaOrdenavel
-          titulo="Consultório — Taxa de DMG por cidade"
-          colunas={[
-            { key: "cidade", label: "Cidade" },
-            { key: "estado", label: "Estado" },
-            { key: "gestantes", label: "Gestantes", numerica: true },
-            { key: "dmg", label: "DMG", numerica: true },
-            { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
-          ]}
-          linhas={
-            regionalFiltrado.por_cidade
-              .slice(0, 20) as unknown as Array<Record<string, unknown>>
-          }
-          vazioMsg="Sem pacientes de consultório ainda."
-        />
-        <TabelaOrdenavel
-          titulo="Institucional — métricas por unidade"
-          colunas={[
-            { key: "unidade", label: "Unidade" },
-            { key: "cidade", label: "Cidade" },
-            { key: "estado", label: "Estado" },
-            { key: "gestantes", label: "Gestantes", numerica: true },
-            { key: "dmg", label: "DMG", numerica: true },
-            { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
-          ]}
-          linhas={regionalFiltrado.por_unidade as unknown as Array<Record<string, unknown>>}
-          vazioMsg="Nenhuma unidade com pacientes vinculadas."
-          expandivel
-          renderDetalhe={(row) => {
-            const r = row as { unidade: string; cidade: string; estado: string; gestantes: number; dmg: number; taxa_dmg: number };
-            return (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm" style={{ fontFamily: FONT_CORPO, color: "#475569" }}>
-                <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Localização</span>{r.cidade} / {r.estado}</div>
-                <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Gestantes</span>{r.gestantes}</div>
-                <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">DMG</span>{r.dmg} ({r.taxa_dmg}%)</div>
-                <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Sem DMG</span>{Math.max(0, r.gestantes - r.dmg)}</div>
-              </div>
+
+        <GrupoEscopo
+          escopo="consultorio"
+          titulo="Análises de Consultório"
+          descricao="Taxa de DMG entre gestantes atendidas por profissionais autônomos (sem vínculo institucional)."
+        >
+          <TabelaOrdenavel
+            titulo="Taxa de DMG por estado"
+            colunas={[
+              { key: "estado", label: "Estado" },
+              { key: "gestantes", label: "Gestantes", numerica: true },
+              { key: "dmg", label: "DMG", numerica: true },
+              { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
+            ]}
+            linhas={regionalFiltrado.por_estado as unknown as Array<Record<string, unknown>>}
+            vazioMsg="Sem pacientes de consultório ainda."
+          />
+          <TabelaOrdenavel
+            titulo="Taxa de DMG por cidade"
+            colunas={[
+              { key: "cidade", label: "Cidade" },
+              { key: "estado", label: "Estado" },
+              { key: "gestantes", label: "Gestantes", numerica: true },
+              { key: "dmg", label: "DMG", numerica: true },
+              { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
+            ]}
+            linhas={
+              regionalFiltrado.por_cidade
+                .slice(0, 20) as unknown as Array<Record<string, unknown>>
+            }
+            vazioMsg="Sem pacientes de consultório ainda."
+          />
+        </GrupoEscopo>
+
+        <GrupoEscopo
+          escopo="institucional"
+          titulo="Análises Institucionais"
+          descricao="Taxa de DMG por unidade — UBS, hospitais e clínicas conveniadas."
+        >
+          <TabelaOrdenavel
+            titulo="Métricas por unidade"
+            colunas={[
+              { key: "unidade", label: "Unidade" },
+              { key: "cidade", label: "Cidade" },
+              { key: "estado", label: "Estado" },
+              { key: "gestantes", label: "Gestantes", numerica: true },
+              { key: "dmg", label: "DMG", numerica: true },
+              { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
+            ]}
+            linhas={regionalFiltrado.por_unidade as unknown as Array<Record<string, unknown>>}
+            vazioMsg="Nenhuma unidade com pacientes vinculadas."
+            expandivel
+            renderDetalhe={(row) => {
+              const r = row as { unidade: string; cidade: string; estado: string; gestantes: number; dmg: number; taxa_dmg: number };
+              return (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm" style={{ fontFamily: FONT_CORPO, color: "#475569" }}>
+                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Localização</span>{r.cidade} / {r.estado}</div>
+                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Gestantes</span>{r.gestantes}</div>
+                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">DMG</span>{r.dmg} ({r.taxa_dmg}%)</div>
+                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Sem DMG</span>{Math.max(0, r.gestantes - r.dmg)}</div>
+                </div>
             );
           }}
         />
+        </GrupoEscopo>
       </div>
     </div>
   );
