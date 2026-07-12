@@ -821,6 +821,64 @@
       "subtitleBase": "Edita los textos que se muestran en los informes.",
       "idiomaLabel": "Idioma del informe",
       "idiomaAjuda": "Cada idioma se edita por separado. Un ajuste hecho en portugués debe replicarse aquí manualmente.",
+      "rotulos": {
+        "tipo": {
+          "consulta_1": "Caso Nuevo",
+          "retorno_1": "Retorno 1 — glucemia en ayunas",
+          "gtt": "PTOG 75g",
+          "ficha_a": "Ficha A — Retorno 2",
+          "ficha_c": "Ficha C — Retorno 2",
+          "ficha_b": "Ficha B — seguimiento con insulina",
+          "ficha_d": "Ficha D — seguimiento con insulina"
+        },
+        "familia": {
+          "retorno_1": "Retorno 1 (glucemia en ayunas)",
+          "gtt": "PTOG 75g",
+          "ficha_ac": "Retorno 2 — perfil de 4 puntos (sin insulina)",
+          "ficha_bd": "Seguimiento con insulina — perfil de 6 puntos",
+          "encerramento": "Cierre del seguimiento"
+        },
+        "desfecho": {
+          "negativo": "Negativo (descarta DMG)",
+          "1": "DMG confirmada por glucemia en ayunas",
+          "6": "DMG confirmada por PTOG",
+          "6B": "DMG límite (PTOG, EG tardía)",
+          "8": "DM manifiesta (overt)",
+          "r1_manter": "Regla 1 — mantener dieta + ejercicio",
+          "r2_reforcar": "Regla 2 — acepta pactar adherencia",
+          "r2_insulina": "Regla 2 — rechaza pactar adherencia → insulina",
+          "r3_insulina": "Regla 3 — iniciar insulina",
+          "r4a_fichae": "Regla 4 — memoria confirma → ampliar a 6 puntos (Ficha E)",
+          "r4_reforcar": "Regla 4 — memoria no confirma, acepta → mantiene 4 puntos",
+          "r4b_insulina": "Regla 4 — memoria no confirma, rechaza → insulina",
+          "2": "Control adecuado (respaldo)",
+          "3": "Control inadecuado → insulina (respaldo)",
+          "4": "mantener dosis de insulina",
+          "7": "cerrar MARI",
+          "parto": "Parto — controló con dieta y ejercicio",
+          "aborto": "Aborto — controló con dieta y ejercicio",
+          "nao_retornou": "La paciente no regresó"
+        },
+        "bloco": {
+          "justificativa": "Justificación Científica",
+          "conduta": "Conducta Orientativa",
+          "nota_tardio": "Nota — diagnóstico tardío"
+        },
+        "adequacao": {
+          "adequado": "adecuado",
+          "inadequado": "inadecuado",
+          "adequado_ressalva": "adecuado (con salvedad)"
+        },
+        "perfil": {
+          "ac": "4 puntos (sin insulina)",
+          "bd": "6 puntos (con insulina)"
+        },
+        "retornoTemplate": "Retorno de DMG con control {{adeq}} — {{perfil}} · {{desfecho}}",
+        "notaFamilia": {
+          "ac": "Texto único para hasta 30 semanas (Ficha A) y después de 30 semanas (Ficha C) — editar aquí actualiza ambos.",
+          "bd": "Texto único para hasta 30 semanas (Ficha B) y después de 30 semanas (Ficha D) — editar aquí actualiza ambos."
+        }
+      },
       "rascunhosPendentes": "{{count}} borrador(es) esperando publicación.",
       "nenhumRascunho": "Ningún borrador pendiente.",
       "variaveisSummary": "Variables disponibles (escribe entre corchetes, ej.: [nombre de la paciente])",
