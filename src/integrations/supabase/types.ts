@@ -2140,6 +2140,15 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_admin_evolucao_mensal_profissionais_tipo: {
+        Row: {
+          mes: string | null
+          novos_profissionais: number | null
+          profissionais_ativos: number | null
+          tipo_conta: string | null
+        }
+        Relationships: []
+      }
       mv_admin_profissionais_por_plano: {
         Row: {
           ativos_30d: number | null
