@@ -30,6 +30,7 @@ export interface ResumoGlobalRow {
   total_profissionais: number;
   total_unidades: number;
   total_gestores_gerais: number;
+  total_gestores_unidade: number;
   total_consolidacoes: number;
   total_pacientes: number;
   total_laudos: number;
