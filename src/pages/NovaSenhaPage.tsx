@@ -106,11 +106,11 @@ export default function NovaSenhaPage() {
       if (msg.includes('expired') || msg.includes('jwt') || msg.includes('session')) {
         setExpired(true);
       } else if (msg.includes('different') || msg.includes('same as')) {
-        setError('A nova senha deve ser diferente da senha atual. Escolha outra.');
+        setError(t('auth.passwordMustBeDifferent'));
       } else if (msg.includes('pwned') || msg.includes('compromis') || msg.includes('weak') || msg.includes('breach')) {
-        setError('Esta senha aparece em vazamentos públicos. Escolha uma senha mais forte.');
+        setError(t('auth.passwordBreached'));
       } else if (msg.includes('characters') || msg.includes('length') || msg.includes('short')) {
-        setError('A senha não atende aos requisitos mínimos de tamanho.');
+        setError(t('auth.passwordTooShort'));
       } else {
         setError(error.message || t('auth.updatePasswordError'));
       }

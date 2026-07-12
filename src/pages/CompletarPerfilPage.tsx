@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -7,6 +8,7 @@ import ProfileForm, { ProfileFormData } from '@/components/ProfileForm';
 import { UserCircle } from 'lucide-react';
 
 export default function CompletarPerfilPage() {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [initialData, setInitialData] = useState<Partial<ProfileFormData> & { email?: string }>({});
@@ -70,11 +72,11 @@ export default function CompletarPerfilPage() {
     setSaving(false);
 
     if (error) {
-      toast.error('Erro ao salvar perfil. Tente novamente.');
+      toast.error(t('completeProfile.saveError'));
       return;
     }
 
-    toast.success('Perfil salvo com sucesso!');
+    toast.success(t('completeProfile.saveSuccess'));
     navigate('/dashboard', { replace: true });
   };
 
@@ -95,10 +97,10 @@ export default function CompletarPerfilPage() {
             <UserCircle className="h-7 w-7 text-accent-foreground" />
           </div>
           <h1 className="font-heading text-xl font-semibold text-foreground">
-            Complete seu perfil profissional
+            {t('completeProfile.title')}
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Precisamos de algumas informações para configurar sua conta.
+            {t('completeProfile.subtitle')}
           </p>
         </div>
 
