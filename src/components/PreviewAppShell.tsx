@@ -14,7 +14,7 @@ const DUMMY = {
   fullName: 'Dra. Mari Demo',
   email: 'demo@mari.health',
   planoLabel: 'Plano Inicial',
-  planoUsados: 0,
+  planoUsados: 3,
   planoLimite: 10,
 };
 
