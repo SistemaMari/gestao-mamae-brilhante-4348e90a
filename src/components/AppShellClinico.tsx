@@ -75,7 +75,6 @@ const navClinicoConsultorio: NavItem[] = [
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
   { labelKey: 'Tutorial', icon: PlayCircle, path: '/tutorial' },
   { labelKey: 'nav.metrics', icon: BarChart3, path: '/dashboard/metricas' },
-  { labelKey: 'nav.plans', icon: CreditCard, path: '/planos' },
 ];
 
 const navClinicoInstitucional: NavItem[] = [
@@ -305,6 +304,20 @@ export default function AppShellClinico() {
             <UserCog className="h-4 w-4 shrink-0" />
             {t('nav.profile')}
           </button>
+          {ehConsultorio && (
+            <button
+              onClick={() => navigate('/planos')}
+              className={cn(
+                'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors',
+                location.pathname === '/planos'
+                  ? 'bg-[#E8E0FF] text-[#7E69AB] font-medium'
+                  : 'text-[#64748B] hover:bg-[#F1F5F9]'
+              )}
+            >
+              <CreditCard className="h-4 w-4 shrink-0" />
+              {t('nav.plans')}
+            </button>
+          )}
           <Button
             variant="outline"
             size="sm"
