@@ -1,4 +1,5 @@
 import { Users, UserPlus, MailWarning, FileCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import CardResumoEquipe from './CardResumoEquipe';
 import ComposicaoClinica from './ComposicaoClinica';
 import PerformanceIndividual from './PerformanceIndividual';
@@ -10,41 +11,42 @@ interface Props {
 }
 
 export default function SecaoEquipePdf({ dados }: Props) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-4" data-pdf-section="equipe">
       <h2 className="font-heading text-lg font-semibold text-foreground">
-        Equipe da unidade
+        {t('team.title')}
       </h2>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <CardResumoEquipe
-          titulo="Profissionais ativos"
+          titulo={t('management.activeProfessionals')}
           valor={dados.totalAtivos}
-          sublabel="incluindo você"
+          sublabel={t('gestao.secaoEquipePdf.incluindoVoce')}
           tooltip=""
           icon={Users}
           erro={dados.errosCards.ativos}
         />
         <CardResumoEquipe
-          titulo="Convites pendentes"
+          titulo={t('management.pendingInvites')}
           valor={dados.totalPendentes}
-          sublabel="aguardando aceite"
+          sublabel={t('management.awaitingAccept')}
           tooltip=""
           icon={UserPlus}
           erro={dados.errosCards.pendentes}
         />
         <CardResumoEquipe
-          titulo="Convites expirados"
+          titulo={t('gestao.secaoEquipePdf.convitesExpirados')}
           valor={dados.totalExpirados}
-          sublabel="reenviar disponível"
+          sublabel={t('gestao.secaoEquipePdf.reenviarDisponivel')}
           tooltip=""
           icon={MailWarning}
           erro={dados.errosCards.expirados}
         />
         <CardResumoEquipe
-          titulo="Laudos gerados pela equipe"
+          titulo={t('gestao.secaoEquipePdf.laudosGeradosEquipe')}
           valor={dados.totalLaudos}
-          sublabel="total histórico"
+          sublabel={t('gestao.secaoEquipePdf.totalHistorico')}
           tooltip=""
           icon={FileCheck}
           erro={dados.errosCards.laudos}

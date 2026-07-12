@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ArrowLeft, Eye, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import GestaoPage from "@/pages/GestaoPage";
  * Reaproveita GestaoPage forçando o unidadeId via URL e ativando ReadOnlyContext.
  */
 export default function UnidadeDrillDownPage() {
+  const { t } = useTranslation();
   const { unidadeId } = useParams<{ unidadeId: string }>();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -44,12 +46,14 @@ export default function UnidadeDrillDownPage() {
   }
 
   return (
-    <ReadOnlyProvider readonly reason="Você está vendo o painel de outra unidade em modo somente leitura.">
+    <ReadOnlyProvider readonly reason={t('consolidar.unidadeDrillDown.readOnlyReason')}>
       <div className="border-b border-[#FDE68A] bg-[#FEF3C7] px-5 py-2.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm text-[#92400E]">
           <Eye className="h-4 w-4" />
           <span>
-            Visualização somente leitura{nomeUnidade ? ` — ${nomeUnidade}` : ""}
+            {nomeUnidade
+              ? t('consolidar.unidadeDrillDown.readOnlyBannerUnit', { unidade: nomeUnidade })
+              : t('consolidar.unidadeDrillDown.readOnlyBanner')}
           </span>
         </div>
         <Button
@@ -59,7 +63,7 @@ export default function UnidadeDrillDownPage() {
           className="bg-white"
         >
           <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-          Voltar à visão geral
+          {t('consolidar.unidadeDrillDown.voltarVisaoGeral')}
         </Button>
       </div>
       <GestaoPage forcedUnidadeId={unidadeId} />

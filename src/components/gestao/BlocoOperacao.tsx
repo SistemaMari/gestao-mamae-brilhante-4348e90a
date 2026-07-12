@@ -1,4 +1,5 @@
 import { Activity, FileText, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { PainelOperacao } from '@/lib/painelEstrategicoTypes';
 import CardInfoTooltip from './CardInfoTooltip';
 
@@ -7,13 +8,6 @@ interface Props {
   loading?: boolean;
   error?: string | null;
 }
-
-const TT_GESTANTES =
-  'Total de gestantes da sua unidade com DUM (Data da Última Menstruação) registrada nos últimos 280 dias — período correspondente à gestação completa. Reflete a carga de atendimento atual da equipe.';
-const TT_LAUDOS =
-  'Total de laudos de DMG gerados pela sua equipe nos últimos 30 dias. Indica produtividade de diagnóstico no período. Queda brusca pode sinalizar falha no fluxo de rastreamento.';
-const TT_PROFS =
-  'Profissionais da sua unidade que têm pelo menos 1 paciente em acompanhamento. Útil para detectar profissionais ociosos ou sobrecarregados — veja a distribuição detalhada na aba Equipe.';
 
 interface CardProps {
   title: string;
@@ -44,10 +38,11 @@ function Card({ title, tooltip, value, subtitle, Icon }: CardProps) {
 }
 
 export default function BlocoOperacao({ data, loading, error }: Props) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-3" data-pdf-section="operacao">
       <h2 className="font-heading text-lg font-semibold text-foreground">
-        Operação da unidade
+        {t('gestao.blocoOperacao.title')}
       </h2>
       {error ? (
         <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
@@ -62,24 +57,24 @@ export default function BlocoOperacao({ data, loading, error }: Props) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Card
-            title="Gestantes ativas"
-            tooltip={TT_GESTANTES}
+            title={t('gestao.blocoOperacao.gestantesTitle')}
+            tooltip={t('gestao.blocoOperacao.gestantesTooltip')}
             value={data.gestantes_ativas}
-            subtitle="DUM nos últimos 280 dias"
+            subtitle={t('gestao.blocoOperacao.gestantesSubtitle')}
             Icon={Users}
           />
           <Card
-            title="Laudos nos últimos 30 dias"
-            tooltip={TT_LAUDOS}
+            title={t('gestao.blocoOperacao.laudosTitle')}
+            tooltip={t('gestao.blocoOperacao.laudosTooltip')}
             value={data.laudos_30d}
-            subtitle="emitidos pela equipe"
+            subtitle={t('gestao.blocoOperacao.laudosSubtitle')}
             Icon={FileText}
           />
           <Card
-            title="Profissionais com paciente ativo"
-            tooltip={TT_PROFS}
+            title={t('gestao.blocoOperacao.profsTitle')}
+            tooltip={t('gestao.blocoOperacao.profsTooltip')}
             value={data.distribuicao_profissionais.filter(p => p.total_pacientes_ativos > 0).length}
-            subtitle={`de ${data.distribuicao_profissionais.length} na unidade`}
+            subtitle={t('gestao.blocoOperacao.profsSubtitle', { total: data.distribuicao_profissionais.length })}
             Icon={Activity}
           />
         </div>

@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUp, Info, Minus, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -34,13 +35,14 @@ function toneClass(tone: "up" | "down" | "neutral") {
 }
 
 export default function BlocoKpis({ data, isLoading, isError, onRetry }: Props) {
+  const { t } = useTranslation();
   if (isError) {
     return (
       <div className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] p-5">
-        <p className="text-sm text-[#991B1B]">Não foi possível carregar os indicadores.</p>
+        <p className="text-sm text-[#991B1B]">{t('gestorGeral.blocoKpis.loadError')}</p>
         <Button size="sm" variant="outline" className="mt-2" onClick={onRetry}>
           <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          Recarregar
+          {t('gestorGeral.blocoKpis.recarregar')}
         </Button>
       </div>
     );
@@ -58,38 +60,36 @@ export default function BlocoKpis({ data, isLoading, isError, onRetry }: Props) 
 
   const cards: CardConfig[] = [
     {
-      titulo: "Pacientes ativos",
+      titulo: t('gestorGeral.blocoKpis.pacientesAtivos'),
       valor: fmtNum(data.totais.pacientes_ativos),
       variacao: fmtVarPct(data.variacao_periodo_anterior.pacientes_ativos_pct),
-      tooltip:
-        "Gestantes com DUM nos últimos 280 dias nas unidades selecionadas. Snapshot atual — não depende da janela do filtro.",
+      tooltip: t('gestorGeral.blocoKpis.pacientesAtivosTip'),
     },
     {
-      titulo: "Laudos emitidos",
+      titulo: t('gestorGeral.blocoKpis.laudosEmitidos'),
       valor: fmtNum(data.totais.laudos_emitidos),
       variacao: fmtVarPct(data.variacao_periodo_anterior.laudos_emitidos_pct),
-      tooltip: "Laudos gerados no período selecionado pelas unidades selecionadas.",
+      tooltip: t('gestorGeral.blocoKpis.laudosEmitidosTip'),
     },
     {
-      titulo: "Taxa DMG positivo",
+      titulo: t('gestorGeral.blocoKpis.taxaDmgPositivo'),
       valor: fmtPct(data.totais.taxa_dmg_positivo_pct, 1),
       variacao: fmtVarPp(data.variacao_periodo_anterior.taxa_dmg_positivo_delta),
-      tooltip:
-        "Percentual de laudos do período com diagnóstico positivo de DMG. Faixa esperada Febrasgo: 7-18%.",
+      tooltip: t('gestorGeral.blocoKpis.taxaDmgPositivoTip'),
     },
     {
-      titulo: "Partos registrados",
+      titulo: t('gestorGeral.blocoKpis.partosRegistrados'),
       valor: fmtNum(data.totais.partos_registrados),
       variacao: { text: "—", tone: "neutral" },
       hideTrend: true,
-      tooltip: "Partos registrados no período pelas unidades selecionadas.",
+      tooltip: t('gestorGeral.blocoKpis.partosRegistradosTip'),
     },
     {
-      titulo: "Profissionais ativos",
+      titulo: t('gestorGeral.blocoKpis.profissionaisAtivos'),
       valor: fmtNum(data.totais.profissionais_ativos),
       variacao: { text: "—", tone: "neutral" },
       hideTrend: true,
-      tooltip: "Profissionais com ao menos 1 paciente em acompanhamento nas unidades selecionadas.",
+      tooltip: t('gestorGeral.blocoKpis.profissionaisAtivosTip'),
     },
   ];
 
@@ -109,7 +109,7 @@ export default function BlocoKpis({ data, isLoading, isError, onRetry }: Props) 
                     <button
                       type="button"
                       className="text-[#94A3B8] hover:text-[#7E69AB] transition-colors"
-                      aria-label="Mais informações"
+                      aria-label={t('gestorGeral.blocoKpis.moreInfo')}
                     >
                       <Info className="h-3.5 w-3.5" />
                     </button>
@@ -133,7 +133,7 @@ export default function BlocoKpis({ data, isLoading, isError, onRetry }: Props) 
           >
             {!c.hideTrend && <ToneIcon tone={c.variacao.tone} />}
             <span>{c.variacao.text}</span>
-            {!c.hideTrend && <span className="text-[#94A3B8]">vs período anterior</span>}
+            {!c.hideTrend && <span className="text-[#94A3B8]">{t('gestorGeral.blocoKpis.vsPeriodoAnterior')}</span>}
           </div>
         </div>
       ))}

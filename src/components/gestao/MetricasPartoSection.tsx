@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Baby, AlertTriangle, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,7 @@ interface PartoRow {
 }
 
 export default function MetricasPartoSection({ unidadeId, periodoInicio, periodoFim }: Props) {
+  const { t } = useTranslation();
   const [partos, setPartos] = useState<PartoRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,25 +56,25 @@ export default function MetricasPartoSection({ unidadeId, periodoInicio, periodo
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-heading text-lg font-semibold text-foreground flex items-center gap-2">
           <Baby className="h-5 w-5 text-primary" />
-          Partos e desfechos neonatais
+          {t('gestao.metricasParto.title')}
         </h2>
-        {total === 0 && <Badge variant="outline">Sem dados ainda</Badge>}
+        {total === 0 && <Badge variant="outline">{t('gestao.metricasParto.noDataYet')}</Badge>}
       </div>
 
       {total === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Nenhum parto registrado neste período. Os dados aparecerão aqui conforme forem cadastrados.
+          {t('gestao.metricasParto.emptyPeriod')}
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label="Total de partos" value={total.toString()} />
-          <Stat label="Cesáreas" value={`${cesarea} (${pct(cesarea)})`} />
-          <Stat label="Vaginais" value={`${vaginal} (${pct(vaginal)})`} />
-          <Stat label="Intercorrência materna" value={`${intMat} (${pct(intMat)})`} icon={<AlertTriangle className="h-4 w-4 text-clinical-warning-icon" />} />
-          <Stat label="Intercorrência neonatal" value={`${intNeo} (${pct(intNeo)})`} icon={<Activity className="h-4 w-4 text-clinical-warning-icon" />} />
-          <Stat label="AIG" value={`${aig} (${pct(aig)})`} />
-          <Stat label="GIG" value={`${gig} (${pct(gig)})`} />
-          <Stat label="PIG" value={`${pig} (${pct(pig)})`} />
+          <Stat label={t('gestao.metricasParto.totalPartos')} value={total.toString()} />
+          <Stat label={t('gestao.metricasParto.cesareas')} value={`${cesarea} (${pct(cesarea)})`} />
+          <Stat label={t('gestao.metricasParto.vaginais')} value={`${vaginal} (${pct(vaginal)})`} />
+          <Stat label={t('gestao.metricasParto.intercorrenciaMaterna')} value={`${intMat} (${pct(intMat)})`} icon={<AlertTriangle className="h-4 w-4 text-clinical-warning-icon" />} />
+          <Stat label={t('gestao.metricasParto.intercorrenciaNeonatal')} value={`${intNeo} (${pct(intNeo)})`} icon={<Activity className="h-4 w-4 text-clinical-warning-icon" />} />
+          <Stat label={t('gestao.metricasParto.aig')} value={`${aig} (${pct(aig)})`} />
+          <Stat label={t('gestao.metricasParto.gig')} value={`${gig} (${pct(gig)})`} />
+          <Stat label={t('gestao.metricasParto.pig')} value={`${pig} (${pct(pig)})`} />
         </div>
       )}
     </div>

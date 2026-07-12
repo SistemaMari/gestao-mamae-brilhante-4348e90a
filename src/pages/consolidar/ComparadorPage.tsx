@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
   Bar,
   BarChart,
@@ -34,49 +36,50 @@ interface MetricaCfg {
   tooltip: string;
 }
 
-const METRICAS: MetricaCfg[] = [
+interface MetricaBase {
+  key: MetricaKey;
+  direcao: "maior" | "menor";
+  format: (v: number, locale: string) => string;
+}
+
+const METRICAS_BASE: MetricaBase[] = [
   {
     key: "pacientes_ativos",
-    label: "Pacientes ativos",
-    labelLong: "número de pacientes ativos",
     direcao: "maior",
-    format: (v) => Math.round(v).toLocaleString("pt-BR"),
-    tooltip: "Maior é melhor: indica volume de atendimento da unidade.",
+    format: (v, locale) => Math.round(v).toLocaleString(locale),
   },
   {
     key: "laudos_emitidos",
-    label: "Laudos emitidos",
-    labelLong: "número de laudos emitidos",
     direcao: "maior",
-    format: (v) => Math.round(v).toLocaleString("pt-BR"),
-    tooltip: "Maior é melhor: produtividade de diagnóstico no período.",
+    format: (v, locale) => Math.round(v).toLocaleString(locale),
   },
   {
     key: "taxa_dmg_positivo_pct",
-    label: "Taxa DMG",
-    labelLong: "taxa de DMG positivo",
     direcao: "maior",
     format: (v) => `${v.toFixed(1)}%`,
-    tooltip:
-      "Comparação direta entre unidades. Faixa esperada Febrasgo: 7-18% — interprete com contexto.",
   },
   {
     key: "tempo_medio_fechamento_dias",
-    label: "Tempo médio desde DUM",
-    labelLong: "tempo médio entre DUM e parto",
     direcao: "menor",
     format: (v) => `${v.toFixed(1)} d`,
-    tooltip: "Menor é melhor: tempo entre DUM e parto.",
   },
   {
     key: "profissionais_ativos",
-    label: "Profissionais ativos",
-    labelLong: "número de profissionais ativos",
     direcao: "maior",
-    format: (v) => Math.round(v).toLocaleString("pt-BR"),
-    tooltip: "Profissionais com pelo menos uma gestante ativa.",
+    format: (v, locale) => Math.round(v).toLocaleString(locale),
   },
 ];
+
+function buildMetricas(t: TFunction, locale: string): MetricaCfg[] {
+  return METRICAS_BASE.map((m) => ({
+    key: m.key,
+    direcao: m.direcao,
+    format: (v: number) => m.format(v, locale),
+    label: t(`consolidar.comparador.metricas.${m.key}.label`),
+    labelLong: t(`consolidar.comparador.metricas.${m.key}.labelLong`),
+    tooltip: t(`consolidar.comparador.metricas.${m.key}.tooltip`),
+  }));
+}
 
 const DEFAULT_ATIVAS: MetricaKey[] = ["pacientes_ativos", "laudos_emitidos"];
 
@@ -94,18 +97,33 @@ function buildRows(data: any[] | undefined, m: MetricaCfg): Row[] {
   return rows;
 }
 
-function buildInsight(rows: Row[], m: MetricaCfg): string | null {
+function buildInsight(rows: Row[], m: MetricaCfg, t: TFunction): string | null {
   if (rows.length === 0) return null;
   const top = rows[0];
   const media = rows.reduce((s, r) => s + r.valor, 0) / rows.length;
   const diff = top.valor - media;
   const diffPct = media === 0 ? 0 : (Math.abs(diff) / media) * 100;
-  const palavraSup = m.direcao === "maior" ? "maior" : "menor";
-  const acimaAbaixo = m.direcao === "maior" ? "acima" : "abaixo";
-  return `${top.nome} tem o ${palavraSup} ${m.labelLong} (${m.format(top.valor)}), ${diffPct.toFixed(0)}% ${acimaAbaixo} da média da rede (${m.format(media)}).`;
+  const palavraSup =
+    m.direcao === "maior"
+      ? t("consolidar.comparador.insight.maior")
+      : t("consolidar.comparador.insight.menor");
+  const acimaAbaixo =
+    m.direcao === "maior"
+      ? t("consolidar.comparador.insight.acima")
+      : t("consolidar.comparador.insight.abaixo");
+  return t("consolidar.comparador.insight.frase", {
+    unidade: top.nome,
+    palavraSup,
+    labelLong: m.labelLong,
+    valorTop: m.format(top.valor),
+    diffPct: diffPct.toFixed(0),
+    acimaAbaixo,
+    valorMedia: m.format(media),
+  });
 }
 
 function GraficoMetrica({ m, rows, isLoading }: { m: MetricaCfg; rows: Row[]; isLoading: boolean }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-border bg-white p-5 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
@@ -114,13 +132,15 @@ function GraficoMetrica({ m, rows, isLoading }: { m: MetricaCfg; rows: Row[]; is
         </h3>
         <TooltipInfo text={m.tooltip} />
         <span className="ml-auto text-[11px] uppercase tracking-wide text-[#94A3B8]">
-          {m.direcao === "maior" ? "Maior é melhor" : "Menor é melhor"}
+          {m.direcao === "maior"
+            ? t("consolidar.comparador.maiorMelhor")
+            : t("consolidar.comparador.menorMelhor")}
         </span>
       </div>
       {isLoading ? (
         <Skeleton className="h-64 w-full rounded-md" />
       ) : rows.length === 0 ? (
-        <p className="py-8 text-center text-sm text-[#64748B]">Sem dados para esta métrica.</p>
+        <p className="py-8 text-center text-sm text-[#64748B]">{t("consolidar.comparador.semDadosMetrica")}</p>
       ) : (
         <div style={{ width: "100%", height: Math.max(180, rows.length * 44) }}>
           <ResponsiveContainer>
@@ -161,9 +181,12 @@ function GraficoMetrica({ m, rows, isLoading }: { m: MetricaCfg; rows: Row[]; is
 }
 
 export default function ComparadorPage() {
+  const { t, i18n } = useTranslation();
   const { semSelecao } = useFiltrosGestorGeral();
   const { data, isLoading, isError } = useDiagnosticoRanking();
   const [ativas, setAtivas] = useState<MetricaKey[]>(DEFAULT_ATIVAS);
+
+  const METRICAS = useMemo(() => buildMetricas(t, i18n.language), [t, i18n.language]);
 
   const togglePill = (k: MetricaKey) => {
     setAtivas((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
@@ -171,14 +194,14 @@ export default function ComparadorPage() {
 
   const ativasOrdenadas = useMemo(
     () => METRICAS.filter((m) => ativas.includes(m.key)),
-    [ativas],
+    [METRICAS, ativas],
   );
 
   const insights = useMemo(() => {
     return ativasOrdenadas
-      .map((m) => buildInsight(buildRows(data, m), m))
+      .map((m) => buildInsight(buildRows(data, m), m, t))
       .filter((x): x is string => Boolean(x));
-  }, [ativasOrdenadas, data]);
+  }, [ativasOrdenadas, data, t]);
 
   if (semSelecao) return <EmptyStateSemSelecao />;
 
@@ -186,10 +209,10 @@ export default function ComparadorPage() {
     <section className="space-y-4">
       <div>
         <h1 className="text-xl font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
-          Comparador de unidades
+          {t("consolidar.comparador.title")}
         </h1>
         <p className="mt-1 text-sm text-[#64748B]">
-          Selecione uma ou mais métricas para comparar as unidades lado a lado.
+          {t("consolidar.comparador.subtitle")}
         </p>
       </div>
 
@@ -217,11 +240,11 @@ export default function ComparadorPage() {
 
       {isError ? (
         <div className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] p-5">
-          <p className="text-sm text-[#991B1B]">Falha ao carregar dados.</p>
+          <p className="text-sm text-[#991B1B]">{t("consolidar.comparador.loadError")}</p>
         </div>
       ) : ativasOrdenadas.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[#E2E8F0] bg-white p-10 text-center text-sm text-[#64748B]">
-          Selecione ao menos uma métrica acima para comparar as unidades.
+          {t("consolidar.comparador.selecioneMetrica")}
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -237,7 +260,7 @@ export default function ComparadorPage() {
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#7E69AB]" />
             <div className="space-y-1.5">
               <p className="text-xs font-semibold uppercase tracking-wide text-[#7E69AB]">
-                Insight automático
+                {t("consolidar.comparador.insightAutomatico")}
               </p>
               {insights.map((t, i) => (
                 <p key={i} className="text-sm text-[#1E293B]">

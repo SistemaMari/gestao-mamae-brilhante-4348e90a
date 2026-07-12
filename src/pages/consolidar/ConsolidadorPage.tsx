@@ -8,6 +8,7 @@ import {
   YAxis,
   Legend,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, FileText, Activity, Stethoscope, FlaskConical } from "lucide-react";
 import {
@@ -69,15 +70,16 @@ export default function ConsolidadorPage() {
 }
 
 function BlocoOperacaoConsolidado() {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorOperacao();
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
-        Operação consolidada
+        {t('consolidar.operacao.title')}
       </h2>
       {isError ? (
         <div className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] p-4 text-sm text-[#991B1B]">
-          Falha ao carregar operação.
+          {t('consolidar.operacao.loadError')}
         </div>
       ) : isLoading || !data ? (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
@@ -88,34 +90,34 @@ function BlocoOperacaoConsolidado() {
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
           <MetricCard
-            label="Gestantes ativas"
+            label={t('consolidar.operacao.gestantesAtivas')}
             value={formatNum(data.gestantes_ativas)}
             Icon={Users}
-            tooltip="Soma das gestantes com DUM nos últimos 280 dias em todas as unidades selecionadas."
+            tooltip={t('consolidar.operacao.gestantesAtivasTip')}
           />
           <MetricCard
-            label="Laudos emitidos"
+            label={t('consolidar.operacao.laudosEmitidos')}
             value={formatNum(data.laudos_emitidos)}
             Icon={FileText}
-            tooltip="Laudos gerados no período selecionado pelas unidades selecionadas."
+            tooltip={t('consolidar.operacao.laudosEmitidosTip')}
           />
           <MetricCard
-            label="Exames realizados"
+            label={t('consolidar.operacao.examesRealizados')}
             value={formatNum(data.exames_realizados)}
             Icon={FlaskConical}
-            tooltip="Total de exames de glicemia (GJ + TTOG + perfil) registrados no período."
+            tooltip={t('consolidar.operacao.examesRealizadosTip')}
           />
           <MetricCard
-            label="Partos registrados"
+            label={t('consolidar.operacao.partosRegistrados')}
             value={formatNum(data.partos_registrados)}
             Icon={Activity}
-            tooltip="Partos registrados no período pelas unidades selecionadas."
+            tooltip={t('consolidar.operacao.partosRegistradosTip')}
           />
           <MetricCard
-            label="Profissionais ativos"
+            label={t('consolidar.operacao.profissionaisAtivos')}
             value={formatNum(data.profissionais_ativos)}
             Icon={Stethoscope}
-            tooltip="Profissionais com ao menos 1 paciente em acompanhamento."
+            tooltip={t('consolidar.operacao.profissionaisAtivosTip')}
           />
         </div>
       )}
@@ -124,15 +126,16 @@ function BlocoOperacaoConsolidado() {
 }
 
 function BlocoPerfilClinicoConsolidado() {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorPerfilClinico();
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
-        Perfil clínico consolidado
+        {t('consolidar.perfilClinico.title')}
       </h2>
       {isError ? (
         <div className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] p-4 text-sm text-[#991B1B]">
-          Falha ao carregar perfil clínico.
+          {t('consolidar.perfilClinico.loadError')}
         </div>
       ) : isLoading || !data ? (
         <div className="grid gap-3 md:grid-cols-3">
@@ -143,27 +146,27 @@ function BlocoPerfilClinicoConsolidado() {
       ) : (
         <div className="grid gap-3 md:grid-cols-3">
           <MetricCard
-            label="Taxa DMG positivo"
+            label={t('consolidar.perfilClinico.taxaDmgPositivo')}
             value={formatPctOrDash(data.taxa_dmg_positivo_pct, 1)}
             Icon={Activity}
-            tooltip="Percentual de gestantes com DMG confirmado. Faixa esperada Febrasgo: 7-18%."
-            subtitle={`${formatNum(data.total_diagnosticos_no_calculo)} diagnósticos no cálculo`}
+            tooltip={t('consolidar.perfilClinico.taxaDmgPositivoTip')}
+            subtitle={t('consolidar.perfilClinico.diagnosticosNoCalculo', { count: data.total_diagnosticos_no_calculo, valor: formatNum(data.total_diagnosticos_no_calculo) })}
           />
           <MetricCard
-            label="IG média ao diagnóstico"
+            label={t('consolidar.perfilClinico.igMediaDiagnostico')}
             value={formatIg(data.ig_media_diagnostico)}
             Icon={Activity}
-            tooltip="Idade gestacional média no momento do diagnóstico de DMG. Janela ideal: 24-28 semanas."
+            tooltip={t('consolidar.perfilClinico.igMediaDiagnosticoTip')}
           />
           <MetricCard
-            label="Tempo médio de fechamento"
+            label={t('consolidar.perfilClinico.tempoMedioFechamento')}
             value={
               data.tempo_medio_fechamento_dias === null
                 ? "—"
-                : `${data.tempo_medio_fechamento_dias.toFixed(1)} d`
+                : t('consolidar.perfilClinico.diasSuffix', { valor: data.tempo_medio_fechamento_dias.toFixed(1) })
             }
             Icon={Activity}
-            tooltip="Dias médios entre confirmação do DMG e o desfecho (alta/parto)."
+            tooltip={t('consolidar.perfilClinico.tempoMedioFechamentoTip')}
           />
         </div>
       )}
@@ -172,6 +175,7 @@ function BlocoPerfilClinicoConsolidado() {
 }
 
 function BlocoGargalosConsolidado() {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorGargalos();
   // Adapt para shape do BlocoGargalos da unidade (paciente_ids vazios — sem drill-down).
   const adaptado = data
@@ -185,26 +189,27 @@ function BlocoGargalosConsolidado() {
     <BlocoGargalos
       data={adaptado ?? { sem_gj_primeira_consulta: { count: 0, paciente_ids: [] }, atrasadas_gtt: { count: 0, paciente_ids: [] }, confirmadas_sem_retorno: { count: 0, paciente_ids: [] } }}
       loading={isLoading}
-      error={isError ? "Falha ao carregar gargalos." : null}
+      error={isError ? t('consolidar.gargalos.loadError') : null}
       hideVerPacientesLink
-      subtitle="Onde há falha de rastreamento na sua rede."
+      subtitle={t('consolidar.gargalos.subtitle')}
     />
   );
 }
 
 function BlocoTendenciaConsolidado() {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorTendencia();
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
-          Tendência da rede (12 meses)
+          {t('consolidar.tendencia.title')}
         </h2>
-        <TooltipInfo text="Fotografia mensal das últimas 12 referências: total de gestantes ativas e DMG confirmados. Não respeita o filtro de período — sempre 12 meses." />
+        <TooltipInfo text={t('consolidar.tendencia.tooltip')} />
       </div>
       {isError ? (
         <div className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] p-4 text-sm text-[#991B1B]">
-          Falha ao carregar tendência.
+          {t('consolidar.tendencia.loadError')}
         </div>
       ) : isLoading || !data ? (
         <Skeleton className="h-72 w-full rounded-xl" />
@@ -218,8 +223,8 @@ function BlocoTendenciaConsolidado() {
                 <YAxis stroke="#64748B" tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#E2E8F0" }} allowDecimals={false} />
                 <RTooltip contentStyle={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, fontSize: 13 }} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="total_gestantes" name="Gestantes ativas" stroke="#9b87f5" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
-                <Line type="monotone" dataKey="total_dmg_confirmadas" name="DMG confirmadas" stroke="#7E69AB" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+                <Line type="monotone" dataKey="total_gestantes" name={t('consolidar.tendencia.legendGestantes')} stroke="#9b87f5" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+                <Line type="monotone" dataKey="total_dmg_confirmadas" name={t('consolidar.tendencia.legendDmg')} stroke="#7E69AB" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>

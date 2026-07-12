@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -89,6 +90,7 @@ function buildVitrineFichas(): Ficha[] {
 }
 
 export default function FichasUnidadePage() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { user } = useAuth();
@@ -119,9 +121,9 @@ export default function FichasUnidadePage() {
   }, [filtroAtivo, idsParam]);
 
   const FILTRO_META: Record<FiltroKey, { titulo: string; cor: 'amarelo' | 'laranja' | 'vermelho'; Icon: typeof AlertTriangle }> = {
-    sem_gj_primeira: { titulo: 'Sem GJ na primeira consulta', cor: 'amarelo', Icon: AlertTriangle },
-    atrasadas_gtt: { titulo: 'GTT 75g em atraso', cor: 'laranja', Icon: AlertCircle },
-    sem_retorno: { titulo: 'DMG confirmado sem retorno', cor: 'vermelho', Icon: AlertOctagon },
+    sem_gj_primeira: { titulo: t('gestao.fichasUnidade.filtroSemGjPrimeira'), cor: 'amarelo', Icon: AlertTriangle },
+    atrasadas_gtt: { titulo: t('gestao.fichasUnidade.filtroAtrasadasGtt'), cor: 'laranja', Icon: AlertCircle },
+    sem_retorno: { titulo: t('gestao.fichasUnidade.filtroSemRetorno'), cor: 'vermelho', Icon: AlertOctagon },
   };
   const CHIP_STYLES: Record<'amarelo' | 'laranja' | 'vermelho', string> = {
     amarelo: 'bg-yellow-50 border-yellow-200 text-yellow-900',
@@ -248,14 +250,23 @@ export default function FichasUnidadePage() {
 
   const exportCSV = async () => {
     if (isVitrine) {
-      toast.info('Exportar CSV disponível no ambiente real.');
+      toast.info(t('gestao.fichasUnidade.csvVitrineInfo'));
       return;
     }
     // 34C-B: busca todas as IGs em lote antes de montar o CSV (RPC paralela).
     const igMapCsv = await getIgBatch(
       filtradas.map(f => ({ key: f.id, pacienteId: f.id, dataAlvo: f.data_ultima_consulta })),
     );
-    const headers = ['Paciente', 'IG', 'Status', 'Profissional', 'Última consulta', 'Próxima consulta', 'Data diagnóstico (status)', 'Criada em'];
+    const headers = [
+      t('gestao.fichasUnidade.colPaciente'),
+      t('gestao.fichasUnidade.colIg'),
+      t('common.status'),
+      t('gestao.fichasUnidade.colProfissional'),
+      t('gestao.fichasUnidade.colUltimaConsulta'),
+      t('gestao.fichasUnidade.colProximaConsulta'),
+      t('gestao.fichasUnidade.colDataDiagnostico'),
+      t('gestao.fichasUnidade.colCriadaEm'),
+    ];
     const rows = filtradas.map(f => [
       f.nome,
       formatIg(igMapCsv.get(f.id) ?? null),
@@ -264,7 +275,7 @@ export default function FichasUnidadePage() {
       fmtBR(f.data_ultima_consulta),
       fmtBR(f.data_proximo_retorno),
       f.status_ficha,
-      new Date(f.created_at).toLocaleDateString('pt-BR'),
+      new Date(f.created_at).toLocaleDateString(i18n.language),
     ]);
     const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
     const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(escape).join(',')).join('\r\n');
@@ -275,14 +286,14 @@ export default function FichasUnidadePage() {
     a.download = `${fileBase}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Arquivo CSV gerado.');
+    toast.success(t('gestao.fichasUnidade.csvGerado'));
   };
 
   const [gerandoExcel, setGerandoExcel] = useState(false);
 
   const exportExcel = async () => {
     if (isVitrine) {
-      toast.info('Exportar Excel disponível no ambiente real.');
+      toast.info(t('gestao.fichasUnidade.excelVitrineInfo'));
       return;
     }
     setGerandoExcel(true);
@@ -295,10 +306,10 @@ export default function FichasUnidadePage() {
         busca: buscaDebounced,
         fileBase,
       });
-      toast.success('Arquivo Excel gerado.');
+      toast.success(t('gestao.fichasUnidade.excelGerado'));
     } catch (err) {
       console.error('[exportarFichasExcel] erro:', err);
-      toast.error('Não foi possível gerar o Excel. Tente novamente.');
+      toast.error(t('gestao.fichasUnidade.excelErro'));
     } finally {
       setGerandoExcel(false);
     }
@@ -307,17 +318,17 @@ export default function FichasUnidadePage() {
   return (
     <div className="px-6 py-8 lg:px-10">
       <div className="mb-6">
-        <h1 className="font-heading text-2xl font-bold text-foreground">Fichas da unidade</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Lista completa de pacientes em acompanhamento.</p>
+        <h1 className="font-heading text-2xl font-bold text-foreground">{t('gestao.fichasUnidade.title')}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t('gestao.fichasUnidade.subtitle')}</p>
       </div>
 
       {/* Header de KPIs operacionais */}
       <div className="mb-4 grid grid-cols-2 divide-x divide-border rounded-xl border border-border bg-card p-5 sm:grid-cols-4">
         {[
-          { label: 'Total', valor: kpiTotal },
-          { label: 'Aguardando GJ', valor: kpiAguardandoGj },
-          { label: 'Em acompanhamento', valor: kpiAcompanhamento },
-          { label: 'Concluídas', valor: kpiConcluidas },
+          { label: t('gestao.fichasUnidade.kpiTotal'), valor: kpiTotal },
+          { label: t('gestao.fichasUnidade.kpiAguardandoGj'), valor: kpiAguardandoGj },
+          { label: t('gestao.fichasUnidade.kpiAcompanhamento'), valor: kpiAcompanhamento },
+          { label: t('gestao.fichasUnidade.kpiConcluidas'), valor: kpiConcluidas },
         ].map((kpi, i) => (
           <div key={kpi.label} className={`flex flex-col px-4 ${i === 0 ? 'sm:pl-0' : ''}`}>
             <span className="font-heading text-3xl font-bold text-foreground">{kpi.valor}</span>
@@ -337,7 +348,7 @@ export default function FichasUnidadePage() {
               : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] cursor-pointer'
           }`}
         >
-          Todos ({kpiTotal})
+          {t('gestao.fichasUnidade.chipTodos', { count: kpiTotal })}
         </button>
         {STATUS_CHIP_KEYS.map(key => {
           const cfg = STATUS_CONFIG[key];
@@ -368,7 +379,7 @@ export default function FichasUnidadePage() {
           <Input
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome de paciente..."
+            placeholder={t('gestao.fichasUnidade.searchPlaceholder')}
             className="pl-9"
           />
         </div>
@@ -379,22 +390,22 @@ export default function FichasUnidadePage() {
             onClick={exportCSV}
             disabled={loading || filtradas.length === 0 || gerandoExcel}
           >
-            <FileDown className="h-4 w-4" /> Exportar CSV
+            <FileDown className="h-4 w-4" /> {t('gestao.fichasUnidade.exportCsv')}
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={exportExcel}
             disabled={loading || filtradas.length === 0 || gerandoExcel}
-            title={filtradas.length === 0 ? 'Nenhuma ficha para exportar com os filtros atuais.' : undefined}
+            title={filtradas.length === 0 ? t('gestao.fichasUnidade.exportEmptyTitle') : undefined}
           >
             {gerandoExcel ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Gerando...
+                <Loader2 className="h-4 w-4 animate-spin" /> {t('management.generating')}
               </>
             ) : (
               <>
-                <FileSpreadsheet className="h-4 w-4" /> Exportar Excel
+                <FileSpreadsheet className="h-4 w-4" /> {t('gestao.fichasUnidade.exportExcel')}
               </>
             )}
           </Button>
@@ -410,10 +421,10 @@ export default function FichasUnidadePage() {
             <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm ${CHIP_STYLES[meta.cor]}`}>
               <Icon className="h-4 w-4" />
               <span className="font-medium">{meta.titulo}</span>
-              <span className="font-normal">· {count} {count === 1 ? 'paciente' : 'pacientes'}</span>
+              <span className="font-normal">· {t('gestao.fichasUnidade.pacienteCount', { count })}</span>
               <button
                 type="button"
-                aria-label="Limpar filtro de gargalo"
+                aria-label={t('gestao.fichasUnidade.limparFiltroGargalo')}
                 onClick={limparFiltroGargalo}
                 className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full hover:bg-black/5"
               >
@@ -428,19 +439,19 @@ export default function FichasUnidadePage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-[#5B3A8E] hover:bg-[#5B3A8E]">
-              <TableHead className="text-white">Paciente</TableHead>
-              <TableHead className="text-white">IG</TableHead>
-              <TableHead className="text-white">Status</TableHead>
-              <TableHead className="text-white">Profissional</TableHead>
-              <TableHead className="text-white">Última consulta</TableHead>
-              <TableHead className="text-white">Próxima consulta</TableHead>
+              <TableHead className="text-white">{t('gestao.fichasUnidade.colPaciente')}</TableHead>
+              <TableHead className="text-white">{t('gestao.fichasUnidade.colIg')}</TableHead>
+              <TableHead className="text-white">{t('common.status')}</TableHead>
+              <TableHead className="text-white">{t('gestao.fichasUnidade.colProfissional')}</TableHead>
+              <TableHead className="text-white">{t('gestao.fichasUnidade.colUltimaConsulta')}</TableHead>
+              <TableHead className="text-white">{t('gestao.fichasUnidade.colProximaConsulta')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-10">
-                  Carregando…
+                  {t('common.loading')}
                 </TableCell>
               </TableRow>
             ) : pageItems.length === 0 ? (
@@ -449,18 +460,18 @@ export default function FichasUnidadePage() {
                   <FileText className="h-10 w-10 text-muted-foreground/30 mb-3 mx-auto" />
                   {(statusFiltro || buscaDebounced.trim()) && fichas.length > 0 ? (
                     <>
-                      <p className="text-sm text-muted-foreground">Nenhuma ficha corresponde aos filtros aplicados.</p>
+                      <p className="text-sm text-muted-foreground">{t('gestao.fichasUnidade.emptyFiltered')}</p>
                       <Button variant="outline" size="sm" className="mt-4" onClick={limparTodosFiltros}>
-                        Limpar filtros
+                        {t('admin.clearFilters')}
                       </Button>
                     </>
                   ) : (
                     <p className="text-sm text-muted-foreground">
                       {filtroAtivo
-                        ? 'Sem pacientes neste gargalo no momento.'
+                        ? t('gestao.fichasUnidade.emptyGargalo')
                         : fichas.length === 0
-                        ? 'Nenhuma ficha cadastrada nesta unidade ainda.'
-                        : 'Nenhuma paciente encontrada com esse nome. Tente outra busca.'}
+                        ? t('gestao.fichasUnidade.emptyUnidade')
+                        : t('gestao.fichasUnidade.emptyBusca')}
                     </p>
                   )}
                 </TableCell>
@@ -496,14 +507,14 @@ export default function FichasUnidadePage() {
 
       {filtradas.length > 0 && (
         <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-          <span>Exibindo {inicio}-{fim} de {filtradas.length} fichas</span>
+          <span>{t('gestao.fichasUnidade.exibindo', { inicio, fim, total: filtradas.length })}</span>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={pageSafe <= 1}>
-              <ChevronLeft className="h-4 w-4" /> Anterior
+              <ChevronLeft className="h-4 w-4" /> {t('common.back')}
             </Button>
-            <span>Página {pageSafe} de {totalPages}</span>
+            <span>{t('gestao.fichasUnidade.pagina', { page: pageSafe, total: totalPages })}</span>
             <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={pageSafe >= totalPages}>
-              Próximo <ChevronRight className="h-4 w-4" />
+              {t('common.next')} <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>

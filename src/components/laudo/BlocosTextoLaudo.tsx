@@ -1,4 +1,5 @@
 import { AlertTriangle, FileText, Info, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import type { EstadoTextos } from '@/hooks/useLaudoTextos';
 import SkeletonShimmer from './SkeletonShimmer';
@@ -30,6 +31,7 @@ interface Props {
  * `aplicarVariaveisLaudo`; valor ausente vira marcador neutro, nunca colchete cru.
  */
 export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente }: Props) {
+  const { t } = useTranslation();
   // Prompt 42I §3.4 — separar 'carregando' (busca em voo) de 'pendente' (nunca
   // solicitado). Antes os dois compartilhavam o mesmo skeleton "Carregando…",
   // então quando o gatilho automático não disparava, a UI ficava presa para
@@ -37,7 +39,7 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
   if (estado.status === 'carregando') {
     return (
       <section className="laudo-bloco rounded-xl border border-[#D6BCFA] bg-white p-4 shadow-sm">
-        <p className="text-xs font-medium text-[#7E69AB]">Carregando textos do laudo…</p>
+        <p className="text-xs font-medium text-[#7E69AB]">{t('laudo.blocosTexto.carregando')}</p>
         <div className="mt-2">
           <SkeletonShimmer variante="lilas" linhas={3} />
         </div>
@@ -50,7 +52,7 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
       <section className="laudo-bloco rounded-xl border border-[#D6BCFA] bg-[#F1F0FB] p-4">
         <div className="flex items-start justify-between gap-3">
           <p className="text-xs leading-relaxed text-[#5B21B6]">
-            Laudo ainda não carregado.
+            {t('laudo.blocosTexto.pendente')}
           </p>
           {onTentarNovamente && (
             <Button
@@ -60,7 +62,7 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
               onClick={onTentarNovamente}
             >
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-              Carregar laudo
+              {t('laudo.blocosTexto.carregarLaudo')}
             </Button>
           )}
         </div>
@@ -77,8 +79,7 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
         <div className="flex items-start gap-2">
           <Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[#B45309]" />
           <p className="text-xs leading-relaxed text-[#78350F]">
-            {estado.mensagem ??
-              'Informe o peso atual da paciente para gerar o laudo completo com a dose inicial de insulina.'}
+            {estado.mensagem ?? t('laudo.blocosTexto.aguardandoPeso')}
           </p>
         </div>
       </section>
@@ -92,11 +93,10 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
           <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[#B91C1C]" />
           <div className="flex-1">
             <h3 className="font-heading text-sm font-bold text-[#991B1B]">
-              Não foi possível carregar os textos
+              {t('laudo.blocosTexto.erroTitulo')}
             </h3>
             <p className="mt-1 text-xs text-[#7F1D1D]">
-              {estado.erro?.mensagem ??
-                'Não foi possível carregar os textos do laudo. Tente novamente em instantes.'}
+              {estado.erro?.mensagem ?? t('laudo.blocosTexto.erroDescricao')}
             </p>
             {onTentarNovamente && (
               <div className="mt-3">
@@ -107,7 +107,7 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
                   onClick={onTentarNovamente}
                 >
                   <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                  Tentar novamente
+                  {t('common.tryAgain')}
                 </Button>
               </div>
             )}
@@ -123,8 +123,7 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
         <div className="flex items-start gap-2">
           <Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[#B45309]" />
           <p className="text-xs leading-relaxed text-[#78350F]">
-            {estado.mensagem ??
-              'A geração de laudos está temporariamente desativada pela administração do sistema.'}
+            {estado.mensagem ?? t('laudo.blocosTexto.desativado')}
           </p>
         </div>
       </section>
@@ -137,7 +136,7 @@ export default function BlocosTextoLaudo({ estado, variaveis, onTentarNovamente 
         <div className="flex items-start gap-2">
           <FileText aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[#7C4DBA]" />
           <p className="text-xs leading-relaxed text-[#5B21B6]">
-            {estado.mensagem ?? 'Complete os dados clínicos da ficha para visualizar o laudo.'}
+            {estado.mensagem ?? t('laudo.blocosTexto.fichaIncompleta')}
           </p>
         </div>
       </section>

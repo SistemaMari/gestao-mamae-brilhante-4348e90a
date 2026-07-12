@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
 import {
   useDiagnosticoKpis,
@@ -12,6 +13,7 @@ import BlocoAlertas from "@/components/gestor-geral/painel/BlocoAlertas";
 import BlocoTopDestaques from "@/components/gestor-geral/painel/BlocoTopDestaques";
 
 export default function DiagnosticoPage() {
+  const { t } = useTranslation();
   const { semSelecao } = useFiltrosGestorGeral();
   const kpis = useDiagnosticoKpis();
   const ranking = useDiagnosticoRanking();
@@ -24,10 +26,10 @@ export default function DiagnosticoPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
-          Diagnóstico operacional
+          {t('consolidar.diagnostico.title')}
         </h1>
         <p className="mt-1 text-sm text-[#64748B]">
-          Indicadores agregados, ranking e alertas determinísticos da rede.
+          {t('consolidar.diagnostico.subtitle')}
         </p>
       </div>
       <BlocoKpis

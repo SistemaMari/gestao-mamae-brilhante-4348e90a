@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import i18n from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -90,9 +91,9 @@ export default function CarimboAtendimento(props: Props) {
     const unidadeMostrada = unidadeContextoNome ?? dados.unidade_nome;
     return (
       <div className="rounded-md border border-[#99F6E4] bg-[#F0FDFA] px-4 py-2 text-sm">
-        <span className="text-muted-foreground">Atendendo como: </span>
+        <span className="text-muted-foreground">{i18n.t("clinico.carimboAtendimento.atendendoComo")} </span>
         <strong className="text-[#0F766E]">{dados.nome}</strong>
-        {dados.crm && <span className="text-[#0F766E]"> — CRM {dados.crm}</span>}
+        {dados.crm && <span className="text-[#0F766E]"> {i18n.t("clinico.carimboAtendimento.crmSuffix", { crm: dados.crm })}</span>}
         {unidadeMostrada && (
           <span className="text-muted-foreground"> | {unidadeMostrada}</span>
         )}
@@ -106,7 +107,7 @@ export default function CarimboAtendimento(props: Props) {
     return (
       <span className="text-xs text-muted-foreground">
         {r.profissional_nome}
-        {r.profissional_crm ? ` — CRM ${r.profissional_crm}` : ""}
+        {r.profissional_crm ? ` ${i18n.t("clinico.carimboAtendimento.crmSuffix", { crm: r.profissional_crm })}` : ""}
       </span>
     );
   }
@@ -135,19 +136,21 @@ function rotuloNumeroConsulta(
   if (!consultas || !recursoId) return null;
   const idx = consultas.findIndex((c) => c.id === recursoId);
   if (idx < 0) return null;
-  return consultas[idx].tipo === "consulta_1" ? "Caso Novo" : `Retorno ${idx}`;
+  return consultas[idx].tipo === "consulta_1"
+    ? i18n.t("clinico.carimboAtendimento.casoNovo")
+    : i18n.t("clinico.carimboAtendimento.retorno", { numero: idx });
 }
 
 function ListaRender({ data, consultas, isLoading }: { data: RegistroLista[] | undefined; consultas?: ConsultaOrdenada[]; isLoading: boolean }) {
   return (
     <div className="space-y-2">
       <h3 className="font-[Sora] text-base font-semibold text-[#5B3A8E]">
-        Histórico de atendimentos
+        {i18n.t("clinico.carimboAtendimento.historicoTitle")}
       </h3>
       {isLoading ? (
         <Skeleton className="h-20 w-full" />
       ) : !data || data.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum atendimento registrado ainda.</p>
+        <p className="text-sm text-muted-foreground">{i18n.t("clinico.carimboAtendimento.nenhumRegistro")}</p>
       ) : (
         <ul className="divide-y rounded-md border bg-white">
           {data.map((r) => {
@@ -158,12 +161,12 @@ function ListaRender({ data, consultas, isLoading }: { data: RegistroLista[] | u
                 <div className="font-medium">{labelTipoOperacao(r.tipo_operacao)}{numero ? ` — ${numero}` : ""}</div>
                 <div className="text-xs text-muted-foreground">
                   {r.profissional_nome}
-                  {r.profissional_crm ? ` — CRM ${r.profissional_crm}` : ""}
+                  {r.profissional_crm ? ` ${i18n.t("clinico.carimboAtendimento.crmSuffix", { crm: r.profissional_crm })}` : ""}
                   {r.profissional_especialidade ? ` • ${r.profissional_especialidade}` : ""}
                 </div>
               </div>
               <div className="text-xs text-muted-foreground">
-                {new Date(r.created_at).toLocaleString("pt-BR", {
+                {new Date(r.created_at).toLocaleString(i18n.language, {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",

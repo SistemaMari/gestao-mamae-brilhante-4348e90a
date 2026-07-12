@@ -1,4 +1,5 @@
 import { Info } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Tooltip,
   TooltipContent,
@@ -18,11 +19,12 @@ interface Props {
 
 export default function TooltipInfo({ text, side = "top", className, ariaLabel }: Props) {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   const trigger = (
     <button
       type="button"
-      aria-label={ariaLabel ?? "Mais informações"}
+      aria-label={ariaLabel ?? t("admin.infoTooltip.moreInfo")}
       className={cn(
         "inline-flex items-center text-[#94A3B8] hover:text-[#7E69AB] transition-colors",
         className,

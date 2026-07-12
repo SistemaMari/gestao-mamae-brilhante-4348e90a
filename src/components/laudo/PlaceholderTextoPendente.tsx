@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   /** Campo `blocos_faltantes` da resposta. `['*']` = todos os blocos. */
@@ -16,6 +17,7 @@ interface Props {
  * WCAG AA (texto âmbar escuro sobre fundo amarelo claro).
  */
 export default function PlaceholderTextoPendente({ blocosFaltantes }: Props) {
+  const { t } = useTranslation();
   const todos = blocosFaltantes.length === 0 || blocosFaltantes.includes('*');
 
   return (
@@ -27,19 +29,18 @@ export default function PlaceholderTextoPendente({ blocosFaltantes }: Props) {
         <AlertTriangle aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-[#B45309]" />
         <div className="flex-1">
           <h3 className="font-heading text-sm font-bold text-[#92400E]">
-            Texto pendente — solicitar ao time clínico
+            {t('laudo.placeholderTextoPendente.title')}
           </h3>
           <p className="mt-1 text-xs leading-relaxed text-[#78350F]">
-            Os textos descritivos deste laudo ainda não foram publicados pelo time clínico. A geração
-            do PDF está temporariamente bloqueada até a entrega dos textos oficiais.
+            {t('laudo.placeholderTextoPendente.descricao')}
           </p>
 
           <div className="mt-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#92400E]">
-              Blocos pendentes
+              {t('laudo.placeholderTextoPendente.blocosPendentes')}
             </p>
             {todos ? (
-              <p className="mt-0.5 text-xs text-[#78350F]">Todos os blocos.</p>
+              <p className="mt-0.5 text-xs text-[#78350F]">{t('laudo.placeholderTextoPendente.todosBlocos')}</p>
             ) : (
               <ul className="mt-0.5 list-disc pl-5 text-xs text-[#78350F]">
                 {blocosFaltantes.map((b) => (

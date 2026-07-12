@@ -4,6 +4,7 @@
  * Itens 1-3: Sim/Não (boolean). Itens 4-6: Sim/Não/Sem informação (text).
  */
 import { Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip';
@@ -54,12 +55,13 @@ function Pill({ active, onClick, children, disabled }: { active: boolean; onClic
 }
 
 export default function ChecklistRetorno2({ value, onChange, disabled }: Props) {
+  const { t } = useTranslation();
   const set = <K extends keyof ChecklistState>(k: K, v: ChecklistState[K]) => onChange({ ...value, [k]: v });
 
   return (
     <div className="rounded-xl border border-[#D6BCFA] bg-[#FAFAFE] p-4 space-y-3">
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-bold text-[#5B21B6]">Checklist clínico do Retorno 2</h3>
+        <h3 className="text-sm font-bold text-[#5B21B6]">{t('ficha.checklistRetorno2.title')}</h3>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -67,7 +69,7 @@ export default function ChecklistRetorno2({ value, onChange, disabled }: Props) 
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
               <p className="text-xs">
-                As 6 respostas são enviadas ao backend, que devolve a conduta (manter MEV / reforçar MEV / iniciar insulina / avaliar memória do glicosímetro) e a próxima ficha recomendada.
+                {t('ficha.checklistRetorno2.tooltip')}
               </p>
             </TooltipContent>
           </Tooltip>
@@ -89,8 +91,8 @@ export default function ChecklistRetorno2({ value, onChange, disabled }: Props) 
               </TooltipProvider>
             </div>
             <div className="flex gap-2">
-              <Pill disabled={disabled} active={value[key] === true} onClick={() => set(key, true)}>Sim</Pill>
-              <Pill disabled={disabled} active={value[key] === false} onClick={() => set(key, false)}>Não</Pill>
+              <Pill disabled={disabled} active={value[key] === true} onClick={() => set(key, true)}>{t('common.yes')}</Pill>
+              <Pill disabled={disabled} active={value[key] === false} onClick={() => set(key, false)}>{t('common.no')}</Pill>
             </div>
           </div>
         ))}
@@ -110,9 +112,9 @@ export default function ChecklistRetorno2({ value, onChange, disabled }: Props) 
                 </TooltipProvider>
               </div>
               <div className="flex gap-2">
-                <Pill disabled={disabled} active={value[key] === 'sim'} onClick={() => set(key, 'sim')}>Sim</Pill>
-                <Pill disabled={disabled} active={value[key] === 'nao'} onClick={() => set(key, 'nao')}>Não</Pill>
-                <Pill disabled={disabled} active={value[key] === 'sem_info'} onClick={() => set(key, 'sem_info')}>Sem informação</Pill>
+                <Pill disabled={disabled} active={value[key] === 'sim'} onClick={() => set(key, 'sim')}>{t('common.yes')}</Pill>
+                <Pill disabled={disabled} active={value[key] === 'nao'} onClick={() => set(key, 'nao')}>{t('common.no')}</Pill>
+                <Pill disabled={disabled} active={value[key] === 'sem_info'} onClick={() => set(key, 'sem_info')}>{t('ficha.checklistRetorno2.noInfo')}</Pill>
               </div>
             </div>
           ))}

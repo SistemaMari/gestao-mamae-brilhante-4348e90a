@@ -1,4 +1,5 @@
 import { Download, FileSpreadsheet, FileText, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -35,10 +36,11 @@ export default function PainelHeader({
   onRefresh,
   onExportCsv,
 }: Props) {
+  const { t } = useTranslation();
   const cooldown = cooldownSegundos > 0;
   const cooldownLabel = cooldown
-    ? `Aguarde ${Math.ceil(cooldownSegundos / 60)}m antes de atualizar novamente`
-    : "Atualizar dados (cache de 1h)";
+    ? t('gestorGeral.painelHeader.cooldownAguarde', { min: Math.ceil(cooldownSegundos / 60) })
+    : t('gestorGeral.painelHeader.cooldownAtualizar');
 
   return (
     <div className="rounded-xl border border-border bg-white p-5 shadow-sm">
@@ -48,9 +50,9 @@ export default function PainelHeader({
             className="text-2xl font-semibold text-[#1E293B]"
             style={{ fontFamily: "Sora, sans-serif" }}
           >
-            Painel da Rede — MARI
+            {t('gestorGeral.painelHeader.title')}
           </h1>
-          <p className="mt-1 text-sm text-[#475569]">Olá, {nome || "Gestor(a)"}.</p>
+          <p className="mt-1 text-sm text-[#475569]">{t('gestorGeral.painelHeader.greeting', { nome: nome || t('gestorGeral.painelHeader.gestorFallback') })}</p>
           <p className="text-xs text-[#64748B]">
             {cargo}
             {instituicao && (
@@ -58,18 +60,18 @@ export default function PainelHeader({
                 {" — "}
                 <span className="font-medium text-[#7E69AB]">{instituicao}</span>
                 {outrosContratantes > 0 && (
-                  <span className="text-[#94A3B8]"> +{outrosContratantes} outras</span>
+                  <span className="text-[#94A3B8]"> {t('gestorGeral.painelHeader.outrasContratantes', { count: outrosContratantes })}</span>
                 )}
               </>
             )}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Badge className="bg-[#F1F0FB] text-[#7E69AB] border border-[#E8E0FF] hover:bg-[#F1F0FB]">
-              {unidadesVinculadas} {unidadesVinculadas === 1 ? "unidade vinculada" : "unidades vinculadas"}
+              {t('gestorGeral.painelHeader.unidadesVinculadas', { count: unidadesVinculadas })}
             </Badge>
             {atualizadoHaMin !== null && (
               <span className="text-xs text-[#94A3B8]">
-                Atualizado {humanizeMinutes(atualizadoHaMin)}
+                {t('gestorGeral.painelHeader.atualizado', { tempo: humanizeMinutes(atualizadoHaMin) })}
               </span>
             )}
           </div>
@@ -87,7 +89,7 @@ export default function PainelHeader({
                     disabled={refreshing || cooldown}
                   >
                     <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-                    Atualizar dados
+                    {t('gestorGeral.painelHeader.atualizarDados')}
                   </Button>
                 </span>
               </TooltipTrigger>
@@ -99,13 +101,13 @@ export default function PainelHeader({
             <DropdownMenuTrigger asChild>
               <Button size="sm" className="bg-[#7E69AB] hover:bg-[#6B5896] text-white">
                 <Download className="mr-2 h-4 w-4" />
-                Exportar visão atual
+                {t('gestorGeral.painelHeader.exportarVisaoAtual')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={onExportCsv}>
                 <FileSpreadsheet className="mr-2 h-4 w-4" />
-                Exportar como CSV
+                {t('gestorGeral.painelHeader.exportarCsv')}
               </DropdownMenuItem>
               <TooltipProvider>
                 <Tooltip>
@@ -113,11 +115,11 @@ export default function PainelHeader({
                     <div>
                       <DropdownMenuItem disabled>
                         <FileText className="mr-2 h-4 w-4" />
-                        Exportar como PDF
+                        {t('gestorGeral.painelHeader.exportarPdf')}
                       </DropdownMenuItem>
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>Em breve</TooltipContent>
+                  <TooltipContent>{t('gestorGeral.painelHeader.emBreve')}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </DropdownMenuContent>

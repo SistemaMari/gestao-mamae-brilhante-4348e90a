@@ -1,16 +1,8 @@
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { PainelGargalos } from '@/lib/painelEstrategicoTypes';
 import CardInfoTooltip from './CardInfoTooltip';
-
-const TOOLTIPS: Record<string, string> = {
-  sem_gj:
-    'Pacientes com primeira consulta registrada mas sem glicemia de jejum no atendimento. A GJ é o primeiro exame de rastreamento de DMG (protocolo Febrasgo) e deve ser solicitada na primeira consulta de pré-natal — inclusive para identificar diabete pré-gestacional. Falha aqui significa que o rastreamento não começou.',
-  gtt:
-    'Pacientes acima de 28 semanas que ainda não fizeram o Teste de Tolerância à Glicose. A janela ideal de rastreamento é 24-28 semanas — depois disso, o diagnóstico fica tardio e o tempo de tratamento antes do parto encurta. Convocar essas pacientes é prioridade.',
-  sem_retorno:
-    'Pacientes diagnosticadas com DMG cujo último atendimento foi há mais de 14 dias. DMG exige acompanhamento próximo (perfis glicêmicos quinzenais, ajuste de tratamento). Ausência de retorno pode indicar abandono — fator crítico de risco para o binômio mãe-bebê.',
-};
 
 interface Props {
   data: PainelGargalos;
@@ -45,8 +37,15 @@ const PALETA: Record<Severidade, { border: string; bg: string; iconBg: string; i
 
 export default function BlocoGargalos({ data, loading, error, hideVerPacientesLink, subtitle }: Props) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const basePath = pathname.startsWith('/vitrine') ? '/vitrine/gestao' : '/gestao';
+
+  const TOOLTIPS: Record<string, string> = {
+    sem_gj: t('gestao.blocoGargalos.tooltipSemGj'),
+    gtt: t('gestao.blocoGargalos.tooltipGtt'),
+    sem_retorno: t('gestao.blocoGargalos.tooltipSemRetorno'),
+  };
 
   const itens: Array<{
     key: string;
@@ -59,24 +58,24 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
     {
       key: 'sem_gj',
       filtroParam: 'sem_gj_primeira',
-      titulo: 'Sem GJ na primeira consulta',
-      descricao: 'Pacientes com atendimento mas sem glicemia de jejum registrada.',
+      titulo: t('gestao.blocoGargalos.semGjTitulo'),
+      descricao: t('gestao.blocoGargalos.semGjDescricao'),
       severidade: 'amarelo',
       data: data.sem_gj_primeira_consulta,
     },
     {
       key: 'gtt',
       filtroParam: 'atrasadas_gtt',
-      titulo: 'GTT 75g em atraso',
-      descricao: 'IG ≥ 28 semanas sem TTOG registrado.',
+      titulo: t('gestao.blocoGargalos.gttTitulo'),
+      descricao: t('gestao.blocoGargalos.gttDescricao'),
       severidade: 'laranja',
       data: data.atrasadas_gtt,
     },
     {
       key: 'sem_retorno',
       filtroParam: 'sem_retorno',
-      titulo: 'DMG confirmado sem retorno',
-      descricao: 'Sem registro de atendimento há mais de 14 dias.',
+      titulo: t('gestao.blocoGargalos.semRetornoTitulo'),
+      descricao: t('gestao.blocoGargalos.semRetornoDescricao'),
       severidade: 'vermelho',
       data: data.confirmadas_sem_retorno,
     },
@@ -88,7 +87,7 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
     <section className="space-y-3" data-pdf-section="gargalos">
       <div>
         <h2 className="font-heading text-lg font-semibold text-foreground">
-          Gargalos de cuidado
+          {t('gestao.blocoGargalos.title')}
         </h2>
         {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
       </div>
@@ -104,7 +103,7 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
         </div>
       ) : total === 0 ? (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
-          Nenhum gargalo identificado. A unidade está em dia com os fluxos críticos.
+          {t('gestao.blocoGargalos.emptyState')}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-3">
@@ -145,7 +144,7 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
                     }}
                     className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                   >
-                    Ver pacientes <ArrowRight className="h-3 w-3" />
+                    {t('gestao.blocoGargalos.verPacientes')} <ArrowRight className="h-3 w-3" />
                   </button>
                 )}
               </div>

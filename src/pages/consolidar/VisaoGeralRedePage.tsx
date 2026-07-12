@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowUp, ArrowDown, ArrowUpDown, ExternalLink, AlertTriangle } from "lucide-react";
 import {
@@ -20,46 +21,46 @@ import { formatNum, formatPctOrDash } from "@/lib/formatters";
 type SortKey = keyof VisaoGeralRow;
 type SortDir = "asc" | "desc";
 
-const COLS: { key: SortKey; label: string; tooltip?: string; align?: "right" }[] = [
-  { key: "unidade_nome", label: "Unidade" },
-  {
-    key: "gestor_nome",
-    label: "Gestor",
-    tooltip: "Profissional cadastrado como gestor da unidade. Vazio quando ninguém ocupa o papel.",
-  },
-  {
-    key: "pacientes_ativos",
-    label: "Pacientes ativos",
-    align: "right",
-    tooltip: "Gestantes com DUM nos últimos 280 dias.",
-  },
-  {
-    key: "laudos_emitidos",
-    label: "Laudos emitidos",
-    align: "right",
-    tooltip: "Laudos gerados no período selecionado.",
-  },
-  {
-    key: "partos_registrados",
-    label: "Partos",
-    align: "right",
-    tooltip: "Partos registrados no período selecionado.",
-  },
-  {
-    key: "profissionais_ativos",
-    label: "Profissionais",
-    align: "right",
-    tooltip: "Profissionais com pelo menos 1 paciente em acompanhamento na unidade.",
-  },
-  {
-    key: "taxa_dmg_positivo_pct",
-    label: "Taxa DMG+",
-    align: "right",
-    tooltip: "Percentual de gestantes com diagnóstico positivo de DMG. Faixa esperada Febrasgo: 7-18%.",
-  },
-];
-
 export default function VisaoGeralRedePage() {
+  const { t, i18n } = useTranslation();
+  const COLS: { key: SortKey; label: string; tooltip?: string; align?: "right" }[] = [
+    { key: "unidade_nome", label: t("consolidar.visaoGeralRede.colUnidade") },
+    {
+      key: "gestor_nome",
+      label: t("consolidar.visaoGeralRede.colGestor"),
+      tooltip: t("consolidar.visaoGeralRede.colGestorTooltip"),
+    },
+    {
+      key: "pacientes_ativos",
+      label: t("consolidar.visaoGeralRede.colPacientesAtivos"),
+      align: "right",
+      tooltip: t("consolidar.visaoGeralRede.colPacientesAtivosTooltip"),
+    },
+    {
+      key: "laudos_emitidos",
+      label: t("consolidar.visaoGeralRede.colLaudosEmitidos"),
+      align: "right",
+      tooltip: t("consolidar.visaoGeralRede.colLaudosEmitidosTooltip"),
+    },
+    {
+      key: "partos_registrados",
+      label: t("consolidar.visaoGeralRede.colPartos"),
+      align: "right",
+      tooltip: t("consolidar.visaoGeralRede.colPartosTooltip"),
+    },
+    {
+      key: "profissionais_ativos",
+      label: t("consolidar.visaoGeralRede.colProfissionais"),
+      align: "right",
+      tooltip: t("consolidar.visaoGeralRede.colProfissionaisTooltip"),
+    },
+    {
+      key: "taxa_dmg_positivo_pct",
+      label: t("consolidar.visaoGeralRede.colTaxaDmg"),
+      align: "right",
+      tooltip: t("consolidar.visaoGeralRede.colTaxaDmgTooltip"),
+    },
+  ];
   const { semSelecao } = useFiltrosGestorGeral();
   const { data, isLoading, isError } = useVisaoGeralRede();
   const navigate = useNavigate();
@@ -77,14 +78,14 @@ export default function VisaoGeralRedePage() {
       const bv = b[sortKey];
       let cmp = 0;
       if (typeof av === "string" || typeof bv === "string") {
-        cmp = String(av ?? "").localeCompare(String(bv ?? ""), "pt-BR");
+        cmp = String(av ?? "").localeCompare(String(bv ?? ""), i18n.language);
       } else {
         cmp = ((av as number) ?? -Infinity) - ((bv as number) ?? -Infinity);
       }
       return sortDir === "asc" ? cmp : -cmp;
     });
     return copy;
-  }, [data, sortKey, sortDir]);
+  }, [data, sortKey, sortDir, i18n.language]);
 
   const onSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -103,16 +104,16 @@ export default function VisaoGeralRedePage() {
           className="text-xl font-semibold text-[#1E293B]"
           style={{ fontFamily: "Sora, sans-serif" }}
         >
-          Visão geral da rede
+          {t("consolidar.visaoGeralRede.title")}
         </h1>
         <p className="mt-1 text-sm text-[#64748B]">
-          Linha por unidade. Clique para abrir o painel completo em modo somente leitura.
+          {t("consolidar.visaoGeralRede.subtitle")}
         </p>
       </div>
 
       <div className="rounded-xl border border-border bg-white shadow-sm overflow-hidden">
         {isError ? (
-          <div className="p-6 text-sm text-[#991B1B]">Não foi possível carregar a visão geral.</div>
+          <div className="p-6 text-sm text-[#991B1B]">{t("consolidar.visaoGeralRede.erroCarregar")}</div>
         ) : isLoading ? (
           <div className="p-5 space-y-2">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -121,7 +122,7 @@ export default function VisaoGeralRedePage() {
           </div>
         ) : rows.length === 0 ? (
           <div className="p-8 text-center text-sm text-[#64748B]">
-            Nenhuma unidade encontrada para o filtro atual.
+            {t("consolidar.visaoGeralRede.nenhumaUnidade")}
           </div>
         ) : (
           <Table>
@@ -153,7 +154,7 @@ export default function VisaoGeralRedePage() {
                     </span>
                   </TableHead>
                 ))}
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="text-right">{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -168,7 +169,7 @@ export default function VisaoGeralRedePage() {
                     {r.gestor_nome ?? (
                       <span className="inline-flex items-center gap-1 text-[#92400E]">
                         <AlertTriangle className="h-3.5 w-3.5" />
-                        Sem gestor
+                        {t("consolidar.visaoGeralRede.semGestor")}
                       </span>
                     )}
                   </TableCell>

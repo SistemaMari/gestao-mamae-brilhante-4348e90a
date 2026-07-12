@@ -1507,5 +1507,618 @@
     "selectPlaceholder": "Select",
     "preferredLanguageLabel": "Preferred language",
     "createAccount": "Create my account"
+  },
+  "clinico": {
+    "autoriaRodape": {
+      "defaultLabel": "Consultation recorded by",
+      "doctorPrefix": "Dr. {{nome}}",
+      "crm": "License {{crm}}"
+    },
+    "carimboAtendimento": {
+      "atendendoComo": "Attending as:",
+      "crmSuffix": "— CRM {{crm}}",
+      "casoNovo": "New Case",
+      "retorno": "Follow-up {{numero}}",
+      "historicoTitle": "Care history",
+      "nenhumRegistro": "No care recorded yet."
+    }
+  },
+  "ficha": {
+    "draftRecovery": {
+      "title": "Unsaved draft found",
+      "descBefore": "There is a draft of this form saved locally at",
+      "descAfter": " that was not sent to the server.",
+      "question": "Do you want to recover or discard it?",
+      "discard": "Discard and use server data",
+      "recover": "Recover draft"
+    },
+    "igOrigemTooltip": {
+      "origemDum": "Calculated from the LMP ({{data}})",
+      "primeiraUsg": "1st ultrasound",
+      "usgOrdem": "Ultrasound #{{ordem}}",
+      "origemUsg": "Calculated from the {{ordemLabel}} ({{data}}, report: {{laudoIg}})",
+      "ariaLabel": "Source of the GA calculation"
+    },
+    "pactuacaoPosPrandial": {
+      "title": "Postprandial measurement agreement",
+      "description": "Did you agree with the patient on 1-hour or 2-hour postprandial measurements?",
+      "radiogroupLabel": "Postprandial measurement window",
+      "opcao1h": "1 hour",
+      "opcao2h": "2 hours",
+      "aposRefeicoes": "{{prefixo}} after breakfast / lunch / dinner",
+      "meta": "Target: < {{valor}} mg/dL",
+      "explicacao": "The 1-hour measurement is the most commonly used. The 2-hour one may be agreed on for the patient's convenience. It is a clinical choice made together with the patient and cannot be changed later on this record.",
+      "confirmar": "Confirm and open record"
+    },
+    "camposPendentesBanner": {
+      "title": "This record is a draft. Pending fields:"
+    },
+    "rascunhoStatus": {
+      "local": "Draft saved locally",
+      "localAt": "Draft saved locally at {{hora}}",
+      "servidor": "Draft saved to server",
+      "servidorAt": "Draft saved to server at {{hora}}",
+      "dirty": "Unsaved changes",
+      "dirtyAt": "Unsaved changes (last save: {{hora}})",
+      "erro": "Error saving — check your connection"
+    },
+    "checklistRetorno2": {
+      "title": "Clinical checklist for Follow-up 2",
+      "tooltip": "The 6 answers are sent to the backend, which returns the recommended course of action (maintain lifestyle changes / reinforce lifestyle changes / start insulin / review glucometer memory) and the next recommended form.",
+      "noInfo": "No information"
+    },
+    "statusFichaBadge": {
+      "rascunho": "Draft",
+      "completa": "Complete",
+      "laudoGerado": "Report generated",
+      "finalizada": "Finalized",
+      "ariaLabel": "Form status: {{label}}"
+    },
+    "checklistRetorno2ReadOnly": {
+      "title": "Follow-up 2 clinical checklist",
+      "semInfo": "No information"
+    },
+    "condutaCard": {
+      "fichaA": "4-point profile (up to 30 weeks)",
+      "fichaB": "6-point profile with insulin (up to 30 weeks)",
+      "fichaC": "4-point profile (after 30 weeks)",
+      "fichaD": "6-point profile with insulin (after 30 weeks)",
+      "fichaE": "6-point profile without insulin",
+      "condutaManterMev": "MAINTAIN LSM (15 days)",
+      "condutaReforcarMev": "REINFORCE LSM — agree with the patient",
+      "condutaInsulina": "START INSULIN",
+      "condutaAvaliarMemoria": "REVIEW GLUCOMETER MEMORY",
+      "pactuacaoLabel": "Agreement with the patient:",
+      "aceitaReforcarMev": "Accepts reinforcing LSM (retest in 7-10 days)",
+      "recusaIniciarInsulina": "Declines — start insulin",
+      "memoriaPergunta": "Does the glucometer memory match the recorded values?",
+      "memoriaConfirma": "Confirms → expand to 6 points without insulin",
+      "memoriaNaoConfirma": "Does not confirm → structured conversation + agreement",
+      "doseInicialLabel": "Initial NPH insulin dose",
+      "uiPerDay": "IU/day",
+      "doseBreakdown": "{{manha}} IU morning + {{noite}} IU at 10 PM • formula: 0.5 IU/kg/day",
+      "acompanhamentoEncerrado": "Follow-up ended — management and continuity in the report below.",
+      "proximaConsulta": "Next appointment:",
+      "pendente": "Pending: {{lista}}"
+    },
+    "decisaoExtras": {
+      "title": "Clinical decision at Return 2",
+      "memoriaLabel": "Glucometer memory review",
+      "pactuacaoLabel": "Agreement with the patient",
+      "pactAceita": "Accepts reinforcing lifestyle changes",
+      "pactRecusa": "Declines — start insulin",
+      "memConfirma": "Confirms",
+      "memNaoConfirma": "Does not confirm"
+    },
+    "divergenciaIg": {
+      "label": "Warning:",
+      "mensagem": "the GA calculated from the ultrasound differs by more than 7 days from the GA calculated from the LMP. Please check the consistency of the data."
+    }
+  },
+  "laudo": {
+    "gradeGlicemica": {
+      "pontos": {
+        "jejum": "Fasting",
+        "posCafe": "Post-breakfast",
+        "preAlmoco": "Pre-lunch",
+        "posAlmoco": "Post-lunch",
+        "preJantar": "Pre-dinner",
+        "posJantar": "Post-dinner"
+      },
+      "title": "Glycemic profile ({{pontos}} points × {{dias}} days)",
+      "diasPreenchidos": "{{preenchidos}}/{{dias}} days filled in",
+      "dia": "Day",
+      "dentroDaMeta": "Within target",
+      "resultado": "{{percentual}}% — {{controle}}",
+      "controleAdequado": "adequate control",
+      "controleInadequado": "inadequate control"
+    },
+    "janelaGtt": {
+      "title": "Window for 75g OGTT",
+      "jaNaJanela": "The 75g OGTT is already within the window — order it as soon as possible.",
+      "instrucao": "The 75g OGTT should be performed as close as possible to the 24th week (between <strong>{{inicio}}</strong> and <strong>{{fim}}</strong>). Advise the patient right away.",
+      "nota": "This guidance appears now so the patient has time to schedule the test, which often has a waiting list at health facilities. If it cannot be done within the window, the test should be performed as soon as possible — even after 28 weeks."
+    },
+    "cabecalho": {
+      "laudo": "Report",
+      "paciente": "Patient:",
+      "ig": "GA:",
+      "data": "Date:",
+      "igNaoDefinida": "GA reference not defined"
+    },
+    "laudoCompleto": {
+      "periodoMonitorado": "Monitored period:",
+      "periodoRange": "{{inicio}} to {{fim}}",
+      "diasPreenchidos_one": "{{count}} day filled in",
+      "diasPreenchidos_other": "{{count}} days filled in",
+      "rodapeLegal": "Generated by MARI — {{data}} — This document does not replace medical evaluation."
+    },
+    "notasTecnicas": {
+      "title": "Technical notes",
+      "nota1": "Do not repeat fasting plasma glucose for diagnostic purposes — in no scenario, whether the result is positive or negative.",
+      "nota2": "Venous plasma glucose is MANDATORY for diagnosis — fingerstick capillary glucose is not valid for this purpose.",
+      "nota3": "Fasting and postprandial capillary glucose are used exclusively for monitoring the glycemic profile — never for diagnosis.",
+      "nota4": "This report is a clinical decision support tool and does not replace medical evaluation."
+    },
+    "placeholderTextoPendente": {
+      "title": "Pending text — request from the clinical team",
+      "descricao": "The descriptive texts for this report have not yet been published by the clinical team. PDF generation is temporarily blocked until the official texts are delivered.",
+      "blocosPendentes": "Pending blocks",
+      "todosBlocos": "All blocks."
+    },
+    "proximaFicha": {
+      "title": "Next form"
+    },
+    "bannerUrgenciaEndocrino": {
+      "title": "ATTENTION — urgent endocrinologist referral",
+      "prazo": "If you choose to involve or refer to an endocrinologist, the appointment must take place within <strong>7 to 10 days</strong> from today.",
+      "aviso": "If the professional has no availability within that window, advise the patient to urgently seek another endocrinologist. <strong>A fetus in a hyperglycemic state cannot wait.</strong>"
+    },
+    "blocosTexto": {
+      "carregando": "Loading report texts…",
+      "pendente": "Report not loaded yet.",
+      "carregarLaudo": "Load report",
+      "aguardandoPeso": "Enter the patient's current weight to generate the full report with the initial insulin dose.",
+      "erroTitulo": "Could not load the texts",
+      "erroDescricao": "Could not load the report texts. Please try again in a moment.",
+      "desativado": "Report generation is temporarily disabled by the system administration.",
+      "fichaIncompleta": "Complete the clinical data in the form to view the report."
+    }
+  },
+  "consolidar": {
+    "comparador": {
+      "title": "Unit comparator",
+      "subtitle": "Select one or more metrics to compare units side by side.",
+      "maiorMelhor": "Higher is better",
+      "menorMelhor": "Lower is better",
+      "semDadosMetrica": "No data for this metric.",
+      "loadError": "Failed to load data.",
+      "selecioneMetrica": "Select at least one metric above to compare the units.",
+      "insightAutomatico": "Automatic insight",
+      "insight": {
+        "maior": "highest",
+        "menor": "lowest",
+        "acima": "above",
+        "abaixo": "below",
+        "frase": "{{unidade}} has the {{palavraSup}} {{labelLong}} ({{valorTop}}), {{diffPct}}% {{acimaAbaixo}} the network average ({{valorMedia}})."
+      },
+      "metricas": {
+        "pacientes_ativos": {
+          "label": "Active patients",
+          "labelLong": "number of active patients",
+          "tooltip": "Higher is better: indicates the unit's care volume."
+        },
+        "laudos_emitidos": {
+          "label": "Reports issued",
+          "labelLong": "number of reports issued",
+          "tooltip": "Higher is better: diagnostic productivity in the period."
+        },
+        "taxa_dmg_positivo_pct": {
+          "label": "GDM rate",
+          "labelLong": "positive GDM rate",
+          "tooltip": "Direct comparison between units. Febrasgo expected range: 7-18% — interpret with context."
+        },
+        "tempo_medio_fechamento_dias": {
+          "label": "Average time since LMP",
+          "labelLong": "average time between LMP and delivery",
+          "tooltip": "Lower is better: time between LMP and delivery."
+        },
+        "profissionais_ativos": {
+          "label": "Active professionals",
+          "labelLong": "number of active professionals",
+          "tooltip": "Professionals with at least one active pregnant patient."
+        }
+      }
+    },
+    "configuracoesGestorGeral": {
+      "title": "Settings",
+      "subtitle": "Information about your general manager account. To make changes, contact support.",
+      "contratante": "Contracting party",
+      "maisOutras": "+{{count}} others",
+      "unidadesVinculadas": "Linked units ({{count}})",
+      "suporte": "Support: <mailLink>suporte@mari.health</mailLink>"
+    },
+    "operacao": {
+      "title": "Consolidated operations",
+      "loadError": "Failed to load operations.",
+      "gestantesAtivas": "Active pregnant women",
+      "gestantesAtivasTip": "Sum of pregnant women with LMP in the last 280 days across all selected units.",
+      "laudosEmitidos": "Reports issued",
+      "laudosEmitidosTip": "Reports generated in the selected period by the selected units.",
+      "examesRealizados": "Tests performed",
+      "examesRealizadosTip": "Total glucose tests (FPG + OGTT + profile) recorded in the period.",
+      "partosRegistrados": "Registered births",
+      "partosRegistradosTip": "Births registered in the period by the selected units.",
+      "profissionaisAtivos": "Active professionals",
+      "profissionaisAtivosTip": "Professionals with at least 1 patient under follow-up."
+    },
+    "perfilClinico": {
+      "title": "Consolidated clinical profile",
+      "loadError": "Failed to load clinical profile.",
+      "taxaDmgPositivo": "Positive GDM rate",
+      "taxaDmgPositivoTip": "Percentage of pregnant women with confirmed GDM. Febrasgo expected range: 7-18%.",
+      "diagnosticosNoCalculo": "{{valor}} diagnoses in the calculation",
+      "igMediaDiagnostico": "Average GA at diagnosis",
+      "igMediaDiagnosticoTip": "Average gestational age at the time of GDM diagnosis. Ideal window: 24-28 weeks.",
+      "tempoMedioFechamento": "Average closure time",
+      "tempoMedioFechamentoTip": "Average days between GDM confirmation and outcome (discharge/birth).",
+      "diasSuffix": "{{valor}} d"
+    },
+    "gargalos": {
+      "loadError": "Failed to load bottlenecks.",
+      "subtitle": "Where there are screening gaps in your network."
+    },
+    "tendencia": {
+      "title": "Network trend (12 months)",
+      "tooltip": "Monthly snapshot of the last 12 reference points: total active pregnant women and confirmed GDM. Does not respect the period filter — always 12 months.",
+      "loadError": "Failed to load trend.",
+      "legendGestantes": "Active pregnant women",
+      "legendDmg": "Confirmed GDM"
+    },
+    "vitrine": {
+      "gestorNome": "Dr. Demo General Manager",
+      "unidadePinheiros": "Demo Pinheiros Clinic",
+      "unidadeMoema": "Demo Moema Clinic",
+      "unidadeLapa": "Demo Lapa Clinic",
+      "unidadeVilaNova": "Demo Vila Nova Clinic",
+      "contratante": "Demo Health"
+    },
+    "diagnostico": {
+      "title": "Operational diagnostics",
+      "subtitle": "Aggregate indicators, ranking and deterministic alerts for the network."
+    },
+    "unidadeDrillDown": {
+      "readOnlyReason": "You are viewing another unit's dashboard in read-only mode.",
+      "readOnlyBanner": "Read-only view",
+      "readOnlyBannerUnit": "Read-only view — {{unidade}}",
+      "voltarVisaoGeral": "Back to overview"
+    },
+    "visaoGeralRede": {
+      "colUnidade": "Unit",
+      "colGestor": "Manager",
+      "colGestorTooltip": "Professional registered as the unit's manager. Empty when no one holds the role.",
+      "colPacientesAtivos": "Active patients",
+      "colPacientesAtivosTooltip": "Pregnant patients with an LMP in the last 280 days.",
+      "colLaudosEmitidos": "Reports issued",
+      "colLaudosEmitidosTooltip": "Reports generated in the selected period.",
+      "colPartos": "Deliveries",
+      "colPartosTooltip": "Deliveries recorded in the selected period.",
+      "colProfissionais": "Professionals",
+      "colProfissionaisTooltip": "Professionals with at least 1 patient under follow-up in the unit.",
+      "colTaxaDmg": "GDM+ rate",
+      "colTaxaDmgTooltip": "Percentage of pregnant patients with a positive GDM diagnosis. Febrasgo expected range: 7-18%.",
+      "title": "Network overview",
+      "subtitle": "One row per unit. Click to open the full panel in read-only mode.",
+      "erroCarregar": "Unable to load the overview.",
+      "nenhumaUnidade": "No units found for the current filter.",
+      "semGestor": "No manager"
+    }
+  },
+  "gestao": {
+    "composicaoClinica": {
+      "gineco": "Gynecologists/Obstetricians",
+      "endo": "Endocrinologists",
+      "enfermeira": "Nurses",
+      "nutri": "Nutritionists",
+      "outros": "Others",
+      "title": "Clinical team composition",
+      "tooltip": "Distribution of your team by clinical specialty. Useful for identifying coverage gaps — for example, a team without an endocrinologist may struggle with cases requiring insulin therapy.",
+      "erro": "Error loading composition.",
+      "semEndoAviso": "No endocrinologist on the team. Consider inviting one to support GDM cases requiring insulin therapy."
+    },
+    "indicadoresFluxo": {
+      "tempoMedioTitle": "Average time to 1st report",
+      "tempoMedioTooltip": "Average time (in days) between a patient's first appointment and the issuance of the first report, considering patients diagnosed in the last 90 days. Ideal time: up to 14 days. Over 30 days indicates late diagnosis — the patient may reach the 28th week without proper screening.",
+      "loadError": "Error loading.",
+      "semDados": "No data in the period",
+      "sublabelAtencao": "Above ideal time — review workflow",
+      "sublabelCritico": "Very late diagnosis — urgent attention",
+      "sublabelIdeal": "since the patient's 1st appointment",
+      "dias": "{{valor}} days",
+      "sobrecargaTitle": "Overloaded professional",
+      "sobrecargaTooltip": "Automatic alert when a professional has more than double the team's average load of active patients. Uneven load can lead to delays and emotional strain. Consider redistributing.",
+      "cargaEquilibrada": "Balanced load across the team",
+      "profPacientes": "{{nome}} — {{count}} patients",
+      "considereRedistribuir": "Consider redistributing some of the patients."
+    },
+    "metricasParto": {
+      "title": "Deliveries and neonatal outcomes",
+      "noDataYet": "No data yet",
+      "emptyPeriod": "No deliveries recorded in this period. Data will appear here as it is registered.",
+      "totalPartos": "Total deliveries",
+      "cesareas": "Cesarean sections",
+      "vaginais": "Vaginal",
+      "intercorrenciaMaterna": "Maternal complication",
+      "intercorrenciaNeonatal": "Neonatal complication",
+      "aig": "AGA",
+      "gig": "LGA",
+      "pig": "SGA"
+    },
+    "pacientesPorProfissional": {
+      "title": "Patients per professional",
+      "empty": "No data for the selected period."
+    },
+    "blocoGargalos": {
+      "title": "Care bottlenecks",
+      "tooltipSemGj": "Patients with a first visit on record but no fasting blood glucose measured at the appointment. FBG is the first GDM screening test (Febrasgo protocol) and must be ordered at the first prenatal visit — including to identify pre-gestational diabetes. A gap here means screening never started.",
+      "tooltipGtt": "Patients over 28 weeks who have not yet had the Glucose Tolerance Test. The ideal screening window is 24–28 weeks — after that, diagnosis is late and the treatment time before delivery shortens. Recalling these patients is a priority.",
+      "tooltipSemRetorno": "Patients diagnosed with GDM whose last visit was more than 14 days ago. GDM requires close follow-up (biweekly glucose profiles, treatment adjustment). A missed return may indicate dropout — a critical risk factor for the mother–baby dyad.",
+      "semGjTitulo": "No FBG at first visit",
+      "semGjDescricao": "Patients with a visit but no fasting blood glucose on record.",
+      "gttTitulo": "75g OGTT overdue",
+      "gttDescricao": "GA ≥ 28 weeks with no OGTT on record.",
+      "semRetornoTitulo": "Confirmed GDM without return",
+      "semRetornoDescricao": "No visit recorded for more than 14 days.",
+      "emptyState": "No bottlenecks identified. The unit is up to date with critical workflows.",
+      "verPacientes": "View patients"
+    },
+    "blocoOperacao": {
+      "title": "Unit operations",
+      "gestantesTitle": "Active pregnant patients",
+      "gestantesTooltip": "Total pregnant patients in your unit with an LMP (Last Menstrual Period) recorded in the last 280 days — the span of a full pregnancy. Reflects the team's current care load.",
+      "gestantesSubtitle": "LMP in the last 280 days",
+      "laudosTitle": "Reports in the last 30 days",
+      "laudosTooltip": "Total GDM reports generated by your team in the last 30 days. Indicates diagnostic productivity for the period. A sharp drop may signal a failure in the screening flow.",
+      "laudosSubtitle": "issued by the team",
+      "profsTitle": "Professionals with an active patient",
+      "profsTooltip": "Professionals in your unit with at least 1 patient under follow-up. Useful for spotting idle or overloaded professionals — see the detailed breakdown in the Team tab.",
+      "profsSubtitle": "of {{total}} in the unit"
+    },
+    "performanceIndividual": {
+      "laudosCount_one": "{{count}} report",
+      "laudosCount_other": "{{count}} reports",
+      "pacientesCount_one": "{{count}} patient",
+      "pacientesCount_other": "{{count}} patients",
+      "maisAtivos": "Most active",
+      "maisAtivosTooltip": "The 3 professionals with the highest report output on the team. Useful for recognition, mentoring new members, or redistributing workload.",
+      "menosAtivos": "Least active",
+      "menosAtivosTooltip": "The 3 professionals with the lowest report output on the team. Assess whether other professionals are overloaded in a way that warrants redistribution, or whether a member needs support.",
+      "erroCarregar": "Failed to load.",
+      "semDados": "No data available.",
+      "equipePequena": "Small team — no distinction of least active."
+    },
+    "secaoEquipePdf": {
+      "incluindoVoce": "including you",
+      "convitesExpirados": "Expired invites",
+      "reenviarDisponivel": "resend available",
+      "laudosGeradosEquipe": "Reports generated by the team",
+      "totalHistorico": "historical total"
+    },
+    "blocoPerfilClinico": {
+      "title": "Patients' clinical profile",
+      "semGestantes": "No active pregnant patients at the moment.",
+      "alertaSubnotificacao": "Your GDM prevalence is below the expected range ({{pct}}% vs. Febrasgo range of 7-18%). This may indicate underdiagnosis — check whether screening is being performed per protocol at the first visit and within the 24-28 week window.",
+      "alertaAltoRisco": "Your GDM prevalence is above the expected range ({{pct}}% vs. Febrasgo range of 7-18%). This may indicate a high-risk population — consider reviewing demographic factors such as maternal age, pre-pregnancy BMI and family history.",
+      "prevalenciaDmg": "GDM prevalence",
+      "ttPrevalencia": "Percentage of your active pregnant patients with a confirmed GDM diagnosis. Febrasgo reference in Brazil: 7-18% of the pregnant population. Below 7% may indicate underdiagnosis — check whether screening is being performed per protocol. Above 18% suggests a high-risk population — factors such as obesity, advanced maternal age and family history may be raising the local prevalence.",
+      "badgeSubnotificacao": "Underreporting",
+      "badgeAltoRisco": "High risk",
+      "esperadoFebrasgo": "Expected: 7–18% (Febrasgo)",
+      "emInsulina": "On insulin",
+      "ttInsulina": "Patients with confirmed GDM who are on insulin therapy. In Brazilian GDM populations, 20-30% of those diagnosed are expected to require insulin therapy (Febrasgo). Much higher percentages may indicate late diagnosis or more severe profiles.",
+      "pctDasDmg": "{{pct}}% of GDM cases",
+      "ttDmgAnterior": "Patients with a history of GDM in a previous pregnancy. This group has up to a 7x higher risk of a repeat diagnosis — they are candidates for early screening, before the standard 24-28 week window (Febrasgo).",
+      "pctDasAtivas": "{{pct}}% of active patients",
+      "igMediaDiagnostico": "Average GA at diagnosis",
+      "ttIgMedia": "Average gestational age (in weeks + days) at which your team diagnoses GDM, over the last 90 days. Ideal Febrasgo screening window: 24-28 weeks. Above 28 weeks indicates late diagnosis — the patient may reach the third trimester without adequate treatment, increasing the risk of macrosomia and delivery complications.",
+      "ultimos90dias": "last 90 days"
+    },
+    "configuracoes": {
+      "title": "Unit settings",
+      "subtitle": "Overview of your unit's data, team and preferences.",
+      "dadosUnidadeTitle": "Unit Data",
+      "dadosUnidadeSubtitle": "To change this data, contact support.",
+      "loadUnidadeError": "Could not load the unit data. Try reloading the page.",
+      "nomeUnidade": "Unit name",
+      "tipo": "Type",
+      "localizacao": "Location",
+      "cnes": "CNES",
+      "contratante": "Contracting entity",
+      "cnpjContratante": "Contracting entity's tax ID",
+      "modeloContratacao": "Contracting model: Institutional contract — managed externally.",
+      "equipeSubtitle": "Active professionals in your unit.",
+      "profissionaisAtivos_one": "active professional",
+      "profissionaisAtivos_other": "active professionals",
+      "ultimaInclusao": "Last addition: {{nome}} on {{data}}",
+      "relatorioTitle": "Monthly Automatic Report",
+      "relatorioSubtitle": "Generated automatically on the 1st of each month to feed the General Manager's dashboard.",
+      "statusGerado": "— Generated",
+      "statusAguardando": "— Awaiting generation — scheduled for today at 03:00",
+      "statusNaoGerado": "— Not generated — contact support",
+      "proximo": "(next)",
+      "relatorioNota": "These reports feed the General Manager's consolidated dashboard. You don't need to do anything — the system generates them automatically.",
+      "suporteTitle": "Support",
+      "suporteSubtitle": "Need help? Talk to us.",
+      "falarComSuporte": "Contact support:"
+    },
+    "blocoTendencia": {
+      "title": "Unit trend",
+      "howToRead": "How to read this chart",
+      "tooltip": "Each point on the chart represents a snapshot of that month: how many patients were pregnant and how many had confirmed GDM at that moment. Since GDM is usually diagnosed between 24-28 weeks (3 to 5 months after the first visit), a patient may enter the unit in one month and appear as diagnosed several months later — that is why the monthly snapshot is the correct way to measure prevalence over time.",
+      "noData6m": "No data in the last 6 months.",
+      "seriesGestantes": "Active pregnancies",
+      "seriesDmg": "Confirmed GDM",
+      "footer": "Each month reflects the total active pregnancies (LMP within the last 280 days) and GDM diagnosed up to that date."
+    },
+    "fichasUnidade": {
+      "title": "Unit records",
+      "subtitle": "Complete list of patients under follow-up.",
+      "kpiTotal": "Total",
+      "kpiAguardandoGj": "Awaiting FG",
+      "kpiAcompanhamento": "Under follow-up",
+      "kpiConcluidas": "Completed",
+      "chipTodos": "All ({{count}})",
+      "searchPlaceholder": "Search by patient name...",
+      "exportCsv": "Export CSV",
+      "exportExcel": "Export Excel",
+      "exportEmptyTitle": "No records to export with the current filters.",
+      "csvVitrineInfo": "CSV export is available in the live environment.",
+      "excelVitrineInfo": "Excel export is available in the live environment.",
+      "csvGerado": "CSV file generated.",
+      "excelGerado": "Excel file generated.",
+      "excelErro": "Could not generate the Excel file. Please try again.",
+      "colPaciente": "Patient",
+      "colIg": "GA",
+      "colProfissional": "Professional",
+      "colUltimaConsulta": "Last visit",
+      "colProximaConsulta": "Next visit",
+      "colDataDiagnostico": "Diagnosis date (status)",
+      "colCriadaEm": "Created on",
+      "filtroSemGjPrimeira": "No FG at the first visit",
+      "filtroAtrasadasGtt": "75g OGTT overdue",
+      "filtroSemRetorno": "Confirmed GDM with no follow-up",
+      "pacienteCount": "{{count}} patient",
+      "limparFiltroGargalo": "Clear bottleneck filter",
+      "emptyFiltered": "No records match the applied filters.",
+      "emptyGargalo": "No patients in this bottleneck right now.",
+      "emptyUnidade": "No records registered in this unit yet.",
+      "emptyBusca": "No patient found with that name. Try another search.",
+      "exibindo": "Showing {{inicio}}-{{fim}} of {{total}} records",
+      "pagina": "Page {{page}} of {{total}}"
+    },
+    "cardInfoTooltip": {
+      "ariaLabel": "More information"
+    }
+  },
+  "gestorGeral": {
+    "blocoAlertas": {
+      "loadError": "Unable to load the alerts.",
+      "reload": "Reload",
+      "title": "Attention required",
+      "subtitle": "Deterministic alerts about the operational state of the units.",
+      "emptyTitle": "No alerts at the moment.",
+      "emptyDesc": "Your network is operating normally.",
+      "detalhe": "Detail: {{valor}}"
+    },
+    "blocoKpis": {
+      "loadError": "Unable to load the indicators.",
+      "recarregar": "Reload",
+      "moreInfo": "More information",
+      "vsPeriodoAnterior": "vs previous period",
+      "pacientesAtivos": "Active patients",
+      "pacientesAtivosTip": "Pregnant women with LMP in the last 280 days at the selected units. Current snapshot — independent of the filter window.",
+      "laudosEmitidos": "Reports issued",
+      "laudosEmitidosTip": "Reports generated in the selected period by the selected units.",
+      "taxaDmgPositivo": "Positive GDM rate",
+      "taxaDmgPositivoTip": "Percentage of reports in the period with a positive GDM diagnosis. Febrasgo expected range: 7-18%.",
+      "partosRegistrados": "Registered births",
+      "partosRegistradosTip": "Births registered in the period by the selected units.",
+      "profissionaisAtivos": "Active professionals",
+      "profissionaisAtivosTip": "Professionals with at least 1 patient under follow-up at the selected units."
+    },
+    "blocoRanking": {
+      "statusAtiva": "Active",
+      "statusAtencao": "Attention",
+      "statusInativa": "Inactive",
+      "statusNaoIniciada": "Not started",
+      "loadError": "Could not load the ranking.",
+      "reload": "Reload",
+      "title": "Unit ranking",
+      "subtitle": "By operational status. Click the columns to reorder.",
+      "empty": "No unit recorded activity in the selected period.",
+      "colUnidade": "Unit",
+      "colPacientes": "Patients",
+      "tipPacientes": "Pregnant patients with LMP in the last 280 days.",
+      "colLaudos": "Reports",
+      "tipLaudos": "Reports generated in the selected period.",
+      "colTaxaDmg": "GDM+ rate",
+      "tipTaxaDmg": "Percentage of reports in the period with a positive GDM diagnosis.",
+      "colTempoMedio": "Average time",
+      "tipTempoMedio": "Average days between LMP and delivery recorded in the period. '—' when there are no eligible deliveries.",
+      "colUltimaAtividade": "Last activity",
+      "tipUltimaAtividade": "Latest record (patient, report, exam or consultation) at the unit.",
+      "colStatus": "Status",
+      "tipStatus": "Active: recorded in the last 30d. Attention: 30-60d. Inactive: >60d. Not started: no records.",
+      "dias": "{{valor}} d"
+    },
+    "topDestaques": {
+      "loadError": "Failed to load highlights.",
+      "diagnosticaMais": "Diagnoses MORE",
+      "maisTooltip": "Unit with the highest number of confirmed GDM diagnoses (scenarios 1, 6 and 6b) in the selected period.",
+      "diagnosticaMenos": "Diagnoses LESS",
+      "menosTooltip": "Unit with the lowest number of confirmed GDM diagnoses in the period. May indicate low uptake or underdiagnosis.",
+      "diagnosticosCount_one": "{{count}} diagnosis",
+      "diagnosticosCount_other": "{{count}} diagnoses"
+    },
+    "filtrosGlobais": {
+      "unidadesLabel": "Units",
+      "todasUnidades": "All units ({{count}})",
+      "nenhumaSelecionada": "No unit selected",
+      "parcialSelecionadas": "{{sel}} of {{total}} selected",
+      "buscarUnidade": "Search unit…",
+      "nenhumaEncontrada": "No unit found.",
+      "selecionarTodas": "Select all",
+      "desmarcarTodas": "Deselect all",
+      "periodoLabel": "Period",
+      "preset7d": "Last 7 days",
+      "preset30d": "Last 30 days",
+      "preset90d": "Last 90 days",
+      "preset12m": "Last 12 months",
+      "presetAno": "Current year",
+      "presetCustom": "Custom",
+      "intervaloLabel": "Range",
+      "selecione": "Select"
+    },
+    "painelHeader": {
+      "title": "Network Panel — MARI",
+      "greeting": "Hello, {{nome}}.",
+      "gestorFallback": "Manager",
+      "outrasContratantes_one": "+{{count}} other",
+      "outrasContratantes_other": "+{{count}} others",
+      "unidadesVinculadas_one": "{{count}} linked unit",
+      "unidadesVinculadas_other": "{{count}} linked units",
+      "atualizado": "Updated {{tempo}}",
+      "cooldownAguarde": "Wait {{min}}m before refreshing again",
+      "cooldownAtualizar": "Refresh data (1h cache)",
+      "atualizarDados": "Refresh data",
+      "exportarVisaoAtual": "Export current view",
+      "exportarCsv": "Export as CSV",
+      "exportarPdf": "Export as PDF",
+      "emBreve": "Coming soon"
+    },
+    "appShell": {
+      "navVisaoGeral": "Overview",
+      "navConsolidador": "Consolidator",
+      "navDiagnostico": "Diagnosis",
+      "navComparador": "Comparator",
+      "navConfiguracoes": "Settings",
+      "navTutorial": "Tutorial",
+      "roleLabel": "General Manager",
+      "headerLabel": "General Consolidation",
+      "demoNome": "Dr. Demo General Manager",
+      "demoDetalhe": "Medical Director — Demo Health"
+    },
+    "emptyStateSemSelecao": {
+      "title": "No unit selected",
+      "descricao": "Select at least one unit in the filter above to view data."
+    }
+  },
+  "gestor": {
+    "appShell": {
+      "fichasUnidade": "Unit forms",
+      "gestorUnidade": "Unit Manager",
+      "gestaoUnidade": "Unit Management",
+      "demoNome": "Dr. Demo"
+    }
   }
 }

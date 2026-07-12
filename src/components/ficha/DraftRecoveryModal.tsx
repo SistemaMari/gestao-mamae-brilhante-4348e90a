@@ -1,4 +1,5 @@
 import { AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -32,15 +33,16 @@ interface Props {
   onDiscard: () => void;
 }
 
-function formatDataHora(iso: string): string {
+function formatDataHora(iso: string, locale: string): string {
   try {
     const d = new Date(iso);
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mi = String(d.getMinutes()).padStart(2, '0');
-    return `${dd}/${mm}/${yyyy} às ${hh}:${mi}`;
+    return d.toLocaleString(locale, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   } catch {
     return iso;
   }
@@ -52,6 +54,7 @@ export default function DraftRecoveryModal({
   onRecover,
   onDiscard,
 }: Props) {
+  const { t, i18n } = useTranslation();
   // O AlertDialog do shadcn é controlado: omitimos onOpenChange para impedir
   // fechamento por clique fora / ESC. Só sai via clique nos botões.
   return (
@@ -60,16 +63,16 @@ export default function DraftRecoveryModal({
         <AlertDialogHeader className="space-y-3">
           <AlertDialogTitle className="flex items-center gap-2.5 text-lg">
             <AlertCircle className="h-5 w-5 shrink-0 text-[#7C4DBA]" />
-            Rascunho não salvo encontrado
+            {t('ficha.draftRecovery.title')}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm leading-relaxed">
-            Existe um rascunho desta ficha salvo localmente em{' '}
+            {t('ficha.draftRecovery.descBefore')}{' '}
             <span className="font-semibold text-foreground">
-              {formatDataHora(draftTimestamp)}
+              {formatDataHora(draftTimestamp, i18n.language)}
             </span>
-            , que não foi enviado ao servidor.
+            {t('ficha.draftRecovery.descAfter')}
             <br />
-            Deseja recuperar ou descartar?
+            {t('ficha.draftRecovery.question')}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -82,13 +85,13 @@ export default function DraftRecoveryModal({
             type="button"
             className="w-full sm:w-auto"
           >
-            Descartar e usar dados do servidor
+            {t('ficha.draftRecovery.discard')}
           </Button>
           <AlertDialogAction
             onClick={onRecover}
             className="w-full bg-[#7C4DBA] text-white hover:bg-[#7E69AB] sm:w-auto"
           >
-            Recuperar rascunho
+            {t('ficha.draftRecovery.recover')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

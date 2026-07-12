@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface Props {
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export default function PacientesPorProfissional({ fichas }: Props) {
+  const { t } = useTranslation();
   const counts = useMemo(() => {
     const map = new Map<string, { nome: string; count: number }>();
     fichas.forEach(f => {
@@ -18,16 +20,16 @@ export default function PacientesPorProfissional({ fichas }: Props) {
 
   return (
     <div className="rounded-xl border border-border bg-card p-5">
-      <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">Pacientes por profissional</h2>
+      <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">{t('gestao.pacientesPorProfissional.title')}</h2>
       {counts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Sem dados para o período selecionado.</p>
+        <p className="text-sm text-muted-foreground">{t('gestao.pacientesPorProfissional.empty')}</p>
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Profissional</TableHead>
-                <TableHead className="text-right">Pacientes</TableHead>
+                <TableHead>{t('management.professional')}</TableHead>
+                <TableHead className="text-right">{t('nav.patients')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

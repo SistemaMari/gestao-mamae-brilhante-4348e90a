@@ -1507,5 +1507,618 @@
     "selectPlaceholder": "Seleccione",
     "preferredLanguageLabel": "Idioma preferido",
     "createAccount": "Crear mi cuenta"
+  },
+  "clinico": {
+    "autoriaRodape": {
+      "defaultLabel": "Consulta registrada por",
+      "doctorPrefix": "Dr(a). {{nome}}",
+      "crm": "Colegiado {{crm}}"
+    },
+    "carimboAtendimento": {
+      "atendendoComo": "Atendiendo como:",
+      "crmSuffix": "— CRM {{crm}}",
+      "casoNovo": "Caso Nuevo",
+      "retorno": "Retorno {{numero}}",
+      "historicoTitle": "Historial de atenciones",
+      "nenhumRegistro": "Aún no hay atenciones registradas."
+    }
+  },
+  "ficha": {
+    "draftRecovery": {
+      "title": "Se encontró un borrador sin guardar",
+      "descBefore": "Existe un borrador de esta ficha guardado localmente el",
+      "descAfter": ", que no se envió al servidor.",
+      "question": "¿Deseas recuperarlo o descartarlo?",
+      "discard": "Descartar y usar los datos del servidor",
+      "recover": "Recuperar borrador"
+    },
+    "igOrigemTooltip": {
+      "origemDum": "Calculada a partir de la FUM ({{data}})",
+      "primeiraUsg": "1ª ecografía",
+      "usgOrdem": "Ecografía #{{ordem}}",
+      "origemUsg": "Calculada a partir de la {{ordemLabel}} ({{data}}, informe: {{laudoIg}})",
+      "ariaLabel": "Origen del cálculo de la EG"
+    },
+    "pactuacaoPosPrandial": {
+      "title": "Acuerdo de mediciones posprandiales",
+      "description": "¿Acordó con la paciente mediciones posprandiales de 1 hora o 2 horas?",
+      "radiogroupLabel": "Ventana de las mediciones posprandiales",
+      "opcao1h": "1 hora",
+      "opcao2h": "2 horas",
+      "aposRefeicoes": "{{prefixo}} después del desayuno / almuerzo / cena",
+      "meta": "Meta: < {{valor}} mg/dL",
+      "explicacao": "La medición de 1 hora es la más usada. La de 2 horas puede acordarse por comodidad de la paciente. Es una decisión clínica tomada junto con la paciente y no puede modificarse después en esta ficha.",
+      "confirmar": "Confirmar y abrir ficha"
+    },
+    "camposPendentesBanner": {
+      "title": "Esta ficha está en borrador. Campos pendientes:"
+    },
+    "rascunhoStatus": {
+      "local": "Borrador guardado localmente",
+      "localAt": "Borrador guardado localmente a las {{hora}}",
+      "servidor": "Borrador guardado en el servidor",
+      "servidorAt": "Borrador guardado en el servidor a las {{hora}}",
+      "dirty": "Cambios sin guardar",
+      "dirtyAt": "Cambios sin guardar (último guardado: {{hora}})",
+      "erro": "Error al guardar — verifique la conexión"
+    },
+    "checklistRetorno2": {
+      "title": "Lista de verificación clínica del Retorno 2",
+      "tooltip": "Las 6 respuestas se envían al backend, que devuelve la conducta (mantener CEV / reforzar CEV / iniciar insulina / evaluar la memoria del glucómetro) y la siguiente ficha recomendada.",
+      "noInfo": "Sin información"
+    },
+    "statusFichaBadge": {
+      "rascunho": "Borrador",
+      "completa": "Completa",
+      "laudoGerado": "Informe generado",
+      "finalizada": "Finalizada",
+      "ariaLabel": "Estado de la ficha: {{label}}"
+    },
+    "checklistRetorno2ReadOnly": {
+      "title": "Checklist clínico del Retorno 2",
+      "semInfo": "Sin información"
+    },
+    "condutaCard": {
+      "fichaA": "Perfil de 4 puntos (hasta 30 semanas)",
+      "fichaB": "Perfil de 6 puntos con insulina (hasta 30 semanas)",
+      "fichaC": "Perfil de 4 puntos (después de 30 semanas)",
+      "fichaD": "Perfil de 6 puntos con insulina (después de 30 semanas)",
+      "fichaE": "Perfil de 6 puntos sin insulina",
+      "condutaManterMev": "MANTENER MEV (15 días)",
+      "condutaReforcarMev": "REFORZAR MEV — pactar con la paciente",
+      "condutaInsulina": "INICIAR INSULINA",
+      "condutaAvaliarMemoria": "EVALUAR MEMORIA DEL GLUCÓMETRO",
+      "pactuacaoLabel": "Acuerdo con la paciente:",
+      "aceitaReforcarMev": "Acepta reforzar MEV (nueva prueba en 7-10 días)",
+      "recusaIniciarInsulina": "Rechaza — iniciar insulina",
+      "memoriaPergunta": "¿La memoria del glucómetro coincide con los valores anotados?",
+      "memoriaConfirma": "Confirma → ampliar a 6 puntos sin insulina",
+      "memoriaNaoConfirma": "No confirma → conversación estructurada + acuerdo",
+      "doseInicialLabel": "Dosis inicial de insulina NPH",
+      "uiPerDay": "UI/día",
+      "doseBreakdown": "{{manha}} UI mañana + {{noite}} UI a las 22h • fórmula: 0,5 UI/kg/día",
+      "acompanhamentoEncerrado": "Seguimiento finalizado — conducta y continuidad en el informe a continuación.",
+      "proximaConsulta": "Próxima consulta:",
+      "pendente": "Pendiente: {{lista}}"
+    },
+    "decisaoExtras": {
+      "title": "Decisión clínica del Retorno 2",
+      "memoriaLabel": "Evaluación de la memoria del glucómetro",
+      "pactuacaoLabel": "Acuerdo con la paciente",
+      "pactAceita": "Acepta reforzar los cambios en el estilo de vida",
+      "pactRecusa": "Rechaza — iniciar insulina",
+      "memConfirma": "Confirma",
+      "memNaoConfirma": "No confirma"
+    },
+    "divergenciaIg": {
+      "label": "Atención:",
+      "mensagem": "la EG calculada por la ecografía difiere en más de 7 días de la EG calculada por la FUM. Verifique la consistencia de los datos."
+    }
+  },
+  "laudo": {
+    "gradeGlicemica": {
+      "pontos": {
+        "jejum": "Ayunas",
+        "posCafe": "Posdesayuno",
+        "preAlmoco": "Prealmuerzo",
+        "posAlmoco": "Posalmuerzo",
+        "preJantar": "Precena",
+        "posJantar": "Poscena"
+      },
+      "title": "Perfil glucémico ({{pontos}} puntos × {{dias}} días)",
+      "diasPreenchidos": "{{preenchidos}}/{{dias}} días completados",
+      "dia": "Día",
+      "dentroDaMeta": "Dentro del objetivo",
+      "resultado": "{{percentual}}% — {{controle}}",
+      "controleAdequado": "control adecuado",
+      "controleInadequado": "control inadecuado"
+    },
+    "janelaGtt": {
+      "title": "Ventana para PTOG 75g",
+      "jaNaJanela": "La PTOG 75g ya está dentro de la ventana — solicítela lo antes posible.",
+      "instrucao": "La PTOG 75g debe realizarse lo más cerca posible de la semana 24 (entre <strong>{{inicio}}</strong> y <strong>{{fim}}</strong>). Oriente a la paciente desde ya.",
+      "nota": "Esta orientación aparece desde ahora para que la paciente tenga tiempo de agendar el examen, que con frecuencia tiene lista de espera en las unidades de salud. Si no logra realizarlo dentro de la ventana, el examen debe hacerse lo antes posible — incluso después de las 28 semanas."
+    },
+    "cabecalho": {
+      "laudo": "Informe",
+      "paciente": "Paciente:",
+      "ig": "EG:",
+      "data": "Fecha:",
+      "igNaoDefinida": "Referencia de EG no definida"
+    },
+    "laudoCompleto": {
+      "periodoMonitorado": "Período monitoreado:",
+      "periodoRange": "{{inicio}} a {{fim}}",
+      "diasPreenchidos_one": "{{count}} día completado",
+      "diasPreenchidos_other": "{{count}} días completados",
+      "rodapeLegal": "Generado por MARI — {{data}} — Este documento no sustituye la evaluación médica."
+    },
+    "notasTecnicas": {
+      "title": "Notas técnicas",
+      "nota1": "No repetir la glucemia plasmática en ayunas con fines diagnósticos — en ningún escenario, ya sea el resultado positivo o negativo.",
+      "nota2": "La glucemia plasmática venosa es OBLIGATORIA para el diagnóstico — la glucemia capilar en la yema del dedo no es válida para este fin.",
+      "nota3": "Las glucemias capilares en ayunas y posprandiales se utilizan exclusivamente para el seguimiento del perfil glucémico — nunca para el diagnóstico.",
+      "nota4": "Este informe es un instrumento de apoyo a la decisión clínica y no sustituye la evaluación médica."
+    },
+    "placeholderTextoPendente": {
+      "title": "Texto pendiente — solicitar al equipo clínico",
+      "descricao": "Los textos descriptivos de este informe aún no han sido publicados por el equipo clínico. La generación del PDF está temporalmente bloqueada hasta la entrega de los textos oficiales.",
+      "blocosPendentes": "Bloques pendientes",
+      "todosBlocos": "Todos los bloques."
+    },
+    "proximaFicha": {
+      "title": "Próxima ficha"
+    },
+    "bannerUrgenciaEndocrino": {
+      "title": "ATENCIÓN — urgencia con el endocrinólogo",
+      "prazo": "Si opta por asociar o derivar al endocrinólogo, la consulta debe ocurrir en <strong>7 a 10 días</strong> a partir de hoy.",
+      "aviso": "Si el profesional no tiene disponibilidad en ese plazo, oriente a la paciente a buscar otro endocrinólogo con urgencia. <strong>Un feto en régimen hiperglucémico no puede esperar.</strong>"
+    },
+    "blocosTexto": {
+      "carregando": "Cargando textos del informe…",
+      "pendente": "Informe aún no cargado.",
+      "carregarLaudo": "Cargar informe",
+      "aguardandoPeso": "Ingrese el peso actual de la paciente para generar el informe completo con la dosis inicial de insulina.",
+      "erroTitulo": "No se pudieron cargar los textos",
+      "erroDescricao": "No se pudieron cargar los textos del informe. Inténtelo de nuevo en unos instantes.",
+      "desativado": "La generación de informes está temporalmente desactivada por la administración del sistema.",
+      "fichaIncompleta": "Complete los datos clínicos de la ficha para visualizar el informe."
+    }
+  },
+  "consolidar": {
+    "comparador": {
+      "title": "Comparador de unidades",
+      "subtitle": "Selecciona una o más métricas para comparar las unidades lado a lado.",
+      "maiorMelhor": "Mayor es mejor",
+      "menorMelhor": "Menor es mejor",
+      "semDadosMetrica": "Sin datos para esta métrica.",
+      "loadError": "Error al cargar los datos.",
+      "selecioneMetrica": "Selecciona al menos una métrica arriba para comparar las unidades.",
+      "insightAutomatico": "Análisis automático",
+      "insight": {
+        "maior": "mayor",
+        "menor": "menor",
+        "acima": "por encima",
+        "abaixo": "por debajo",
+        "frase": "{{unidade}} tiene el {{palavraSup}} {{labelLong}} ({{valorTop}}), {{diffPct}}% {{acimaAbaixo}} del promedio de la red ({{valorMedia}})."
+      },
+      "metricas": {
+        "pacientes_ativos": {
+          "label": "Pacientes activas",
+          "labelLong": "número de pacientes activas",
+          "tooltip": "Mayor es mejor: indica el volumen de atención de la unidad."
+        },
+        "laudos_emitidos": {
+          "label": "Informes emitidos",
+          "labelLong": "número de informes emitidos",
+          "tooltip": "Mayor es mejor: productividad de diagnóstico en el período."
+        },
+        "taxa_dmg_positivo_pct": {
+          "label": "Tasa DMG",
+          "labelLong": "tasa de DMG positivo",
+          "tooltip": "Comparación directa entre unidades. Rango esperado Febrasgo: 7-18% — interprétalo con contexto."
+        },
+        "tempo_medio_fechamento_dias": {
+          "label": "Tiempo medio desde FUM",
+          "labelLong": "tiempo medio entre FUM y parto",
+          "tooltip": "Menor es mejor: tiempo entre FUM y parto."
+        },
+        "profissionais_ativos": {
+          "label": "Profesionales activos",
+          "labelLong": "número de profesionales activos",
+          "tooltip": "Profesionales con al menos una gestante activa."
+        }
+      }
+    },
+    "configuracoesGestorGeral": {
+      "title": "Configuración",
+      "subtitle": "Información de su cuenta de gestor general. Para cambios, contacte al soporte.",
+      "contratante": "Contratante",
+      "maisOutras": "+{{count}} otras",
+      "unidadesVinculadas": "Unidades vinculadas ({{count}})",
+      "suporte": "Soporte: <mailLink>suporte@mari.health</mailLink>"
+    },
+    "operacao": {
+      "title": "Operación consolidada",
+      "loadError": "Error al cargar la operación.",
+      "gestantesAtivas": "Gestantes activas",
+      "gestantesAtivasTip": "Suma de gestantes con FUM en los últimos 280 días en todas las unidades seleccionadas.",
+      "laudosEmitidos": "Informes emitidos",
+      "laudosEmitidosTip": "Informes generados en el período seleccionado por las unidades seleccionadas.",
+      "examesRealizados": "Exámenes realizados",
+      "examesRealizadosTip": "Total de exámenes de glucemia (GA + PTOG + perfil) registrados en el período.",
+      "partosRegistrados": "Partos registrados",
+      "partosRegistradosTip": "Partos registrados en el período por las unidades seleccionadas.",
+      "profissionaisAtivos": "Profesionales activos",
+      "profissionaisAtivosTip": "Profesionales con al menos 1 paciente en seguimiento."
+    },
+    "perfilClinico": {
+      "title": "Perfil clínico consolidado",
+      "loadError": "Error al cargar el perfil clínico.",
+      "taxaDmgPositivo": "Tasa de DMG positivo",
+      "taxaDmgPositivoTip": "Porcentaje de gestantes con DMG confirmado. Rango esperado Febrasgo: 7-18%.",
+      "diagnosticosNoCalculo": "{{valor}} diagnósticos en el cálculo",
+      "igMediaDiagnostico": "EG promedio al diagnóstico",
+      "igMediaDiagnosticoTip": "Edad gestacional promedio en el momento del diagnóstico de DMG. Ventana ideal: 24-28 semanas.",
+      "tempoMedioFechamento": "Tiempo promedio de cierre",
+      "tempoMedioFechamentoTip": "Días promedio entre la confirmación del DMG y el desenlace (alta/parto).",
+      "diasSuffix": "{{valor}} d"
+    },
+    "gargalos": {
+      "loadError": "Error al cargar los cuellos de botella.",
+      "subtitle": "Dónde hay fallas de tamizaje en su red."
+    },
+    "tendencia": {
+      "title": "Tendencia de la red (12 meses)",
+      "tooltip": "Instantánea mensual de las últimas 12 referencias: total de gestantes activas y DMG confirmados. No respeta el filtro de período — siempre 12 meses.",
+      "loadError": "Error al cargar la tendencia.",
+      "legendGestantes": "Gestantes activas",
+      "legendDmg": "DMG confirmados"
+    },
+    "vitrine": {
+      "gestorNome": "Dr. Demo Gestor General",
+      "unidadePinheiros": "Centro de Salud Demo Pinheiros",
+      "unidadeMoema": "Centro de Salud Demo Moema",
+      "unidadeLapa": "Centro de Salud Demo Lapa",
+      "unidadeVilaNova": "Centro de Salud Demo Vila Nova",
+      "contratante": "Demo Health"
+    },
+    "diagnostico": {
+      "title": "Diagnóstico operativo",
+      "subtitle": "Indicadores agregados, ranking y alertas determinísticas de la red."
+    },
+    "unidadeDrillDown": {
+      "readOnlyReason": "Estás viendo el panel de otra unidad en modo solo lectura.",
+      "readOnlyBanner": "Vista de solo lectura",
+      "readOnlyBannerUnit": "Vista de solo lectura — {{unidade}}",
+      "voltarVisaoGeral": "Volver a la visión general"
+    },
+    "visaoGeralRede": {
+      "colUnidade": "Unidad",
+      "colGestor": "Gestor",
+      "colGestorTooltip": "Profesional registrado como gestor de la unidad. Vacío cuando nadie ocupa el rol.",
+      "colPacientesAtivos": "Pacientes activos",
+      "colPacientesAtivosTooltip": "Gestantes con FUM en los últimos 280 días.",
+      "colLaudosEmitidos": "Informes emitidos",
+      "colLaudosEmitidosTooltip": "Informes generados en el período seleccionado.",
+      "colPartos": "Partos",
+      "colPartosTooltip": "Partos registrados en el período seleccionado.",
+      "colProfissionais": "Profesionales",
+      "colProfissionaisTooltip": "Profesionales con al menos 1 paciente en seguimiento en la unidad.",
+      "colTaxaDmg": "Tasa DMG+",
+      "colTaxaDmgTooltip": "Porcentaje de gestantes con diagnóstico positivo de DMG. Rango esperado Febrasgo: 7-18%.",
+      "title": "Visión general de la red",
+      "subtitle": "Una fila por unidad. Haga clic para abrir el panel completo en modo solo lectura.",
+      "erroCarregar": "No se pudo cargar la visión general.",
+      "nenhumaUnidade": "No se encontró ninguna unidad para el filtro actual.",
+      "semGestor": "Sin gestor"
+    }
+  },
+  "gestao": {
+    "composicaoClinica": {
+      "gineco": "Ginecólogos/Obstetras",
+      "endo": "Endocrinólogos",
+      "enfermeira": "Enfermeras",
+      "nutri": "Nutricionistas",
+      "outros": "Otros",
+      "title": "Composición clínica del equipo",
+      "tooltip": "Distribución de su equipo por especialidad clínica. Útil para identificar brechas de cobertura — por ejemplo, un equipo sin endocrinólogo puede tener dificultades en casos con insulinoterapia.",
+      "erro": "Error al cargar la composición.",
+      "semEndoAviso": "Ningún endocrinólogo en el equipo. Considere invitar a uno para apoyar casos de DMG con insulinoterapia."
+    },
+    "indicadoresFluxo": {
+      "tempoMedioTitle": "Tiempo promedio hasta el 1er informe",
+      "tempoMedioTooltip": "Tiempo promedio (en días) entre la primera consulta de una paciente y la emisión del primer informe, considerando pacientes diagnosticadas en los últimos 90 días. Tiempo ideal: hasta 14 días. Más de 30 días indica diagnóstico tardío — la paciente puede llegar a la semana 28 sin el tamizaje adecuado.",
+      "loadError": "Error al cargar.",
+      "semDados": "Sin datos en el período",
+      "sublabelAtencao": "Por encima del tiempo ideal — revisar el flujo",
+      "sublabelCritico": "Diagnóstico muy tardío — atención urgente",
+      "sublabelIdeal": "desde la 1ª consulta de la paciente",
+      "dias": "{{valor}} días",
+      "sobrecargaTitle": "Profesional sobrecargado",
+      "sobrecargaTooltip": "Alerta automática cuando algún profesional tiene más del doble de la carga promedio de pacientes activas del equipo. La carga desigual puede provocar retrasos y sobrecarga emocional. Considere redistribuir.",
+      "cargaEquilibrada": "Carga equilibrada en el equipo",
+      "profPacientes": "{{nome}} — {{count}} pacientes",
+      "considereRedistribuir": "Considere redistribuir parte de las pacientes."
+    },
+    "metricasParto": {
+      "title": "Partos y desenlaces neonatales",
+      "noDataYet": "Sin datos aún",
+      "emptyPeriod": "Ningún parto registrado en este período. Los datos aparecerán aquí a medida que se registren.",
+      "totalPartos": "Total de partos",
+      "cesareas": "Cesáreas",
+      "vaginais": "Vaginales",
+      "intercorrenciaMaterna": "Complicación materna",
+      "intercorrenciaNeonatal": "Complicación neonatal",
+      "aig": "AEG",
+      "gig": "GEG",
+      "pig": "PEG"
+    },
+    "pacientesPorProfissional": {
+      "title": "Pacientes por profesional",
+      "empty": "Sin datos para el período seleccionado."
+    },
+    "blocoGargalos": {
+      "title": "Cuellos de botella del cuidado",
+      "tooltipSemGj": "Pacientes con primera consulta registrada pero sin glucemia en ayunas en la atención. La GA es el primer examen de tamizaje de DMG (protocolo Febrasgo) y debe solicitarse en la primera consulta prenatal — incluso para identificar diabetes pregestacional. Una falla aquí significa que el tamizaje no comenzó.",
+      "tooltipGtt": "Pacientes de más de 28 semanas que aún no han hecho la Prueba de Tolerancia a la Glucosa. La ventana ideal de tamizaje es de 24 a 28 semanas — después de eso, el diagnóstico se retrasa y el tiempo de tratamiento antes del parto se acorta. Convocar a estas pacientes es prioritario.",
+      "tooltipSemRetorno": "Pacientes diagnosticadas con DMG cuya última atención fue hace más de 14 días. La DMG exige un seguimiento cercano (perfiles glucémicos quincenales, ajuste de tratamiento). La ausencia de retorno puede indicar abandono — factor crítico de riesgo para el binomio madre-bebé.",
+      "semGjTitulo": "Sin GA en la primera consulta",
+      "semGjDescricao": "Pacientes con atención pero sin glucemia en ayunas registrada.",
+      "gttTitulo": "PTOG 75g atrasada",
+      "gttDescricao": "EG ≥ 28 semanas sin PTOG registrada.",
+      "semRetornoTitulo": "DMG confirmada sin retorno",
+      "semRetornoDescricao": "Sin registro de atención hace más de 14 días.",
+      "emptyState": "Ningún cuello de botella identificado. La unidad está al día con los flujos críticos.",
+      "verPacientes": "Ver pacientes"
+    },
+    "blocoOperacao": {
+      "title": "Operación de la unidad",
+      "gestantesTitle": "Gestantes activas",
+      "gestantesTooltip": "Total de gestantes de su unidad con FUM (Fecha de Última Menstruación) registrada en los últimos 280 días — período correspondiente a la gestación completa. Refleja la carga de atención actual del equipo.",
+      "gestantesSubtitle": "FUM en los últimos 280 días",
+      "laudosTitle": "Informes en los últimos 30 días",
+      "laudosTooltip": "Total de informes de DMG generados por su equipo en los últimos 30 días. Indica la productividad de diagnóstico en el período. Una caída brusca puede señalar una falla en el flujo de tamizaje.",
+      "laudosSubtitle": "emitidos por el equipo",
+      "profsTitle": "Profesionales con paciente activo",
+      "profsTooltip": "Profesionales de su unidad que tienen al menos 1 paciente en seguimiento. Útil para detectar profesionales ociosos o sobrecargados — vea la distribución detallada en la pestaña Equipo.",
+      "profsSubtitle": "de {{total}} en la unidad"
+    },
+    "performanceIndividual": {
+      "laudosCount_one": "{{count}} informe",
+      "laudosCount_other": "{{count}} informes",
+      "pacientesCount_one": "{{count}} paciente",
+      "pacientesCount_other": "{{count}} pacientes",
+      "maisAtivos": "Más activos",
+      "maisAtivosTooltip": "Los 3 profesionales con mayor producción de informes del equipo. Puede ser útil para reconocimiento, mentoría de nuevos miembros o redistribución de carga.",
+      "menosAtivos": "Menos activos",
+      "menosAtivosTooltip": "Los 3 profesionales con menor producción de informes del equipo. Evalúe si hay sobrecarga en otros profesionales que justifique la redistribución, o si algún miembro necesita apoyo.",
+      "erroCarregar": "Error al cargar.",
+      "semDados": "Sin datos disponibles.",
+      "equipePequena": "Equipo pequeño — sin distinción de menos activos."
+    },
+    "secaoEquipePdf": {
+      "incluindoVoce": "incluyéndote",
+      "convitesExpirados": "Invitaciones vencidas",
+      "reenviarDisponivel": "reenvío disponible",
+      "laudosGeradosEquipe": "Informes generados por el equipo",
+      "totalHistorico": "total histórico"
+    },
+    "blocoPerfilClinico": {
+      "title": "Perfil clínico de las pacientes",
+      "semGestantes": "Sin gestantes activas por el momento.",
+      "alertaSubnotificacao": "Su prevalencia de DMG está por debajo de lo esperado ({{pct}}% vs. rango Febrasgo de 7-18%). Puede indicar subdiagnóstico — revise si el cribado se realiza según protocolo en la primera consulta y en la ventana de 24-28 semanas.",
+      "alertaAltoRisco": "Su prevalencia de DMG está por encima de lo esperado ({{pct}}% vs. rango Febrasgo de 7-18%). Puede indicar población de alto riesgo — considere revisar factores demográficos como edad materna, IMC pregestacional e historial familiar.",
+      "prevalenciaDmg": "Prevalencia de DMG",
+      "ttPrevalencia": "Porcentaje de sus gestantes activas con diagnóstico confirmado de DMG. Referencia Febrasgo en Brasil: 7-18% de la población gestante. Por debajo del 7% puede indicar subdiagnóstico — revise si el cribado se realiza según protocolo. Por encima del 18% sugiere población de alto riesgo — factores como obesidad, edad materna avanzada e historial familiar pueden elevar la prevalencia local.",
+      "badgeSubnotificacao": "Subnotificación",
+      "badgeAltoRisco": "Alto riesgo",
+      "esperadoFebrasgo": "Esperado: 7–18% (Febrasgo)",
+      "emInsulina": "En insulina",
+      "ttInsulina": "Pacientes con DMG confirmado que están en terapia con insulina. En poblaciones brasileñas con DMG, se espera que el 20-30% de las diagnosticadas requieran insulinoterapia (Febrasgo). Porcentajes muy superiores pueden indicar diagnóstico tardío o perfiles más graves.",
+      "pctDasDmg": "{{pct}}% de las DMG",
+      "ttDmgAnterior": "Pacientes con antecedentes de DMG en una gestación anterior. Este grupo tiene hasta 7 veces más riesgo de repetir el diagnóstico — son candidatas a cribado precoz, antes de la ventana estándar de 24-28 semanas (Febrasgo).",
+      "pctDasAtivas": "{{pct}}% de las activas",
+      "igMediaDiagnostico": "EG media al diagnóstico",
+      "ttIgMedia": "Edad gestacional media (en semanas + días) en la que su equipo diagnostica DMG, considerando los últimos 90 días. Ventana ideal de cribado Febrasgo: 24-28 semanas. Por encima de 28 semanas indica diagnóstico tardío — la paciente puede llegar al tercer trimestre sin tratamiento adecuado, aumentando el riesgo de macrosomía y complicaciones en el parto.",
+      "ultimos90dias": "últimos 90 días"
+    },
+    "configuracoes": {
+      "title": "Configuración de la unidad",
+      "subtitle": "Vista general de los datos, equipo y preferencias de su unidad.",
+      "dadosUnidadeTitle": "Datos de la Unidad",
+      "dadosUnidadeSubtitle": "Para modificar estos datos, contacte con soporte.",
+      "loadUnidadeError": "No se pudieron cargar los datos de la unidad. Intente recargar la página.",
+      "nomeUnidade": "Nombre de la unidad",
+      "tipo": "Tipo",
+      "localizacao": "Ubicación",
+      "cnes": "CNES",
+      "contratante": "Contratante",
+      "cnpjContratante": "CNPJ del contratante",
+      "modeloContratacao": "Modelo de contratación: Contrato institucional — gestionado externamente.",
+      "equipeSubtitle": "Profesionales activos en su unidad.",
+      "profissionaisAtivos_one": "profesional activo",
+      "profissionaisAtivos_other": "profesionales activos",
+      "ultimaInclusao": "Última incorporación: {{nome}} el {{data}}",
+      "relatorioTitle": "Informe Automático Mensual",
+      "relatorioSubtitle": "Generado automáticamente cada día 1 para alimentar el panel del Gestor General.",
+      "statusGerado": "— Generado",
+      "statusAguardando": "— Esperando generación — prevista para hoy a las 03:00",
+      "statusNaoGerado": "— No generado — contacte con soporte",
+      "proximo": "(próximo)",
+      "relatorioNota": "Estos informes alimentan el panel consolidado del Gestor General. No necesita hacer nada — el sistema los genera automáticamente.",
+      "suporteTitle": "Soporte",
+      "suporteSubtitle": "¿Necesita ayuda? Hable con nosotros.",
+      "falarComSuporte": "Contactar con soporte:"
+    },
+    "blocoTendencia": {
+      "title": "Tendencia de la unidad",
+      "howToRead": "Cómo leer este gráfico",
+      "tooltip": "Cada punto del gráfico representa una fotografía de ese mes: cuántas pacientes estaban embarazadas y cuántas tenían DMG confirmada en ese momento. Como el diagnóstico de DMG suele ocurrir entre las 24-28 semanas (3 a 5 meses después de la primera consulta), una paciente puede ingresar a la unidad en un mes y aparecer como diagnosticada varios meses después — por eso la fotografía mensual es la forma correcta de medir la prevalencia a lo largo del tiempo.",
+      "noData6m": "Sin datos en los últimos 6 meses.",
+      "seriesGestantes": "Embarazadas activas",
+      "seriesDmg": "DMG confirmadas",
+      "footer": "Cada mes refleja el total de embarazadas activas (FUM en los últimos 280 días) y DMG diagnosticadas hasta esa fecha."
+    },
+    "fichasUnidade": {
+      "title": "Fichas de la unidad",
+      "subtitle": "Lista completa de pacientes en seguimiento.",
+      "kpiTotal": "Total",
+      "kpiAguardandoGj": "En espera de GA",
+      "kpiAcompanhamento": "En seguimiento",
+      "kpiConcluidas": "Concluidas",
+      "chipTodos": "Todas ({{count}})",
+      "searchPlaceholder": "Buscar por nombre de paciente...",
+      "exportCsv": "Exportar CSV",
+      "exportExcel": "Exportar Excel",
+      "exportEmptyTitle": "Ninguna ficha para exportar con los filtros actuales.",
+      "csvVitrineInfo": "Exportar CSV está disponible en el entorno real.",
+      "excelVitrineInfo": "Exportar Excel está disponible en el entorno real.",
+      "csvGerado": "Archivo CSV generado.",
+      "excelGerado": "Archivo Excel generado.",
+      "excelErro": "No se pudo generar el Excel. Inténtalo de nuevo.",
+      "colPaciente": "Paciente",
+      "colIg": "EG",
+      "colProfissional": "Profesional",
+      "colUltimaConsulta": "Última consulta",
+      "colProximaConsulta": "Próxima consulta",
+      "colDataDiagnostico": "Fecha de diagnóstico (estado)",
+      "colCriadaEm": "Creada el",
+      "filtroSemGjPrimeira": "Sin GA en la primera consulta",
+      "filtroAtrasadasGtt": "PTOG 75g atrasada",
+      "filtroSemRetorno": "DMG confirmada sin retorno",
+      "pacienteCount": "{{count}} paciente",
+      "limparFiltroGargalo": "Limpiar filtro de cuello de botella",
+      "emptyFiltered": "Ninguna ficha coincide con los filtros aplicados.",
+      "emptyGargalo": "Sin pacientes en este cuello de botella por ahora.",
+      "emptyUnidade": "Aún no hay fichas registradas en esta unidad.",
+      "emptyBusca": "No se encontró ninguna paciente con ese nombre. Intenta otra búsqueda.",
+      "exibindo": "Mostrando {{inicio}}-{{fim}} de {{total}} fichas",
+      "pagina": "Página {{page}} de {{total}}"
+    },
+    "cardInfoTooltip": {
+      "ariaLabel": "Más información"
+    }
+  },
+  "gestorGeral": {
+    "blocoAlertas": {
+      "loadError": "No se pudieron cargar las alertas.",
+      "reload": "Recargar",
+      "title": "Atención requerida",
+      "subtitle": "Alertas determinísticas sobre el estado operativo de las unidades.",
+      "emptyTitle": "Ninguna alerta por el momento.",
+      "emptyDesc": "Su red está operando con normalidad.",
+      "detalhe": "Detalle: {{valor}}"
+    },
+    "blocoKpis": {
+      "loadError": "No se pudieron cargar los indicadores.",
+      "recarregar": "Recargar",
+      "moreInfo": "Más información",
+      "vsPeriodoAnterior": "vs período anterior",
+      "pacientesAtivos": "Pacientes activas",
+      "pacientesAtivosTip": "Gestantes con FUM en los últimos 280 días en las unidades seleccionadas. Instantánea actual — no depende de la ventana del filtro.",
+      "laudosEmitidos": "Informes emitidos",
+      "laudosEmitidosTip": "Informes generados en el período seleccionado por las unidades seleccionadas.",
+      "taxaDmgPositivo": "Tasa de DMG positivo",
+      "taxaDmgPositivoTip": "Porcentaje de informes del período con diagnóstico positivo de DMG. Rango esperado Febrasgo: 7-18%.",
+      "partosRegistrados": "Partos registrados",
+      "partosRegistradosTip": "Partos registrados en el período por las unidades seleccionadas.",
+      "profissionaisAtivos": "Profesionales activos",
+      "profissionaisAtivosTip": "Profesionales con al menos 1 paciente en seguimiento en las unidades seleccionadas."
+    },
+    "blocoRanking": {
+      "statusAtiva": "Activa",
+      "statusAtencao": "Atención",
+      "statusInativa": "Inactiva",
+      "statusNaoIniciada": "No iniciada",
+      "loadError": "No se pudo cargar el ranking.",
+      "reload": "Recargar",
+      "title": "Ranking de unidades",
+      "subtitle": "Por estado operativo. Haga clic en las columnas para reordenar.",
+      "empty": "Ninguna unidad registró actividad en el período seleccionado.",
+      "colUnidade": "Unidad",
+      "colPacientes": "Pacientes",
+      "tipPacientes": "Gestantes con FUM en los últimos 280 días.",
+      "colLaudos": "Informes",
+      "tipLaudos": "Informes generados en el período seleccionado.",
+      "colTaxaDmg": "Tasa DMG+",
+      "tipTaxaDmg": "Porcentaje de informes del período con diagnóstico positivo de DMG.",
+      "colTempoMedio": "Tiempo promedio",
+      "tipTempoMedio": "Días promedio entre FUM y parto registrado en el período. '—' cuando no hay partos elegibles.",
+      "colUltimaAtividade": "Última actividad",
+      "tipUltimaAtividade": "Último registro (paciente, informe, examen o atención) en la unidad.",
+      "colStatus": "Estado",
+      "tipStatus": "Activa: registro en los últimos 30d. Atención: 30-60d. Inactiva: >60d. No iniciada: sin registros.",
+      "dias": "{{valor}} d"
+    },
+    "topDestaques": {
+      "loadError": "Error al cargar los destacados.",
+      "diagnosticaMais": "Diagnostica MÁS",
+      "maisTooltip": "Unidad con el mayor número de diagnósticos confirmados de DMG (escenarios 1, 6 y 6b) en el período seleccionado.",
+      "diagnosticaMenos": "Diagnostica MENOS",
+      "menosTooltip": "Unidad con el menor número de diagnósticos confirmados de DMG en el período. Puede indicar baja captación o subdiagnóstico.",
+      "diagnosticosCount_one": "{{count}} diagnóstico",
+      "diagnosticosCount_other": "{{count}} diagnósticos"
+    },
+    "filtrosGlobais": {
+      "unidadesLabel": "Unidades",
+      "todasUnidades": "Todas las unidades ({{count}})",
+      "nenhumaSelecionada": "Ninguna unidad seleccionada",
+      "parcialSelecionadas": "{{sel}} de {{total}} seleccionadas",
+      "buscarUnidade": "Buscar unidad…",
+      "nenhumaEncontrada": "Ninguna unidad encontrada.",
+      "selecionarTodas": "Seleccionar todas",
+      "desmarcarTodas": "Deseleccionar todas",
+      "periodoLabel": "Período",
+      "preset7d": "Últimos 7 días",
+      "preset30d": "Últimos 30 días",
+      "preset90d": "Últimos 90 días",
+      "preset12m": "Últimos 12 meses",
+      "presetAno": "Año en curso",
+      "presetCustom": "Personalizado",
+      "intervaloLabel": "Intervalo",
+      "selecione": "Seleccione"
+    },
+    "painelHeader": {
+      "title": "Panel de la Red — MARI",
+      "greeting": "Hola, {{nome}}.",
+      "gestorFallback": "Gestor(a)",
+      "outrasContratantes_one": "+{{count}} otra",
+      "outrasContratantes_other": "+{{count}} otras",
+      "unidadesVinculadas_one": "{{count}} unidad vinculada",
+      "unidadesVinculadas_other": "{{count}} unidades vinculadas",
+      "atualizado": "Actualizado {{tempo}}",
+      "cooldownAguarde": "Espere {{min}}m antes de actualizar nuevamente",
+      "cooldownAtualizar": "Actualizar datos (caché de 1h)",
+      "atualizarDados": "Actualizar datos",
+      "exportarVisaoAtual": "Exportar vista actual",
+      "exportarCsv": "Exportar como CSV",
+      "exportarPdf": "Exportar como PDF",
+      "emBreve": "Próximamente"
+    },
+    "appShell": {
+      "navVisaoGeral": "Visión general",
+      "navConsolidador": "Consolidador",
+      "navDiagnostico": "Diagnóstico",
+      "navComparador": "Comparador",
+      "navConfiguracoes": "Configuración",
+      "navTutorial": "Tutorial",
+      "roleLabel": "Gestor General",
+      "headerLabel": "Consolidación General",
+      "demoNome": "Dr. Demo Gestor General",
+      "demoDetalhe": "Director Médico — Demo Health"
+    },
+    "emptyStateSemSelecao": {
+      "title": "Ninguna unidad seleccionada",
+      "descricao": "Seleccione al menos una unidad en el filtro de arriba para visualizar los datos."
+    }
+  },
+  "gestor": {
+    "appShell": {
+      "fichasUnidade": "Fichas de la unidad",
+      "gestorUnidade": "Gestor de Unidad",
+      "gestaoUnidade": "Gestión de la Unidad",
+      "demoNome": "Dra. Demostración"
+    }
   }
 }
