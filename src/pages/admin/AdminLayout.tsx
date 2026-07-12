@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 import { BarraFiltrosGlobais } from "@/components/admin/BarraFiltrosGlobais";
 import { AdminFiltrosProvider } from "@/contexts/AdminFiltrosContext";
@@ -65,7 +66,11 @@ export default function AdminLayout() {
         <div className="min-h-screen flex w-full bg-[#F8FAFC]">
           <AdminSidebar nome={nomeAdmin} email={user?.email} />
           <div className="flex-1 flex flex-col min-w-0">
-            
+            {/* Barra de topo: seletor de idioma (admin multilíngue). */}
+            <div className="flex justify-end items-center px-4 md:px-6 lg:px-8 pt-4">
+              <LanguageSwitcher variant="compact" />
+            </div>
+
             {/* Barra de filtros: escondida na Visão Geral (/admin) — lá ela é
                 renderizada dentro da página, acima dos gráficos que realmente
                 filtra. Nas demais páginas segue no topo. */}
