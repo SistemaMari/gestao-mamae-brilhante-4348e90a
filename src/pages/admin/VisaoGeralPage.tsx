@@ -557,7 +557,7 @@ export default function VisaoGeralPage() {
 
 
       {/* Cards finais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div
           className="rounded-lg bg-white p-5 flex items-center gap-4"
           style={{ borderLeft: "4px solid #7E69AB", boxShadow: "0 1px 2px rgba(15,23,42,.04)" }}
