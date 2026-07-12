@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquareHeart, Loader2, Search, Paperclip } from 'lucide-react';
+import { MessageSquareHeart, Loader2, Search, Paperclip, Mail, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDateBR } from '@/lib/dateUtils';
 
@@ -17,7 +17,8 @@ interface Feedback {
   status: 'novo' | 'lido' | 'resolvido';
   created_at: string;
   autor?: string;
-  email?: string;
+  email?: string | null;
+  telefone?: string | null;
 }
 
 const TIPO_LABEL: Record<string, string> = {
@@ -55,13 +56,15 @@ export default function FeedbacksAdminPage() {
     const rows = (data as Feedback[]) || [];
     const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
     if (userIds.length > 0) {
-      const { data: profs } = await supabase
-        .from('profissionais')
-        .select('user_id, nome')
-        .in('user_id', userIds);
-      const map = new Map<string, string>();
-      (profs || []).forEach((p: any) => map.set(p.user_id, p.nome));
-      rows.forEach((r) => { r.autor = map.get(r.user_id) || '—'; });
+      const { data: contatos } = await supabase.rpc('admin_get_contatos_usuarios', { _user_ids: userIds });
+      const map = new Map<string, { nome: string; email: string | null; telefone: string | null }>();
+      (contatos || []).forEach((c: any) => map.set(c.user_id, { nome: c.nome, email: c.email, telefone: c.telefone }));
+      rows.forEach((r) => {
+        const c = map.get(r.user_id);
+        r.autor = c?.nome || '—';
+        r.email = c?.email ?? null;
+        r.telefone = c?.telefone ?? null;
+      });
     }
     setLista(rows);
     setLoading(false);
@@ -200,6 +203,30 @@ export default function FeedbacksAdminPage() {
                 </div>
               </div>
               <p className="whitespace-pre-wrap text-sm text-foreground">{f.mensagem}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">
+                {f.email && <span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{f.email}</span>}
+                {f.telefone && <span className="inline-flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" />{f.telefone}</span>}
+                {!f.email && !f.telefone && <span className="italic">Sem contato cadastrado</span>}
+                <div className="ml-auto flex flex-wrap gap-2">
+                  {f.email && (
+                    <a
+                      href={`mailto:${f.email}?subject=${encodeURIComponent('Re: seu feedback no MARI')}&body=${encodeURIComponent(`Olá ${f.autor || ''},\n\nSobre sua mensagem:\n"${f.mensagem}"\n\n`)}`}
+                      className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/5 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+                    >
+                      <Mail className="h-3.5 w-3.5" /> Responder por e-mail
+                    </a>
+                  )}
+                  {f.telefone && (
+                    <a
+                      href={`https://wa.me/${f.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${f.autor || ''}, aqui é do suporte MARI. Recebemos seu feedback: "${f.mensagem}"`)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                    </a>
+                  )}
+                </div>
+              </div>
               {f.anexo_url && (
                 <button
                   type="button"
