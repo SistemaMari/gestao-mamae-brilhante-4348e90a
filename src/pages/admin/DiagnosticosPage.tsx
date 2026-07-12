@@ -191,6 +191,74 @@ function CardContainer({ children }: { children: React.ReactNode }) {
   );
 }
 
+function BarrasMotivo({
+  itens,
+  total,
+}: {
+  itens: Array<{ nome: string; valor: number; cor: string }>;
+  total: number;
+}) {
+  if (!total) {
+    return (
+      <div
+        className="rounded-lg border border-dashed p-6 text-center text-sm"
+        style={{ borderColor: "#E2E8F0", color: COR_CINZA, fontFamily: FONT_CORPO }}
+      >
+        Nenhum acompanhamento encerrado ainda.
+      </div>
+    );
+  }
+  const max = Math.max(...itens.map((i) => i.valor), 1);
+  return (
+    <div className="flex flex-col gap-3">
+      {itens.map((i) => {
+        const pct = total > 0 ? Math.round((i.valor / total) * 100) : 0;
+        const larguraBar = (i.valor / max) * 100;
+        return (
+          <div key={i.nome}>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full"
+                  style={{ background: i.cor }}
+                />
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: "#1E293B", fontFamily: FONT_CORPO }}
+                >
+                  {i.nome}
+                </span>
+              </div>
+              <div
+                className="text-sm tabular-nums"
+                style={{ color: "#475569", fontFamily: FONT_CORPO }}
+              >
+                <span className="font-semibold" style={{ color: "#1E293B" }}>
+                  {i.valor}
+                </span>
+                <span className="mx-1.5" style={{ color: COR_CINZA }}>·</span>
+                <span>{pct}%</span>
+              </div>
+            </div>
+            <div
+              className="h-2 w-full rounded-full overflow-hidden"
+              style={{ background: "#F1F5F9" }}
+            >
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${Math.max(larguraBar, i.valor > 0 ? 6 : 0)}%`,
+                  background: i.cor,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Pizza({
   data,
   cores,
@@ -738,27 +806,32 @@ export default function DiagnosticosPage() {
             />
           </div>
 
-          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <SecaoTitulo>Encerramentos por motivo</SecaoTitulo>
-              <Pizza
-                data={[
-                  { name: "Parto", value: encerr.por_motivo.parto },
-                  { name: "Aborto", value: encerr.por_motivo.aborto },
-                  { name: "Insulinização → endócrino", value: encerr.por_motivo.insulinizacao },
-                  { name: "Não retornou", value: encerr.por_motivo.nao_retornou },
-                  { name: "Outro", value: encerr.por_motivo.outro },
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <div className="flex items-baseline justify-between mb-4">
+                <SecaoTitulo>Encerramentos por motivo</SecaoTitulo>
+                <span className="text-xs" style={{ color: COR_CINZA, fontFamily: FONT_CORPO }}>
+                  {encerr.encerradas} encerramento{encerr.encerradas === 1 ? "" : "s"} no total
+                </span>
+              </div>
+              <BarrasMotivo
+                total={encerr.encerradas}
+                itens={[
+                  { nome: "Parto", valor: encerr.por_motivo.parto, cor: COR_VERDE },
+                  { nome: "Aborto", valor: encerr.por_motivo.aborto, cor: COR_VERMELHO },
+                  { nome: "Insulinização → endócrino", valor: encerr.por_motivo.insulinizacao, cor: COR_LARANJA },
+                  { nome: "Não retornou", valor: encerr.por_motivo.nao_retornou, cor: "#94A3B8" },
+                  { nome: "Outro", valor: encerr.por_motivo.outro, cor: COR_LILAS },
                 ]}
-                cores={[COR_VERDE, COR_VERMELHO, COR_LARANJA, "#94A3B8", COR_LILAS]}
-                vazioMsg="Nenhum acompanhamento encerrado ainda."
               />
             </div>
             <div className="flex flex-col gap-4">
               <MetricaCard
                 label="IG média no encaminhamento ao endócrino"
                 valor={encerr.ig_ao_endocrino != null ? `${encerr.ig_ao_endocrino} sem` : "—"}
-                sublabel="cenário 7 — quanto antes, melhor"
+                sublabel="quanto antes, melhor"
                 cor={COR_LARANJA}
+                tooltip="Idade gestacional média em que as pacientes que precisaram de insulina foram encaminhadas ao endócrino. Referência: quanto mais cedo, melhor o prognóstico."
               />
             </div>
 
