@@ -334,24 +334,12 @@ export default function AppShellClinico() {
 
   return (
     <div className="flex h-screen flex-col print:block print:h-auto">
-      {/* Header */}
-      <header className="shrink-0 z-50 flex h-16 items-center border-b border-border bg-card px-4 print:hidden">
-        {/* Mobile hamburger */}
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="mr-3 md:hidden text-muted-foreground hover:text-foreground"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-
-        <div className="flex-1" />
-
-
-        {/* Plan badge with consumption bar */}
+      {/* Floating top-right controls (no header bar) */}
+      <div className="pointer-events-none fixed top-3 right-4 z-50 flex items-center gap-3 print:hidden">
         {profissionalData && ehConsultorio && (
           <button
             onClick={() => navigate('/planos')}
-            className="hidden lg:flex items-center gap-3 rounded-full pl-3 pr-4 py-1.5 text-xs font-medium mr-4 hover:opacity-90 transition"
+            className="pointer-events-auto hidden lg:flex items-center gap-3 rounded-full pl-3 pr-4 py-1.5 text-xs font-medium hover:opacity-90 transition shadow-sm"
             style={{ backgroundColor: '#F1F0FB', color: '#7E69AB' }}
             title={`${laudosUsados} de ${planoLimite} ${t('nav.reports').toLowerCase()} este mês`}
           >
@@ -372,10 +360,20 @@ export default function AppShellClinico() {
             </span>
           </button>
         )}
+        <div className="pointer-events-auto">
+          <LanguageSwitcher variant="compact" />
+        </div>
+      </div>
 
-        {/* Language switcher */}
-        <LanguageSwitcher variant="compact" />
-      </header>
+      {/* Mobile hamburger */}
+      <button
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="pointer-events-auto fixed top-3 left-3 z-50 md:hidden rounded-md bg-card/80 backdrop-blur p-2 text-muted-foreground hover:text-foreground shadow-sm print:hidden"
+        aria-label="Menu"
+      >
+        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
+
 
       {/* Banners globais */}
       <BannerStatusPlano />
