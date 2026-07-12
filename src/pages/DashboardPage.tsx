@@ -89,6 +89,7 @@ export default function DashboardPage() {
   // 38B-C (#7): ids de pacientes com diagnóstico Overt (cenario_clinico='8').
   const [overtIds, setOvertIds] = useState<Set<string>>(new Set());
   const [unidadeNome, setUnidadeNome] = useState<string | null>(null);
+  const [aniversario, setAniversario] = useState<string | null>(null);
 
   const DICAS_FALLBACK = useMemo(() => [
     'Diagnóstico precoce de DMG salva vidas — da mãe e do bebê.',
@@ -112,6 +113,15 @@ export default function DashboardPage() {
         setUnidadeNome(local ? `${data.nome} — ${local}` : data.nome);
       });
   }, [profissionalData?.unidade_id]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setAniversario(null);
+      return;
+    }
+    supabase.from('profissionais').select('data_aniversario').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => setAniversario((data as any)?.data_aniversario ?? null));
+  }, [user?.id]);
 
   useEffect(() => {
     (async () => {
@@ -264,12 +274,6 @@ export default function DashboardPage() {
   );
   const dicaHoje = dicasPool[diaDoAno % dicasPool.length];
 
-  const [aniversario, setAniversario] = useState<string | null>(null);
-  useEffect(() => {
-    if (!user?.id) return;
-    supabase.from('profissionais').select('data_aniversario').eq('user_id', user.id).maybeSingle()
-      .then(({ data }) => setAniversario((data as any)?.data_aniversario ?? null));
-  }, [user?.id]);
   const hojeAniversario = (() => {
     if (!aniversario) return false;
     const d = new Date(aniversario + 'T00:00:00');
