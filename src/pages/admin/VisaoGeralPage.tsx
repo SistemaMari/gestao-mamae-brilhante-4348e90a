@@ -243,14 +243,14 @@ export default function VisaoGeralPage() {
   return (
     <div className="space-y-10">
       {/* Saudação */}
-      <div>
+      <div className="pb-6 border-b" style={{ borderColor: "#E2E8F0" }}>
         <h1
-          className="text-3xl font-bold"
+          className="text-4xl md:text-5xl font-bold tracking-tight"
           style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
         >
           Olá, {nomeAdmin} ✨
         </h1>
-        <p className="mt-1 text-sm" style={{ color: "#64748B" }}>
+        <p className="mt-2 text-base" style={{ color: "#64748B" }}>
           Bem-vindo ao painel administrativo da MARI.
         </p>
       </div>
