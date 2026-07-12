@@ -6,6 +6,7 @@ import { CardResumo } from "@/components/admin/CardResumo";
 import { TabelaOrdenavel } from "@/components/admin/TabelaOrdenavel";
 import { AlertaOperacionalCard, ALERTAS_CONFIG } from "@/components/admin/AlertaOperacionalCard";
 import { BadgeEscopo } from "@/components/admin/BadgeEscopo";
+import { GrupoEscopo } from "@/components/admin/GrupoEscopo";
 import { GraficoLinhaEvolucao } from "@/components/admin/GraficoLinhaEvolucao";
 import { GraficoPizzaPlanos } from "@/components/admin/GraficoPizzaPlanos";
 import { GraficoPizzaTiposUnidade } from "@/components/admin/GraficoPizzaTiposUnidade";
@@ -395,11 +396,16 @@ export default function VisaoGeralPage() {
         </div>
       </div>
 
-      {/* Pizzas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* ========== GRUPO CONSULTÓRIO ========== */}
+      <GrupoEscopo
+        escopo="consultorio"
+        titulo="Análises de Consultório"
+        descricao="Indicadores de profissionais autônomos — planos comerciais, distribuição geográfica e ranking de cidades."
+      >
         <SecaoBloco
           titulo="Profissionais por plano"
-          tooltip="Distribuição dos profissionais ativos por plano contratado (Inicial, Intermediária, Profissional)."
+          tooltip="Distribuição dos profissionais de consultório ativos por plano contratado (Inicial, Intermediária, Profissional)."
+          acao={<BadgeEscopo escopo="consultorio" />}
           loading={planos.isLoading}
           skeletonHeight={280}
         >
@@ -407,9 +413,94 @@ export default function VisaoGeralPage() {
             <GraficoPizzaPlanos rows={planos.data ?? []} />
           </div>
         </SecaoBloco>
+
+        <SecaoBloco
+          titulo="Evolução mensal de planos"
+          descricao="Novos profissionais de consultório por plano (Inicial, Intermediária, Profissional) nos últimos 12 meses."
+          tooltip="Assinaturas mensais dos planos comerciais de consultório. Contas institucionais não entram nesta série — elas são contratadas por unidade."
+          acao={<BadgeEscopo escopo="consultorio" />}
+          loading={evolPlanos.isLoading}
+          skeletonHeight={280}
+        >
+          <div className="rounded-lg border bg-white p-4" style={{ borderColor: "#E2E8F0" }}>
+            <GraficoLinhaEvolucao dados={evolPlanosDados} series={seriesPlanos} />
+          </div>
+        </SecaoBloco>
+
+        <SecaoBloco
+          titulo="Distribuição por país"
+          tooltip="Profissionais de consultório (sem vínculo com unidade) por país, com o percentual sobre o total."
+          acao={<BadgeEscopo escopo="consultorio" />}
+          loading={distribuicao.isLoading}
+          skeletonHeight={180}
+        >
+          <TabelaOrdenavel
+            colunas={[
+              { chave: "pais", titulo: "País" },
+              { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
+              {
+                chave: "pct",
+                titulo: "% profissionais",
+                alinhamento: "right",
+                formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
+              },
+            ]}
+            dados={distPais}
+          />
+        </SecaoBloco>
+
+        <SecaoBloco
+          titulo="Distribuição por estado"
+          tooltip="Profissionais de consultório (sem vínculo com unidade) por estado, com o percentual sobre o total do país."
+          acao={<BadgeEscopo escopo="consultorio" />}
+          loading={distribuicao.isLoading}
+          skeletonHeight={220}
+        >
+          <TabelaOrdenavel
+            colunas={[
+              { chave: "estado", titulo: "Estado" },
+              { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
+              {
+                chave: "pct",
+                titulo: "% no país",
+                alinhamento: "right",
+                formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
+              },
+            ]}
+            dados={distEstado}
+          />
+        </SecaoBloco>
+
+        <SecaoBloco
+          titulo="Top 20 cidades"
+          tooltip="Ranking das 20 cidades com mais profissionais de consultório (sem vínculo com unidade)."
+          acao={<BadgeEscopo escopo="consultorio" />}
+          loading={topCidades.isLoading}
+          skeletonHeight={220}
+        >
+          <TabelaOrdenavel
+            colunas={[
+              { chave: "posicao", titulo: "#", alinhamento: "right" },
+              { chave: "cidade", titulo: "Cidade" },
+              { chave: "estado", titulo: "Estado" },
+              { chave: "pais", titulo: "País" },
+              { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
+            ]}
+            dados={topCidadesFiltradas}
+          />
+        </SecaoBloco>
+      </GrupoEscopo>
+
+      {/* ========== GRUPO INSTITUCIONAL ========== */}
+      <GrupoEscopo
+        escopo="institucional"
+        titulo="Análises Institucionais"
+        descricao="Indicadores de unidades contratantes — UBS, hospitais e clínicas — e dos profissionais vinculados a elas."
+      >
         <SecaoBloco
           titulo="Unidades por tipo"
           tooltip="Distribuição das unidades cadastradas por categoria (UBS, hospital, clínica, etc.), considerando os filtros de região selecionados."
+          acao={<BadgeEscopo escopo="institucional" />}
           loading={unidades.isLoading}
           skeletonHeight={280}
         >
@@ -417,130 +508,49 @@ export default function VisaoGeralPage() {
             <GraficoPizzaTiposUnidade rows={tiposUnidade} />
           </div>
         </SecaoBloco>
-      </div>
 
-      {/* Evolução de planos */}
-      <SecaoBloco
-        titulo="Evolução mensal de planos"
-        descricao="Novos profissionais de consultório por plano (Inicial, Intermediária, Profissional) nos últimos 12 meses."
-        tooltip="Assinaturas mensais dos planos comerciais de consultório. Contas institucionais não entram nesta série — elas são contratadas por unidade e aparecem em Diagnósticos/Painel institucional."
-        acao={<BadgeEscopo escopo="consultorio" />}
-        loading={evolPlanos.isLoading}
-        skeletonHeight={280}
-      >
-        <div className="rounded-lg border bg-white p-4" style={{ borderColor: "#E2E8F0" }}>
-          <GraficoLinhaEvolucao dados={evolPlanosDados} series={seriesPlanos} />
-        </div>
-      </SecaoBloco>
+        {mostrarTabelasInstitucionais && (
+          <>
+            <SecaoBloco
+              titulo="Profissionais por unidade"
+              tooltip="Profissionais vinculados a unidades (institucional), agrupados pela unidade de atendimento."
+              acao={<BadgeEscopo escopo="institucional" />}
+              loading={unidades.isLoading}
+              skeletonHeight={220}
+            >
+              <TabelaOrdenavel
+                colunas={[
+                  { chave: "nome", titulo: "Unidade" },
+                  { chave: "tipo", titulo: "Tipo" },
+                  { chave: "cidade", titulo: "Cidade" },
+                  { chave: "estado", titulo: "UF" },
+                  { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
+                ]}
+                dados={unidadesFiltradas}
+              />
+            </SecaoBloco>
 
-      {/* Distribuição por país */}
-      <SecaoBloco
-        titulo="Distribuição por país"
-        tooltip="Profissionais de consultório (sem vínculo com unidade) por país, com o percentual sobre o total. Profissionais institucionais aparecem nas tabelas por unidade."
-        acao={<BadgeEscopo escopo="consultorio" />}
-        loading={distribuicao.isLoading}
-        skeletonHeight={180}
-      >
-        <TabelaOrdenavel
-          colunas={[
-            { chave: "pais", titulo: "País" },
-            { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-            {
-              chave: "pct",
-              titulo: "% profissionais",
-              alinhamento: "right",
-              formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
-            },
-          ]}
-          dados={distPais}
-        />
-      </SecaoBloco>
+            <SecaoBloco
+              titulo="Pacientes por unidade"
+              descricao="Histórico acumulado de pacientes e laudos gerados por unidade."
+              acao={<BadgeEscopo escopo="institucional" />}
+              loading={unidades.isLoading}
+              skeletonHeight={220}
+            >
+              <TabelaOrdenavel
+                colunas={[
+                  { chave: "nome", titulo: "Unidade" },
+                  { chave: "cidade", titulo: "Cidade" },
+                  { chave: "total_pacientes", titulo: "Pacientes (histórico)", alinhamento: "right" },
+                  { chave: "total_laudos", titulo: "Laudos gerados", alinhamento: "right" },
+                ]}
+                dados={unidadesFiltradas}
+              />
+            </SecaoBloco>
+          </>
+        )}
+      </GrupoEscopo>
 
-      {/* Distribuição por estado */}
-      <SecaoBloco
-        titulo="Distribuição por estado"
-        tooltip="Profissionais de consultório (sem vínculo com unidade) por estado, com o percentual sobre o total do país."
-        acao={<BadgeEscopo escopo="consultorio" />}
-        loading={distribuicao.isLoading}
-        skeletonHeight={220}
-      >
-        <TabelaOrdenavel
-          colunas={[
-            { chave: "estado", titulo: "Estado" },
-            { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-            {
-              chave: "pct",
-              titulo: "% no país",
-              alinhamento: "right",
-              formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
-            },
-          ]}
-          dados={distEstado}
-        />
-      </SecaoBloco>
-
-      {/* Top cidades */}
-      <SecaoBloco
-        titulo="Top 20 cidades"
-        tooltip="Ranking das 20 cidades com mais profissionais de consultório (sem vínculo com unidade)."
-        acao={<BadgeEscopo escopo="consultorio" />}
-        loading={topCidades.isLoading}
-        skeletonHeight={220}
-      >
-        <TabelaOrdenavel
-          colunas={[
-            { chave: "posicao", titulo: "#", alinhamento: "right" },
-            { chave: "cidade", titulo: "Cidade" },
-            { chave: "estado", titulo: "Estado" },
-            { chave: "pais", titulo: "País" },
-            { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-          ]}
-          dados={topCidadesFiltradas}
-        />
-      </SecaoBloco>
-
-      {mostrarTabelasInstitucionais && (
-        <>
-          {/* Profissionais por unidade */}
-          <SecaoBloco
-            titulo="Profissionais por unidade"
-            tooltip="Profissionais vinculados a unidades (institucional), agrupados pela unidade de atendimento."
-            acao={<BadgeEscopo escopo="institucional" />}
-            loading={unidades.isLoading}
-            skeletonHeight={220}
-          >
-            <TabelaOrdenavel
-              colunas={[
-                { chave: "nome", titulo: "Unidade" },
-                { chave: "tipo", titulo: "Tipo" },
-                { chave: "cidade", titulo: "Cidade" },
-                { chave: "estado", titulo: "UF" },
-                { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-              ]}
-              dados={unidadesFiltradas}
-            />
-          </SecaoBloco>
-
-          {/* Pacientes por unidade */}
-          <SecaoBloco
-            titulo="Pacientes por unidade"
-            descricao="Histórico acumulado de pacientes e laudos gerados por unidade."
-            acao={<BadgeEscopo escopo="institucional" />}
-            loading={unidades.isLoading}
-            skeletonHeight={220}
-          >
-            <TabelaOrdenavel
-              colunas={[
-                { chave: "nome", titulo: "Unidade" },
-                { chave: "cidade", titulo: "Cidade" },
-                { chave: "total_pacientes", titulo: "Pacientes (histórico)", alinhamento: "right" },
-                { chave: "total_laudos", titulo: "Laudos gerados", alinhamento: "right" },
-              ]}
-              dados={unidadesFiltradas}
-            />
-          </SecaoBloco>
-        </>
-      )}
 
       {/* Cards finais */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
