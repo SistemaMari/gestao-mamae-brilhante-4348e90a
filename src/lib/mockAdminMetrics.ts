@@ -13,6 +13,7 @@ import type {
   PlanoRow,
   EvolucaoPlanosRow,
   EvolucaoProfissionaisRow,
+  EvolucaoProfissionaisTipoRow,
   AlertaRow,
 } from "./adminMetrics";
 
