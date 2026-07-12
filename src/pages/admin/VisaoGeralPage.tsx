@@ -251,20 +251,29 @@ export default function VisaoGeralPage() {
 
       {/* Cards rápidos */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <CardResumo label="Total de profissionais" valor={resumo.profissionais} loading={loadingResumo} />
-        <CardResumo label="Total de unidades" valor={resumo.unidades} loading={loadingResumo} />
-        {/* Pacientes e laudos vêm da MV agregada (resumo_global) — o admin não
-            tem RLS pra contar essas tabelas no cliente (privacidade do dado
-            clínico). Na vitrine segue o mock. */}
+        <CardResumo
+          label="Total de profissionais"
+          valor={resumo.profissionais}
+          loading={loadingResumo}
+          tooltip="Todos os profissionais cadastrados na plataforma — consultório e institucional, ativos e inativos."
+        />
+        <CardResumo
+          label="Total de unidades"
+          valor={resumo.unidades}
+          loading={loadingResumo}
+          tooltip="Unidades de saúde institucionais cadastradas (UBS, hospitais, clínicas, etc.)."
+        />
         <CardResumo
           label="Total de pacientes"
           valor={isPreview ? resumo.pacientes : (r0?.total_pacientes ?? null)}
           loading={isPreview ? loadingResumo : resumoGlobal.isLoading}
+          tooltip="Total histórico de pacientes cadastradas no sistema. Vem da view agregada — o admin não acessa o dado clínico individual."
         />
         <CardResumo
           label="Total de laudos gerados"
           valor={isPreview ? resumo.laudos : (r0?.total_laudos ?? null)}
           loading={isPreview ? loadingResumo : resumoGlobal.isLoading}
+          tooltip="Total histórico de laudos emitidos pela MARI. Cada laudo corresponde a uma consulta finalizada."
         />
       </div>
 
