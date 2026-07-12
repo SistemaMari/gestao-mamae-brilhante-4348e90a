@@ -319,16 +319,29 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
               </div>
             )}
           </div>
-          <label className="cursor-pointer">
-            <input
-              type="file" accept="image/png,image/jpeg" className="hidden"
-              onChange={(e) => e.target.files?.[0] && handleAvatar(e.target.files[0])}
-            />
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10">
-              <Camera className="h-4 w-4" /> Trocar foto
-            </span>
-            <p className="mt-2 text-xs text-muted-foreground">PNG ou JPG, até 2 MB.</p>
-          </label>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+              <label className="cursor-pointer">
+                <input
+                  type="file" accept="image/png,image/jpeg" className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleAvatar(e.target.files[0])}
+                />
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10">
+                  <Camera className="h-4 w-4" /> Trocar foto
+                </span>
+              </label>
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmRemoverFoto(true)}
+                  className="inline-flex items-center gap-2 rounded-full border border-destructive/40 bg-destructive/5 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" /> Remover foto
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">PNG ou JPG, até 2 MB.</p>
+          </div>
         </div>
 
         <div className="grid gap-4">
