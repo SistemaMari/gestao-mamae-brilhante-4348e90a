@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   UserCog, Loader2, Camera, Lock, MessageSquareHeart, Heart, Star,
-  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp,
+  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp, Trash2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const ESPECIALIDADES = ['Médico(a)', 'Enfermeiro(a) Obstétrica', 'Outros'];
 const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
@@ -115,8 +119,10 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
   const [conselhoUf, setConselhoUf] = useState(initConselho.uf || initial.estado || '');
   const [savingProf, setSavingProf] = useState(false);
 
+  const [senhaAtual, setSenhaAtual] = useState('');
   const [senha1, setSenha1] = useState('');
   const [senha2, setSenha2] = useState('');
+  const [showSenhaAtual, setShowSenhaAtual] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
   const [savingSenha, setSavingSenha] = useState(false);
 
@@ -133,6 +139,8 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
   const [confirmSenha, setConfirmSenha] = useState('');
   const [excluindo, setExcluindo] = useState(false);
   const [emailModal, setEmailModal] = useState(false);
+  const [confirmRemoverFoto, setConfirmRemoverFoto] = useState(false);
+  const [removendoFoto, setRemovendoFoto] = useState(false);
 
   useEffect(() => {
     let cancel = false;
