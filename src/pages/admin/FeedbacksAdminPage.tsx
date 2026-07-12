@@ -249,21 +249,22 @@ export default function FeedbacksAdminPage() {
                 {!f.email && !f.telefone && <span className="italic">Sem contato cadastrado</span>}
                 <div className="ml-auto flex flex-wrap gap-2">
                   {f.email && (
-                    <a
-                      href={`mailto:${f.email}?subject=${encodeURIComponent('Re: seu feedback no MARI')}&body=${encodeURIComponent(`Olá ${f.autor || ''},\n\nSobre sua mensagem:\n"${f.mensagem}"\n\n`)}`}
+                    <button
+                      type="button"
+                      onClick={() => responderPorEmail(f)}
                       className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/5 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
                     >
                       <Mail className="h-3.5 w-3.5" /> Responder por e-mail
-                    </a>
+                    </button>
                   )}
                   {f.telefone && (
-                    <a
-                      href={`https://wa.me/${f.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${f.autor || ''}, aqui é do suporte MARI. Recebemos seu feedback: "${f.mensagem}"`)}`}
-                      target="_blank" rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => responderPorWhatsapp(f)}
                       className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10"
                     >
                       <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-                    </a>
+                    </button>
                   )}
                 </div>
               </div>
