@@ -90,6 +90,19 @@ export default function DashboardPage() {
   const [overtIds, setOvertIds] = useState<Set<string>>(new Set());
   const [unidadeNome, setUnidadeNome] = useState<string | null>(null);
 
+  const DICAS_FALLBACK = useMemo(() => [
+    'Diagnóstico precoce de DMG salva vidas — da mãe e do bebê.',
+    'Não permita DMG tardio: rastreie no tempo certo.',
+    'DMG confirmado NÃO se repete exame — a conduta é seguir o protocolo.',
+    'Rastreio universal entre 24 e 28 semanas. Sem exceção.',
+    'Glicemia de jejum ≥ 92 mg/dL na 1ª consulta já é DMG.',
+    'DMG tratado é desfecho materno-fetal preservado.',
+    'TOTG 75g é o padrão-ouro entre 24-28 semanas; jejum, 1h e 2h.',
+    'Insulinização em DMG segue com o obstetra — o endócrino apoia, não assume o pré-natal.',
+    'Reclassificação pós-parto (6-12 semanas) é obrigatória em toda paciente com DMG.',
+  ], []);
+  const [dicasPool, setDicasPool] = useState<string[]>(DICAS_FALLBACK);
+
   useEffect(() => {
     if (!profissionalData?.unidade_id) { setUnidadeNome(null); return; }
     supabase.from('unidades').select('nome, cidade, estado').eq('id', profissionalData.unidade_id).maybeSingle()
@@ -99,6 +112,24 @@ export default function DashboardPage() {
         setUnidadeNome(local ? `${data.nome} — ${local}` : data.nome);
       });
   }, [profissionalData?.unidade_id]);
+
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await supabase
+        .from('dicas_dashboard')
+        .select('texto')
+        .eq('ativa', true)
+        .order('slot', { ascending: true });
+      if (!error && data && data.length > 0) {
+        const textos = (data as { texto: string }[])
+          .map((d) => (d.texto || '').trim())
+          .filter((t) => t.length > 0);
+        if (textos.length > 0) setDicasPool(textos);
+      }
+    })();
+  }, []);
+
+
 
 
   const fetchPacientes = useCallback(async () => {
@@ -220,37 +251,11 @@ export default function DashboardPage() {
   const hora = new Date().getHours();
   const saudacaoHorario = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
   const dataExtenso = format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
-  const DICAS_FALLBACK = [
-    'Diagnóstico precoce de DMG salva vidas — da mãe e do bebê.',
-    'Não permita DMG tardio: rastreie no tempo certo.',
-    'DMG confirmado NÃO se repete exame — a conduta é seguir o protocolo.',
-    'Rastreio universal entre 24 e 28 semanas. Sem exceção.',
-    'Glicemia de jejum ≥ 92 mg/dL na 1ª consulta já é DMG.',
-    'DMG tratado é desfecho materno-fetal preservado.',
-    'TOTG 75g é o padrão-ouro entre 24-28 semanas; jejum, 1h e 2h.',
-    'Insulinização em DMG segue com o obstetra — o endócrino apoia, não assume o pré-natal.',
-    'Reclassificação pós-parto (6-12 semanas) é obrigatória em toda paciente com DMG.',
-  ];
-  const [dicasPool, setDicasPool] = useState<string[]>(DICAS_FALLBACK);
-  useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase
-        .from('dicas_dashboard')
-        .select('texto')
-        .eq('ativa', true)
-        .order('slot', { ascending: true });
-      if (!error && data && data.length > 0) {
-        const textos = (data as { texto: string }[])
-          .map((d) => (d.texto || '').trim())
-          .filter((t) => t.length > 0);
-        if (textos.length > 0) setDicasPool(textos);
-      }
-    })();
-  }, []);
   const diaDoAno = Math.floor(
     (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86_400_000,
   );
   const dicaHoje = dicasPool[diaDoAno % dicasPool.length];
+
 
   return (
     <div>
