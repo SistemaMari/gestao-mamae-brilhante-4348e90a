@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   AlertCircle,
@@ -63,10 +64,10 @@ export const ALERTAS_CONFIG: AlertaConfig[] = [
   },
 ];
 
-const ESCOPO_STYLES: Record<EscopoAlerta, { label: string; bg: string; fg: string; border: string }> = {
-  consultorio: { label: "Consultório", bg: "#EDE9FE", fg: "#6D28D9", border: "#DDD6FE" },
-  institucional: { label: "Institucional", bg: "#CCFBF1", fg: "#0F766E", border: "#99F6E4" },
-  ambos: { label: "Consultório + Institucional", bg: "#F1F5F9", fg: "#334155", border: "#E2E8F0" },
+const ESCOPO_STYLES: Record<EscopoAlerta, { bg: string; fg: string; border: string }> = {
+  consultorio: { bg: "#EDE9FE", fg: "#6D28D9", border: "#DDD6FE" },
+  institucional: { bg: "#CCFBF1", fg: "#0F766E", border: "#99F6E4" },
+  ambos: { bg: "#F1F5F9", fg: "#334155", border: "#E2E8F0" },
 };
 
 interface AlertaOperacionalCardProps {
@@ -75,6 +76,7 @@ interface AlertaOperacionalCardProps {
 }
 
 export function AlertaOperacionalCard({ config, total }: AlertaOperacionalCardProps) {
+  const { t, i18n } = useTranslation();
   const Icone = config.icone ?? AlertCircle;
   return (
     <div
@@ -95,11 +97,12 @@ export function AlertaOperacionalCard({ config, total }: AlertaOperacionalCardPr
             lineHeight: 1,
           }}
         >
-          {total.toLocaleString("pt-BR")}
+          {total.toLocaleString(i18n.language)}
         </span>
       </div>
       {(() => {
         const s = ESCOPO_STYLES[config.escopo];
+        const label = t(`admin.scope.${config.escopo}`);
         return (
           <span
             className="inline-flex items-center self-start rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
@@ -110,9 +113,9 @@ export function AlertaOperacionalCard({ config, total }: AlertaOperacionalCardPr
               fontFamily: "Plus Jakarta Sans, sans-serif",
               letterSpacing: "0.04em",
             }}
-            title={`Aplica-se a: ${s.label}`}
+            title={t("admin.alerts.appliesTo", { escopo: label })}
           >
-            {s.label}
+            {label}
           </span>
         );
       })()}
@@ -125,7 +128,7 @@ export function AlertaOperacionalCard({ config, total }: AlertaOperacionalCardPr
           lineHeight: 1.3,
         }}
       >
-        {config.titulo}
+        {t(`admin.alerts.${config.tipo}.titulo`, { defaultValue: config.titulo })}
       </div>
       <div
         style={{
@@ -134,7 +137,7 @@ export function AlertaOperacionalCard({ config, total }: AlertaOperacionalCardPr
           color: "#64748B",
         }}
       >
-        {config.descricao}
+        {t(`admin.alerts.${config.tipo}.descricao`, { defaultValue: config.descricao })}
       </div>
       {/* TODO Prompt 25 — destino real de "Ver detalhes" */}
       <Link
@@ -142,7 +145,7 @@ export function AlertaOperacionalCard({ config, total }: AlertaOperacionalCardPr
         className="mt-auto inline-block text-[12px] font-semibold"
         style={{ color: "#7E69AB", fontFamily: "Plus Jakarta Sans, sans-serif" }}
       >
-        Ver detalhes →
+        {t("admin.alerts.viewDetails")}
       </Link>
     </div>
   );

@@ -267,7 +267,110 @@
     "filterByPlan": "Filter by plan",
     "filterByProfile": "Filter by profile",
     "exportCsv": "Export CSV",
-    "noProfessionals": "No professionals found"
+    "noProfessionals": "No professionals found",
+    "scope": {
+      "consultorio": "Private practice",
+      "institucional": "Institutional",
+      "ambos": "Private practice + Institutional",
+      "badgeTitle": "Scope: {{escopo}}"
+    },
+    "alerts": {
+      "appliesTo": "Applies to: {{escopo}}",
+      "viewDetails": "View details →",
+      "profissional_inativo_30d": {
+        "titulo": "Professional plan unused for 30+ days",
+        "descricao": "Professional-plan practitioners inactive in the last month"
+      },
+      "intermediaria_inativo_30d": {
+        "titulo": "Intermediate plan unused for 30+ days",
+        "descricao": "Intermediate-plan practitioners inactive in the last month"
+      },
+      "inicial_inativo_30d": {
+        "titulo": "Initial plan unused for 30+ days",
+        "descricao": "Initial-plan practitioners inactive in the last month"
+      },
+      "unidade_dormente": {
+        "titulo": "Units with no active practitioners this month",
+        "descricao": "Units with no practitioner activity in the last 30 days"
+      },
+      "onboarding_travado": {
+        "titulo": "Sign-ups 7+ days old with incomplete profile",
+        "descricao": "Practitioners registered over 7 days ago with an incomplete profile"
+      }
+    },
+    "overview": {
+      "greeting": "Hi, {{nome}} ✨",
+      "welcome": "Welcome to MARI's admin panel.",
+      "adminFallback": "Administrator",
+      "title": "Overview",
+      "subtitle": "Near real-time system snapshot.",
+      "cardProfessionals": "Total practitioners",
+      "cardProfessionalsTip": "All practitioners registered on the platform — private practice and institutional, active and inactive.",
+      "cardUnits": "Total units",
+      "cardUnitsTip": "Registered institutional health units (health centers, hospitals, clinics, etc.).",
+      "cardPatients": "Total patients",
+      "cardPatientsTip": "All-time total of patients registered in the system. Comes from the aggregated view — admins don't access individual clinical data.",
+      "cardReports": "Total reports generated",
+      "cardReportsTip": "All-time total of reports issued by MARI. Each report matches a completed consultation.",
+      "alertsTitle": "Operational Alerts",
+      "alertsDesc": "Signals that deserve the operation's attention.",
+      "alertsTip": "Count of operational signals (overdue payments, exceeded quotas, inactive accounts, etc.) over the full base — ignores the filters below.",
+      "analysisTitle": "Detailed analytics",
+      "analysisDesc": "Filter by period, region and account type. The totals and alerts above always consider the full base.",
+      "evolTitle": "Monthly practitioner growth",
+      "evolDesc": "Separate comparison between private-practice practitioners (individual subscribers) and institutional ones (linked to a unit).",
+      "evolConsultorioTitle": "Private-practice practitioners",
+      "evolConsultorioDesc": "Individual subscribers of the Initial, Intermediate and Professional plans.",
+      "evolConsultorioTip": "Only practitioners WITHOUT an institutional unit link. New = registered in the month. Active = with at least one activity (patient, consultation, report or birth) in the month.",
+      "evolInstitucionalTitle": "Institutional practitioners",
+      "evolInstitucionalDesc": "Practitioners linked to units (health centers, hospitals, contracting clinics).",
+      "evolInstitucionalTip": "Only practitioners WITH a link to an institutional unit. New = registered in the month. Active = with at least one activity in the month.",
+      "seriesNew": "New practitioners",
+      "seriesActive": "Active in the month",
+      "byPlanTitle": "Practitioners by plan",
+      "byPlanTip": "Distribution of active private-practice practitioners by contracted plan (Initial, Intermediate, Professional).",
+      "unitsByTypeTitle": "Units by type",
+      "unitsByTypeTip": "Distribution of registered units by category (health center, hospital, clinic, etc.), considering the selected region filters.",
+      "planEvolTitle": "Monthly plan growth",
+      "planEvolDesc": "New private-practice practitioners by plan (Initial, Intermediate, Professional) over the last 12 months.",
+      "planEvolTip": "Monthly subscriptions of the commercial private-practice plans. Institutional accounts are not in this series — they're contracted per unit.",
+      "byCountryTitle": "Distribution by country",
+      "byCountryTip": "Private-practice practitioners (no unit link) by country, with the percentage of the total. Institutional practitioners appear in the by-unit tables.",
+      "byStateTitle": "Distribution by state",
+      "byStateTip": "Private-practice practitioners (no unit link) by state, with the percentage of the country total.",
+      "topCitiesTitle": "Top 20 cities",
+      "topCitiesTip": "Ranking of the 20 cities with the most private-practice practitioners (no unit link).",
+      "profByUnitTitle": "Practitioners by unit",
+      "profByUnitTip": "Practitioners linked to units (institutional), grouped by the unit where they work.",
+      "patByUnitTitle": "Patients by unit",
+      "patByUnitDesc": "Cumulative history of patients and reports generated per unit.",
+      "colCountry": "Country",
+      "colProfessionals": "Practitioners",
+      "colPctProfessionals": "% practitioners",
+      "colState": "State",
+      "colPctInCountry": "% in country",
+      "colCity": "City",
+      "colUnit": "Unit",
+      "colType": "Type",
+      "colUf": "State",
+      "colPatientsHist": "Patients (all-time)",
+      "colReportsGenerated": "Reports generated",
+      "notInformed": "Not informed",
+      "managersTotal": "Total general managers",
+      "consolidationsActive": "Active consolidations",
+      "consultorioGroupTitle": "Private-practice analytics",
+      "consultorioGroupDesc": "Metrics for independent practitioners — commercial plans, geographic distribution and city ranking.",
+      "institutionalGroupTitle": "Institutional analytics",
+      "institutionalGroupDesc": "Metrics for contracting units — health centers, hospitals and clinics — and their linked practitioners.",
+      "colProfShort": "Pract.",
+      "colPctCountryShort": "% country",
+      "managersUnit": "Total unit managers"
+    },
+    "groupScope": {
+      "consultorioSub": "Independent practitioners, individual subscribers.",
+      "institucionalSub": "Practitioners linked to health centers, hospitals and clinics.",
+      "badge": "Scope · {{escopo}}"
+    }
   },
   "banners": {
     "planSuspended": "Plan suspended",

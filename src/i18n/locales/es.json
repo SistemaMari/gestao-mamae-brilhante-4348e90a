@@ -267,7 +267,110 @@
     "filterByPlan": "Filtrar por plan",
     "filterByProfile": "Filtrar por perfil",
     "exportCsv": "Exportar CSV",
-    "noProfessionals": "No se encontraron profesionales"
+    "noProfessionals": "No se encontraron profesionales",
+    "scope": {
+      "consultorio": "Consultorio",
+      "institucional": "Institucional",
+      "ambos": "Consultorio + Institucional",
+      "badgeTitle": "Ámbito: {{escopo}}"
+    },
+    "alerts": {
+      "appliesTo": "Se aplica a: {{escopo}}",
+      "viewDetails": "Ver detalles →",
+      "profissional_inativo_30d": {
+        "titulo": "Plan Profesional sin uso hace 30+ días",
+        "descricao": "Profesionales del plan Profesional inactivos en el último mes"
+      },
+      "intermediaria_inativo_30d": {
+        "titulo": "Plan Intermedio sin uso hace 30+ días",
+        "descricao": "Profesionales del plan Intermedio inactivos en el último mes"
+      },
+      "inicial_inativo_30d": {
+        "titulo": "Plan Inicial sin uso hace 30+ días",
+        "descricao": "Profesionales del plan Inicial inactivos en el último mes"
+      },
+      "unidade_dormente": {
+        "titulo": "Unidades sin profesionales activos en el mes",
+        "descricao": "Unidades sin ningún profesional con actividad en los últimos 30 días"
+      },
+      "onboarding_travado": {
+        "titulo": "Registros de hace 7+ días sin completar perfil",
+        "descricao": "Profesionales registrados hace más de 7 días con perfil incompleto"
+      }
+    },
+    "overview": {
+      "greeting": "Hola, {{nome}} ✨",
+      "welcome": "Bienvenido al panel administrativo de MARI.",
+      "adminFallback": "Administrador",
+      "title": "Visión general",
+      "subtitle": "Panorama del sistema casi en tiempo real.",
+      "cardProfessionals": "Total de profesionales",
+      "cardProfessionalsTip": "Todos los profesionales registrados en la plataforma — consultorio e institucional, activos e inactivos.",
+      "cardUnits": "Total de unidades",
+      "cardUnitsTip": "Unidades de salud institucionales registradas (centros de salud, hospitales, clínicas, etc.).",
+      "cardPatients": "Total de pacientes",
+      "cardPatientsTip": "Total histórico de pacientes registradas en el sistema. Proviene de la vista agregada — el administrador no accede al dato clínico individual.",
+      "cardReports": "Total de informes generados",
+      "cardReportsTip": "Total histórico de informes emitidos por MARI. Cada informe corresponde a una consulta finalizada.",
+      "alertsTitle": "Alertas operativas",
+      "alertsDesc": "Señales que merecen atención de la operación.",
+      "alertsTip": "Recuento de señales operativas (morosidad, cuotas superadas, cuentas inactivas, etc.) sobre la base completa — ignora los filtros de abajo.",
+      "analysisTitle": "Análisis detallados",
+      "analysisDesc": "Filtra por período, región y tipo de cuenta. Los totales y alertas de arriba siempre consideran la base completa.",
+      "evolTitle": "Evolución mensual de profesionales",
+      "evolDesc": "Comparativo separado entre profesionales de consultorio (suscriptores individuales) e institucionales (vinculados a una unidad).",
+      "evolConsultorioTitle": "Profesionales de consultorio",
+      "evolConsultorioDesc": "Suscriptores individuales de los planes Inicial, Intermedio y Profesional.",
+      "evolConsultorioTip": "Solo profesionales SIN vínculo con unidad institucional. Nuevos = registrados en el mes. Activos = con al menos una actividad (paciente, consulta, informe o parto) en el mes.",
+      "evolInstitucionalTitle": "Profesionales institucionales",
+      "evolInstitucionalDesc": "Profesionales vinculados a unidades (centros de salud, hospitales, clínicas contratantes).",
+      "evolInstitucionalTip": "Solo profesionales CON vínculo a una unidad institucional. Nuevos = registrados en el mes. Activos = con al menos una actividad en el mes.",
+      "seriesNew": "Nuevos profesionales",
+      "seriesActive": "Activos en el mes",
+      "byPlanTitle": "Profesionales por plan",
+      "byPlanTip": "Distribución de los profesionales de consultorio activos por plan contratado (Inicial, Intermedio, Profesional).",
+      "unitsByTypeTitle": "Unidades por tipo",
+      "unitsByTypeTip": "Distribución de las unidades registradas por categoría (centro de salud, hospital, clínica, etc.), considerando los filtros de región seleccionados.",
+      "planEvolTitle": "Evolución mensual de planes",
+      "planEvolDesc": "Nuevos profesionales de consultorio por plan (Inicial, Intermedio, Profesional) en los últimos 12 meses.",
+      "planEvolTip": "Suscripciones mensuales de los planes comerciales de consultorio. Las cuentas institucionales no entran en esta serie — se contratan por unidad.",
+      "byCountryTitle": "Distribución por país",
+      "byCountryTip": "Profesionales de consultorio (sin vínculo con unidad) por país, con el porcentaje sobre el total. Los profesionales institucionales aparecen en las tablas por unidad.",
+      "byStateTitle": "Distribución por estado",
+      "byStateTip": "Profesionales de consultorio (sin vínculo con unidad) por estado, con el porcentaje sobre el total del país.",
+      "topCitiesTitle": "Top 20 ciudades",
+      "topCitiesTip": "Ranking de las 20 ciudades con más profesionales de consultorio (sin vínculo con unidad).",
+      "profByUnitTitle": "Profesionales por unidad",
+      "profByUnitTip": "Profesionales vinculados a unidades (institucional), agrupados por la unidad de atención.",
+      "patByUnitTitle": "Pacientes por unidad",
+      "patByUnitDesc": "Historial acumulado de pacientes e informes generados por unidad.",
+      "colCountry": "País",
+      "colProfessionals": "Profesionales",
+      "colPctProfessionals": "% profesionales",
+      "colState": "Estado",
+      "colPctInCountry": "% en el país",
+      "colCity": "Ciudad",
+      "colUnit": "Unidad",
+      "colType": "Tipo",
+      "colUf": "Estado",
+      "colPatientsHist": "Pacientes (histórico)",
+      "colReportsGenerated": "Informes generados",
+      "notInformed": "No informado",
+      "managersTotal": "Total de gestores generales",
+      "consolidationsActive": "Consolidaciones activas",
+      "consultorioGroupTitle": "Análisis de consultorio",
+      "consultorioGroupDesc": "Indicadores de profesionales autónomos — planes comerciales, distribución geográfica y ranking de ciudades.",
+      "institutionalGroupTitle": "Análisis institucionales",
+      "institutionalGroupDesc": "Indicadores de unidades contratantes — centros de salud, hospitales y clínicas — y de los profesionales vinculados a ellas.",
+      "colProfShort": "Prof.",
+      "colPctCountryShort": "% país",
+      "managersUnit": "Total de gestores de unidad"
+    },
+    "groupScope": {
+      "consultorioSub": "Profesionales autónomos, suscriptores individuales.",
+      "institucionalSub": "Profesionales vinculados a centros de salud, hospitales y clínicas.",
+      "badge": "Ámbito · {{escopo}}"
+    }
   },
   "banners": {
     "planSuspended": "Plan suspendido",
