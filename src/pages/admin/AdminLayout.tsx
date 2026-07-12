@@ -41,7 +41,7 @@ export default function AdminLayout() {
     setVerificando(true);
     verificar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, pathname, navigate]);
+  }, [user?.id]);
 
   // Atualiza o nome quando a página de Configurações dispara o evento
   useEffect(() => {
