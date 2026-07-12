@@ -583,6 +583,29 @@ export default function VisaoGeralPage() {
         </div>
         <div
           className="rounded-lg bg-white p-5 flex items-center gap-4"
+          style={{ borderLeft: "4px solid #9b87f5", boxShadow: "0 1px 2px rgba(15,23,42,.04)" }}
+        >
+          <Users size={28} style={{ color: "#9b87f5" }} />
+          <div>
+            <div style={{ fontFamily: "Plus Jakarta Sans, sans-serif", color: "#64748B", fontSize: 13 }}>
+              Total de gestores de unidade
+            </div>
+            <div
+              style={{
+                fontFamily: "Sora, sans-serif",
+                color: "#1E293B",
+                fontSize: 28,
+                fontWeight: 700,
+              }}
+            >
+              {resumoGlobal.isLoading
+                ? "—"
+                : (r0?.total_gestores_unidade ?? 0).toLocaleString("pt-BR")}
+            </div>
+          </div>
+        </div>
+        <div
+          className="rounded-lg bg-white p-5 flex items-center gap-4"
           style={{ borderLeft: "4px solid #5EEAD4", boxShadow: "0 1px 2px rgba(15,23,42,.04)" }}
         >
           <Building2 size={28} style={{ color: "#0F766E" }} />
