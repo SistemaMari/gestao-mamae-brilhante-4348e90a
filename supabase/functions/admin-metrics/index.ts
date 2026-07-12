@@ -23,6 +23,7 @@ const VIEW_MAP: Record<string, { table: string; cacheSeconds: number }> = {
   profissionais_por_plano:        { table: "mv_admin_profissionais_por_plano",        cacheSeconds: 300 },
   evolucao_mensal_planos:         { table: "mv_admin_evolucao_mensal_planos",         cacheSeconds: 300 },
   evolucao_mensal_profissionais:  { table: "mv_admin_evolucao_mensal_profissionais",  cacheSeconds: 300 },
+  evolucao_mensal_profissionais_tipo: { table: "mv_admin_evolucao_mensal_profissionais_tipo", cacheSeconds: 300 },
   alertas_operacionais:           { table: "mv_admin_alertas_operacionais",           cacheSeconds: 60  },
 };
 
