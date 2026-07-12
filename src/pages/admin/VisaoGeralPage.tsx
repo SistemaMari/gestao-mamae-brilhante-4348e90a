@@ -323,13 +323,6 @@ export default function VisaoGeralPage() {
       )}
 
       {/* Evolução mensal de profissionais */}
-      <SecaoBloco
-        titulo="Evolução mensal de profissionais"
-        descricao="Novos cadastros e profissionais ativos nos últimos 12 meses."
-        loading={evolProf.isLoading}
-        skeletonHeight={280}
-      >
-        <div className="rounded-lg border bg-white p-4" style={{ borderColor: "#E2E8F0" }}>
       {/* Evolução mensal de profissionais */}
       <SecaoBloco
         titulo="Evolução mensal de profissionais"
