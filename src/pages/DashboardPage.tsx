@@ -74,7 +74,7 @@ const PAGE_SIZE = 20;
 
 export default function DashboardPage() {
   const { profissionalData, loading: profLoading } = useProfissionalData();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const ehInstitucional = profile === 'institucional';
   const navigate = useNavigate();
   const location = useLocation();
