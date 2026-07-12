@@ -94,9 +94,8 @@ const navRodapeConsultorio: NavItem[] = [
   { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
 ];
 
-const navRodapeInstitucional: NavItem[] = [
-  { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
-];
+const navRodapeInstitucional: NavItem[] = [];
+
 
 const navRodapeGestor: NavItem[] = [
   { labelKey: 'nav.profile', icon: UserCog, path: '/perfil' },
