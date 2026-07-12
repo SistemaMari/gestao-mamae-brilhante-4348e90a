@@ -785,7 +785,7 @@ export default function DiagnosticosPage() {
           cor={COR_VERDE}
         />
         <MetricaCard
-          label="Cenário 7 — necessidade de associar endócrino"
+          label="Necessidade de associar endócrino"
           valor={tratamento.cenario7}
           sublabel={
             pct(tratamento.cenario7) +
