@@ -264,20 +264,43 @@ export default function DashboardPage() {
   );
   const dicaHoje = dicasPool[diaDoAno % dicasPool.length];
 
+  const [aniversario, setAniversario] = useState<string | null>(null);
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from('profissionais').select('data_aniversario').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => setAniversario((data as any)?.data_aniversario ?? null));
+  }, [user?.id]);
+  const hojeAniversario = (() => {
+    if (!aniversario) return false;
+    const d = new Date(aniversario + 'T00:00:00');
+    const h = new Date();
+    return d.getUTCMonth() === h.getMonth() && d.getUTCDate() === h.getDate();
+  })();
+
 
   return (
     <div>
       {(ehInstitucional || profile === 'consultorio') && (
         <section className="mb-8">
-          <div className="pb-6 border-b" style={{ borderColor: '#E2E8F0' }}>
+          <div
+            className="pb-6 border-b"
+            style={{
+              borderColor: hojeAniversario ? '#E8E0FF' : '#E2E8F0',
+              background: hojeAniversario ? 'linear-gradient(90deg, #F5F0FF, #FFFFFF)' : undefined,
+              borderRadius: hojeAniversario ? 16 : undefined,
+              padding: hojeAniversario ? '20px 24px' : undefined,
+            }}
+          >
             <h1
               className="text-4xl md:text-5xl font-bold tracking-tight"
-              style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
+              style={{ color: hojeAniversario ? '#7E69AB' : '#1E293B', fontFamily: 'Sora, sans-serif' }}
             >
-              Olá, {nomeExibicao} ✨
+              {hojeAniversario ? `🎉 Feliz aniversário, ${nomeExibicao}!` : `Olá, ${nomeExibicao} ✨`}
             </h1>
-            <p className="mt-2 text-base" style={{ color: '#64748B' }}>
-              {saudacaoHorario}, tenha um atendimento tranquilo.
+            <p className="mt-2 text-base" style={{ color: hojeAniversario ? '#7E69AB' : '#64748B' }}>
+              {hojeAniversario
+                ? 'Que este novo ciclo seja repleto de conquistas e realizações. Toda a equipe MARI deseja um dia muito especial! 💜'
+                : `${saudacaoHorario}, tenha um atendimento tranquilo.`}
             </p>
           </div>
 
