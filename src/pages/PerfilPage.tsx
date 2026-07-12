@@ -263,8 +263,8 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
         .from('avatares-profissionais').upload(path, fbAnexo, { upsert: false });
       if (!upErr) anexo_url = path;
     }
-    const { error } = await supabase.from('feedbacks_usuario').insert({
-      user_id: userId, tipo: fbTipo, mensagem: msg, anexo_url,
+    const { error } = await supabase.functions.invoke('enviar-feedback', {
+      body: { tipo: fbTipo, mensagem: msg, anexo_url },
     });
     setSavingFb(false);
     if (error) { toast.error('Erro ao enviar feedback.'); return; }
@@ -562,6 +562,28 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmação — remover foto */}
+      <AlertDialog open={confirmRemoverFoto} onOpenChange={setConfirmRemoverFoto}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover foto de perfil?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sua foto atual será excluída. Você poderá enviar uma nova a qualquer momento.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removendoFoto}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); removerFoto(); }}
+              disabled={removendoFoto}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {removendoFoto && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
