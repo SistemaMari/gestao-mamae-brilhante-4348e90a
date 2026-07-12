@@ -77,19 +77,33 @@ const BLOCO_LABEL: Record<string, string> = {
   nota_tardio: 'Nota — diagnóstico tardio',
 };
 
-export function labelTipo(tipo: string): string {
-  return TIPO_LABEL[tipo] ?? tipo;
+/**
+ * Tradutor opcional dos rótulos (i18n). Assinatura compatível com a TFunction do
+ * react-i18next: `tt(key, { defaultValue, ...interpolação })`. Quando ausente,
+ * as funções devolvem o texto pt-BR cru (comportamento pré-i18n — os testes usam
+ * essa forma). No editor, passa-se `i18n.getFixedT(idioma)` para os rótulos
+ * seguirem a ABA de idioma selecionada.
+ */
+export type RotuloTr = (key: string, opts?: Record<string, unknown>) => string;
+
+const K = 'admin.laudoTextos.rotulos';
+
+export function labelTipo(tipo: string, tt?: RotuloTr): string {
+  const pt = TIPO_LABEL[tipo] ?? tipo;
+  return tt ? tt(`${K}.tipo.${tipo}`, { defaultValue: pt }) : pt;
 }
-export function labelDesfecho(desfecho: string): string {
-  return DESFECHO_LABEL[desfecho] ?? desfecho;
+export function labelDesfecho(desfecho: string, tt?: RotuloTr): string {
+  const pt = DESFECHO_LABEL[desfecho] ?? desfecho;
+  return tt ? tt(`${K}.desfecho.${desfecho}`, { defaultValue: pt }) : pt;
 }
-export function labelBloco(bloco: string): string {
-  return BLOCO_LABEL[bloco] ?? bloco;
+export function labelBloco(bloco: string, tt?: RotuloTr): string {
+  const pt = BLOCO_LABEL[bloco] ?? bloco;
+  return tt ? tt(`${K}.bloco.${bloco}`, { defaultValue: pt }) : pt;
 }
 
 /** Rótulo do cenário (tipo + desfecho) para agrupar a lista. */
-export function labelCenario(tipo: string, desfecho: string): string {
-  return `${labelTipo(tipo)} · ${labelDesfecho(desfecho)}`;
+export function labelCenario(tipo: string, desfecho: string, tt?: RotuloTr): string {
+  return `${labelTipo(tipo, tt)} · ${labelDesfecho(desfecho, tt)}`;
 }
 
 /**
@@ -210,17 +224,20 @@ const FAMILIA_LABEL: Record<string, string> = {
   encerramento: 'Encerramento do acompanhamento',
 };
 
-export function labelFamilia(familia: string): string {
-  return FAMILIA_LABEL[familia] ?? familia;
+export function labelFamilia(familia: string, tt?: RotuloTr): string {
+  const pt = FAMILIA_LABEL[familia] ?? familia;
+  return tt ? tt(`${K}.familia.${familia}`, { defaultValue: pt }) : pt;
 }
 
 /** Nota exibida nos cenários agrupados (texto único p/ até 30 sem e após). */
-export function notaFamilia(familia: string): string | null {
+export function notaFamilia(familia: string, tt?: RotuloTr): string | null {
   if (familia === 'ficha_ac') {
-    return 'Texto único para até 30 semanas (Ficha A) e após 30 semanas (Ficha C) — editar aqui atualiza os dois.';
+    const pt = 'Texto único para até 30 semanas (Ficha A) e após 30 semanas (Ficha C) — editar aqui atualiza os dois.';
+    return tt ? tt(`${K}.notaFamilia.ac`, { defaultValue: pt }) : pt;
   }
   if (familia === 'ficha_bd') {
-    return 'Texto único para até 30 semanas (Ficha B) e após 30 semanas (Ficha D) — editar aqui atualiza os dois.';
+    const pt = 'Texto único para até 30 semanas (Ficha B) e após 30 semanas (Ficha D) — editar aqui atualiza os dois.';
+    return tt ? tt(`${K}.notaFamilia.bd`, { defaultValue: pt }) : pt;
   }
   return null;
 }
@@ -242,15 +259,20 @@ export function ordemDesfecho(desfecho: string): number {
 }
 
 /** Adequação do controle por conduta — entra no rótulo do retorno. */
-function adequacaoDesfecho(desfecho: string): string {
+function adequacaoDesfecho(desfecho: string, tt?: RotuloTr): string {
+  let chave: 'inadequado' | 'adequado_ressalva' | 'adequado';
+  let pt: string;
   if (
     desfecho === 'r2_reforcar' || desfecho === 'r2_insulina' || desfecho === 'r3_insulina' ||
     desfecho === '3' || desfecho === '7'
   ) {
-    return 'inadequado';
+    chave = 'inadequado'; pt = 'inadequado';
+  } else if (desfecho.startsWith('r4')) {
+    chave = 'adequado_ressalva'; pt = 'adequado (com ressalva)';
+  } else {
+    chave = 'adequado'; pt = 'adequado'; // r1_manter, '4' (Ficha B/D), '2'
   }
-  if (desfecho.startsWith('r4')) return 'adequado (com ressalva)';
-  return 'adequado'; // r1_manter, '4' (Ficha B/D), '2'
+  return tt ? tt(`${K}.adequacao.${chave}`, { defaultValue: pt }) : pt;
 }
 
 /**
@@ -259,10 +281,19 @@ function adequacaoDesfecho(desfecho: string): string {
  *   (O mesmo texto vale para o 2º, 3º, 4º... retorno — por isso "Retorno", sem número.)
  * - Diagnósticos (Retorno 1 / GTT): "<família> · <desfecho>".
  */
-export function rotuloCenario(familia: string, desfecho: string): string {
+export function rotuloCenario(familia: string, desfecho: string, tt?: RotuloTr): string {
   if (familia === 'ficha_ac' || familia === 'ficha_bd') {
-    const perfil = familia === 'ficha_ac' ? '4 pontos (sem insulina)' : '6 pontos (com insulina)';
-    return `Retorno para DMG com controle ${adequacaoDesfecho(desfecho)} — ${perfil} · ${labelDesfecho(desfecho)}`;
+    const perfilPt = familia === 'ficha_ac' ? '4 pontos (sem insulina)' : '6 pontos (com insulina)';
+    const perfil = tt
+      ? tt(`${K}.perfil.${familia === 'ficha_ac' ? 'ac' : 'bd'}`, { defaultValue: perfilPt })
+      : perfilPt;
+    const adeq = adequacaoDesfecho(desfecho, tt);
+    const desf = labelDesfecho(desfecho, tt);
+    const ptFull = `Retorno para DMG com controle ${adeq} — ${perfil} · ${desf}`;
+    return tt
+      ? tt(`${K}.retornoTemplate`, { defaultValue: ptFull, adeq, perfil, desfecho: desf })
+      : ptFull;
   }
-  return `${labelFamilia(familia)} · ${labelDesfecho(desfecho)}`;
+  // Diagnósticos: separadores neutros, não precisam de template traduzido.
+  return `${labelFamilia(familia, tt)} · ${labelDesfecho(desfecho, tt)}`;
 }

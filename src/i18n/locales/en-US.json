@@ -821,6 +821,64 @@
       "subtitleBase": "Edit the texts shown in the reports.",
       "idiomaLabel": "Report language",
       "idiomaAjuda": "Each language is edited separately. A change made in Portuguese must be replicated here manually.",
+      "rotulos": {
+        "tipo": {
+          "consulta_1": "New Case",
+          "retorno_1": "Return 1 — fasting glucose",
+          "gtt": "OGTT 75g",
+          "ficha_a": "Form A — Return 2",
+          "ficha_c": "Form C — Return 2",
+          "ficha_b": "Form B — insulin follow-up",
+          "ficha_d": "Form D — insulin follow-up"
+        },
+        "familia": {
+          "retorno_1": "Return 1 (fasting glucose)",
+          "gtt": "OGTT 75g",
+          "ficha_ac": "Return 2 — 4-point profile (no insulin)",
+          "ficha_bd": "Insulin follow-up — 6-point profile",
+          "encerramento": "End of follow-up"
+        },
+        "desfecho": {
+          "negativo": "Negative (rules out GDM)",
+          "1": "GDM confirmed by fasting glucose",
+          "6": "GDM confirmed by OGTT",
+          "6B": "Borderline GDM (OGTT, late GA)",
+          "8": "Overt DM",
+          "r1_manter": "Rule 1 — maintain diet + exercise",
+          "r2_reforcar": "Rule 2 — agrees to commit to adherence",
+          "r2_insulina": "Rule 2 — refuses to commit to adherence → insulin",
+          "r3_insulina": "Rule 3 — start insulin",
+          "r4a_fichae": "Rule 4 — meter memory confirms → expand to 6-point (Form E)",
+          "r4_reforcar": "Rule 4 — memory doesn't confirm, agrees → keep 4-point",
+          "r4b_insulina": "Rule 4 — memory doesn't confirm, refuses → insulin",
+          "2": "Adequate control (fallback)",
+          "3": "Inadequate control → insulin (fallback)",
+          "4": "maintain insulin dose",
+          "7": "end MARI",
+          "parto": "Delivery — controlled with diet and exercise",
+          "aborto": "Miscarriage — controlled with diet and exercise",
+          "nao_retornou": "Patient did not return"
+        },
+        "bloco": {
+          "justificativa": "Scientific Rationale",
+          "conduta": "Recommended Management",
+          "nota_tardio": "Note — late diagnosis"
+        },
+        "adequacao": {
+          "adequado": "adequate",
+          "inadequado": "inadequate",
+          "adequado_ressalva": "adequate (with caveats)"
+        },
+        "perfil": {
+          "ac": "4-point (no insulin)",
+          "bd": "6-point (with insulin)"
+        },
+        "retornoTemplate": "GDM follow-up with {{adeq}} control — {{perfil}} · {{desfecho}}",
+        "notaFamilia": {
+          "ac": "Single text for up to 30 weeks (Form A) and after 30 weeks (Form C) — editing here updates both.",
+          "bd": "Single text for up to 30 weeks (Form B) and after 30 weeks (Form D) — editing here updates both."
+        }
+      },
       "rascunhosPendentes": "{{count}} draft(s) awaiting publication.",
       "nenhumRascunho": "No pending drafts.",
       "variaveisSummary": "Available variables (write in brackets, e.g.: [patient name])",

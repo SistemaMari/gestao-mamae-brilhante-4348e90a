@@ -42,14 +42,24 @@ interface CenarioAgrupado {
   blocos: BlocoAgrupado[];
 }
 
+// Bandeiras (mesmas imagens do LanguageSwitcher — emoji não renderiza no Windows).
+const FLAG_SRC: Record<SupportedLanguage, string> = {
+  'pt-BR': 'https://flagcdn.com/w40/br.png',
+  'en-US': 'https://flagcdn.com/w40/us.png',
+  'es': 'https://flagcdn.com/w40/es.png',
+};
+
 export default function LaudoTextosPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   // Fase 2 — idioma ativo do editor (PT/EN/ES). Cada idioma é uma coleção
   // independente de textos; edita-se um por vez pela aba selecionada.
   const [idioma, setIdioma] = useState<SupportedLanguage>('pt-BR');
+  // Tradutor fixo no idioma da ABA — os rótulos (títulos dos cenários, blocos,
+  // notas) saem no idioma selecionado, não no idioma da interface.
+  const tt = useMemo(() => i18n.getFixedT(idioma), [i18n, idioma]);
   const [editando, setEditando] = useState<{ cenario: CenarioAgrupado; bloco: BlocoAgrupado } | null>(null);
   const [formTexto, setFormTexto] = useState('');
   const [formTitulo, setFormTitulo] = useState('');
@@ -232,8 +242,9 @@ export default function LaudoTextosPage() {
         <Tabs value={idioma} onValueChange={(v) => setIdioma(v as SupportedLanguage)}>
           <TabsList>
             {SUPPORTED_LANGUAGES.map((lng) => (
-              <TabsTrigger key={lng} value={lng}>
-                {LANGUAGE_META[lng].flag} {LANGUAGE_META[lng].short}
+              <TabsTrigger key={lng} value={lng} className="gap-1.5">
+                <img src={FLAG_SRC[lng]} alt="" className="h-3.5 w-5 rounded-sm object-cover" />
+                {LANGUAGE_META[lng].short}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -268,7 +279,7 @@ export default function LaudoTextosPage() {
           {cenarios.map((cen) => {
             const rascunhosNoCenario = cen.blocos.filter((b) => b.rascunhos.length > 0).length;
             const ajuda = ajudaCenario(tipoRepresentante(cen.familia), cen.desfecho_clinico);
-            const nota = notaFamilia(cen.familia);
+            const nota = notaFamilia(cen.familia, tt);
             return (
               <AccordionItem
                 key={cen.key}
@@ -279,7 +290,7 @@ export default function LaudoTextosPage() {
                   <span className="flex flex-wrap items-center gap-2 text-left">
                     <FileText className="h-4 w-4 shrink-0 text-[#7C4DBA]" />
                     <span className="font-medium text-[#334155]">
-                      {rotuloCenario(cen.familia, cen.desfecho_clinico)}
+                      {rotuloCenario(cen.familia, cen.desfecho_clinico, tt)}
                     </span>
                     {ajuda && (
                       <Tooltip>
@@ -314,7 +325,7 @@ export default function LaudoTextosPage() {
                   {cen.blocos.map((b) => (
                     <div key={b.bloco} className="rounded-md border border-[#E2E8F0] p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <h3 className="text-sm font-semibold text-[#5B3A8E]">{labelBloco(b.bloco)}</h3>
+                        <h3 className="text-sm font-semibold text-[#5B3A8E]">{labelBloco(b.bloco, tt)}</h3>
                         <div className="flex items-center gap-2">
                           {b.rascunhos.length > 0 ? (
                             <>
@@ -372,20 +383,20 @@ export default function LaudoTextosPage() {
       <Dialog open={!!editando} onOpenChange={(o) => { if (!o) setEditando(null); }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t('admin.laudoTextos.editarTexto')}{editando ? ` — ${labelBloco(editando.bloco.bloco)}` : ''}</DialogTitle>
+            <DialogTitle>{t('admin.laudoTextos.editarTexto')}{editando ? ` — ${labelBloco(editando.bloco.bloco, tt)}` : ''}</DialogTitle>
             <DialogDescription>
               {editando
-                ? rotuloCenario(editando.cenario.familia, editando.cenario.desfecho_clinico)
+                ? rotuloCenario(editando.cenario.familia, editando.cenario.desfecho_clinico, tt)
                 : ''}
               {' · '}{t('admin.laudoTextos.editarDescription')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3">
-            {editando && notaFamilia(editando.cenario.familia) && (
+            {editando && notaFamilia(editando.cenario.familia, tt) && (
               <div className="flex items-start gap-2 rounded-md bg-[#F1F0FB] px-3 py-2 text-xs text-[#5B21B6]">
                 <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{notaFamilia(editando.cenario.familia)}</span>
+                <span>{notaFamilia(editando.cenario.familia, tt)}</span>
               </div>
             )}
             <div className="space-y-1">

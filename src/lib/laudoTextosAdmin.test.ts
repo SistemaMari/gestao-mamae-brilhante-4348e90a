@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest';
+import i18n from '@/i18n';
 import {
   extrairVariaveis,
   variaveisDesconhecidas,
   labelBloco,
   labelCenario,
   labelDesfecho,
+  labelFamilia,
+  notaFamilia,
   ajudaCenario,
   cenarioTecnicoOculto,
   familiaTipo,
@@ -111,5 +114,31 @@ describe('laudoTextosAdmin', () => {
     expect(ajudaCenario('ficha_d', '7')).toBe(ajudaCenario('ficha_b', '7'));
     // Aparece logo após o '4' (controle adequado com insulina) na lista:
     expect(ordemDesfecho('7')).toBeGreaterThan(ordemDesfecho('4'));
+  });
+
+  it('Fase 2 — rótulos traduzem pelo idioma passado (getFixedT); sem tt = pt cru', () => {
+    const en = i18n.getFixedT('en-US');
+    const es = i18n.getFixedT('es');
+    const pt = i18n.getFixedT('pt-BR');
+
+    // Rótulos simples
+    expect(labelDesfecho('negativo', en)).toBe('Negative (rules out GDM)');
+    expect(labelDesfecho('negativo', es)).toBe('Negativo (descarta DMG)');
+    expect(labelBloco('justificativa', en)).toBe('Scientific Rationale');
+    expect(labelFamilia('gtt', es)).toBe('PTOG 75g');
+    expect(notaFamilia('ficha_ac', en)).toContain('Form A');
+
+    // Template do retorno com interpolação (adeq/perfil/desfecho traduzidos)
+    expect(rotuloCenario('ficha_ac', 'r1_manter', en)).toBe(
+      'GDM follow-up with adequate control — 4-point (no insulin) · Rule 1 — maintain diet + exercise',
+    );
+    // Diagnóstico (separadores neutros)
+    expect(rotuloCenario('retorno_1', 'negativo', es)).toBe(
+      'Retorno 1 (glucemia en ayunas) · Negativo (descarta DMG)',
+    );
+
+    // Sem tradutor OU idioma pt-BR → texto pt-BR (mesmo resultado)
+    expect(labelDesfecho('7')).toBe('encerrar MARI');
+    expect(labelDesfecho('7', pt)).toBe('encerrar MARI');
   });
 });
