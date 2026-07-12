@@ -821,6 +821,85 @@
       "subtitleBase": "Edit the texts shown in the reports.",
       "idiomaLabel": "Report language",
       "idiomaAjuda": "Each language is edited separately. A change made in Portuguese must be replicated here manually.",
+      "rotulos": {
+        "tipo": {
+          "consulta_1": "New Case",
+          "retorno_1": "Return 1 — fasting glucose",
+          "gtt": "OGTT 75g",
+          "ficha_a": "Form A — Return 2",
+          "ficha_c": "Form C — Return 2",
+          "ficha_b": "Form B — insulin follow-up",
+          "ficha_d": "Form D — insulin follow-up"
+        },
+        "familia": {
+          "retorno_1": "Return 1 (fasting glucose)",
+          "gtt": "OGTT 75g",
+          "ficha_ac": "Return 2 — 4-point profile (no insulin)",
+          "ficha_bd": "Insulin follow-up — 6-point profile",
+          "encerramento": "End of follow-up"
+        },
+        "desfecho": {
+          "negativo": "Negative (rules out GDM)",
+          "1": "GDM confirmed by fasting glucose",
+          "6": "GDM confirmed by OGTT",
+          "6B": "Borderline GDM (OGTT, late GA)",
+          "8": "Overt DM",
+          "r1_manter": "Rule 1 — maintain diet + exercise",
+          "r2_reforcar": "Rule 2 — agrees to commit to adherence",
+          "r2_insulina": "Rule 2 — refuses to commit to adherence → insulin",
+          "r3_insulina": "Rule 3 — start insulin",
+          "r4a_fichae": "Rule 4 — meter memory confirms → expand to 6-point (Form E)",
+          "r4_reforcar": "Rule 4 — memory doesn't confirm, agrees → keep 4-point",
+          "r4b_insulina": "Rule 4 — memory doesn't confirm, refuses → insulin",
+          "2": "Adequate control (fallback)",
+          "3": "Inadequate control → insulin (fallback)",
+          "4": "maintain insulin dose",
+          "7": "end MARI",
+          "parto": "Delivery — controlled with diet and exercise",
+          "aborto": "Miscarriage — controlled with diet and exercise",
+          "nao_retornou": "Patient did not return"
+        },
+        "bloco": {
+          "justificativa": "Scientific Rationale",
+          "conduta": "Recommended Management",
+          "nota_tardio": "Note — late diagnosis"
+        },
+        "adequacao": {
+          "adequado": "adequate",
+          "inadequado": "inadequate",
+          "adequado_ressalva": "adequate (with caveats)"
+        },
+        "perfil": {
+          "ac": "4-point (no insulin)",
+          "bd": "6-point (with insulin)"
+        },
+        "retornoTemplate": "GDM follow-up with {{adeq}} control — {{perfil}} · {{desfecho}}",
+        "notaFamilia": {
+          "ac": "Single text for up to 30 weeks (Form A) and after 30 weeks (Form C) — editing here updates both.",
+          "bd": "Single text for up to 30 weeks (Form B) and after 30 weeks (Form D) — editing here updates both."
+        },
+        "ajuda": {
+          "retorno_1__negativo": "Return 1 with fasting glucose below 92 mg/dL: there is NO GDM at this point. The text should advise continuing prenatal care and performing the 75g OGTT between 24 and 28 weeks.",
+          "retorno_1__1": "Return 1 with fasting glucose between 92 and 125 mg/dL: GDM confirmed. The text confirms the diagnosis and advises starting treatment (diet, exercise, and 4-point monitoring).",
+          "retorno_1__6": "Safety net — Return 1 with GDM confirmed by fasting glucose (same content as the \"GDM confirmed by fasting glucose\" scenario).",
+          "retorno_1__8": "Return 1 with fasting glucose at or above 126 mg/dL: Overt DM (diabetes diagnosed during pregnancy). The text confirms it and advises immediate treatment.",
+          "gtt__negativo": "Normal 75g OGTT (from 24 weeks on): rules out GDM. The text closes the investigation — no treatment and no repeat test.",
+          "gtt__6": "75g OGTT with at least one abnormal value: GDM confirmed. The text confirms the diagnosis and advises starting treatment.",
+          "gtt__6B": "Positive 75g OGTT with late gestational age (over 28 weeks): GDM. The text stresses that starting treatment is urgent.",
+          "gtt__8": "75g OGTT with Overt DM values. The text confirms the diagnosis and advises immediate treatment.",
+          "ficha_a__r1_manter": "Return 2 with at least 70% of readings within target, good adherence (diet, exercise, and weight), and normal fetal indicators: maintain diet and exercise, no insulin.",
+          "ficha_a__r2_reforcar": "Return 2 with less than 70% within target and an adherence failure, but the patient commits to improving: reinforce adherence and keep the 4-point profile (still no insulin).",
+          "ficha_a__r2_insulina": "Return 2 with less than 70% within target and an adherence failure, and the patient REFUSES to commit: indicate insulin. (assistant draft text — to validate)",
+          "ficha_a__r3_insulina": "Return 2 with less than 70% within target despite good adherence: diet and exercise were insufficient, so start insulin.",
+          "ficha_a__r4a_fichae": "Return 2 with at least 70% within target, but with an adherence failure/weight gain (or a fetal sign), and the meter memory CONFIRMS control: expand to the 6-point profile (Form E), no insulin yet.",
+          "ficha_a__r4_reforcar": "Return 2 with at least 70% within target, an adherence failure, and meter memory that does NOT confirm, but the patient agrees to reinforce: keep the 4-point profile and reassess. (draft text — to validate)",
+          "ficha_a__r4b_insulina": "Return 2 with at least 70% within target, an adherence failure, meter memory that does NOT confirm, and the patient REFUSES: start insulin.",
+          "ficha_a__2": "Safety net — adequate control when the system did not compute the detailed management (same text as Rule 1 — maintain).",
+          "ficha_a__3": "Safety net — inadequate control with insulin when the system did not compute the detailed management (same text as Rule 3 — insulin).",
+          "ficha_b__4": "Insulin follow-up (6-point profile) and at least 70% within target: maintain the current insulin dose, diet, and exercise.",
+          "ficha_b__7": "Insulin follow-up (6-point profile) and LESS than 70% within target: the insulin dose is insufficient and needs to be adjusted. MARI ends automated support (it does not calculate dose adjustments). The text should explain the next step — adjusting the dose (by the obstetrician, with an endocrinologist, or by referral to a specialized service) — and reinforce that the targets that apply remain the obstetric GDM targets."
+        }
+      },
       "rascunhosPendentes": "{{count}} draft(s) awaiting publication.",
       "nenhumRascunho": "No pending drafts.",
       "variaveisSummary": "Available variables (write in brackets, e.g.: [patient name])",
