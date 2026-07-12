@@ -19,6 +19,9 @@ interface Feedback {
   autor?: string;
   email?: string | null;
   telefone?: string | null;
+  tipo_perfil?: string | null;
+  unidade_nome?: string | null;
+  email_gestor_unidade?: string | null;
 }
 
 const TIPO_LABEL: Record<string, string> = {
