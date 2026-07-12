@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, Fragment } from "react";
 import { useLocation } from "react-router-dom";
 import {
   ResponsiveContainer,
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell,
 } from "recharts";
 import { Loader2, Info, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronRight } from "lucide-react";
@@ -884,13 +884,13 @@ export default function DiagnosticosPage() {
             atendimentos finalizados).
           </p>
           <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={encerr.laudos_mensais} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+            <BarChart data={encerr.laudos_mensais} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
               <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Line type="monotone" dataKey="qtd" name="Laudos" stroke={COR_LILAS} strokeWidth={2} dot={{ r: 3 }} />
-            </LineChart>
+              <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} />
+              <Bar dataKey="qtd" name="Laudos" fill={COR_LILAS} radius={[4, 4, 0, 0]} maxBarSize={48} />
+            </BarChart>
           </ResponsiveContainer>
         </CardContainer>
       )}
