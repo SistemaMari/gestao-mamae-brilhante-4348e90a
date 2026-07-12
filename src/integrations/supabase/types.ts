@@ -2118,7 +2118,6 @@ export type Database = {
           estado: string | null
           pais: string | null
           total_profissionais: number | null
-          total_unidades: number | null
         }
         Relationships: []
       }
