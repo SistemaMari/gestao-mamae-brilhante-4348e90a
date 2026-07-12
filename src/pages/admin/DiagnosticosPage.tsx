@@ -196,20 +196,51 @@ function Pizza({
       </div>
     );
   }
+  const renderPctLabel = (props: any) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, value } = props;
+
+    const pct = (value / total) * 100;
+    if (pct < 4) return null;
+    const RADIAN = Math.PI / 180;
+    const r = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + r * Math.cos(-midAngle * RADIAN);
+    const y = cy + r * Math.sin(-midAngle * RADIAN);
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="#FFFFFF"
+        textAnchor="middle"
+        dominantBaseline="central"
+        style={{ fontFamily: FONT_CORPO, fontSize: 13, fontWeight: 700 }}
+      >
+        {pct.toFixed(0)}%
+      </text>
+    );
+  };
   return (
     <ResponsiveContainer width="100%" height={240}>
       <PieChart>
-        <Pie data={data} dataKey="value" nameKey="name" outerRadius={90} label>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          outerRadius={100}
+          labelLine={false}
+          label={renderPctLabel}
+          isAnimationActive={false}
+        >
           {data.map((_, i) => (
-            <Cell key={i} fill={cores[i % cores.length]} />
+            <Cell key={i} fill={cores[i % cores.length]} stroke="#FFFFFF" strokeWidth={2} />
           ))}
         </Pie>
-        <Tooltip />
+        <Tooltip formatter={(v: number) => [`${v} (${((v / total) * 100).toFixed(1)}%)`, "Pacientes"]} />
         <Legend />
       </PieChart>
     </ResponsiveContainer>
   );
 }
+
 
 function FunilTratamento({ funil }: { funil: Metricas["funil"] }) {
   // Gradiente de cores: verde → laranja, conforme Prompt 24 Seção 3.8.
