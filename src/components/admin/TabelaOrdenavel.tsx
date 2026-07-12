@@ -77,10 +77,13 @@ export function TabelaOrdenavel({
     );
   }
 
+  const padCell = denso ? "6px 8px" : "10px 12px";
+  const fontSize = denso ? 13 : 14;
+
   return (
     <div className="rounded-lg border bg-white overflow-hidden" style={{ borderColor: "#E2E8F0" }}>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm" style={{ fontFamily: "Plus Jakarta Sans, sans-serif" }}>
+        <table className={denso ? "w-full text-[13px]" : "w-full text-sm"} style={{ fontFamily: "Plus Jakarta Sans, sans-serif" }}>
           <thead>
             <tr style={{ background: "#E8E0FF" }}>
               {colunas.map((col) => {
