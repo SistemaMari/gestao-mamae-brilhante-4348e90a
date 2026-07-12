@@ -249,7 +249,7 @@ export default function AppShellClinico() {
 
   const SidebarContent = () => (
     <>
-      {ehInstitucional && (
+      {usaEstiloInstitucional && (
         <div className="shrink-0 border-b border-[#E2E8F0] p-3 bg-white">
           <img
             src={mariLogo}
@@ -275,7 +275,7 @@ export default function AppShellClinico() {
       </nav>
 
 
-      {ehInstitucional ? (
+      {usaEstiloInstitucional ? (
         <div className="shrink-0 border-t border-[#E2E8F0] bg-[#F5F0FF] p-3 space-y-2">
           <div className="flex items-center gap-3">
             <div
