@@ -262,12 +262,20 @@ export default function AppShellClinico() {
       )}
 
       <nav className="flex-1 min-h-0 overflow-y-auto space-y-1 px-3 py-4">
-        {itensClinicos.map(renderNavButton)}
+        {itensClinicos.map((item) => (
+          <div key={item.path}>
+            {ehInstitucional && item.path === '/tutorial' && (
+              <div className="my-2 border-t" style={{ borderColor: '#E2E8F0' }} />
+            )}
+            {renderNavButton(item)}
+          </div>
+        ))}
         {itensClinicos.length > 0 && itensRodape.length > 0 && (
           <div className="my-2 border-t" style={{ borderColor: '#E2E8F0' }} />
         )}
         {itensRodape.map(renderNavButton)}
       </nav>
+
 
       {ehInstitucional ? (
         <div className="shrink-0 border-t border-[#E2E8F0] bg-[#F5F0FF] p-3 space-y-2">
