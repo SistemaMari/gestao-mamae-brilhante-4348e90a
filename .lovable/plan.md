@@ -1,48 +1,47 @@
 ## Objetivo
-Transformar o sidebar do perfil **Institucional** (hoje `src/components/AppSidebar.tsx`) para ter a mesma linguagem visual e organização do sidebar do **Admin** (`src/components/admin/AdminSidebar.tsx`).
+Trazer a mesma saudação usada no painel Admin ("Olá, {nome} ✨") para a tela principal do usuário institucional (lista de pacientes em `src/pages/DashboardPage.tsx`) e enriquecer o topo da página com blocos leves e amigáveis — sem dashboards, sem gráficos, sem métricas clínicas duras.
 
 ## Escopo
-Mudança restrita ao sidebar quando `profile === 'institucional'`. Outros perfis (consultório, gestor, gestor_geral, admin) permanecem inalterados no `AppSidebar.tsx`.
+Somente `src/pages/DashboardPage.tsx` (frontend). Nenhuma mudança de dados, RLS, edge function ou lógica de negócio.
 
-## Mudanças
+## O que entra
 
-### 1. Header
-- Substituir o quadradinho "DM + MARI" por a imagem `@/assets/mari-logo.png` ocupando a largura do sidebar (igual Admin).
-- No estado colapsado, mostrar apenas o logo 36×36 arredondado.
+### 1. Cabeçalho de saudação (idêntico ao Admin)
+Bloco novo, no topo da página, acima da barra de busca:
 
-### 2. Itens de navegação (institucional)
-Nova lista, na ordem:
-1. Pacientes → `/dashboard`
-2. Nova paciente → `/paciente/nova`
-3. **[divisor cinza `#E2E8F0`]**
-4. Tutorial → `/tutorial` (rota já existente em `TutorialPage.tsx`)
+- `H1`: `Olá, {primeiroNome} ✨` — Sora, `text-4xl md:text-5xl`, `#1E293B`.
+- Subtítulo dinâmico por horário: "Bom dia" / "Boa tarde" / "Boa noite, tenha um atendimento tranquilo." (curto, acolhedor).
+- Linha divisória `border-b #E2E8F0`, `pb-6`, igual ao Admin.
+- Nome vindo de `profissionalData.nome` (fallback: `profile?.email`).
 
-Item **Perfil** sai da lista principal e passa para o rodapé (equivalente ao "Configurações" do Admin).
+### 2. Faixa de "boas-vindas" com 3 cartões leves (sem números clínicos)
+Grid `md:grid-cols-3 gap-4`, cartões brancos, borda `#E2E8F0`, cantos `rounded-2xl`, ícone lilás `#9b87f5`. Conteúdo estático/institucional — nada de KPI:
 
-Estilo dos itens: fundo ativo `#E8E0FF`, texto ativo `#7E69AB`, hover `#F1F5F9`, texto padrão `#64748B` — idêntico ao Admin.
+1. **Sua unidade** — mostra `profissionalData.unidade?.nome` + cidade/UF (dados que já vêm do hook). Ícone `Building2`. Se for consultório, mostra "Consultório particular".
+2. **Data de hoje** — data por extenso em pt-BR + IG-friendly frase curta ("Ótimo dia para cuidar das suas gestantes."). Ícone `CalendarDays`.
+3. **Atalho — Nova paciente** — cartão clicável que chama a mesma ação do botão `+ Nova Paciente` já existente. Ícone `UserPlus`. Serve como CTA visual sem duplicar lógica.
 
-### 3. Rodapé (fundo lilás `#F5F0FF`, borda superior `#E2E8F0`)
-Estrutura igual Admin:
-- Avatar circular 36×36 com gradiente `linear-gradient(135deg, #7E69AB, #9b87f5)` e iniciais do nome.
-- Nome do profissional (Sora, semibold) + email (xs, `#94A3B8`) abaixo.
-- Link **Perfil** (ícone `UserCircle` + label) apontando para `/perfil`, com mesmo estilo ativo/hover dos itens do menu.
-- Botão **Sair** (variant outline) com ícone `LogOut`.
+### 3. Bloco "Dica do dia" (rotativo, client-side)
+Card único, largura total, fundo lilás bem suave (`#F5F0FF`), borda `#E9E3FA`, ícone `Sparkles`. Texto curto rotativo por dia da semana (array fixo de 7 dicas clínicas/UX — ex.: "Lembre-se de registrar a IG correta antes de gerar o laudo."). Zero requisição, zero estado persistido.
 
-No estado colapsado: apenas ícone de Perfil (link) e ícone Sair centralizados.
+### 4. Rodapé da saudação
+Pequena linha de texto `#64748B` com link/atalho para "Ver tutoriais" (rota já existente `/tutoriais` se disponível — se não existir para institucional, remover o link e deixar só a frase).
 
-### 4. Nome do profissional
-Buscar via Supabase quando `profile === 'institucional'`:
-```ts
-supabase.from('profissionais').select('nome').eq('user_id', user.id).maybeSingle()
-```
-Usar hook local com `useEffect` (padrão já usado em `AppShellGestor.tsx`). Fallback: primeira parte do email.
+## O que NÃO entra
+- Nenhum gráfico, contador de pacientes, alerta clínico, agenda ou "próximos retornos" — o usuário pediu explicitamente "sem dashboards".
+- Nenhuma mudança na tabela de pacientes abaixo (busca, toggle "Mostrar fichas encerradas", listagem seguem intactos).
+- Sem novo endpoint, sem novo hook, sem migration.
 
-### 5. Estado colapsado
-Manter o toggle atual (botão "Recolher"/chevron) já que o `AppSidebar` não usa o `SidebarProvider` do shadcn — está com estado local `useState`. Move-se o chevron para o rodapé, discreto abaixo do botão Sair, como hoje.
+## Detalhes técnicos
+- Reaproveitar `useProfissionalData()` já importado.
+- Saudação por horário: `new Date().getHours()` → `bomDia|boaTarde|boaNoite`.
+- Data por extenso: `format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })` (ambos já usados em outros pontos do projeto).
+- Dica do dia: `const dicas = [...]; dicas[new Date().getDay()]`.
+- Tudo dentro de um novo bloco `<section>` renderizado antes do `UsageWarningBanner` / barra de busca atual.
+- Design tokens: manter paleta lilás/verde-água já definida; nada de cores hardcoded fora do padrão do projeto (lilás `#9b87f5`, fundo `#F5F0FF`, texto `#1E293B` / `#64748B`, borda `#E2E8F0`).
 
-## Arquivo alterado
-- `src/components/AppSidebar.tsx` — única alteração. Consultório/gestor/gestor_geral/admin continuam renderizando o layout atual (branch por `profile`).
-
-## Fora de escopo
-- Não mexer no `AdminSidebar.tsx`, `AppShellGestor.tsx`, rotas, ou permissões.
-- Não criar página `/configuracoes` para institucional — Perfil segue apontando para `/perfil`.
+## Critérios de aceite
+- Ao entrar como institucional em `/dashboard`, aparece "Olá, {Nome} ✨" no topo, com a mesma tipografia/hierarquia do Admin.
+- Abaixo da saudação: 3 cartões (Unidade, Data de hoje, Atalho Nova paciente) + faixa "Dica do dia".
+- Tabela de pacientes continua funcionando exatamente como antes.
+- Nenhum número/KPI clínico exposto no topo.
