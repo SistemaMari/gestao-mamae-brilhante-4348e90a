@@ -537,7 +537,7 @@ export type Database = {
       }
       depoimentos_usuario: {
         Row: {
-          aprovado: boolean
+          aprovado: boolean | null
           created_at: string
           id: string
           rating: number
@@ -545,7 +545,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          aprovado?: boolean
+          aprovado?: boolean | null
           created_at?: string
           id?: string
           rating: number
@@ -553,7 +553,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          aprovado?: boolean
+          aprovado?: boolean | null
           created_at?: string
           id?: string
           rating?: number
@@ -2347,6 +2347,15 @@ export type Database = {
       _unidades_gg: {
         Args: { _unidades: string[]; _user: string }
         Returns: string[]
+      }
+      admin_get_contatos_usuarios: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          email: string
+          nome: string
+          telefone: string
+          user_id: string
+        }[]
       }
       belongs_to_unidade: {
         Args: { _unidade_id: string; _user_id: string }
