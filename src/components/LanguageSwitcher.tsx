@@ -44,29 +44,27 @@ export default function LanguageSwitcher({ variant = 'compact', align = 'end' }:
 
   const meta = LANGUAGE_META[current];
 
+  const flagSrc: Record<SupportedLanguage, string> = {
+    'pt-BR': 'https://flagcdn.com/w40/br.png',
+    'en-US': 'https://flagcdn.com/w40/us.png',
+    'es': 'https://flagcdn.com/w40/es.png',
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size={variant === 'icon' ? 'icon' : 'sm'}
-          className="gap-2"
+        <button
           aria-label={t('language.selectLanguage')}
+          className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold shadow-sm transition hover:shadow-md hover:border-primary/40"
+          style={{ backgroundColor: '#F5F0FF', borderColor: '#E2DEF5', color: '#2D2B55' }}
         >
-          {variant === 'icon' ? (
-            <span className="text-lg leading-none">{meta.flag}</span>
-          ) : variant === 'full' ? (
-            <>
-              <span className="text-lg leading-none">{meta.flag}</span>
-              <span>{meta.label}</span>
-            </>
-          ) : (
-            <>
-              <span className="text-base leading-none">{meta.flag}</span>
-              <span className="text-xs font-medium">{meta.short}</span>
-            </>
-          )}
-        </Button>
+          <img
+            src={flagSrc[current]}
+            alt=""
+            className="h-4 w-6 rounded-sm object-cover"
+          />
+          <span className="leading-none tracking-wide">{meta.short}</span>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="min-w-[200px]">
         {SUPPORTED_LANGUAGES.map((lang) => {
@@ -78,7 +76,7 @@ export default function LanguageSwitcher({ variant = 'compact', align = 'end' }:
               onClick={() => change(lang)}
               className="gap-2 cursor-pointer"
             >
-              <span className="text-lg leading-none">{m.flag}</span>
+              <img src={flagSrc[lang]} alt="" className="h-4 w-6 rounded-sm object-cover" />
               <span className="flex-1">{m.label}</span>
               {isCurrent && <Check className="h-4 w-4 text-primary" />}
             </DropdownMenuItem>
