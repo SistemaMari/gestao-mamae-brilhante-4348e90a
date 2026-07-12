@@ -10,6 +10,7 @@ export type AdminViewSlug =
   | "profissionais_por_plano"
   | "evolucao_mensal_planos"
   | "evolucao_mensal_profissionais"
+  | "evolucao_mensal_profissionais_tipo"
   | "alertas_operacionais";
 
 export const ADMIN_VIEWS: AdminViewSlug[] = [
@@ -20,6 +21,7 @@ export const ADMIN_VIEWS: AdminViewSlug[] = [
   "profissionais_por_plano",
   "evolucao_mensal_planos",
   "evolucao_mensal_profissionais",
+  "evolucao_mensal_profissionais_tipo",
   "alertas_operacionais",
 ];
 
