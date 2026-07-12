@@ -196,35 +196,31 @@ export default function VisaoGeralPage() {
   }, [distribuicao.data, filtroPais, filtroEstado, filtroCidade]);
 
   const distPais = useMemo(() => {
-    const m = new Map<string, { profissionais: number; unidades: number }>();
+    const m = new Map<string, { profissionais: number }>();
     distribuicaoFiltrada.forEach((r) => {
-      const cur = m.get(r.pais) ?? { profissionais: 0, unidades: 0 };
+      const cur = m.get(r.pais) ?? { profissionais: 0 };
       cur.profissionais += r.total_profissionais;
-      cur.unidades += r.total_unidades;
       m.set(r.pais, cur);
     });
     const total = Array.from(m.values()).reduce((s, v) => s + v.profissionais, 0) || 1;
     return Array.from(m.entries()).map(([pais, v]) => ({
       pais,
       total_profissionais: v.profissionais,
-      total_unidades: v.unidades,
       pct: Math.round((v.profissionais / total) * 1000) / 10,
     }));
   }, [distribuicaoFiltrada]);
 
   const distEstado = useMemo(() => {
-    const m = new Map<string, { profissionais: number; unidades: number }>();
+    const m = new Map<string, { profissionais: number }>();
     distribuicaoFiltrada.forEach((r) => {
-      const cur = m.get(r.estado) ?? { profissionais: 0, unidades: 0 };
+      const cur = m.get(r.estado) ?? { profissionais: 0 };
       cur.profissionais += r.total_profissionais;
-      cur.unidades += r.total_unidades;
       m.set(r.estado, cur);
     });
     const total = Array.from(m.values()).reduce((s, v) => s + v.profissionais, 0) || 1;
     return Array.from(m.entries()).map(([estado, v]) => ({
       estado,
       total_profissionais: v.profissionais,
-      total_unidades: v.unidades,
       pct: Math.round((v.profissionais / total) * 1000) / 10,
     }));
   }, [distribuicaoFiltrada]);
@@ -440,7 +436,8 @@ export default function VisaoGeralPage() {
       {/* Distribuição por país */}
       <SecaoBloco
         titulo="Distribuição por país"
-        tooltip="Total de profissionais e unidades por país, com o percentual sobre o total de profissionais."
+        tooltip="Profissionais de consultório (sem vínculo com unidade) por país, com o percentual sobre o total. Profissionais institucionais aparecem nas tabelas por unidade."
+        acao={<BadgeEscopo escopo="consultorio" />}
         loading={distribuicao.isLoading}
         skeletonHeight={180}
       >
@@ -448,7 +445,6 @@ export default function VisaoGeralPage() {
           colunas={[
             { chave: "pais", titulo: "País" },
             { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-            { chave: "total_unidades", titulo: "Unidades", alinhamento: "right" },
             {
               chave: "pct",
               titulo: "% profissionais",
@@ -463,7 +459,8 @@ export default function VisaoGeralPage() {
       {/* Distribuição por estado */}
       <SecaoBloco
         titulo="Distribuição por estado"
-        tooltip="Total de profissionais e unidades por estado, com o percentual sobre o total de profissionais do país."
+        tooltip="Profissionais de consultório (sem vínculo com unidade) por estado, com o percentual sobre o total do país."
+        acao={<BadgeEscopo escopo="consultorio" />}
         loading={distribuicao.isLoading}
         skeletonHeight={220}
       >
@@ -471,7 +468,6 @@ export default function VisaoGeralPage() {
           colunas={[
             { chave: "estado", titulo: "Estado" },
             { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
-            { chave: "total_unidades", titulo: "Unidades", alinhamento: "right" },
             {
               chave: "pct",
               titulo: "% no país",
@@ -486,7 +482,8 @@ export default function VisaoGeralPage() {
       {/* Top cidades */}
       <SecaoBloco
         titulo="Top 20 cidades"
-        tooltip="Ranking das 20 cidades com maior número de profissionais cadastrados na plataforma."
+        tooltip="Ranking das 20 cidades com mais profissionais de consultório (sem vínculo com unidade)."
+        acao={<BadgeEscopo escopo="consultorio" />}
         loading={topCidades.isLoading}
         skeletonHeight={220}
       >
@@ -507,6 +504,8 @@ export default function VisaoGeralPage() {
           {/* Profissionais por unidade */}
           <SecaoBloco
             titulo="Profissionais por unidade"
+            tooltip="Profissionais vinculados a unidades (institucional), agrupados pela unidade de atendimento."
+            acao={<BadgeEscopo escopo="institucional" />}
             loading={unidades.isLoading}
             skeletonHeight={220}
           >
@@ -526,6 +525,7 @@ export default function VisaoGeralPage() {
           <SecaoBloco
             titulo="Pacientes por unidade"
             descricao="Histórico acumulado de pacientes e laudos gerados por unidade."
+            acao={<BadgeEscopo escopo="institucional" />}
             loading={unidades.isLoading}
             skeletonHeight={220}
           >

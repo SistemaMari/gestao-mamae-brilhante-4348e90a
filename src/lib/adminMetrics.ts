@@ -41,7 +41,6 @@ export interface GeoRow {
   estado: string;
   cidade: string;
   total_profissionais: number;
-  total_unidades: number;
 }
 
 export interface CidadeRow {
