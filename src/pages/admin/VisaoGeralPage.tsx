@@ -19,6 +19,7 @@ import type {
   CidadeRow,
   EvolucaoPlanosRow,
   EvolucaoProfissionaisRow,
+  EvolucaoProfissionaisTipoRow,
   GeoRow,
   PlanoRow,
   ResumoGlobalRow,
@@ -89,6 +90,11 @@ export default function VisaoGeralPage() {
     undefined,
     { previewMode },
   );
+  const evolProfTipo = useAdminView<EvolucaoProfissionaisTipoRow>(
+    "evolucao_mensal_profissionais_tipo",
+    undefined,
+    { previewMode },
+  );
   const evolPlanos = useAdminView<EvolucaoPlanosRow>(
     "evolucao_mensal_planos",
     undefined,
@@ -125,6 +131,20 @@ export default function VisaoGeralPage() {
       })),
     [evolProf.data],
   );
+
+  const dadosPorTipo = (tipo: "consultorio" | "institucional") => {
+    const rows = (evolProfTipo.data ?? []).filter((r) => r.tipo_conta === tipo);
+    return rows
+      .slice()
+      .sort((a, b) => a.mes.localeCompare(b.mes))
+      .map((r) => ({
+        mes: fmtMes(r.mes),
+        novos: r.novos_profissionais,
+        ativos: r.profissionais_ativos,
+      }));
+  };
+  const evolConsultorio = useMemo(() => dadosPorTipo("consultorio"), [evolProfTipo.data]);
+  const evolInstitucional = useMemo(() => dadosPorTipo("institucional"), [evolProfTipo.data]);
 
   const evolPlanosDados = useMemo(() => {
     const meses = Array.from(new Set((evolPlanos.data ?? []).map((r) => r.mes))).sort();
@@ -323,25 +343,61 @@ export default function VisaoGeralPage() {
         </div>
       )}
 
-      {/* Evolução mensal de profissionais */}
-      <SecaoBloco
-        titulo="Evolução mensal de profissionais"
-        descricao="Novos cadastros e profissionais ativos nos últimos 12 meses (consultório + institucional agregados)."
-        tooltip="Série mensal dos últimos 12 meses. Novos = profissionais cadastrados no mês. Ativos = profissionais com pelo menos uma atividade no mês. Considera tanto profissionais de consultório quanto institucionais."
-        acao={<BadgeEscopo escopo="ambos" />}
-        loading={evolProf.isLoading}
-        skeletonHeight={280}
-      >
-        <div className="rounded-lg border bg-white p-4" style={{ borderColor: "#E2E8F0" }}>
-          <GraficoLinhaEvolucao
-            dados={evolProfDados}
-            series={[
-              { chave: "novos", nome: "Novos profissionais", cor: "#7C4DBA" },
-              { chave: "ativos", nome: "Ativos no mês", cor: "#5EEAD4" },
-            ]}
-          />
+      {/* Evolução mensal de profissionais — separada por escopo */}
+      <div className="space-y-2">
+        <div>
+          <h2
+            className="text-2xl font-semibold mb-1"
+            style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
+          >
+            Evolução mensal de profissionais
+          </h2>
+          <p className="text-sm" style={{ color: "#64748B" }}>
+            Comparativo separado entre profissionais de consultório (assinantes
+            individuais) e institucionais (vinculados a uma unidade).
+          </p>
         </div>
-      </SecaoBloco>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SecaoBloco
+            titulo="Profissionais de consultório"
+            descricao="Assinantes individuais dos planos Inicial, Intermediária e Profissional."
+            tooltip="Somente profissionais SEM vínculo com unidade institucional. Novos = cadastrados no mês. Ativos = com pelo menos uma atividade (paciente, consulta, laudo ou parto) no mês."
+            acao={<BadgeEscopo escopo="consultorio" />}
+            loading={evolProfTipo.isLoading}
+            skeletonHeight={280}
+          >
+            <div className="rounded-lg border bg-white p-4" style={{ borderColor: "#E2E8F0" }}>
+              <GraficoLinhaEvolucao
+                dados={evolConsultorio}
+                series={[
+                  { chave: "novos", nome: "Novos profissionais", cor: "#7C4DBA" },
+                  { chave: "ativos", nome: "Ativos no mês", cor: "#5EEAD4" },
+                ]}
+              />
+            </div>
+          </SecaoBloco>
+
+          <SecaoBloco
+            titulo="Profissionais institucionais"
+            descricao="Profissionais vinculados a unidades (UBS, hospitais, clínicas contratantes)."
+            tooltip="Somente profissionais COM vínculo a uma unidade institucional. Novos = cadastrados no mês. Ativos = com pelo menos uma atividade no mês."
+            acao={<BadgeEscopo escopo="institucional" />}
+            loading={evolProfTipo.isLoading}
+            skeletonHeight={280}
+          >
+            <div className="rounded-lg border bg-white p-4" style={{ borderColor: "#E2E8F0" }}>
+              <GraficoLinhaEvolucao
+                dados={evolInstitucional}
+                series={[
+                  { chave: "novos", nome: "Novos profissionais", cor: "#0F766E" },
+                  { chave: "ativos", nome: "Ativos no mês", cor: "#5EEAD4" },
+                ]}
+              />
+            </div>
+          </SecaoBloco>
+        </div>
+      </div>
 
       {/* Pizzas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

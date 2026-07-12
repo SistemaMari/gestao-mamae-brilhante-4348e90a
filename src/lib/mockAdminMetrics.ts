@@ -13,6 +13,7 @@ import type {
   PlanoRow,
   EvolucaoPlanosRow,
   EvolucaoProfissionaisRow,
+  EvolucaoProfissionaisTipoRow,
   AlertaRow,
 } from "./adminMetrics";
 
@@ -85,6 +86,23 @@ export const mockEvolucaoMensalProfissionais: EvolucaoProfissionaisRow[] = MESES
   profissionais_ativos: 35 + i * 3,
 }));
 
+export const mockEvolucaoMensalProfissionaisTipo: EvolucaoProfissionaisTipoRow[] = MESES_12.flatMap(
+  (mes, i) => [
+    {
+      mes,
+      tipo_conta: "consultorio" as const,
+      novos_profissionais: 2 + Math.round(Math.sin(i / 2) * 1 + i / 4),
+      profissionais_ativos: 18 + i * 2,
+    },
+    {
+      mes,
+      tipo_conta: "institucional" as const,
+      novos_profissionais: 2 + Math.round(Math.cos(i / 2) * 1 + i / 5),
+      profissionais_ativos: 17 + i,
+    },
+  ],
+);
+
 export const mockEvolucaoMensalPlanos: EvolucaoPlanosRow[] = MESES_12.flatMap((mes, i) =>
   mockProfissionaisPorPlano.map((pl, j) => ({
     mes,
@@ -111,5 +129,6 @@ export const MOCK_ADMIN: Record<string, unknown[]> = {
   profissionais_por_plano: mockProfissionaisPorPlano,
   evolucao_mensal_planos: mockEvolucaoMensalPlanos,
   evolucao_mensal_profissionais: mockEvolucaoMensalProfissionais,
+  evolucao_mensal_profissionais_tipo: mockEvolucaoMensalProfissionaisTipo,
   alertas_operacionais: mockAlertasOperacionais,
 };
