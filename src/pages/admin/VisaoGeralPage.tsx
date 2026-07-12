@@ -132,6 +132,20 @@ export default function VisaoGeralPage() {
     [evolProf.data],
   );
 
+  const dadosPorTipo = (tipo: "consultorio" | "institucional") => {
+    const rows = (evolProfTipo.data ?? []).filter((r) => r.tipo_conta === tipo);
+    return rows
+      .slice()
+      .sort((a, b) => a.mes.localeCompare(b.mes))
+      .map((r) => ({
+        mes: fmtMes(r.mes),
+        novos: r.novos_profissionais,
+        ativos: r.profissionais_ativos,
+      }));
+  };
+  const evolConsultorio = useMemo(() => dadosPorTipo("consultorio"), [evolProfTipo.data]);
+  const evolInstitucional = useMemo(() => dadosPorTipo("institucional"), [evolProfTipo.data]);
+
   const evolPlanosDados = useMemo(() => {
     const meses = Array.from(new Set((evolPlanos.data ?? []).map((r) => r.mes))).sort();
     return meses.map((m) => {
