@@ -192,7 +192,7 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
     setConfirmRemoverFoto(false);
     if (error) { toast.error('Erro ao remover foto.'); return; }
     setAvatarUrl(null);
-    setAvatarSigned(null);
+    setAvatarSignedUrl(null);
     toast.success('Foto removida.');
     window.dispatchEvent(new CustomEvent('admin:nome-atualizado'));
   };
@@ -232,7 +232,6 @@ function PerfilConsultorio({ initial, email, userId }: { initial: PerfilData; em
     if (senha1 !== senha2) { toast.error('As senhas não coincidem.'); return; }
     setSavingSenha(true);
     // Reautentica com a senha atual
-    const email = user?.email;
     if (!email) { setSavingSenha(false); toast.error('Sessão inválida.'); return; }
     const { error: reauthErr } = await supabase.auth.signInWithPassword({ email, password: senhaAtual });
     if (reauthErr) {
