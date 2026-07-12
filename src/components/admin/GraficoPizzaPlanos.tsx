@@ -1,5 +1,5 @@
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { PlanoRow } from "@/lib/adminMetrics";
+import { BarrasHorizontaisRanking } from "./BarrasHorizontaisRanking";
 
 const CORES: Record<string, string> = {
   inicial: "#5EEAD4",
@@ -12,44 +12,26 @@ interface Props {
 }
 
 export function GraficoPizzaPlanos({ rows }: Props) {
-  // Garante a ordem fixa Inicial / Intermediária / Profissional.
   const ordem = ["inicial", "intermediaria", "profissional"];
-  const dados = ordem.map((slug) => {
+  const itens = ordem.map((slug) => {
     const r = rows.find((x) => x.plano_slug === slug);
-    return {
-      name:
-        slug === "inicial"
-          ? "Inicial"
-          : slug === "intermediaria"
-            ? "Intermediária"
-            : "Profissional",
-      value: r?.total ?? 0,
-      slug,
-    };
+    const nome =
+      slug === "inicial"
+        ? "Inicial"
+        : slug === "intermediaria"
+          ? "Intermediária"
+          : "Profissional";
+    return { nome, valor: r?.total ?? 0, cor: CORES[slug] };
   });
+  const total = itens.reduce((s, i) => s + i.valor, 0);
 
   return (
-    <div className="min-h-[300px] w-full">
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={dados}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={90}
-            label={({ name, value }) => `${name}: ${value}`}
-          >
-            {dados.map((d) => (
-              <Cell key={d.slug} fill={CORES[d.slug]} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
+    <BarrasHorizontaisRanking
+      itens={itens}
+      ordenar={false}
+      vazioMsg="Nenhum profissional cadastrado ainda."
+      rodape={`${total} profissional${total === 1 ? "" : "is"} no total`}
+    />
   );
 }
 
