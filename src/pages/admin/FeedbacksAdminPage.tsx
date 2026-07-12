@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquareHeart, Loader2, Search, Paperclip } from 'lucide-react';
+import { MessageSquareHeart, Loader2, Search, Paperclip, Mail, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDateBR } from '@/lib/dateUtils';
 
