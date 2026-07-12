@@ -1009,6 +1009,7 @@ export type Database = {
           criado_por: string | null
           desfecho_clinico: string
           id: string
+          idioma: string
           observacoes: string | null
           ordem_bloco: number
           publicado_em: string | null
@@ -1025,6 +1026,7 @@ export type Database = {
           criado_por?: string | null
           desfecho_clinico: string
           id?: string
+          idioma?: string
           observacoes?: string | null
           ordem_bloco?: number
           publicado_em?: string | null
@@ -1041,6 +1043,7 @@ export type Database = {
           criado_por?: string | null
           desfecho_clinico?: string
           id?: string
+          idioma?: string
           observacoes?: string | null
           ordem_bloco?: number
           publicado_em?: string | null
