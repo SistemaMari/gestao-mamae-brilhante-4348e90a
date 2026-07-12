@@ -143,7 +143,8 @@
     "passwordUpdatedRedirecting": "Password updated successfully! Redirecting...",
     "minCharsPlaceholder": "Minimum 6 characters",
     "confirmNewPassword": "Confirm new password",
-    "repeatPasswordPlaceholder": "Repeat the password"
+    "repeatPasswordPlaceholder": "Repeat the password",
+    "accountDisabled": "Your account has been deactivated. Please contact the administrator."
   },
   "dashboard": {
     "title": "Professional dashboard",

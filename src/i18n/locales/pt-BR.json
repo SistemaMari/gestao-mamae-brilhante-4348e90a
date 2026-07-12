@@ -143,7 +143,8 @@
     "passwordUpdatedRedirecting": "Senha atualizada com sucesso! Redirecionando...",
     "minCharsPlaceholder": "Mínimo 6 caracteres",
     "confirmNewPassword": "Confirmar nova senha",
-    "repeatPasswordPlaceholder": "Repita a senha"
+    "repeatPasswordPlaceholder": "Repita a senha",
+    "accountDisabled": "Sua conta foi desativada. Entre em contato com o administrador."
   },
   "dashboard": {
     "title": "Painel do profissional",
