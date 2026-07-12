@@ -129,5 +129,6 @@ export const MOCK_ADMIN: Record<string, unknown[]> = {
   profissionais_por_plano: mockProfissionaisPorPlano,
   evolucao_mensal_planos: mockEvolucaoMensalPlanos,
   evolucao_mensal_profissionais: mockEvolucaoMensalProfissionais,
+  evolucao_mensal_profissionais_tipo: mockEvolucaoMensalProfissionaisTipo,
   alertas_operacionais: mockAlertasOperacionais,
 };
