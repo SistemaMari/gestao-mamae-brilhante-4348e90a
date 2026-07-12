@@ -90,6 +90,11 @@ export default function VisaoGeralPage() {
     undefined,
     { previewMode },
   );
+  const evolProfTipo = useAdminView<EvolucaoProfissionaisTipoRow>(
+    "evolucao_mensal_profissionais_tipo",
+    undefined,
+    { previewMode },
+  );
   const evolPlanos = useAdminView<EvolucaoPlanosRow>(
     "evolucao_mensal_planos",
     undefined,
