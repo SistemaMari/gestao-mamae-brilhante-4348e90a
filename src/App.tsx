@@ -58,6 +58,7 @@ import PreviewHubPage, {
   PreviewCadastroConvitePage,
 } from "./pages/PreviewHubPage";
 import PreviewAppShell from "./components/PreviewAppShell";
+import VitrineGuard from "./components/VitrineGuard";
 import PreviewAdminLayout from "./pages/admin/PreviewAdminLayout";
 import ComponentesDemoPage from "./pages/_dev/ComponentesDemoPage";
 import FichaCarimbadaDemo from "./pages/_dev/FichaCarimbadaDemo";
