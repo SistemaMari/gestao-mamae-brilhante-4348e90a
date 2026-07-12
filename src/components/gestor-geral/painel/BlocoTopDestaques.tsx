@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import TooltipInfo from "@/components/gestor-geral/TooltipInfo";
 import type { TopDestaquesPayload } from "@/hooks/usePainelDataGestorGeral";
@@ -10,10 +11,11 @@ interface Props {
 }
 
 export default function BlocoTopDestaques({ data, isLoading, isError }: Props) {
+  const { t } = useTranslation();
   if (isError) {
     return (
       <div className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] p-4 text-sm text-[#991B1B]">
-        Falha ao carregar destaques.
+        {t('gestorGeral.topDestaques.loadError')}
       </div>
     );
   }
@@ -32,8 +34,8 @@ export default function BlocoTopDestaques({ data, isLoading, isError }: Props) {
         <div className="flex items-start justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <p className="text-xs font-medium text-[#065F46]">Diagnostica MAIS</p>
-              <TooltipInfo text="Unidade com maior número de diagnósticos confirmados de DMG (cenários 1, 6 e 6b) no período selecionado." />
+              <p className="text-xs font-medium text-[#065F46]">{t('gestorGeral.topDestaques.diagnosticaMais')}</p>
+              <TooltipInfo text={t('gestorGeral.topDestaques.maisTooltip')} />
             </div>
             <p
               className="mt-1 text-lg font-semibold text-[#1E293B] truncate"
@@ -42,7 +44,7 @@ export default function BlocoTopDestaques({ data, isLoading, isError }: Props) {
               {data.mais?.unidade_nome ?? "—"}
             </p>
             <p className="mt-0.5 text-sm text-[#475569]">
-              {data.mais ? `${data.mais.diagnosticos} diagnóstico${data.mais.diagnosticos === 1 ? "" : "s"}` : "Sem dados"}
+              {data.mais ? t('gestorGeral.topDestaques.diagnosticosCount', { count: data.mais.diagnosticos }) : t('common.noData')}
             </p>
           </div>
           <div className="h-10 w-10 rounded-lg bg-[#DCFCE7] flex items-center justify-center shrink-0">
@@ -55,8 +57,8 @@ export default function BlocoTopDestaques({ data, isLoading, isError }: Props) {
         <div className="flex items-start justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <p className="text-xs font-medium text-[#92400E]">Diagnostica MENOS</p>
-              <TooltipInfo text="Unidade com menor número de diagnósticos confirmados de DMG no período. Pode indicar baixa captação ou subdiagnóstico." />
+              <p className="text-xs font-medium text-[#92400E]">{t('gestorGeral.topDestaques.diagnosticaMenos')}</p>
+              <TooltipInfo text={t('gestorGeral.topDestaques.menosTooltip')} />
             </div>
             <p
               className="mt-1 text-lg font-semibold text-[#1E293B] truncate"
@@ -65,7 +67,7 @@ export default function BlocoTopDestaques({ data, isLoading, isError }: Props) {
               {data.menos?.unidade_nome ?? "—"}
             </p>
             <p className="mt-0.5 text-sm text-[#475569]">
-              {data.menos ? `${data.menos.diagnosticos} diagnóstico${data.menos.diagnosticos === 1 ? "" : "s"}` : "Sem dados"}
+              {data.menos ? t('gestorGeral.topDestaques.diagnosticosCount', { count: data.menos.diagnosticos }) : t('common.noData')}
             </p>
           </div>
           <div className="h-10 w-10 rounded-lg bg-[#FEF3C7] flex items-center justify-center shrink-0">

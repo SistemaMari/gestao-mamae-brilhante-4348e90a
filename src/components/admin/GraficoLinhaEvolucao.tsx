@@ -7,6 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 
 export interface SerieLinha {
   chave: string;
@@ -42,6 +43,7 @@ function TooltipCustom({
   payload?: TooltipItem[];
   label?: string;
 }) {
+  const { i18n } = useTranslation();
   if (!active || !payload || payload.length === 0) return null;
   return (
     <div
@@ -74,7 +76,7 @@ function TooltipCustom({
               className="text-[13px] font-semibold"
               style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
             >
-              {typeof p.value === "number" ? p.value.toLocaleString("pt-BR") : p.value}
+              {typeof p.value === "number" ? p.value.toLocaleString(i18n.language) : p.value}
             </span>
           </div>
         ))}

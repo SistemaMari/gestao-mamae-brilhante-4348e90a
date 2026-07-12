@@ -1,4 +1,5 @@
 import { useMemo, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export interface UnidadeOption {
@@ -20,6 +21,7 @@ export default function MultiSelectUnidades({
   onChange,
   disabled,
 }: Props) {
+  const { t } = useTranslation();
   const total = unidades.length;
   const sel = selecionadas.length;
   const allChecked = total > 0 && sel === total;
@@ -58,12 +60,12 @@ export default function MultiSelectUnidades({
             onCheckedChange={toggleAll}
             disabled={disabled || total === 0}
           />
-          Selecionar todas
+          {t("admin.multiSelectUnidades.selectAll")}
         </label>
         <div className="max-h-[320px] overflow-y-auto">
           {total === 0 ? (
             <p className="px-3 py-4 text-sm text-muted-foreground">
-              Nenhuma unidade cadastrada.
+              {t("admin.multiSelectUnidades.empty")}
             </p>
           ) : (
             unidades.map((u) => (
@@ -88,7 +90,7 @@ export default function MultiSelectUnidades({
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        {sel} de {total} selecionada{total === 1 ? "" : "s"}
+        {t("admin.multiSelectUnidades.summary", { sel, total })}
       </p>
     </div>
   );

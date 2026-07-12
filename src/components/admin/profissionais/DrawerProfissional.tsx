@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -49,6 +50,7 @@ export default function DrawerProfissional({
   profissional: ProfissionalConsultorio | null;
   onClose: () => void;
 }) {
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [editing, setEditing] = useState<EditField>(null);
   const [draft, setDraft] = useState("");
@@ -69,7 +71,7 @@ export default function DrawerProfissional({
     if (!editing) return;
     const valor = editing === "telefone" ? draft : draft.trim();
     if (editing === "nome" && valor.length < 3) {
-      toast.error("Nome muito curto.");
+      toast.error(t("admin.profissionais.nameTooShort"));
       return;
     }
     const { data, error } = await supabase.functions.invoke(
@@ -87,7 +89,7 @@ export default function DrawerProfissional({
       toast.error(codigo || data?.mensagem || FALLBACK_GENERICO);
       return;
     }
-    toast.success("Atualizado.");
+    toast.success(t("admin.profissionais.updated"));
     qc.invalidateQueries({ queryKey: ["profissionais-consultorio"] });
     setEditing(null);
   };
@@ -133,11 +135,11 @@ export default function DrawerProfissional({
     : 0;
 
   const statusBadge = profissional.acesso_revogado ? (
-    <Badge className="bg-red-100 text-red-700 hover:bg-red-100">⊘ Revogado</Badge>
+    <Badge className="bg-red-100 text-red-700 hover:bg-red-100">⊘ {t("admin.profissionais.revoked")}</Badge>
   ) : profissional.convite_pendente ? (
-    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⏳ Convite pendente</Badge>
+    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⏳ {t("admin.profissionais.invitePending")}</Badge>
   ) : (
-    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">✓ Ativo</Badge>
+    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">✓ {t("admin.profissionais.active")}</Badge>
   );
 
   return (
@@ -153,48 +155,48 @@ export default function DrawerProfissional({
 
           {/* Seção 1 — Informações */}
           <section className="mt-4">
-            <h3 className="font-[Sora] text-sm font-semibold text-[#7E69AB] mb-1">Informações</h3>
-            <Field label="Nome" field="nome" value={profissional.nome} />
+            <h3 className="font-[Sora] text-sm font-semibold text-[#7E69AB] mb-1">{t("admin.profissionais.infoSection")}</h3>
+            <Field label={t("common.name")} field="nome" value={profissional.nome} />
             <div className="flex items-start justify-between gap-2 py-2 border-b border-[#F0EAFA]">
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-muted-foreground">E-mail</p>
+                <p className="text-xs text-muted-foreground">{t("common.email")}</p>
                 <p className="text-sm font-medium text-[#2A1B47] truncate">{profissional.email || "—"}</p>
               </div>
             </div>
-            <Field label="CRM" field="crm" value={profissional.crm} readonly={!!profissional.crm} />
-            <Field label="Especialidade" field="especialidade" value={profissional.especialidade} />
-            <Field label="Telefone" field="telefone" value={profissional.telefone} />
+            <Field label={t("admin.profissionais.crm")} field="crm" value={profissional.crm} readonly={!!profissional.crm} />
+            <Field label={t("admin.profissionais.specialty")} field="especialidade" value={profissional.especialidade} />
+            <Field label={t("admin.profissionais.phone")} field="telefone" value={profissional.telefone} />
           </section>
 
           {/* Seção 2 — Plano e Cobrança */}
           <section className="mt-6 rounded-lg border border-[#E2DCF5] bg-[#FAF8FF] p-4">
-            <h3 className="font-[Sora] text-sm font-semibold text-[#7E69AB] mb-2">Plano e Cobrança</h3>
+            <h3 className="font-[Sora] text-sm font-semibold text-[#7E69AB] mb-2">{t("admin.profissionais.planSection")}</h3>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Plano atual</span>
+                <span className="text-muted-foreground">{t("admin.profissionais.currentPlan")}</span>
                 <span className="font-semibold text-[#2A1B47]">{profissional.plano_nome ?? "—"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Valor mensal</span>
+                <span className="text-muted-foreground">{t("admin.profissionais.monthlyValue")}</span>
                 <span className="font-semibold text-[#2A1B47]">
                   R$ {Number(profissional.plano_preco ?? 0).toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Status</span>
+                <span className="text-muted-foreground">{t("common.status")}</span>
                 <span className="font-medium capitalize">{profissional.plano_status}</span>
               </div>
               {profissional.proxima_renovacao && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Próxima renovação</span>
-                  <span>{new Date(profissional.proxima_renovacao).toLocaleDateString("pt-BR")}</span>
+                  <span className="text-muted-foreground">{t("admin.profissionais.nextRenewal")}</span>
+                  <span>{new Date(profissional.proxima_renovacao).toLocaleDateString(i18n.language)}</span>
                 </div>
               )}
             </div>
 
             <div className="mt-3">
               <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Laudos do mês</span>
+                <span>{t("admin.profissionais.monthReports")}</span>
                 <span>{profissional.laudos_usados}/{profissional.laudos_limite}</span>
               </div>
               <Progress value={pct} className="h-2" />
@@ -207,53 +209,52 @@ export default function DrawerProfissional({
               onClick={() => setOpenMudar(true)}
               disabled={profissional.acesso_revogado}
             >
-              Mudar plano
+              {t("admin.profissionais.changePlan")}
             </Button>
           </section>
 
           {/* Seção 3 — Histórico de Pagamentos */}
           <section className="mt-6 rounded-lg border border-dashed border-[#E2E8F0] bg-slate-50 p-4">
             <h3 className="font-[Sora] text-sm font-semibold text-slate-600 mb-1 flex items-center gap-1">
-              <AlertCircle className="h-4 w-4" /> Histórico de pagamentos
+              <AlertCircle className="h-4 w-4" /> {t("admin.profissionais.paymentsSection")}
             </h3>
             <p className="text-xs text-muted-foreground">
-              O histórico de pagamentos será exibido aqui após a integração com o Asaas.
-              Por enquanto, consulte diretamente no painel Asaas.
+              {t("admin.profissionais.paymentsPlaceholder")}
             </p>
             {profissional.asaas_customer_id && (
               <Button
                 size="sm" variant="outline" className="mt-3"
                 onClick={() => window.open("https://www.asaas.com/customers", "_blank")}
               >
-                <ExternalLink className="h-3 w-3 mr-1" /> Abrir no painel Asaas
+                <ExternalLink className="h-3 w-3 mr-1" /> {t("admin.profissionais.openAsaas")}
               </Button>
             )}
           </section>
 
           {/* Seção 4 — Ações */}
           <section className="mt-6 mb-6">
-            <h3 className="font-[Sora] text-sm font-semibold text-[#7E69AB] mb-2">Ações</h3>
+            <h3 className="font-[Sora] text-sm font-semibold text-[#7E69AB] mb-2">{t("common.actions")}</h3>
             <div className="space-y-2">
               <Button
                 variant="outline" className="w-full justify-start"
                 onClick={() => setOpenMudar(true)}
                 disabled={profissional.acesso_revogado}
               >
-                Mudar plano
+                {t("admin.profissionais.changePlan")}
               </Button>
               {profissional.acesso_revogado ? (
                 <Button
                   variant="outline" className="w-full justify-start border-blue-300 text-blue-700"
                   onClick={() => setOpenReativar(true)}
                 >
-                  Reativar acesso
+                  {t("admin.profissionais.reactivateAccess")}
                 </Button>
               ) : (
                 <Button
                   variant="outline" className="w-full justify-start border-red-300 text-red-700 hover:bg-red-50"
                   onClick={() => setOpenRevogar(true)}
                 >
-                  Revogar acesso
+                  {t("admin.profissionais.revokeAccess")}
                 </Button>
               )}
             </div>

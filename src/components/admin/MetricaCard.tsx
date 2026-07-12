@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 interface MetricaCardProps {
   label: string;
   valor: number | string;
@@ -5,19 +7,24 @@ interface MetricaCardProps {
   variacao?: { valor: number; periodo: string };
 }
 
-function formatar(valor: number | string, formato: "numero" | "percentual" | "moeda"): string {
+function formatar(
+  valor: number | string,
+  formato: "numero" | "percentual" | "moeda",
+  locale: string,
+): string {
   if (typeof valor === "string") return valor;
   if (formato === "percentual") return `${valor}%`;
   if (formato === "moeda") {
-    return `R$ ${valor.toLocaleString("pt-BR", {
+    return `R$ ${valor.toLocaleString(locale, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
   }
-  return valor.toLocaleString("pt-BR");
+  return valor.toLocaleString(locale);
 }
 
 export function MetricaCard({ label, valor, formato = "numero", variacao }: MetricaCardProps) {
+  const { t, i18n } = useTranslation();
   const positivo = variacao ? variacao.valor >= 0 : false;
   return (
     <div
@@ -34,7 +41,7 @@ export function MetricaCard({ label, valor, formato = "numero", variacao }: Metr
         className="mt-1 text-[28px] font-bold leading-tight"
         style={{ fontFamily: "Sora, sans-serif", color: "#1E293B" }}
       >
-        {formatar(valor, formato)}
+        {formatar(valor, formato, i18n.language)}
       </div>
       {variacao && (
         <div
@@ -45,7 +52,7 @@ export function MetricaCard({ label, valor, formato = "numero", variacao }: Metr
             {positivo ? "↑" : "↓"} {Math.abs(variacao.valor)}
             {formato === "percentual" ? "%" : ""}
           </span>
-          <span style={{ color: "#64748B" }}> vs {variacao.periodo}</span>
+          <span style={{ color: "#64748B" }}> {t("admin.metricaCard.vs", { periodo: variacao.periodo })}</span>
         </div>
       )}
     </div>

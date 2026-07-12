@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Users, FileText, Settings, LogOut, Building2, Loader2, PlayCircle } from "lucide-react";
+import i18n from "@/i18n";
 import {
   Sidebar,
   SidebarContent,
@@ -18,14 +20,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const buildItems = (base: string) => [
-  { title: "Painel", path: base, icon: LayoutDashboard, exact: true },
-  { title: "Equipe", path: `${base}/equipe`, icon: Users, exact: false },
-  { title: "Fichas da unidade", path: `${base}/fichas`, icon: FileText, exact: false },
-  { title: "Configurações", path: `${base}/configuracoes`, icon: Settings, exact: false },
+  { title: i18n.t("nav.dashboard"), path: base, icon: LayoutDashboard, exact: true },
+  { title: i18n.t("nav.team"), path: `${base}/equipe`, icon: Users, exact: false },
+  { title: i18n.t("gestor.appShell.fichasUnidade"), path: `${base}/fichas`, icon: FileText, exact: false },
+  { title: i18n.t("admin.sidebar.settings"), path: `${base}/configuracoes`, icon: Settings, exact: false },
   // Tutorial só no app real; a vitrine não tem rota /vitrine/gestao/tutorial.
   ...(base.startsWith("/vitrine")
     ? []
-    : [{ title: "Tutorial", path: `${base}/tutorial`, icon: PlayCircle, exact: false }]),
+    : [{ title: i18n.t("admin.sidebar.tutorial"), path: `${base}/tutorial`, icon: PlayCircle, exact: false }]),
 ];
 
 function iniciais(nome?: string | null) {
@@ -39,6 +41,7 @@ function iniciais(nome?: string | null) {
 }
 
 function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: string; unidade: string; email: string; basePath: string; onSair: () => void }) {
+  const { t } = useTranslation();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
@@ -72,7 +75,7 @@ function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: strin
                 <p className="truncate text-sm font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
                   {nome || "—"}
                 </p>
-                <p className="text-xs text-[#7E69AB]">Gestor de Unidade</p>
+                <p className="text-xs text-[#7E69AB]">{t('gestor.appShell.gestorUnidade')}</p>
               </div>
             )}
           </div>
@@ -124,7 +127,7 @@ function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: strin
             className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            {!collapsed && "Sair"}
+            {!collapsed && t('common.logout')}
           </Button>
         </div>
       </SidebarContent>
@@ -133,12 +136,13 @@ function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: strin
 }
 
 export default function AppShellGestor() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isVitrine = pathname.startsWith("/vitrine");
   const [carregando, setCarregando] = useState(!isVitrine);
-  const [nome, setNome] = useState(isVitrine ? "Dra. Demonstração" : "");
+  const [nome, setNome] = useState(isVitrine ? i18n.t("gestor.appShell.demoNome") : "");
   const [unidade, setUnidade] = useState(isVitrine ? "Hospital Demo MARI" : "");
 
   useEffect(() => {
@@ -196,7 +200,7 @@ export default function AppShellGestor() {
           <header className="flex h-14 items-center gap-3 border-b border-[#E2E8F0] bg-white px-4">
             <SidebarTrigger className="text-[#64748B]" />
             <span className="text-sm text-[#64748B]" style={{ fontFamily: "Sora, sans-serif" }}>
-              Gestão da Unidade
+              {t('gestor.appShell.gestaoUnidade')}
             </span>
           </header>
           <main className="flex-1 min-w-0">

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, RotateCw, Search, Ban, RefreshCcw, Pencil, Link2, Unlink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,7 @@ const MARI_SANDBOX_NOME = "MARI Sandbox";
 type StatusFiltro = "todos" | "ativos" | "pendente" | "revogado" | "sem_unidade";
 
 export default function AbaGestoresUnidade() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [openCadastrar, setOpenCadastrar] = useState(false);
   const [editar, setEditar] = useState<GestorUnidadeRow | null>(null);
@@ -106,7 +108,7 @@ export default function AbaGestoresUnidade() {
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    toast.success(`Convite reenviado para ${g.email}.`);
+    toast.success(t("admin.gestoresUnidade.inviteResent", { email: g.email }));
     refresh();
   }
 
@@ -114,24 +116,24 @@ export default function AbaGestoresUnidade() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Status</label>
+          <label className="text-xs text-muted-foreground">{t("common.status")}</label>
           <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as StatusFiltro)}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="ativos">Ativos</SelectItem>
-              <SelectItem value="pendente">Convite pendente</SelectItem>
-              <SelectItem value="revogado">Acesso revogado</SelectItem>
-              <SelectItem value="sem_unidade">Sem unidade vinculada</SelectItem>
+              <SelectItem value="todos">{t("common.all")}</SelectItem>
+              <SelectItem value="ativos">{t("admin.gestoresUnidade.filterActive")}</SelectItem>
+              <SelectItem value="pendente">{t("admin.gestoresUnidade.filterPending")}</SelectItem>
+              <SelectItem value="revogado">{t("admin.gestoresUnidade.filterRevoked")}</SelectItem>
+              <SelectItem value="sem_unidade">{t("admin.gestoresUnidade.filterNoUnit")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Contratante</label>
+          <label className="text-xs text-muted-foreground">{t("admin.gestoresUnidade.contratante")}</label>
           <Select value={filtroContratante} onValueChange={setFiltroContratante}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos os contratantes</SelectItem>
+              <SelectItem value="todos">{t("admin.gestoresUnidade.allContratantes")}</SelectItem>
               {contratantesOpt.map((c) => (
                 <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
               ))}
@@ -139,15 +141,15 @@ export default function AbaGestoresUnidade() {
           </Select>
         </div>
         <div className="space-y-1 flex-1 min-w-[220px]">
-          <label className="text-xs text-muted-foreground">Buscar por nome ou e-mail</label>
+          <label className="text-xs text-muted-foreground">{t("admin.gestoresUnidade.searchLabel")}</label>
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input className="pl-8" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Digite…" />
+            <Input className="pl-8" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={t("admin.gestoresUnidade.searchPlaceholder")} />
           </div>
         </div>
-        <Button variant="outline" onClick={limpar}>Limpar filtros</Button>
+        <Button variant="outline" onClick={limpar}>{t("admin.clearFilters")}</Button>
         <Button onClick={() => setOpenCadastrar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E] ml-auto">
-          <Plus className="mr-2 h-4 w-4" /> Cadastrar gestor de unidade
+          <Plus className="mr-2 h-4 w-4" /> {t("admin.gestoresUnidade.addGestor")}
         </Button>
       </div>
 
@@ -155,7 +157,14 @@ export default function AbaGestoresUnidade() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-[#5B3A8E]">
-              {["Nome", "E-mail", "Unidade vinculada", "Contratante", "Status", "Ações"].map((h, i) => (
+              {[
+                t("common.name"),
+                t("common.email"),
+                t("admin.gestoresUnidade.colLinkedUnit"),
+                t("admin.gestoresUnidade.contratante"),
+                t("common.status"),
+                t("common.actions"),
+              ].map((h, i) => (
                 <TableHead key={h} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 5 ? "text-right" : ""}`}>
                   {h}
                 </TableHead>
@@ -167,10 +176,10 @@ export default function AbaGestoresUnidade() {
               <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
             ))}
             {!isLoading && isError && (
-              <TableRow><TableCell colSpan={6} className="text-center text-destructive">Erro ao carregar gestores.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-destructive">{t("admin.gestoresUnidade.loadError")}</TableCell></TableRow>
             )}
             {!isLoading && !isError && lista.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Nenhum gestor encontrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">{t("admin.gestoresUnidade.empty")}</TableCell></TableRow>
             )}
             {lista.map((g, idx) => (
               <TableRow
@@ -179,15 +188,15 @@ export default function AbaGestoresUnidade() {
               >
                 <TableCell className="font-medium">
                   {g.nome}
-                  {g.convite_pendente && <span className="ml-1" title="Convite pendente">⏳</span>}
-                  {g.acesso_revogado && <span className="ml-1" title="Acesso revogado">⛔</span>}
+                  {g.convite_pendente && <span className="ml-1" title={t("admin.gestoresUnidade.pending")}>⏳</span>}
+                  {g.acesso_revogado && <span className="ml-1" title={t("admin.gestoresUnidade.revoked")}>⛔</span>}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{g.email ?? "—"}</TableCell>
                 <TableCell>
                   {g.unidade_nome ? (
                     g.unidade_nome
                   ) : !g.acesso_revogado ? (
-                    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⚠ Sem unidade</Badge>
+                    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⚠ {t("admin.gestoresUnidade.noUnit")}</Badge>
                   ) : (
                     <span className="text-muted-foreground italic">—</span>
                   )}
@@ -196,47 +205,47 @@ export default function AbaGestoresUnidade() {
                   {g.contratante_nome === MARI_SANDBOX_NOME ? (
                     <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">⚙ Sandbox</Badge>
                   ) : g.contratante_status === "encerrado" ? (
-                    <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100" title="Contratante encerrado">⊘ {g.contratante_nome}</Badge>
+                    <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100" title={t("admin.gestoresUnidade.contratanteEnded")}>⊘ {g.contratante_nome}</Badge>
                   ) : (
                     g.contratante_nome ?? <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
                 <TableCell>
                   {g.acesso_revogado ? (
-                    <Badge variant="destructive">Revogado</Badge>
+                    <Badge variant="destructive">{t("admin.gestoresUnidade.badgeRevoked")}</Badge>
                   ) : g.convite_pendente ? (
-                    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">Pendente</Badge>
+                    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">{t("admin.gestoresUnidade.badgePending")}</Badge>
                   ) : (
-                    <Badge className="bg-emerald-100 text-emerald-900 hover:bg-emerald-100">Ativo</Badge>
+                    <Badge className="bg-emerald-100 text-emerald-900 hover:bg-emerald-100">{t("admin.gestoresUnidade.badgeActive")}</Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="sm" onClick={() => setEditar(g)} disabled={g.acesso_revogado}>
-                      <Pencil className="mr-1 h-3 w-3" /> Editar
+                      <Pencil className="mr-1 h-3 w-3" /> {t("common.edit")}
                     </Button>
                     {!g.acesso_revogado && !g.unidade_id && (
                       <Button variant="ghost" size="sm" onClick={() => setVincular({ modo: "fixar_gestor", gestor_id: g.id, gestor_nome: g.nome })}>
-                        <Link2 className="mr-1 h-3 w-3" /> Vincular
+                        <Link2 className="mr-1 h-3 w-3" /> {t("admin.gestoresUnidade.link")}
                       </Button>
                     )}
                     {!g.acesso_revogado && g.unidade_id && g.unidade_nome && (
                       <Button variant="ghost" size="sm" onClick={() => setDesvincular({ gestor_id: g.id, gestor_nome: g.nome, unidade_nome: g.unidade_nome! })}>
-                        <Unlink className="mr-1 h-3 w-3" /> Desvincular
+                        <Unlink className="mr-1 h-3 w-3" /> {t("admin.gestoresUnidade.unlink")}
                       </Button>
                     )}
                     {g.acesso_revogado ? (
                       <Button variant="ghost" size="sm" onClick={() => setReativar(g)}>
-                        <RefreshCcw className="mr-1 h-3 w-3" /> Reativar
+                        <RefreshCcw className="mr-1 h-3 w-3" /> {t("admin.gestoresUnidade.reactivate")}
                       </Button>
                     ) : (
                       <Button variant="ghost" size="sm" className="text-destructive" onClick={() => setRevogar(g)}>
-                        <Ban className="mr-1 h-3 w-3" /> Revogar
+                        <Ban className="mr-1 h-3 w-3" /> {t("admin.gestoresUnidade.revoke")}
                       </Button>
                     )}
                     {g.convite_pendente && !g.acesso_revogado && (
                       <Button variant="ghost" size="sm" onClick={() => reenviar(g)}>
-                        <RotateCw className="mr-1 h-3 w-3" /> Reenviar
+                        <RotateCw className="mr-1 h-3 w-3" /> {t("admin.gestoresUnidade.resend")}
                       </Button>
                     )}
                   </div>

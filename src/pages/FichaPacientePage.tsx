@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -92,58 +93,68 @@ const HIDE_FICHA_6_PONTOS = true;
 
 
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  aguardando_gj: { label: 'Aguardando GJ', color: 'bg-gray-500' },
-  aguardando_gtt: { label: 'Aguardando GTT 75g', color: 'bg-blue-500' },
-  dmg_afastado: { label: 'DMG afastado', color: 'bg-emerald-500' },
-  dmg_confirmado: { label: 'DMG confirmado', color: 'bg-orange-500' },
-  resultado_parto: { label: 'Resultado do parto', color: 'bg-purple-500' },
-  encaminhada_endocrino: { label: 'Associar endocrino', color: 'bg-red-500' },
+// labelKey aponta para fichaPaciente.status.* — resolvido via t() no ponto de uso
+// (STATUS_CONFIG é module-level, não tem acesso ao hook useTranslation).
+const STATUS_CONFIG: Record<string, { labelKey: string; color: string }> = {
+  aguardando_gj: { labelKey: 'fichaPaciente.status.aguardando_gj', color: 'bg-gray-500' },
+  aguardando_gtt: { labelKey: 'fichaPaciente.status.aguardando_gtt', color: 'bg-blue-500' },
+  dmg_afastado: { labelKey: 'fichaPaciente.status.dmg_afastado', color: 'bg-emerald-500' },
+  dmg_confirmado: { labelKey: 'fichaPaciente.status.dmg_confirmado', color: 'bg-orange-500' },
+  resultado_parto: { labelKey: 'fichaPaciente.status.resultado_parto', color: 'bg-purple-500' },
+  encaminhada_endocrino: { labelKey: 'fichaPaciente.status.encaminhada_endocrino', color: 'bg-red-500' },
   // PROMPT 42B — encerramento por insulinização (Hipótese 3, ≤30 sem)
-  encerrada_insulinizacao: { label: 'Encerrada por insulinização', color: 'bg-violet-600' },
+  encerrada_insulinizacao: { labelKey: 'fichaPaciente.status.encerrada_insulinizacao', color: 'bg-violet-600' },
 };
 
 // Dynamic display name based on chronological index
-function getDisplayName(c: PreviewConsulta, index: number, allConsultas: PreviewConsulta[], igSemanasAoVivo: number | null): string {
+function getDisplayName(
+  c: PreviewConsulta,
+  index: number,
+  allConsultas: PreviewConsulta[],
+  igSemanasAoVivo: number | null,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
   // Registro do parto NÃO é numerado como RETORNO N — é evento final
   if (c.tipo === 'registro_parto') {
-    return 'REGISTRO DO PARTO';
+    return t('fichaPaciente.displayName.registroPartoEvento');
   }
   // 38B-A (#6): "CASO NOVO" é amarrado ao tipo do PRÓPRIO registro (consulta_1),
   // nunca à posição na lista — evita troca de rótulo entre consultas de mesma data.
   // O número do retorno segue a ordem cronológica (agora estável pelo desempate
   // por created_at na query).
-  const prefix = c.tipo === 'consulta_1' ? 'CASO NOVO' : `RETORNO ${index}`;
+  const prefix = c.tipo === 'consulta_1'
+    ? t('fichaPaciente.displayName.casoNovoPrefix')
+    : t('fichaPaciente.displayName.retornoPrefix', { index });
 
   switch (c.tipo) {
     case 'consulta_1':
-      return `${prefix} — Hora de rastrear o DMG (glicemia plasmática de jejum)`;
+      return t('fichaPaciente.displayName.consulta1', { prefix });
     case 'retorno_1':
-      return `${prefix} — Hora de avaliar a Glicemia de Jejum`;
+      return t('fichaPaciente.displayName.retorno1', { prefix });
     case 'gtt':
-      return `${prefix} — GTT 75g (24-28 semanas)`;
+      return t('fichaPaciente.displayName.gtt', { prefix });
     case 'ficha_a':
     case 'ficha_c': {
       const isFirst = !allConsultas.slice(0, index).some(prev => ['ficha_a', 'ficha_c'].includes(prev.tipo));
       if (isFirst) {
-        return `${prefix} — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo`;
+        return t('fichaPaciente.displayName.fichaACPrimeiro', { prefix });
       }
       const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSemanasAoVivo });
-      return `${prefix} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × ${dias} dias)`;
+      return t('fichaPaciente.displayName.fichaACAcompanhamento', { prefix, dias });
     }
     case 'ficha_b':
     case 'ficha_d': {
       const isFirst = !allConsultas.slice(0, index).some(prev => ['ficha_b', 'ficha_d'].includes(prev.tipo));
       if (isFirst) {
-        return `${prefix} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`;
+        return t('fichaPaciente.displayName.fichaBDPrimeiro', { prefix });
       }
       const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSemanasAoVivo });
-      return `${prefix} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × ${dias} dias)`;
+      return t('fichaPaciente.displayName.fichaBDAcompanhamento', { prefix, dias });
     }
     case 'ficha_e':
-      return `${prefix} — Perfil de 6 pontos (sem insulina) × 7 a 10 dias`;
+      return t('fichaPaciente.displayName.fichaE', { prefix });
     case 'registro_parto':
-      return `${prefix} — Registro do parto`;
+      return t('fichaPaciente.displayName.registroParto', { prefix });
     default:
       return `${prefix} — ${c.tipo}`;
   }
@@ -160,6 +171,7 @@ function getNextStepInfo(
   statusFicha: string,
   consultas: PreviewConsulta[],
   igAtual: { semanas: number; dias: number } | null,
+  t: (key: string, opts?: Record<string, unknown>) => string,
 ): { label: string; formType: string } | null {
   const _hasRetorno1 = consultas.some(c => c.tipo === 'retorno_1');
   const _hasRetornoGtt = consultas.some(c => c.tipo === 'gtt');
@@ -169,13 +181,13 @@ function getNextStepInfo(
   switch (statusFicha) {
     case 'aguardando_gj':
       return {
-        label: '+ RETORNO 1 — Hora de avaliar a Glicemia de Jejum',
+        label: t('fichaPaciente.nextStep.retorno1'),
         formType: 'retorno_1',
       };
 
     case 'aguardando_gtt':
       return {
-        label: '+ RETORNO GTT 75g (24-28 semanas)',
+        label: t('fichaPaciente.nextStep.gtt'),
         formType: 'gtt',
       };
 
@@ -194,14 +206,14 @@ function getNextStepInfo(
 
       if (proxima === 'ficha_e') {
         return {
-          label: `+ Retorno — Perfil de 6 pontos (sem insulina) × 7 a 10 dias`,
+          label: t('fichaPaciente.nextStep.fichaE'),
           formType: 'ficha_e',
         };
       }
       if (proxima === 'ficha_a' || proxima === 'ficha_c') {
         const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSem });
         return {
-          label: `+ RETORNO ${nextRetornoNum} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × ${dias} dias)`,
+          label: t('fichaPaciente.nextStep.fichaACAcompanhamento', { num: nextRetornoNum, dias }),
           formType: proxima,
         };
       }
@@ -209,7 +221,7 @@ function getNextStepInfo(
         // PROMPT 42J — Frente A: nenhum próximo passo de 6 pontos é oferecido.
         if (HIDE_FICHA_6_PONTOS) return null;
         return {
-          label: `+ RETORNO ${nextRetornoNum} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`,
+          label: t('fichaPaciente.nextStep.fichaBDPrimeiro', { num: nextRetornoNum }),
           formType: proxima,
         };
       }
@@ -221,7 +233,7 @@ function getNextStepInfo(
 
       if (!hasFichaAC && !hasFichaBD) {
         return {
-          label: `+ RETORNO ${nextRetornoNum} — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo`,
+          label: t('fichaPaciente.nextStep.fichaACPrimeiro', { num: nextRetornoNum }),
           formType: igSem <= 30 ? 'ficha_a' : 'ficha_c',
         };
       }
@@ -232,13 +244,13 @@ function getNextStepInfo(
         if (HIDE_FICHA_6_PONTOS) return null;
         if (!hasFichaBD) {
           return {
-            label: `+ RETORNO ${nextRetornoNum} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo`,
+            label: t('fichaPaciente.nextStep.fichaBDPrimeiro', { num: nextRetornoNum }),
             formType: igSem <= 30 ? 'ficha_b' : 'ficha_d',
           };
         }
         const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSem });
         return {
-          label: `+ RETORNO ${nextRetornoNum} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × ${dias} dias)`,
+          label: t('fichaPaciente.nextStep.fichaBDAcompanhamento', { num: nextRetornoNum, dias }),
           formType: igSem <= 30 ? 'ficha_b' : 'ficha_d',
         };
       }
@@ -246,7 +258,7 @@ function getNextStepInfo(
 
       const dias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSem });
       return {
-        label: `+ RETORNO ${nextRetornoNum} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × ${dias} dias)`,
+        label: t('fichaPaciente.nextStep.fichaACAcompanhamento', { num: nextRetornoNum, dias }),
         formType: igSem <= 30 ? 'ficha_a' : 'ficha_c',
       };
     }
@@ -270,6 +282,7 @@ function getNextStepInfo(
 }
 
 export default function FichaPacientePage() {
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -764,13 +777,13 @@ export default function FichaPacientePage() {
     let origemLabel: string;
     if (motivoEfetivo === 'parto') {
       ancoraISO = dataEnc;
-      origemLabel = 'a partir da data do parto';
+      origemLabel = t('fichaPaciente.reteste.origemParto');
     } else if (motivoEfetivo === 'aborto') {
       ancoraISO = dataEnc;
-      origemLabel = 'a partir da data do aborto';
+      origemLabel = t('fichaPaciente.reteste.origemAborto');
     } else if (motivoEfetivo === 'insulinizacao') {
       ancoraISO = calcularDppISO(igAtual?.base_data);
-      origemLabel = 'a partir da DPP estimada';
+      origemLabel = t('fichaPaciente.reteste.origemDpp');
     } else {
       return null; // nao_retornou / outro → sem reteste
     }
@@ -782,7 +795,7 @@ export default function FichaPacientePage() {
       fimBR: formatDateBR(janela.fimISO),
       origemLabel,
     };
-  }, [isEncerrada, dmgConfirmado, motivoEfetivo, encFields?.data_encerramento, igAtual?.base_data]);
+  }, [isEncerrada, dmgConfirmado, motivoEfetivo, encFields?.data_encerramento, igAtual?.base_data, t]);
 
   // PROMPT 43+ — conclusão clínica editável (admin/laudo_textos) por motivo manual
   // (parto/aborto/nao_retornou). Buscada direto (RLS deixa autenticado ler publicado);
@@ -824,11 +837,11 @@ export default function FichaPacientePage() {
     setEncerrarSubmitting(false);
     if (error) {
       console.error('PROMPT 42E — falha ao encerrar acompanhamento', error);
-      toast.error('Erro ao encerrar acompanhamento. Nada foi gravado.');
+      toast.error(t('fichaPaciente.toast.encerrarError'));
       return;
     }
     setShowEncerrarModal(false);
-    toast.success('Acompanhamento encerrado.');
+    toast.success(t('fichaPaciente.toast.encerrarSuccess'));
     window.dispatchEvent(new Event('preview-pacientes-updated'));
     await fetchPaciente();
   };
@@ -856,7 +869,7 @@ export default function FichaPacientePage() {
 
     const whatsappValid = validarWhatsappBR(editWhatsapp);
     if (!whatsappValid.ok) {
-      toast.error(whatsappValid.mensagem || 'WhatsApp inválido.');
+      toast.error(whatsappValid.mensagem || t('fichaPaciente.toast.whatsappInvalid'));
       return;
     }
     const whatsappCanonico = paraFormatoCanonico(editWhatsapp);
@@ -886,7 +899,7 @@ export default function FichaPacientePage() {
         setConsultas(updated.consultas || []);
       }
       window.dispatchEvent(new Event('preview-pacientes-updated'));
-      toast.success('Dados atualizados com sucesso.');
+      toast.success(t('fichaPaciente.toast.dadosAtualizados'));
       setEditing(false);
       setEditSaving(false);
       return;
@@ -916,7 +929,7 @@ export default function FichaPacientePage() {
 
     if (pacErr || consErr) {
       console.error(pacErr, consErr);
-      toast.error('Erro ao atualizar dados.');
+      toast.error(t('fichaPaciente.toast.atualizarError'));
       return;
     }
 
@@ -969,13 +982,13 @@ export default function FichaPacientePage() {
   if (!paciente) {
     return (
       <div className="mx-auto max-w-md py-12 text-center">
-        <p className="text-muted-foreground">Paciente não encontrada.</p>
+        <p className="text-muted-foreground">{t('fichaPaciente.notFound')}</p>
         <Button
           variant="outline"
           className="mt-4"
           onClick={() => navigate(isPreview ? '/vitrine/dashboard' : '/dashboard')}
         >
-          Voltar ao dashboard
+          {t('fichaPaciente.backToDashboard')}
         </Button>
       </div>
     );
@@ -998,13 +1011,13 @@ export default function FichaPacientePage() {
               onClick={() => navigate(fichasBackPath)}
               className="text-[#7C4DBA] hover:underline font-medium"
             >
-              Fichas da unidade
+              {t('fichaPaciente.fichasDaUnidade')}
             </button>
             <span className="text-muted-foreground">›</span>
             <span className="text-foreground font-medium truncate">{paciente.nome}</span>
           </div>
           <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 shrink-0">
-            Modo visualização
+            {t('fichaPaciente.modoVisualizacao')}
           </Badge>
         </div>
       )}
@@ -1022,7 +1035,7 @@ export default function FichaPacientePage() {
         <div className="flex items-start gap-3 rounded-xl border-2 border-orange-400 bg-orange-50 p-4">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
           <p className="text-sm font-semibold text-orange-800">
-            ATENÇÃO — Histórico de DMG em gestação anterior. Fator de risco elevado para recorrência. Monitorar com atenção redobrada.
+            {t('fichaPaciente.dmgAnteriorBanner')}
           </p>
         </div>
       )}
@@ -1036,13 +1049,13 @@ export default function FichaPacientePage() {
                 value={editNome}
                 onChange={(e) => setEditNome(e.target.value)}
                 className="text-xl font-bold"
-                placeholder="Nome completo"
+                placeholder={t('fichaPaciente.nomeCompletoPlaceholder')}
               />
             ) : (
               <>
                 <h1 className="font-heading text-xl font-bold text-foreground">{paciente.nome}</h1>
                 {idade !== null && (
-                  <span className="text-sm text-muted-foreground">{idade} anos</span>
+                  <span className="text-sm text-muted-foreground">{t('fichaPaciente.anos', { count: idade })}</span>
                 )}
               </>
             )}
@@ -1051,7 +1064,7 @@ export default function FichaPacientePage() {
             {!isPreview && <RealtimeIndicator status={rtStatus} className="mr-1" />}
             {status && (
               <Badge className={`${status.color} text-white border-0 shrink-0`}>
-                {status.label}
+                {t(status.labelKey)}
               </Badge>
             )}
             {!editing && !isReadOnly && (
@@ -1062,7 +1075,7 @@ export default function FichaPacientePage() {
                 className="border-[#7C4DBA] text-[#7C4DBA] hover:bg-[#E8E0FF] gap-1.5 print:hidden"
               >
                 <Pencil className="h-4 w-4" />
-                Editar
+                {t('common.edit')}
               </Button>
             )}
           </div>
@@ -1072,7 +1085,7 @@ export default function FichaPacientePage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-foreground">Data de nascimento</label>
+                <label className="text-xs font-medium text-foreground">{t('fichaPaciente.form.dataNascimento')}</label>
                 <div className="flex items-center gap-2">
                   <Input
                     type="date"
@@ -1081,21 +1094,21 @@ export default function FichaPacientePage() {
                   />
                   {editIdade !== null && (
                     <span className="whitespace-nowrap rounded-md bg-muted px-2 py-1 text-xs font-medium text-foreground">
-                      {editIdade} anos
+                      {t('fichaPaciente.anos', { count: editIdade })}
                     </span>
                   )}
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-foreground">Número de identificação</label>
+                <label className="text-xs font-medium text-foreground">{t('fichaPaciente.form.numeroIdentificacao')}</label>
                 <Input
                   value={editNumeroId}
                   onChange={(e) => setEditNumeroId(e.target.value)}
-                  placeholder="Opcional"
+                  placeholder={t('fichaPaciente.form.opcionalPlaceholder')}
                 />
               </div>
               <div className="space-y-1 sm:col-span-2">
-                <label className="text-xs font-medium text-foreground">WhatsApp (opcional)</label>
+                <label className="text-xs font-medium text-foreground">{t('fichaPaciente.form.whatsappOpcional')}</label>
                 <div className="flex items-stretch gap-2">
                   <span className="flex shrink-0 items-center rounded-md border border-input bg-muted px-3 text-sm font-medium text-muted-foreground">
                     +55
@@ -1111,7 +1124,7 @@ export default function FichaPacientePage() {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-foreground">Data da caso novo</label>
+                <label className="text-xs font-medium text-foreground">{t('fichaPaciente.form.dataCasoNovo')}</label>
                 <Input
                   type="date"
                   value={editDataConsulta}
@@ -1120,20 +1133,20 @@ export default function FichaPacientePage() {
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-medium text-foreground">
-                  DUM (Data da última menstruação)
+                  {t('fichaPaciente.form.dum')}
                 </label>
                 <Input
                   type="date"
                   value={editDum}
                   onChange={(e) => setEditDum(e.target.value)}
-                  placeholder="Deixe em branco se desconhecida"
+                  placeholder={t('fichaPaciente.form.dumPlaceholder')}
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  Atualizar a DUM recalcula automaticamente as IGs e o card de Referência de IG.
+                  {t('fichaPaciente.form.dumHint')}
                 </p>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium text-foreground">DMG em gestação anterior</label>
+                <label className="text-xs font-medium text-foreground">{t('fichaPaciente.form.dmgAnterior')}</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -1144,7 +1157,7 @@ export default function FichaPacientePage() {
                         : 'border-border bg-card text-muted-foreground hover:border-[#7C4DBA]/60'
                     }`}
                   >
-                    Sim
+                    {t('common.yes')}
                   </button>
                   <button
                     type="button"
@@ -1155,23 +1168,23 @@ export default function FichaPacientePage() {
                         : 'border-border bg-card text-muted-foreground hover:border-[#7C4DBA]/60'
                     }`}
                   >
-                    Não
+                    {t('common.no')}
                   </button>
                 </div>
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium text-foreground">Observações clínicas</label>
+              <label className="text-xs font-medium text-foreground">{t('fichaPaciente.form.observacoesClinicas')}</label>
               <Textarea
                 value={editObservacoes}
                 onChange={(e) => setEditObservacoes(e.target.value)}
-                placeholder="Opcional"
+                placeholder={t('fichaPaciente.form.opcionalPlaceholder')}
                 rows={3}
               />
             </div>
             <div className="flex justify-end gap-3 pt-1">
               <Button variant="outline" size="sm" onClick={cancelEditing} disabled={editSaving}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 size="sm"
@@ -1180,7 +1193,7 @@ export default function FichaPacientePage() {
                 className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
               >
                 {editSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Salvar alterações
+                {t('fichaPaciente.form.salvarAlteracoes')}
               </Button>
             </div>
           </div>
@@ -1191,21 +1204,21 @@ export default function FichaPacientePage() {
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <span className="font-medium text-foreground">DUM:</span>{' '}
+                  <span className="font-medium text-foreground">{t('fichaPaciente.info.dum')}</span>{' '}
                   {paciente.dum ? formatDateBR(paciente.dum) : '—'}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <span className="font-medium text-foreground">Data da caso novo:</span>{' '}
+                  <span className="font-medium text-foreground">{t('fichaPaciente.info.dataCasoNovo')}</span>{' '}
                   {primeiraConsulta ? formatDateBR(primeiraConsulta.data) : '—'}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>
-                  <span className="font-medium text-foreground">IG no caso novo:</span>{' '}
+                  <span className="font-medium text-foreground">{t('fichaPaciente.info.igCasoNovo')}</span>{' '}
                   {igNaConsulta1
                     ? `${igNaConsulta1.semanas}s ${igNaConsulta1.dias}d`
                     : '—'}
@@ -1218,21 +1231,21 @@ export default function FichaPacientePage() {
             <Accordion type="single" collapsible className="border-t border-border">
               <AccordionItem value="dados-identificacao" className="border-none">
                 <AccordionTrigger className="py-2 text-xs font-medium text-foreground hover:no-underline">
-                  Dados de identificação
+                  {t('fichaPaciente.info.dadosIdentificacao')}
                 </AccordionTrigger>
                 <AccordionContent className="pb-1">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <User className="h-3.5 w-3.5 shrink-0" />
                       <span>
-                        <span className="font-medium text-foreground">Nascimento:</span>{' '}
+                        <span className="font-medium text-foreground">{t('fichaPaciente.info.nascimento')}</span>{' '}
                         {paciente.data_nascimento ? formatDateBR(paciente.data_nascimento) : '—'}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <FileText className="h-3.5 w-3.5 shrink-0" />
                       <span>
-                        <span className="font-medium text-foreground">Identificação:</span>{' '}
+                        <span className="font-medium text-foreground">{t('fichaPaciente.info.identificacao')}</span>{' '}
                         {paciente.numero_identificacao
                           ? `${(paciente as any).tipo_identificacao?.toUpperCase() || ''}: ${paciente.numero_identificacao}`
                           : '—'}
@@ -1241,7 +1254,7 @@ export default function FichaPacientePage() {
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <MessageCircle className="h-3.5 w-3.5 shrink-0" />
                       <span>
-                        <span className="font-medium text-foreground">WhatsApp:</span>{' '}
+                        <span className="font-medium text-foreground">{t('fichaPaciente.info.whatsapp')}</span>{' '}
                         {(paciente as any).whatsapp
                           ? `+55 ${deCanonicoParaInput((paciente as any).whatsapp)}`
                           : '—'}
@@ -1254,7 +1267,7 @@ export default function FichaPacientePage() {
 
             {primeiraConsulta?.observacoes && (
               <div className="rounded-lg border border-border bg-muted/30 p-3">
-                <p className="text-xs font-medium text-foreground mb-1">Observações clínicas:</p>
+                <p className="text-xs font-medium text-foreground mb-1">{t('fichaPaciente.info.observacoesClinicas')}</p>
                 <p className="text-sm text-muted-foreground italic">{primeiraConsulta.observacoes}</p>
               </div>
             )}
@@ -1285,10 +1298,10 @@ export default function FichaPacientePage() {
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#EF4444]" />
               <div>
                 <p className="text-sm font-bold text-red-800">
-                  ATENÇÃO: Janela do GTT 75g ultrapassada. Solicitar imediatamente.
+                  {t('fichaPaciente.gttBanner.ultrapassadaTitle')}
                 </p>
                 <p className="mt-1 text-xs text-red-700">
-                  A janela ideal (24-28 sem) já foi ultrapassada. Realizar o quanto antes.
+                  {t('fichaPaciente.gttBanner.ultrapassadaDesc')}
                 </p>
               </div>
             </div>
@@ -1301,10 +1314,10 @@ export default function FichaPacientePage() {
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#F59E0B]" />
               <div>
                 <p className="text-sm font-bold text-amber-800">
-                  O GTT 75g já está na janela — solicitar o mais breve possível.
+                  {t('fichaPaciente.gttBanner.naJanelaTitle')}
                 </p>
                 <p className="mt-1 text-xs text-amber-700">
-                  Janela: até 28 semanas (limite: <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>).
+                  {t('fichaPaciente.gttBanner.naJanelaDesc', { limite: format(janelaGTT.fim, 'dd/MM/yyyy') })}
                 </p>
               </div>
             </div>
@@ -1317,10 +1330,10 @@ export default function FichaPacientePage() {
             <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-[#F59E0B]" />
             <div>
               <p className="text-sm font-bold text-amber-800">
-                GTT 75g deverá ser realizado entre <strong>{format(janelaGTT.inicio, 'dd/MM/yyyy')}</strong> e <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>
+                {t('fichaPaciente.gttBanner.normalTitlePrefix')}{' '}<strong>{format(janelaGTT.inicio, 'dd/MM/yyyy')}</strong>{' '}{t('fichaPaciente.gttBanner.normalTitleConnector')}{' '}<strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>
               </p>
               <p className="mt-1 text-xs text-amber-700">
-                O mais próximo possível da 24ª semana.
+                {t('fichaPaciente.gttBanner.normalDesc')}
               </p>
             </div>
           </div>
@@ -1332,13 +1345,13 @@ export default function FichaPacientePage() {
       {consultas.some((c) => c.tipo === 'gtt' && c.cenario_clinico === '6B') && (
         <BannerClinicoPersistente
           tom="alerta"
-          texto="Diagnóstico tardio (GTT após 28 semanas). Início imediato do tratamento é crítico."
+          texto={t('fichaPaciente.bannerClinico.diagnosticoTardio')}
         />
       )}
       {consultas.some((c) => c.proxima_ficha_recomendada === 'ficha_e') && (
         <BannerClinicoPersistente
           tom="info"
-          texto="Acompanhamento ampliado para perfil de 6 pontos sem insulina por controle adequado com falha de adesão. Memória do glicosímetro confirma o controle."
+          texto={t('fichaPaciente.bannerClinico.acompanhamentoAmpliado')}
         />
       )}
 
@@ -1385,10 +1398,10 @@ export default function FichaPacientePage() {
           })}
           ocultarTextosLaudo={cenarioSemTextoLaudo(primeiraConsulta)}
           onTentarNovamente={() => laudoTextos.tentarNovamente(primeiraConsulta.id, 'consulta_1', desfechoStandalone)}
-          proximaFichaTexto={janelaGTT ? `GTT 75g entre ${format(janelaGTT.inicio, 'dd/MM/yyyy')} e ${format(janelaGTT.fim, 'dd/MM/yyyy')}.` : null}
+          proximaFichaTexto={janelaGTT ? t('fichaPaciente.proximaFichaGtt', { inicio: format(janelaGTT.inicio, 'dd/MM/yyyy'), fim: format(janelaGTT.fim, 'dd/MM/yyyy') }) : null}
         >
           <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
-          <AutoriaRodape registro={autoriaC1} label="Atendimento registrado por" />
+          <AutoriaRodape registro={autoriaC1} label={t('clinico.autoriaRodape.defaultLabel')} />
         </LaudoCompleto>
         );
       })()}
@@ -1562,7 +1575,7 @@ export default function FichaPacientePage() {
           <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2">
             <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Clock className="h-5 w-5 text-[#7C4DBA]" />
-              Histórico de consultas ({consultasHistoricoVisiveis.length})
+              {t('fichaPaciente.historico.titulo', { count: consultasHistoricoVisiveis.length })}
             </h2>
             <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
           </CollapsibleTrigger>
@@ -1588,7 +1601,7 @@ export default function FichaPacientePage() {
 
               // 34D — o rótulo da timeline ("× N dias") decide pelo limiar de 30 sem:
               // usa a IG AO VIVO na data da consulta (âncora atual), não a congelada.
-              const displayName = getDisplayName(c, chronologicalIndex, consultas, igDisplay?.semanas ?? null);
+              const displayName = getDisplayName(c, chronologicalIndex, consultas, igDisplay?.semanas ?? null, t);
 
               return (
               <AccordionItem
@@ -1615,7 +1628,7 @@ export default function FichaPacientePage() {
                     )}
                     {(c.data_inicio && c.data_fim) && (
                       <span className="text-[10px] text-[#64748B] self-start">
-                        Período do perfil: {formatDateBR(c.data_inicio)} a {formatDateBR(c.data_fim)}
+                        {t('fichaPaciente.historico.periodoPerfil', { inicio: formatDateBR(c.data_inicio), fim: formatDateBR(c.data_fim) })}
                       </span>
                     )}
                   </div>
@@ -1764,8 +1777,8 @@ export default function FichaPacientePage() {
                             </div>
                             {semDecisao ? (
                               <PlaceholderBlocoLaudo
-                                titulo="Conduta clínica aguardando decisão"
-                                mensagem="Esta Ficha A foi registrada antes da implantação do motor de decisão ou a decisão ainda não foi calculada. Reabra a ficha e salve novamente para gerar conduta e doses."
+                                titulo={t('fichaPaciente.placeholderBloco.titulo')}
+                                mensagem={t('fichaPaciente.placeholderBloco.mensagem')}
                               />
                             ) : (
                               <FichaACResultCard
@@ -1864,18 +1877,18 @@ export default function FichaPacientePage() {
                         <div className="space-y-2">
                           {c.ig_semanas != null && (
                             <p className="text-xs text-muted-foreground">
-                              <span className="font-medium text-foreground">IG:</span> {c.ig_semanas}s {c.ig_dias || 0}d
+                              <span className="font-medium text-foreground">{t('fichaPaciente.historico.igLabel')}</span> {c.ig_semanas}s {c.ig_dias || 0}d
                             </p>
                           )}
                           {c.status_gerado && STATUS_CONFIG[c.status_gerado] && (
                             <Badge className={`${STATUS_CONFIG[c.status_gerado].color} text-white border-0 text-[10px]`}>
-                              {STATUS_CONFIG[c.status_gerado].label}
+                              {t(STATUS_CONFIG[c.status_gerado].labelKey)}
                             </Badge>
                           )}
                           {c.observacoes ? (
                             <p className="text-xs text-muted-foreground italic">{c.observacoes}</p>
                           ) : (
-                            <p className="text-xs text-muted-foreground">Sem observações.</p>
+                            <p className="text-xs text-muted-foreground">{t('fichaPaciente.historico.semObservacoes')}</p>
                           )}
                         </div>
                       );
@@ -1893,7 +1906,7 @@ export default function FichaPacientePage() {
                               className="text-[#7C4DBA] hover:text-[#7E69AB] hover:bg-[#E8E0FF] gap-1.5"
                             >
                               <Pencil className="h-3.5 w-3.5" />
-                              <span className="text-xs">Editar valores</span>
+                              <span className="text-xs">{t('fichaPaciente.historico.editarValores')}</span>
                             </Button>
                           </div>
                         )}
@@ -1949,7 +1962,7 @@ export default function FichaPacientePage() {
                               igMaior24={igMaior24}
                             >
                               {renderCardBloco1()}
-                              <AutoriaRodape registro={autoriaConsulta} label="Atendimento registrado por" />
+                              <AutoriaRodape registro={autoriaConsulta} label={t('clinico.autoriaRodape.defaultLabel')} />
                             </LaudoCompleto>
                           );
                         })()}
@@ -1976,7 +1989,7 @@ export default function FichaPacientePage() {
           // PROMPT 42E — sem próximo passo depois de encerrada.
           if (isEncerrada) return null;
 
-          const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual);
+          const nextStep = getNextStepInfo(paciente.status_ficha, consultas, igAtual, t);
           if (!nextStep) return null;
 
           const isRetorno1Button = nextStep.formType === 'retorno_1';
@@ -2016,7 +2029,7 @@ export default function FichaPacientePage() {
                   setFichaEResult(null);
                   setShowFichaE(true);
                 } else {
-                  toast('Próximo retorno ainda não implementado.');
+                  toast(t('fichaPaciente.toast.proximoRetornoNaoImplementado'));
                 }
               }}
             >
@@ -2038,7 +2051,7 @@ export default function FichaPacientePage() {
             onClick={() => setShowEncerrarModal(true)}
           >
             <XCircle className="mr-2 h-4 w-4 shrink-0" />
-            Encerrar acompanhamento
+            {t('fichaPaciente.encerrarAcompanhamento')}
           </Button>
         )}
 

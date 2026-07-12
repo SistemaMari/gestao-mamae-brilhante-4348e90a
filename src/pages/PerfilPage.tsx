@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -63,13 +64,14 @@ function CardTitle({ icon: Icon, children }: { icon?: React.ComponentType<{ clas
 
 /* -------------------- Read-only fallback (institucional / preview) -------------------- */
 function PerfilReadOnly({ data, email }: { data: PerfilData; email: string | undefined }) {
+  const { t } = useTranslation();
   const fields = [
-    { label: 'Nome', value: data.nome },
-    { label: 'E-mail', value: email },
-    { label: 'Especialidade', value: data.especialidade },
-    { label: 'CRM', value: data.crm },
-    { label: 'Estado', value: data.estado },
-    { label: 'País', value: data.pais },
+    { label: t('common.name'), value: data.nome },
+    { label: t('common.email'), value: email },
+    { label: t('profile.specialty'), value: data.especialidade },
+    { label: t('profile.crmShort'), value: data.crm },
+    { label: t('patient.state'), value: data.estado },
+    { label: t('patient.country'), value: data.pais },
   ];
   return (
     <div className="mx-auto max-w-md">
@@ -77,9 +79,9 @@ function PerfilReadOnly({ data, email }: { data: PerfilData; email: string | und
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent">
           <UserCog className="h-7 w-7 text-accent-foreground" />
         </div>
-        <h1 className="mt-4 font-heading text-xl font-bold text-foreground">Meu Perfil</h1>
+        <h1 className="mt-4 font-heading text-xl font-bold text-foreground">{t('profile.title')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Os dados do seu perfil institucional são gerenciados pela sua unidade.
+          {t('profile.institutionalManaged')}
         </p>
         <div className="mt-6 space-y-3 text-left">
           {fields.map((f) => (
@@ -96,6 +98,7 @@ function PerfilReadOnly({ data, email }: { data: PerfilData; email: string | und
 
 /* -------------------- Consultório / Institucional: editor -------------------- */
 function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: { initial: PerfilData; email: string; userId: string; perfilTipo: 'consultorio' | 'institucional'; unidadeNome?: string | null }) {
+  const { t } = useTranslation();
   const isInstitucional = perfilTipo === 'institucional';
   const [data, setData] = useState<PerfilData>(initial);
 
@@ -157,11 +160,11 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
 
   const handleAvatar = async (file: File) => {
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('A imagem deve ter no máximo 2 MB.');
+      toast.error(t('profile.errors.imageMaxSize'));
       return;
     }
     if (!file.type.startsWith('image/')) {
-      toast.error('Envie uma imagem PNG ou JPG.');
+      toast.error(t('profile.errors.imageFormat'));
       return;
     }
     const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
@@ -169,15 +172,15 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
     const { error } = await supabase.storage
       .from('avatares-profissionais')
       .upload(path, file, { upsert: true, contentType: file.type });
-    if (error) { toast.error('Falha ao enviar imagem.'); return; }
+    if (error) { toast.error(t('profile.errors.imageUpload')); return; }
     // Persist path in profissionais
     const { error: upErr } = await supabase
       .from('profissionais')
       .update({ avatar_url: path })
       .eq('user_id', userId);
-    if (upErr) { toast.error('Não foi possível salvar a foto no perfil.'); return; }
+    if (upErr) { toast.error(t('profile.errors.photoSave')); return; }
     setAvatarUrl(path);
-    toast.success('Foto atualizada!');
+    toast.success(t('profile.toasts.photoUpdated'));
     window.dispatchEvent(new CustomEvent('admin:nome-atualizado'));
   };
 
@@ -191,15 +194,15 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
       .update({ avatar_url: null }).eq('user_id', userId);
     setRemovendoFoto(false);
     setConfirmRemoverFoto(false);
-    if (error) { toast.error('Erro ao remover foto.'); return; }
+    if (error) { toast.error(t('profile.errors.photoRemove')); return; }
     setAvatarUrl(null);
     setAvatarSignedUrl(null);
-    toast.success('Foto removida.');
+    toast.success(t('profile.toasts.photoRemoved'));
     window.dispatchEvent(new CustomEvent('admin:nome-atualizado'));
   };
 
   const salvarBasico = async () => {
-    if (!nome.trim()) { toast.error('Informe seu nome.'); return; }
+    if (!nome.trim()) { toast.error(t('profile.errors.nameRequired')); return; }
     setSavingBasico(true);
     const { error } = await supabase.from('profissionais').update({
       nome: nome.trim(),
@@ -207,14 +210,14 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
       data_aniversario: aniversario || null,
     }).eq('user_id', userId);
     setSavingBasico(false);
-    if (error) { toast.error('Erro ao salvar.'); return; }
-    toast.success('Dados atualizados!');
+    if (error) { toast.error(t('profile.errors.saveGeneric')); return; }
+    toast.success(t('profile.toasts.dataUpdated'));
     window.dispatchEvent(new CustomEvent('admin:nome-atualizado'));
   };
 
   const salvarProfissional = async () => {
-    if (!especialidade) { toast.error('Selecione a especialidade.'); return; }
-    if (!conselhoNum.trim() || !conselhoUf) { toast.error('Preencha o conselho e a UF.'); return; }
+    if (!especialidade) { toast.error(t('profile.errors.specialtyRequired')); return; }
+    if (!conselhoNum.trim() || !conselhoUf) { toast.error(t('profile.errors.councilRequired')); return; }
     const crmFmt = `${conselhoTipo} ${conselhoUf} ${conselhoNum.trim()}`;
     setSavingProf(true);
     const { error } = await supabase.from('profissionais').update({
@@ -223,39 +226,39 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
       estado: conselhoUf,
     }).eq('user_id', userId);
     setSavingProf(false);
-    if (error) { toast.error('Erro ao salvar dados profissionais.'); return; }
-    toast.success('Dados profissionais atualizados!');
+    if (error) { toast.error(t('profile.errors.saveProfessional')); return; }
+    toast.success(t('profile.toasts.professionalUpdated'));
   };
 
   const salvarSenha = async () => {
-    if (!senhaAtual) { toast.error('Informe sua senha atual.'); return; }
-    if (!senha1 || !senha2) { toast.error('Preencha os dois campos.'); return; }
-    if (senha1 !== senha2) { toast.error('As senhas não coincidem.'); return; }
+    if (!senhaAtual) { toast.error(t('profile.errors.currentPasswordRequired')); return; }
+    if (!senha1 || !senha2) { toast.error(t('profile.errors.bothFieldsRequired')); return; }
+    if (senha1 !== senha2) { toast.error(t('profile.errors.passwordsDontMatch')); return; }
     setSavingSenha(true);
     // Reautentica com a senha atual
-    if (!email) { setSavingSenha(false); toast.error('Sessão inválida.'); return; }
+    if (!email) { setSavingSenha(false); toast.error(t('profile.errors.invalidSession')); return; }
     const { error: reauthErr } = await supabase.auth.signInWithPassword({ email, password: senhaAtual });
     if (reauthErr) {
       setSavingSenha(false);
-      toast.error('Senha atual incorreta.');
+      toast.error(t('profile.errors.currentPasswordWrong'));
       return;
     }
     const { error } = await supabase.auth.updateUser({ password: senha1 });
     setSavingSenha(false);
-    if (error) { toast.error(error.message || 'Erro ao trocar senha.'); return; }
+    if (error) { toast.error(error.message || t('profile.errors.passwordChange')); return; }
     setSenhaAtual(''); setSenha1(''); setSenha2('');
-    toast.success('Senha atualizada!');
+    toast.success(t('profile.toasts.passwordUpdated'));
   };
 
   const enviarFeedback = async () => {
     const msg = fbTexto.trim();
-    if (!msg) { toast.error('Escreva sua mensagem.'); return; }
+    if (!msg) { toast.error(t('profile.errors.messageRequired')); return; }
     setSavingFb(true);
     let anexo_url: string | null = null;
     if (fbAnexo) {
       if (fbAnexo.size > 3 * 1024 * 1024) {
         setSavingFb(false);
-        toast.error('Anexo deve ter no máximo 3 MB.');
+        toast.error(t('profile.errors.attachmentMaxSize'));
         return;
       }
       const ext = fbAnexo.name.split('.').pop() || 'png';
@@ -268,33 +271,33 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
       body: { tipo: fbTipo, mensagem: msg, anexo_url },
     });
     setSavingFb(false);
-    if (error) { toast.error('Erro ao enviar feedback.'); return; }
+    if (error) { toast.error(t('profile.errors.feedbackSend')); return; }
     setFbTexto(''); setFbAnexo(null);
-    toast.success('Obrigada pelo seu feedback! 💜');
+    toast.success(t('profile.toasts.feedbackThanks'));
   };
 
   const enviarDepoimento = async () => {
-    if (!rating) { toast.error('Escolha uma nota de 1 a 5 estrelas.'); return; }
+    if (!rating) { toast.error(t('profile.errors.ratingRequired')); return; }
     setSavingDepo(true);
     const { error } = await supabase.from('depoimentos_usuario').insert({
       user_id: userId, rating, texto: depoTexto.trim() || null,
     });
     setSavingDepo(false);
-    if (error) { toast.error('Erro ao enviar depoimento.'); return; }
+    if (error) { toast.error(t('profile.errors.testimonialSend')); return; }
     setRating(0); setDepoTexto('');
-    toast.success('Depoimento enviado! Obrigada 💜');
+    toast.success(t('profile.toasts.testimonialThanks'));
   };
 
   const excluirConta = async () => {
-    if (!confirmSenha) { toast.error('Digite sua senha para confirmar.'); return; }
+    if (!confirmSenha) { toast.error(t('profile.errors.passwordConfirmRequired')); return; }
     setExcluindo(true);
     const { error: authErr } = await supabase.auth.signInWithPassword({ email, password: confirmSenha });
-    if (authErr) { setExcluindo(false); toast.error('Senha incorreta.'); return; }
+    if (authErr) { setExcluindo(false); toast.error(t('profile.errors.passwordWrong')); return; }
     const { error } = await supabase.from('profissionais').update({
       deleted_at: new Date().toISOString(),
     }).eq('user_id', userId);
-    if (error) { setExcluindo(false); toast.error('Erro ao processar exclusão.'); return; }
-    toast.success('Conta marcada para exclusão. Você será desconectado.');
+    if (error) { setExcluindo(false); toast.error(t('profile.errors.deleteProcess')); return; }
+    toast.success(t('profile.toasts.accountDeleted'));
     setTimeout(async () => { await supabase.auth.signOut(); window.location.href = '/login'; }, 1500);
   };
 
@@ -303,24 +306,24 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-16">
       <header>
-        <h1 className="font-heading text-3xl font-bold text-foreground">Meu perfil</h1>
-        <p className="mt-1 text-muted-foreground">Personalize seu espaço.</p>
+        <h1 className="font-heading text-3xl font-bold text-foreground">{t('profile.title')}</h1>
+        <p className="mt-1 text-muted-foreground">{t('profile.customizeSpace')}</p>
       </header>
 
       {isInstitucional && (
         <Card>
-          <CardTitle icon={Building2}>Vínculo institucional</CardTitle>
+          <CardTitle icon={Building2}>{t('profile.institutionalLink')}</CardTitle>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Unidade</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t('profile.unit')}</p>
               <p className="mt-1 font-medium text-foreground">{unidadeNome || '—'}</p>
             </div>
             <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-              Gerenciado pelo(a) Gestor(a) da unidade
+              {t('profile.managedByUnitManager')}
             </span>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            A troca de unidade é feita pela pessoa gestora responsável.
+            {t('profile.unitChangeNote')}
           </p>
         </Card>
       )}
@@ -328,11 +331,11 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
 
       {/* 1. Perfil */}
       <Card>
-        <CardTitle icon={UserCog}>Perfil</CardTitle>
+        <CardTitle icon={UserCog}>{t('profile.sectionProfile')}</CardTitle>
         <div className="mb-5 flex items-center gap-4">
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-accent">
             {avatarSignedUrl ? (
-              <img src={avatarSignedUrl} alt="Avatar" className="h-full w-full object-cover" />
+              <img src={avatarSignedUrl} alt={t('profile.avatarAlt')} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full w-full items-center justify-center font-heading text-2xl text-primary">
                 {iniciais}
@@ -347,7 +350,7 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
                   onChange={(e) => e.target.files?.[0] && handleAvatar(e.target.files[0])}
                 />
                 <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10">
-                  <Camera className="h-4 w-4" /> Trocar foto
+                  <Camera className="h-4 w-4" /> {t('profile.changePhoto')}
                 </span>
               </label>
               {avatarUrl && (
@@ -356,41 +359,41 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
                   onClick={() => setConfirmRemoverFoto(true)}
                   className="inline-flex items-center gap-2 rounded-full border border-destructive/40 bg-destructive/5 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
                 >
-                  <Trash2 className="h-4 w-4" /> Remover foto
+                  <Trash2 className="h-4 w-4" /> {t('profile.removePhoto')}
                 </button>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">PNG ou JPG, até 2 MB.</p>
+            <p className="text-xs text-muted-foreground">{t('profile.photoHint')}</p>
           </div>
         </div>
 
         <div className="grid gap-4">
           <div>
-            <Label>Nome completo</Label>
+            <Label>{t('profile.fullName')}</Label>
             <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} />
           </div>
           <div>
-            <Label>E-mail</Label>
+            <Label>{t('common.email')}</Label>
             <div className="flex gap-2">
               <Input value={email} disabled className="bg-muted" />
               <Button type="button" variant="outline" onClick={() => setEmailModal(true)}>
-                <Mail className="h-4 w-4" /> Solicitar alteração
+                <Mail className="h-4 w-4" /> {t('profile.requestChange')}
               </Button>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label>Telefone / WhatsApp</Label>
+              <Label>{t('profile.phoneWhatsapp')}</Label>
               <Input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" maxLength={30} />
             </div>
             <div>
-              <Label>Data de aniversário</Label>
+              <Label>{t('profile.birthdate')}</Label>
               <Input type="date" value={aniversario} onChange={(e) => setAniversario(e.target.value)} />
             </div>
           </div>
           <div>
             <Button onClick={salvarBasico} disabled={savingBasico} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              {savingBasico && <Loader2 className="h-4 w-4 animate-spin" />} Salvar
+              {savingBasico && <Loader2 className="h-4 w-4 animate-spin" />} {t('common.save')}
             </Button>
           </div>
         </div>
@@ -398,12 +401,12 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
 
       {/* 2. Dados profissionais */}
       <Card>
-        <CardTitle icon={UserCog}>Dados profissionais</CardTitle>
+        <CardTitle icon={UserCog}>{t('profile.professionalInfo')}</CardTitle>
         <div className="grid gap-4">
           <div>
-            <Label>Especialidade</Label>
+            <Label>{t('profile.specialty')}</Label>
             <Select value={especialidade} onValueChange={setEspecialidade}>
-              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('profile.selectPlaceholder')} /></SelectTrigger>
               <SelectContent>
                 {ESPECIALIDADES.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
               </SelectContent>
@@ -411,7 +414,7 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
           </div>
           <div className="grid gap-4 sm:grid-cols-[120px,1fr,120px]">
             <div>
-              <Label>Conselho</Label>
+              <Label>{t('profile.council')}</Label>
               <Select value={conselhoTipo} onValueChange={setConselhoTipo}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -421,20 +424,20 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
               </Select>
             </div>
             <div>
-              <Label>Número</Label>
+              <Label>{t('profile.councilNumber')}</Label>
               <Input value={conselhoNum} onChange={(e) => setConselhoNum(e.target.value)} maxLength={30} />
             </div>
             <div>
-              <Label>UF</Label>
+              <Label>{t('profile.uf')}</Label>
               <Select value={conselhoUf} onValueChange={setConselhoUf}>
-                <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('profile.ufPlaceholder')} /></SelectTrigger>
                 <SelectContent>{UFS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
           <div>
             <Button onClick={salvarProfissional} disabled={savingProf} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              {savingProf && <Loader2 className="h-4 w-4 animate-spin" />} Salvar
+              {savingProf && <Loader2 className="h-4 w-4 animate-spin" />} {t('common.save')}
             </Button>
           </div>
         </div>
@@ -442,16 +445,16 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
 
       {/* 3. Alterar senha */}
       <Card>
-        <CardTitle icon={Lock}>Alterar senha</CardTitle>
+        <CardTitle icon={Lock}>{t('profile.changePassword')}</CardTitle>
         <div className="grid gap-4">
           <div>
-            <Label>Senha atual</Label>
+            <Label>{t('profile.currentPassword')}</Label>
             <div className="relative">
               <Input
                 type={showSenhaAtual ? 'text' : 'password'}
                 value={senhaAtual}
                 onChange={(e) => setSenhaAtual(e.target.value)}
-                placeholder="Sua senha atual"
+                placeholder={t('profile.currentPasswordPlaceholder')}
                 autoComplete="current-password"
               />
               <button type="button" onClick={() => setShowSenhaAtual(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -460,21 +463,21 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
             </div>
           </div>
           <div>
-            <Label>Nova senha</Label>
+            <Label>{t('profile.newPassword')}</Label>
             <div className="relative">
-              <Input type={showSenha ? 'text' : 'password'} value={senha1} onChange={(e) => setSenha1(e.target.value)} placeholder="Digite a nova senha" />
+              <Input type={showSenha ? 'text' : 'password'} value={senha1} onChange={(e) => setSenha1(e.target.value)} placeholder={t('profile.newPasswordPlaceholder')} />
               <button type="button" onClick={() => setShowSenha(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
           <div>
-            <Label>Confirmar nova senha</Label>
-            <Input type={showSenha ? 'text' : 'password'} value={senha2} onChange={(e) => setSenha2(e.target.value)} placeholder="Repita a nova senha" />
+            <Label>{t('profile.confirmNewPassword')}</Label>
+            <Input type={showSenha ? 'text' : 'password'} value={senha2} onChange={(e) => setSenha2(e.target.value)} placeholder={t('profile.repeatNewPasswordPlaceholder')} />
           </div>
           <div>
             <Button onClick={salvarSenha} disabled={savingSenha} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              {savingSenha && <Loader2 className="h-4 w-4 animate-spin" />} Salvar nova senha
+              {savingSenha && <Loader2 className="h-4 w-4 animate-spin" />} {t('profile.saveNewPassword')}
             </Button>
           </div>
         </div>
@@ -482,34 +485,34 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
 
       {/* 4. Feedback */}
       <Card>
-        <CardTitle icon={MessageSquareHeart}>Enviar feedback</CardTitle>
+        <CardTitle icon={MessageSquareHeart}>{t('profile.sendFeedback')}</CardTitle>
         <div className="grid gap-4">
           <div>
-            <Label>Tipo</Label>
+            <Label>{t('profile.feedbackType')}</Label>
             <Select value={fbTipo} onValueChange={setFbTipo}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="sugestao">Sugestão</SelectItem>
-                <SelectItem value="elogio">Elogio</SelectItem>
-                <SelectItem value="erro">Reportar erro</SelectItem>
-                <SelectItem value="duvida">Dúvida</SelectItem>
+                <SelectItem value="sugestao">{t('profile.feedbackTypes.sugestao')}</SelectItem>
+                <SelectItem value="elogio">{t('profile.feedbackTypes.elogio')}</SelectItem>
+                <SelectItem value="erro">{t('profile.feedbackTypes.erro')}</SelectItem>
+                <SelectItem value="duvida">{t('profile.feedbackTypes.duvida')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>Mensagem</Label>
-            <Textarea value={fbTexto} onChange={(e) => setFbTexto(e.target.value.slice(0, 1000))} placeholder="Conta pra gente..." rows={4} />
+            <Label>{t('profile.message')}</Label>
+            <Textarea value={fbTexto} onChange={(e) => setFbTexto(e.target.value.slice(0, 1000))} placeholder={t('profile.feedbackPlaceholder')} rows={4} />
             <p className="mt-1 text-right text-xs text-muted-foreground">{fbTexto.length}/1000</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <label className="cursor-pointer">
               <input type="file" accept="image/*" className="hidden" onChange={(e) => setFbAnexo(e.target.files?.[0] || null)} />
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm hover:bg-muted">
-                <Paperclip className="h-4 w-4" /> {fbAnexo ? fbAnexo.name.slice(0, 24) : 'Anexar print'}
+                <Paperclip className="h-4 w-4" /> {fbAnexo ? fbAnexo.name.slice(0, 24) : t('profile.attachScreenshot')}
               </span>
             </label>
             <Button onClick={enviarFeedback} disabled={savingFb} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              {savingFb && <Loader2 className="h-4 w-4 animate-spin" />} Enviar
+              {savingFb && <Loader2 className="h-4 w-4 animate-spin" />} {t('common.upload')}
             </Button>
           </div>
         </div>
@@ -517,26 +520,26 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
 
       {/* 5. Depoimento */}
       <Card>
-        <CardTitle icon={Heart}>Depoimento</CardTitle>
+        <CardTitle icon={Heart}>{t('profile.testimonial')}</CardTitle>
         <p className="mb-3 text-sm text-muted-foreground">
-          Está gostando do MARI? Deixe seu depoimento — isso nos ajuda muito 💜
+          {t('profile.testimonialIntro')}
         </p>
         <div className="grid gap-4">
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map(n => (
-              <button key={n} type="button" onClick={() => setRating(n)} aria-label={`${n} estrelas`}>
+              <button key={n} type="button" onClick={() => setRating(n)} aria-label={t('profile.starsAria', { count: n })}>
                 <Star className={`h-8 w-8 transition ${n <= rating ? 'fill-primary text-primary' : 'text-muted-foreground/40'}`} />
               </button>
             ))}
           </div>
           <div>
             <Textarea value={depoTexto} onChange={(e) => setDepoTexto(e.target.value.slice(0, 1000))}
-              placeholder="Conte como o MARI tem ajudado na sua rotina..." rows={4} />
+              placeholder={t('profile.testimonialPlaceholder')} rows={4} />
             <p className="mt-1 text-right text-xs text-muted-foreground">{depoTexto.length}/1000</p>
           </div>
           <div>
             <Button onClick={enviarDepoimento} disabled={savingDepo} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              {savingDepo && <Loader2 className="h-4 w-4 animate-spin" />} Enviar avaliação
+              {savingDepo && <Loader2 className="h-4 w-4 animate-spin" />} {t('profile.sendRating')}
             </Button>
           </div>
         </div>
@@ -548,20 +551,19 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
           <button type="button" onClick={() => setZonaAberta(v => !v)}
             className="flex w-full items-center justify-between text-left">
             <span className="flex items-center gap-2 font-heading text-lg font-semibold text-destructive">
-              <AlertTriangle className="h-5 w-5" /> Zona de perigo
+              <AlertTriangle className="h-5 w-5" /> {t('profile.dangerZone')}
             </span>
             {zonaAberta ? <ChevronUp className="h-5 w-5 text-destructive" /> : <ChevronDown className="h-5 w-5 text-destructive" />}
           </button>
           {zonaAberta && (
             <div className="mt-4 space-y-3">
               <p className="text-sm text-muted-foreground">
-                Ao excluir sua conta, seus dados pessoais serão marcados para remoção conforme a LGPD.
-                Esta ação não pode ser desfeita.
+                {t('profile.deleteAccountWarning')}
               </p>
-              <Label>Confirme com sua senha</Label>
-              <Input type="password" value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} placeholder="Sua senha atual" />
+              <Label>{t('profile.confirmWithPassword')}</Label>
+              <Input type="password" value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} placeholder={t('profile.currentPasswordPlaceholder')} />
               <Button variant="destructive" onClick={excluirConta} disabled={excluindo}>
-                {excluindo && <Loader2 className="h-4 w-4 animate-spin" />} Excluir minha conta
+                {excluindo && <Loader2 className="h-4 w-4 animate-spin" />} {t('profile.deleteMyAccount')}
               </Button>
             </div>
           )}
@@ -572,15 +574,15 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
       <Dialog open={emailModal} onOpenChange={setEmailModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Solicitar alteração de e-mail</DialogTitle>
+            <DialogTitle>{t('profile.emailChangeTitle')}</DialogTitle>
             <DialogDescription>
-              Por segurança, a troca de e-mail é feita pela nossa equipe. Envie um pedido para{' '}
+              {t('profile.emailChangeDescBefore')}{' '}
               <a href="mailto:suporte@novodmg.com.br" className="text-primary underline">suporte@novodmg.com.br</a>{' '}
-              informando o novo e-mail desejado.
+              {t('profile.emailChangeDescAfter')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setEmailModal(false)}>Entendi</Button>
+            <Button onClick={() => setEmailModal(false)}>{t('profile.understood')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -589,19 +591,19 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
       <AlertDialog open={confirmRemoverFoto} onOpenChange={setConfirmRemoverFoto}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remover foto de perfil?</AlertDialogTitle>
+            <AlertDialogTitle>{t('profile.removePhotoConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Sua foto atual será excluída. Você poderá enviar uma nova a qualquer momento.
+              {t('profile.removePhotoConfirmDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={removendoFoto}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={removendoFoto}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => { e.preventDefault(); removerFoto(); }}
               disabled={removendoFoto}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {removendoFoto && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Remover
+              {removendoFoto && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {t('common.remove')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -612,6 +614,7 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
 
 /* -------------------- Page shell -------------------- */
 export default function PerfilPage() {
+  const { t } = useTranslation();
   const { user, profile, loading: authLoading } = useAuth();
   const location = useLocation();
   const isPreview = location.pathname.startsWith('/vitrine');
@@ -648,7 +651,7 @@ export default function PerfilPage() {
   }
 
   if (!data) {
-    return <div className="mx-auto max-w-md p-8 text-center text-muted-foreground">Perfil não encontrado.</div>;
+    return <div className="mx-auto max-w-md p-8 text-center text-muted-foreground">{t('profile.notFound')}</div>;
   }
 
   // Editor completo para consultório e institucional

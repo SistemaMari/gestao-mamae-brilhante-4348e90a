@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 
 interface PreviewResp {
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export default function ModalEncerrarContratante({ contratante, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [preview, setPreview] = useState<PreviewResp | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
@@ -77,7 +79,7 @@ export default function ModalEncerrarContratante({ contratante, onClose, onSuces
     }
     const revogados =
       (data as any)?.profissionais_revogados_count ?? preview?.profissionais_a_revogar_count ?? 0;
-    toast.success(`Contratante ${contratante.nome} encerrado. ${revogados} profissional${revogados === 1 ? "" : "is"} tiveram acesso revogado.`);
+    toast.success(t("admin.encerrarContratante.successToast", { nome: contratante.nome, count: revogados }));
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes"] });
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes-ativos"] });
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes-select"] });
@@ -94,7 +96,7 @@ export default function ModalEncerrarContratante({ contratante, onClose, onSuces
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[#DC2626]">
-            <AlertTriangle className="h-5 w-5" /> Encerrar contratante
+            <AlertTriangle className="h-5 w-5" /> {t("admin.encerrarContratante.title")}
           </DialogTitle>
         </DialogHeader>
 
@@ -104,25 +106,25 @@ export default function ModalEncerrarContratante({ contratante, onClose, onSuces
           <div className="space-y-4">
             <div className="rounded-md border-l-4 border-l-[#DC2626] bg-[#FEF2F2] p-4 text-sm space-y-2">
               <p className="font-medium">
-                Você está prestes a encerrar o contrato com <strong>{preview.contratante_nome}</strong>.
+                {t("admin.encerrarContratante.aboutToClose")} <strong>{preview.contratante_nome}</strong>.
               </p>
               <div>
-                <p className="font-semibold mt-2">ESTA AÇÃO AFETARÁ:</p>
+                <p className="font-semibold mt-2">{t("admin.encerrarContratante.willAffect")}</p>
                 <ul className="ml-4 mt-1 space-y-0.5">
-                  <li>→ {preview.unidades_count} unidade{preview.unidades_count === 1 ? "" : "s"} marcada{preview.unidades_count === 1 ? "" : "s"} como inativa{preview.unidades_count === 1 ? "" : "s"}</li>
-                  <li>→ {preview.profissionais_a_revogar_count} profissional{preview.profissionais_a_revogar_count === 1 ? "" : "is"} com acesso revogado (inclui gestores de unidade)</li>
-                  <li>→ Vínculos com gestores gerais associados a este contratante são desfeitos</li>
+                  <li>→ {t("admin.encerrarContratante.affectUnits", { count: preview.unidades_count })}</li>
+                  <li>→ {t("admin.encerrarContratante.affectProfessionals", { count: preview.profissionais_a_revogar_count })}</li>
+                  <li>→ {t("admin.encerrarContratante.affectManagers")}</li>
                 </ul>
               </div>
               <div>
-                <p className="font-semibold mt-2">DADOS PRESERVADOS:</p>
+                <p className="font-semibold mt-2">{t("admin.encerrarContratante.preservedData")}</p>
                 <ul className="ml-4 mt-1 space-y-0.5">
-                  <li>→ Pacientes em acompanhamento permanecem com dados clínicos intactos</li>
-                  <li>→ Carimbos de autoria nos prontuários preservados</li>
-                  <li>→ Histórico de exames e laudos imutável</li>
+                  <li>→ {t("admin.encerrarContratante.preservePatients")}</li>
+                  <li>→ {t("admin.encerrarContratante.preserveAuthorship")}</li>
+                  <li>→ {t("admin.encerrarContratante.preserveHistory")}</li>
                 </ul>
               </div>
-              <p className="mt-2 text-xs italic">Esta ação é REVERSÍVEL — você pode reativar o contratante depois.</p>
+              <p className="mt-2 text-xs italic">{t("admin.encerrarContratante.reversibleNote")}</p>
             </div>
 
             {preview.unidades?.length > 0 && (
@@ -134,7 +136,7 @@ export default function ModalEncerrarContratante({ contratante, onClose, onSuces
                 >
                   <span className="flex items-center gap-1">
                     {verUnidades ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    Ver unidades afetadas ({preview.unidades.length})
+                    {t("admin.encerrarContratante.viewAffectedUnits", { count: preview.unidades.length })}
                   </span>
                 </button>
                 {verUnidades && (
@@ -148,15 +150,15 @@ export default function ModalEncerrarContratante({ contratante, onClose, onSuces
             )}
 
             <div className="space-y-1">
-              <label className="text-sm font-medium">Motivo do encerramento</label>
+              <label className="text-sm font-medium">{t("admin.encerrarContratante.reasonLabel")}</label>
               <Textarea
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
-                placeholder="Ex.: Não renovação contratual após auditoria de qualidade."
+                placeholder={t("admin.encerrarContratante.reasonPlaceholder")}
                 rows={3}
               />
               <p className={`text-xs ${motivo.length > 0 && !motivoValido ? "text-destructive" : "text-muted-foreground"}`}>
-                {motivo.trim().length}/20 caracteres mínimos
+                {t("admin.encerrarContratante.minCharsCounter", { chars: motivo.trim().length })}
               </p>
             </div>
 
@@ -166,19 +168,19 @@ export default function ModalEncerrarContratante({ contratante, onClose, onSuces
                 onCheckedChange={(v) => setConfirmado(!!v)}
                 className="mt-0.5"
               />
-              <span>Confirmo que entendi o impacto desta ação.</span>
+              <span>{t("admin.encerrarContratante.confirmCheckbox")}</span>
             </label>
           </div>
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={submitting}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose} disabled={submitting}>{t("common.cancel")}</Button>
           <Button
             onClick={handleConfirmar}
             disabled={!podeConfirmar}
             className="bg-[#DC2626] text-white hover:bg-[#B91C1C]"
           >
-            {submitting ? "Encerrando…" : "Confirmar encerramento"}
+            {submitting ? t("admin.encerrarContratante.closing") : t("admin.encerrarContratante.confirmButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

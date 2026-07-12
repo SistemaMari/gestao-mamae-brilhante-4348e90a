@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PlayCircle, Film, AlertCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth, type UserProfile } from '@/contexts/AuthContext';
@@ -27,15 +28,16 @@ const BUCKET = 'tutoriais';
 // Bucket privado → servimos vídeo/thumbnail por signed URL (válida por 8h).
 const SIGN_EXPIRY = 60 * 60 * 8;
 
-const TITULO_POR_PERFIL: Record<UserProfile, string> = {
-  consultorio: 'Tutorial — Consultório',
-  institucional: 'Tutorial — Institucional',
-  gestor: 'Tutorial — Gestor',
-  gestor_geral: 'Tutorial — Gestor Geral',
-  admin: 'Tutorial — Administrador',
+const TITULO_KEY_POR_PERFIL: Record<UserProfile, string> = {
+  consultorio: 'tutorial.titleConsultorio',
+  institucional: 'tutorial.titleInstitucional',
+  gestor: 'tutorial.titleGestor',
+  gestor_geral: 'tutorial.titleGestorGeral',
+  admin: 'tutorial.titleAdmin',
 };
 
 export default function TutorialPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [tutoriais, setTutoriais] = useState<Tutorial[]>([]);
   const [thumbUrls, setThumbUrls] = useState<Record<string, string>>({});
@@ -118,10 +120,10 @@ export default function TutorialPage() {
     <div className="container max-w-6xl py-8">
       <header className="mb-8">
         <h1 className="font-heading text-3xl font-bold text-foreground">
-          {profile ? TITULO_POR_PERFIL[profile] : 'Tutorial'}
+          {profile ? t(TITULO_KEY_POR_PERFIL[profile]) : t('tutorial.title')}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Vídeos de capacitação para você aproveitar a MARI ao máximo.
+          {t('tutorial.subtitle')}
         </p>
       </header>
 
@@ -137,9 +139,9 @@ export default function TutorialPage() {
         <Card className="mx-auto max-w-md">
           <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
             <AlertCircle className="h-10 w-10 text-destructive" />
-            <p className="text-foreground">Não foi possível carregar os vídeos.</p>
+            <p className="text-foreground">{t('tutorial.loadError')}</p>
             <Button onClick={fetchTutoriais} variant="outline">
-              Tentar novamente
+              {t('common.tryAgain')}
             </Button>
           </CardContent>
         </Card>
@@ -156,10 +158,10 @@ export default function TutorialPage() {
             </div>
             <div>
               <p className="font-heading text-lg font-semibold text-foreground">
-                Vídeos em breve
+                {t('tutorial.comingSoonTitle')}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Os tutoriais deste perfil ainda estão sendo preparados. Volte em breve!
+                {t('tutorial.comingSoonDesc')}
               </p>
             </div>
           </CardContent>
@@ -168,27 +170,27 @@ export default function TutorialPage() {
 
       {!loading && !erro && tutoriais.length > 0 && (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {tutoriais.map((t) => {
-            const thumb = t.thumbnail_path ? thumbUrls[t.thumbnail_path] ?? null : null;
-            const temVideo = Boolean(t.video_path);
+          {tutoriais.map((tut) => {
+            const thumb = tut.thumbnail_path ? thumbUrls[tut.thumbnail_path] ?? null : null;
+            const temVideo = Boolean(tut.video_path);
             return (
               <Card
-                key={t.id}
+                key={tut.id}
                 className="group overflow-hidden transition-shadow hover:shadow-lg"
               >
                 {/* Thumbnail estilo YouTube */}
                 <button
                   type="button"
-                  onClick={() => temVideo && setSelecionado(t)}
+                  onClick={() => temVideo && setSelecionado(tut)}
                   disabled={!temVideo}
                   className="relative block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed"
-                  aria-label={`Assistir: ${t.titulo}`}
+                  aria-label={t('tutorial.watchAria', { titulo: tut.titulo })}
                 >
                   <AspectRatio ratio={16 / 9}>
                     {thumb ? (
                       <img
                         src={thumb}
-                        alt={t.titulo}
+                        alt={tut.titulo}
                         loading="lazy"
                         className="h-full w-full object-cover"
                       />
@@ -214,21 +216,21 @@ export default function TutorialPage() {
                 {/* Título + descrição + ação */}
                 <CardContent className="flex flex-col gap-3 p-4">
                   <h3 className="font-heading text-base font-bold leading-snug text-foreground">
-                    {t.titulo}
+                    {tut.titulo}
                   </h3>
-                  {t.descricao && (
+                  {tut.descricao && (
                     <p className="line-clamp-2 text-sm text-muted-foreground">
-                      {t.descricao}
+                      {tut.descricao}
                     </p>
                   )}
                   <Button
                     className="mt-1 w-full text-white hover:opacity-90"
                     style={{ backgroundColor: '#7C4DBA' }}
                     disabled={!temVideo}
-                    onClick={() => setSelecionado(t)}
+                    onClick={() => setSelecionado(tut)}
                   >
                     <PlayCircle className="mr-2 h-4 w-4" />
-                    {temVideo ? 'Assistir' : 'Em breve'}
+                    {temVideo ? t('tutorial.watch') : t('tutorial.comingSoon')}
                   </Button>
                 </CardContent>
               </Card>
@@ -264,7 +266,7 @@ export default function TutorialPage() {
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-sm text-white/70">
-                  Vídeo indisponível.
+                  {t('tutorial.videoUnavailable')}
                 </div>
               )}
             </AspectRatio>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +10,8 @@ import {
   FileText, Activity, Baby, Clock, Stethoscope, CheckCircle
 } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, differenceInDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS, es } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend, LabelList
@@ -60,7 +62,15 @@ const BRAND = {
   textLabel: '#64748B',
 };
 
+const DATE_LOCALES: Record<string, Locale> = {
+  'pt-BR': ptBR,
+  'en-US': enUS,
+  'es': es,
+};
+
 export default function DashboardMetricasPage() {
+  const { t, i18n } = useTranslation();
+  const dateLocale = DATE_LOCALES[i18n.language] || ptBR;
   const { profissionalData, loading: profLoading } = useProfissionalData();
   const location = useLocation();
   const navigate = useNavigate();
@@ -214,9 +224,9 @@ export default function DashboardMetricasPage() {
   }).length;
 
   const diagPieData = [
-    { name: 'Diagnóstico na GJ', value: dmgByGJ, color: BRAND.lilas },
-    { name: 'GTT 75g (24-28 sem)', value: gttNormal, color: BRAND.verdaAgua },
-    { name: 'GTT 75g tardio (>29 sem)', value: gttTardio, color: BRAND.lilasClaro },
+    { name: t('dashboardMetricas.pie.diagGj'), value: dmgByGJ, color: BRAND.lilas },
+    { name: t('dashboardMetricas.pie.gttNormal'), value: gttNormal, color: BRAND.verdaAgua },
+    { name: t('dashboardMetricas.pie.gttTardio'), value: gttTardio, color: BRAND.lilasClaro },
   ].filter(d => d.value > 0);
 
   // --- TRATAMENTO ---
@@ -257,12 +267,12 @@ export default function DashboardMetricasPage() {
         p.status_ficha === 'dmg_confirmado' || p.status_ficha === 'encaminhada_endocrino' || p.status_ficha === 'resultado_parto'
       ).length;
       return {
-        name: format(m, 'MMM/yy', { locale: ptBR }),
+        name: format(m, 'MMM/yy', { locale: dateLocale }),
         novas: total - dmg,
         dmg,
       };
     });
-  }, [pacientes, months]);
+  }, [pacientes, months, dateLocale]);
 
   // PDF export
   const handleExportPDF = async () => {
@@ -279,10 +289,10 @@ export default function DashboardMetricasPage() {
     const pdfW = pdf.internal.pageSize.getWidth();
 
     pdf.setFontSize(16);
-    pdf.text(`Dashboard Clínico — Dr(a). ${isPreview ? 'Mari' : profissionalData?.nome || ''}`, 14, 20);
+    pdf.text(t('dashboardMetricas.pdf.title', { nome: isPreview ? 'Mari' : profissionalData?.nome || '' }), 14, 20);
     pdf.setFontSize(10);
-    pdf.text(`Período: ${format(new Date(dateStart), 'dd/MM/yyyy')} a ${format(new Date(dateEnd), 'dd/MM/yyyy')}`, 14, 28);
-    pdf.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 34);
+    pdf.text(t('dashboardMetricas.pdf.period', { inicio: format(new Date(dateStart), 'dd/MM/yyyy'), fim: format(new Date(dateEnd), 'dd/MM/yyyy') }), 14, 28);
+    pdf.text(t('dashboardMetricas.pdf.generatedOn', { data: format(new Date(), 'dd/MM/yyyy HH:mm') }), 14, 34);
 
     const imgW = pdfW - 28;
     const imgH = (canvas.height * imgW) / canvas.width;
@@ -290,7 +300,7 @@ export default function DashboardMetricasPage() {
 
     const pageH = pdf.internal.pageSize.getHeight();
     pdf.setFontSize(8);
-    pdf.text(`Gerado por MARI — ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, pageH - 10);
+    pdf.text(t('dashboardMetricas.pdf.generatedBy', { data: format(new Date(), 'dd/MM/yyyy HH:mm') }), 14, pageH - 10);
 
     pdf.save(`dashboard-clinico-${format(new Date(), 'yyyyMMdd')}.pdf`);
   };
@@ -308,10 +318,10 @@ export default function DashboardMetricasPage() {
       <div className="rounded-xl border p-12 text-center" style={{ backgroundColor: '#F8FAFC', borderColor: BRAND.borderCinza }}>
         <BarChart3 className="mx-auto h-14 w-14" style={{ color: '#94A3B8' }} />
         <p className="mt-4 text-lg font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
-          Seu dashboard aparecerá aqui
+          {t('dashboardMetricas.empty.title')}
         </p>
         <p className="mt-1 text-sm" style={{ color: BRAND.textLabel }}>
-          Cadastre pacientes e registre consultas para visualizar suas métricas clínicas.
+          {t('dashboardMetricas.empty.desc')}
         </p>
       </div>
     );
@@ -336,14 +346,14 @@ export default function DashboardMetricasPage() {
       {/* 1. Header */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
-          Meu Dashboard
+          {t('dashboardMetricas.title')}
         </h1>
         <div className="flex flex-wrap items-center gap-2">
           <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="w-[150px] text-sm" />
-          <span className="text-sm text-muted-foreground">a</span>
+          <span className="text-sm text-muted-foreground">{t('dashboardMetricas.dateRangeSep')}</span>
           <Input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} className="w-[150px] text-sm" />
           <Button variant="outline" size="sm" onClick={handleExportPDF}>
-            <Download className="h-4 w-4 mr-1" /> Exportar PDF
+            <Download className="h-4 w-4 mr-1" /> {t('dashboardMetricas.exportPdf')}
           </Button>
         </div>
       </div>
@@ -362,7 +372,7 @@ export default function DashboardMetricasPage() {
           }}
         >
           <AlertTriangle className="h-3.5 w-3.5" />
-          Retornos vencidos: {retornosVencidos}
+          {t('dashboardMetricas.overdueReturns', { count: retornosVencidos })}
         </button>
         <div
           className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
@@ -375,86 +385,86 @@ export default function DashboardMetricasPage() {
           }}
         >
           <FileText className="h-3.5 w-3.5" />
-          Laudos gerados: {laudosUsados}/{laudosLimite}
+          {t('dashboardMetricas.reportsGenerated', { usados: laudosUsados, limite: laudosLimite })}
         </div>
       </div>
 
       <div id="dashboard-metricas-content">
         {/* 3. Visão Geral — 6 cards de status clínico (3x2) */}
-        <SectionTitle>Visão Geral</SectionTitle>
+        <SectionTitle>{t('dashboardMetricas.sections.overview')}</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <StatusCard
             icon={<Clock className="h-4 w-4" style={{ color: '#64748B' }} />}
-            label="Aguardando GJ"
+            label={t('dashboardMetricas.overview.awaitingGj')}
             value={statusCounts.aguardando_gj}
-            detail={`${pct(statusCounts.aguardando_gj)}% do total`}
+            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })}
             bg="#F1F5F9" border="#CBD5E1"
           />
           <StatusCard
             icon={<Clock className="h-4 w-4" style={{ color: '#3B82F6' }} />}
-            label="Aguardando GTT 75g"
+            label={t('dashboardMetricas.overview.awaitingGtt')}
             value={statusCounts.aguardando_gtt}
-            detail={`${pct(statusCounts.aguardando_gtt)}% do total`}
+            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })}
             bg="#EFF6FF" border="#93C5FD"
           />
           <StatusCard
             icon={<Activity className="h-4 w-4" style={{ color: '#F97316' }} />}
-            label="DMG confirmado"
+            label={t('dashboardMetricas.overview.dmgConfirmed')}
             value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino}
-            detail={`${pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino)}% do total`}
+            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })}
             bg="#FFF7ED" border="#FDBA74"
           />
           <StatusCard
             icon={<CheckCircle className="h-4 w-4" style={{ color: '#10B981' }} />}
-            label="DMG afastado"
+            label={t('dashboardMetricas.overview.dmgRuledOut')}
             value={statusCounts.dmg_afastado}
-            detail={`${pct(statusCounts.dmg_afastado)}% do total`}
+            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })}
             bg="#ECFDF5" border="#6EE7B7"
           />
           <StatusCard
             icon={<Baby className="h-4 w-4" style={{ color: '#8B5CF6' }} />}
-            label="Resultado do parto"
+            label={t('dashboardMetricas.overview.deliveryResult')}
             value={statusCounts.resultado_parto}
-            detail={`${pct(statusCounts.resultado_parto)}% do total`}
+            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })}
             bg="#F5F3FF" border="#C4B5FD"
           />
           <StatusCard
             icon={<Stethoscope className="h-4 w-4" style={{ color: '#EF4444' }} />}
-            label="Associar endocrino"
+            label={t('dashboardMetricas.overview.associateEndo')}
             value={statusCounts.encaminhada_endocrino}
-            detail={`${pct(statusCounts.encaminhada_endocrino)}% do total`}
+            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.encaminhada_endocrino) })}
             bg="#FEF2F2" border="#FCA5A5"
           />
         </div>
 
         {/* 4. Diagnóstico */}
-        <SectionTitle>Diagnóstico</SectionTitle>
+        <SectionTitle>{t('dashboardMetricas.sections.diagnosis')}</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <StatusCard
             icon={<Users className="h-4 w-4" style={{ color: BRAND.textLabel }} />}
-            label="Total de pacientes"
+            label={t('dashboardMetricas.diagnosis.totalPatients')}
             value={allPacientesCount}
             bg={BRAND.bgBranco} border={BRAND.borderCinza}
           />
           <StatusCard
             icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
-            label="DMG confirmado na GJ"
+            label={t('dashboardMetricas.diagnosis.dmgConfirmedGj')}
             value={dmgByGJ}
-            detail={`${allPacientesCount > 0 ? Math.round((dmgByGJ / allPacientesCount) * 100) : 0}% do total`}
+            detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGJ / allPacientesCount) * 100) : 0 })}
             bg={BRAND.bgLavandaDef} border={BRAND.borderLilasPrimario}
           />
           <StatusCard
             icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
-            label="DMG confirmado no GTT 75g"
+            label={t('dashboardMetricas.diagnosis.dmgConfirmedGtt')}
             value={dmgByGTT}
-            detail={`${allPacientesCount > 0 ? Math.round((dmgByGTT / allPacientesCount) * 100) : 0}% do total`}
+            detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGTT / allPacientesCount) * 100) : 0 })}
             bg={BRAND.bgLavanda} border={BRAND.borderLilasPrimario}
           />
           <StatusCard
             icon={<CheckCircle className="h-4 w-4" style={{ color: BRAND.verdaAgua }} />}
-            label="DMG afastado no GTT 75g"
+            label={t('dashboardMetricas.diagnosis.dmgRuledOutGtt')}
             value={dmgAfastado}
-            detail={`${allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0}% do total`}
+            detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0 })}
             bg={BRAND.bgVerdeSuave} border={BRAND.borderVerdeAgua}
           />
         </div>
@@ -463,7 +473,7 @@ export default function DashboardMetricasPage() {
         {diagPieData.length > 0 && (
           <div className="mb-8 rounded-xl border bg-card p-4" style={{ borderColor: BRAND.borderCinza }}>
             <h3 className="mb-3 text-sm font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
-              Momento do diagnóstico
+              {t('dashboardMetricas.pie.title')}
             </h3>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
@@ -480,45 +490,45 @@ export default function DashboardMetricasPage() {
         )}
 
         {/* 5. Tratamento */}
-        <SectionTitle>Tratamento</SectionTitle>
+        <SectionTitle>{t('dashboardMetricas.sections.treatment')}</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <StatusCard
             icon={<CheckCircle className="h-4 w-4" style={{ color: BRAND.verdaAgua }} />}
-            label="Controle só com dieta"
+            label={t('dashboardMetricas.treatment.dietOnly')}
             value={dietOnly}
-            detail={`${dietOnlyPercent}% dos DMG`}
+            detail={t('dashboardMetricas.pctOfDmg', { pct: dietOnlyPercent })}
             bg={BRAND.bgVerdeSuave} border={BRAND.borderVerdeAgua}
           />
           <StatusCard
             icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
-            label="Pacientes com insulina"
+            label={t('dashboardMetricas.treatment.withInsulin')}
             value={withInsulin}
-            detail={`${withInsulinPercent}% dos DMG`}
+            detail={t('dashboardMetricas.pctOfDmg', { pct: withInsulinPercent })}
             bg={BRAND.bgLavanda} border={BRAND.borderLilasPrimario}
           />
           <StatusCard
             icon={<Stethoscope className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
-            label="Associadas ao endocrino"
+            label={t('dashboardMetricas.treatment.withEndo')}
             value={endocrino}
-            detail={`${endocrinoPercent}% dos DMG`}
+            detail={t('dashboardMetricas.pctOfDmg', { pct: endocrinoPercent })}
             bg={BRAND.bgRosaSuave} border={BRAND.borderRosa}
           />
         </div>
 
         {/* 6. Desfechos */}
-        <SectionTitle>Desfechos</SectionTitle>
+        <SectionTitle>{t('dashboardMetricas.sections.outcomes')}</SectionTitle>
         {!hasPartos ? (
           <div className="rounded-xl border bg-card p-8 text-center mb-8" style={{ borderColor: BRAND.borderCinza }}>
             <Baby className="mx-auto h-10 w-10" style={{ color: '#94A3B8' }} />
             <p className="mt-2 text-sm" style={{ color: BRAND.textLabel }}>
-              Nenhum registro de parto no período selecionado.
+              {t('dashboardMetricas.outcomes.noDeliveries')}
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <StatusCard
               icon={<Baby className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
-              label="Partos registrados"
+              label={t('dashboardMetricas.outcomes.deliveriesRecorded')}
               value={partoPacientes.length}
               bg={BRAND.bgLavanda} border={BRAND.borderLilas}
             />
@@ -529,7 +539,7 @@ export default function DashboardMetricasPage() {
         {showChart && (
           <div className="mb-8 rounded-xl border bg-card p-4" style={{ borderColor: BRAND.borderCinza }}>
             <h2 className="mb-4 text-base font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
-              Evolução mensal
+              {t('dashboardMetricas.chart.title')}
             </h2>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyData}>
@@ -538,10 +548,10 @@ export default function DashboardMetricasPage() {
                 <YAxis tick={{ fontSize: 12, fill: BRAND.textLabel }} allowDecimals={false} />
                 <RechartsTooltip />
                 <Legend />
-                <Bar dataKey="novas" name="Novas pacientes" stackId="a" fill={BRAND.lilas} radius={[0, 0, 0, 0]}>
+                <Bar dataKey="novas" name={t('dashboardMetricas.chart.newPatients')} stackId="a" fill={BRAND.lilas} radius={[0, 0, 0, 0]}>
                   <LabelList dataKey="novas" content={renderLabel} />
                 </Bar>
-                <Bar dataKey="dmg" name="DMG confirmado" stackId="a" fill={BRAND.roxoEscuro} radius={[4, 4, 0, 0]}>
+                <Bar dataKey="dmg" name={t('dashboardMetricas.chart.dmgConfirmed')} stackId="a" fill={BRAND.roxoEscuro} radius={[4, 4, 0, 0]}>
                   <LabelList dataKey="dmg" content={renderLabel} />
                 </Bar>
               </BarChart>

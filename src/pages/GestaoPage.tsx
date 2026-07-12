@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useReadOnly } from '@/contexts/ReadOnlyContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,6 +48,7 @@ interface GestaoPageProps {
 }
 
 export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { readonly } = useReadOnly();
   const navigate = useNavigate();
@@ -55,7 +57,7 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
   const basePath = isVitrine ? '/vitrine/gestao' : '/gestao';
   const isForced = !!forcedUnidadeId;
 
-  const [unidadeNome, setUnidadeNome] = useState(isVitrine ? 'Hospital Demo MARI' : '');
+  const [unidadeNome, setUnidadeNome] = useState(isVitrine ? t('management.demoUnitName') : '');
   const [unidadeId, setUnidadeId] = useState<string | null>(
     forcedUnidadeId ?? (isVitrine ? 'vitrine-unidade' : null),
   );
@@ -145,7 +147,7 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
 
       const erro = opRes.error || peRes.error || gaRes.error || teRes.error;
       if (erro) {
-        setErroBlocos('Não foi possível carregar o painel. Tente novamente em instantes.');
+        setErroBlocos(t('management.panelLoadError'));
         console.error('Erro RPC painel:', erro);
       } else {
         setOperacao(opRes.data as unknown as PainelOperacao);
@@ -167,11 +169,10 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
             <Building2 className="h-6 w-6 text-amber-900" />
           </div>
           <h1 className="font-heading text-xl font-semibold text-amber-950">
-            Você ainda não está vinculado a uma unidade
+            {t('management.noUnitLinkedTitle')}
           </h1>
           <p className="mt-3 text-sm text-amber-900">
-            Sua conta de gestor está ativa, mas ainda não foi associada a nenhuma
-            unidade. Aguarde a vinculação por um administrador.
+            {t('management.noUnitLinkedDesc')}
           </p>
         </div>
       </div>
@@ -186,7 +187,7 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
     setExportando(true);
     const res = await exportarPainelPdf({
       unidadeId,
-      unidadeNome: unidadeNome || 'Unidade',
+      unidadeNome: unidadeNome || t('management.unitFallback'),
       operacao,
       perfil,
       gargalos,
@@ -194,11 +195,11 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
     });
     setExportando(false);
     if (res.ok) {
-      toast({ title: 'PDF gerado', description: `Concluído em ${(res.tempoMs / 1000).toFixed(1)}s` });
+      toast({ title: t('management.pdfGeneratedTitle'), description: t('management.pdfDoneIn', { seconds: (res.tempoMs / 1000).toFixed(1) }) });
     } else {
       toast({
-        title: 'Falha ao gerar PDF',
-        description: res.error || 'Erro inesperado',
+        title: t('management.pdfFailTitle'),
+        description: res.error || t('management.unexpectedError'),
         variant: 'destructive',
       });
     }
@@ -211,13 +212,13 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
         <div>
           <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
             <Building2 className="h-4 w-4" />
-            <span>{contextoCarregado ? unidadeNome || '—' : 'Carregando...'}</span>
+            <span>{contextoCarregado ? unidadeNome || '—' : t('common.loading')}</span>
           </div>
           <h1 className="font-heading text-2xl font-bold text-foreground">
-            Painel da unidade
+            {t('management.unitPanelTitle')}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Visão estratégica da operação clínica
+            {t('management.unitPanelSubtitle')}
           </p>
         </div>
         {podeExportar && !readonly && (
@@ -228,11 +229,11 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
           >
             {exportando ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Gerando...
+                <Loader2 className="h-4 w-4 animate-spin" /> {t('management.generating')}
               </>
             ) : (
               <>
-                <Download className="h-4 w-4" /> Exportar PDF
+                <Download className="h-4 w-4" /> {t('management.exportPdf')}
               </>
             )}
           </button>
@@ -242,7 +243,7 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
       {/* Seletor de unidade — só aparece para gestor geral, nunca em modo forçado/readonly */}
       {isGestorGeral && !isForced && !readonly && unidadesDisponiveis.length > 0 && (
         <div className="mb-6 flex items-center gap-2 rounded-xl border border-border bg-card p-4">
-          <span className="text-sm text-muted-foreground">Unidade:</span>
+          <span className="text-sm text-muted-foreground">{t('management.unit')}:</span>
           <Select value={unidadeId || ''} onValueChange={v => setUnidadeId(v)}>
             <SelectTrigger className="h-9 w-[260px]">
               <SelectValue />
@@ -274,7 +275,7 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
         {!readonly && (
           <div>
             <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">
-              Gestão
+              {t('nav.management')}
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <button
@@ -285,9 +286,9 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
                   <Users className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-foreground">Gerenciar equipe</p>
+                  <p className="font-semibold text-foreground">{t('management.manageTeam')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Ver membros, convidar e remover profissionais
+                    {t('management.manageTeamDesc')}
                   </p>
                 </div>
                 <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
@@ -300,8 +301,8 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
                   <FileText className="h-6 w-6 text-secondary-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-foreground">Fichas da unidade</p>
-                  <p className="text-sm text-muted-foreground">Visualizar e exportar fichas</p>
+                  <p className="font-semibold text-foreground">{t('management.unitFiles')}</p>
+                  <p className="text-sm text-muted-foreground">{t('management.unitFilesDesc')}</p>
                 </div>
                 <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
               </button>

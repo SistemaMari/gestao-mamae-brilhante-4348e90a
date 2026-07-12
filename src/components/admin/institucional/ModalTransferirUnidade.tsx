@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function ModalTransferirUnidade({ alvo, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [destino, setDestino] = useState("");
   const [justificativa, setJustificativa] = useState("");
@@ -54,7 +56,7 @@ export default function ModalTransferirUnidade({ alvo, onClose, onSucesso }: Pro
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    toast.success(`${alvo.unidade_nome} transferida.`);
+    toast.success(t("admin.transferirUnidade.successToast", { unidade: alvo.unidade_nome }));
     qc.invalidateQueries({ queryKey: ["institucional", "unidades"] });
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes"] });
     qc.invalidateQueries({ queryKey: ["institucional", "profissionais"] });
@@ -70,50 +72,50 @@ export default function ModalTransferirUnidade({ alvo, onClose, onSucesso }: Pro
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[#5B3A8E]">
-            <ArrowRightLeft className="h-5 w-5" /> Transferir unidade de contratante
+            <ArrowRightLeft className="h-5 w-5" /> {t("admin.transferirUnidade.title")}
           </DialogTitle>
         </DialogHeader>
 
         {alvo && (
           <div className="space-y-4">
             <div className="rounded-md border bg-[#F9F7FC] p-3 text-sm">
-              <p><span className="text-muted-foreground">Unidade:</span> <strong>{alvo.unidade_nome}</strong></p>
-              <p><span className="text-muted-foreground">Contratante atual:</span> <strong>{alvo.contratante_origem_nome ?? "—"}</strong></p>
+              <p><span className="text-muted-foreground">{t("admin.transferirUnidade.unidadeLabel")}</span> <strong>{alvo.unidade_nome}</strong></p>
+              <p><span className="text-muted-foreground">{t("admin.transferirUnidade.contratanteAtualLabel")}</span> <strong>{alvo.contratante_origem_nome ?? "—"}</strong></p>
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium">Contratante destino</label>
+              <label className="text-sm font-medium">{t("admin.transferirUnidade.contratanteDestinoLabel")}</label>
               <SelectContratante
                 value={destino}
                 onChange={setDestino}
                 excluirIds={excluirIds}
-                placeholder="Selecione o contratante destino…"
+                placeholder={t("admin.transferirUnidade.contratanteDestinoPlaceholder")}
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium">Justificativa da transferência</label>
+              <label className="text-sm font-medium">{t("admin.transferirUnidade.justificativaLabel")}</label>
               <Textarea
                 value={justificativa}
                 onChange={(e) => setJustificativa(e.target.value)}
-                placeholder="Ex.: Mudança de operadora administrativa por decisão da prefeitura."
+                placeholder={t("admin.transferirUnidade.justificativaPlaceholder")}
                 rows={3}
               />
               <p className={`text-xs ${justificativa.length > 0 && !justificativaValida ? "text-destructive" : "text-muted-foreground"}`}>
-                {justificativa.trim().length}/20 caracteres mínimos
+                {t("admin.transferirUnidade.charCount", { count: justificativa.trim().length })}
               </p>
             </div>
           </div>
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={submitting}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose} disabled={submitting}>{t("common.cancel")}</Button>
           <Button
             onClick={handleConfirmar}
             disabled={!podeConfirmar}
             className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
           >
-            {submitting ? "Transferindo…" : "Confirmar transferência"}
+            {submitting ? t("admin.transferirUnidade.transferring") : t("admin.transferirUnidade.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

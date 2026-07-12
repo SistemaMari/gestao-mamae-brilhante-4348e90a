@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,23 +46,25 @@ type StatusFiltro = "ativos" | "todos" | "suspensos" | "encerrados";
 const MARI_SANDBOX_NOME = "MARI Sandbox";
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   if (status === "ativo") {
-    return <Badge className="bg-[#10B981] text-white hover:bg-[#10B981]">Ativo</Badge>;
+    return <Badge className="bg-[#10B981] text-white hover:bg-[#10B981]">{t("admin.contratantes.statusAtivo")}</Badge>;
   }
   if (status === "suspenso") {
-    return <Badge className="bg-[#F59E0B] text-[#92400E] hover:bg-[#F59E0B]">Suspenso</Badge>;
+    return <Badge className="bg-[#F59E0B] text-[#92400E] hover:bg-[#F59E0B]">{t("admin.contratantes.statusSuspenso")}</Badge>;
   }
-  return <Badge className="bg-[#DC2626] text-white hover:bg-[#DC2626]">Encerrado</Badge>;
+  return <Badge className="bg-[#DC2626] text-white hover:bg-[#DC2626]">{t("admin.contratantes.statusEncerrado")}</Badge>;
 }
 
-function fmtData(d?: string | null) {
+function fmtData(d: string | null | undefined, locale: string) {
   if (!d) return "—";
-  return new Date(d + "T00:00:00").toLocaleDateString("pt-BR", {
+  return new Date(d + "T00:00:00").toLocaleDateString(locale, {
     day: "2-digit", month: "2-digit", year: "2-digit",
   });
 }
 
 export default function AbaContratantes() {
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("ativos");
   const [busca, setBusca] = useState("");
@@ -111,32 +114,34 @@ export default function AbaContratantes() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex items-end gap-3">
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Status</label>
+              <label className="text-xs text-muted-foreground">{t("common.status")}</label>
               <Select value={statusFiltro} onValueChange={(v) => setStatusFiltro(v as StatusFiltro)}>
                 <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ativos">Ativos</SelectItem>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="suspensos">Suspensos</SelectItem>
-                  <SelectItem value="encerrados">Encerrados</SelectItem>
+                  <SelectItem value="ativos">{t("admin.contratantes.filterAtivos")}</SelectItem>
+                  <SelectItem value="todos">{t("common.all")}</SelectItem>
+                  <SelectItem value="suspensos">{t("admin.contratantes.filterSuspensos")}</SelectItem>
+                  <SelectItem value="encerrados">{t("admin.contratantes.filterEncerrados")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Buscar</label>
+              <label className="text-xs text-muted-foreground">{t("common.search")}</label>
               <Input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                placeholder="Nome ou CNPJ"
+                placeholder={t("admin.contratantes.searchPlaceholder")}
                 className="w-[260px]"
               />
             </div>
             <p className="text-sm text-muted-foreground pb-2">
-              {isLoading ? "Carregando…" : `${linhas.length} contratante${linhas.length === 1 ? "" : "s"}`}
+              {isLoading
+                ? t("common.loading")
+                : t("admin.contratantes.count", { count: linhas.length })}
             </p>
           </div>
           <Button onClick={() => setOpenCriar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
-            <Plus className="mr-2 h-4 w-4" /> Cadastrar contratante
+            <Plus className="mr-2 h-4 w-4" /> {t("admin.contratantes.addContratante")}
           </Button>
         </div>
 
@@ -144,7 +149,15 @@ export default function AbaContratantes() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-[#5B3A8E]">
-                {["Nome", "CNPJ", "Início", "Término", "Unidades", "Profis.", "Ações"].map((h, i) => (
+                {[
+                  t("common.name"),
+                  t("admin.contratantes.colCnpj"),
+                  t("admin.contratantes.colInicio"),
+                  t("admin.contratantes.colTermino"),
+                  t("nav.units"),
+                  t("admin.contratantes.colProfis"),
+                  t("common.actions"),
+                ].map((h, i) => (
                   <TableHead
                     key={h}
                     className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 6 ? "text-right" : ""}`}
@@ -159,10 +172,10 @@ export default function AbaContratantes() {
                 <TableRow key={i}><TableCell colSpan={7}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
               ))}
               {!isLoading && isError && (
-                <TableRow><TableCell colSpan={7} className="text-center text-destructive">Erro ao carregar contratantes.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-destructive">{t("admin.contratantes.loadError")}</TableCell></TableRow>
               )}
               {!isLoading && !isError && linhas.length === 0 && (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">Nenhum contratante encontrado.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">{t("admin.contratantes.empty")}</TableCell></TableRow>
               )}
               {linhas.map((c, idx) => {
                 const encerrado = c.status === "encerrado";
@@ -181,8 +194,8 @@ export default function AbaContratantes() {
                       )}
                     </TableCell>
                     <TableCell className="font-mono text-xs">{formatCNPJ(c.cnpj)}</TableCell>
-                    <TableCell>{fmtData(c.data_inicio_contrato)}</TableCell>
-                    <TableCell>{c.data_termino_contrato ? fmtData(c.data_termino_contrato) : "Contínuo"}</TableCell>
+                    <TableCell>{fmtData(c.data_inicio_contrato, i18n.language)}</TableCell>
+                    <TableCell>{c.data_termino_contrato ? fmtData(c.data_termino_contrato, i18n.language) : t("admin.contratantes.continuous")}</TableCell>
                     <TableCell>
                       {c.unidades_nomes && c.unidades_nomes.length > 0 ? (
                         <Tooltip>
@@ -204,7 +217,7 @@ export default function AbaContratantes() {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button variant="ghost" size="sm" onClick={() => setEditar(c)} disabled={encerrado}>
-                          Editar
+                          {t("common.edit")}
                         </Button>
                         {c.status !== "encerrado" && (
                           <Button
@@ -213,7 +226,7 @@ export default function AbaContratantes() {
                             className="text-destructive"
                             onClick={() => setEncerrar({ id: c.id, nome: c.nome })}
                           >
-                            Encerrar
+                            {t("admin.contratantes.encerrar")}
                           </Button>
                         )}
                         {c.status !== "ativo" && (
@@ -222,7 +235,7 @@ export default function AbaContratantes() {
                             size="sm"
                             onClick={() => setReativar({ id: c.id, nome: c.nome })}
                           >
-                            Reativar
+                            {t("admin.contratantes.reativar")}
                           </Button>
                         )}
                       </div>

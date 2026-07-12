@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
+import { ptBR, enUS, es } from 'date-fns/locale';
 import { ArrowLeft, Download, Printer, Loader2, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -18,13 +20,22 @@ interface LaudoFull {
   paciente_nome: string;
 }
 
-function fmtData(iso: string) {
-  try { return format(new Date(iso), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }); }
+const DATE_LOCALES: Record<string, Locale> = {
+  'pt-BR': ptBR,
+  'en-US': enUS,
+  es,
+};
+
+function fmtData(iso: string, dfLocale: Locale, pattern: string) {
+  try { return format(new Date(iso), pattern, { locale: dfLocale }); }
   catch { return iso; }
 }
 
 export default function LaudoViewerPage() {
   const { id } = useParams<{ id: string }>();
+  const { t, i18n } = useTranslation();
+  const dfLocale = DATE_LOCALES[i18n.language] ?? ptBR;
+  const datePattern = t('laudoViewer.datePattern');
   const [laudo, setLaudo] = useState<LaudoFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +53,7 @@ export default function LaudoViewerPage() {
 
       if (cancelled) return;
       if (error || !data) {
-        setError('Laudo não encontrado ou sem acesso.');
+        setError(t('laudoViewer.notFound'));
         setLoading(false);
         return;
       }
@@ -72,8 +83,8 @@ export default function LaudoViewerPage() {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
         <FileText className="h-8 w-8 text-muted-foreground/60" />
-        <p className="text-sm font-medium text-foreground">{error ?? 'Laudo indisponível'}</p>
-        <Link to="/laudos" className="text-sm text-primary hover:underline">Voltar ao histórico</Link>
+        <p className="text-sm font-medium text-foreground">{error ?? t('laudoViewer.unavailable')}</p>
+        <Link to="/laudos" className="text-sm text-primary hover:underline">{t('laudoViewer.backToHistory')}</Link>
       </div>
     );
   }
@@ -84,7 +95,7 @@ export default function LaudoViewerPage() {
     downloadLaudoPdf({
       pacienteNome: laudo.paciente_nome,
       cenario: laudo.cenario_clinico,
-      geradoEm: fmtData(laudo.created_at),
+      geradoEm: fmtData(laudo.created_at, dfLocale, datePattern),
       conteudo: conteudoText,
     });
   };
@@ -93,14 +104,14 @@ export default function LaudoViewerPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <Link to="/laudos" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Histórico de laudos
+          <ArrowLeft className="h-4 w-4" /> {t('laudoViewer.reportsHistory')}
         </Link>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => window.print()}>
-            <Printer className="mr-2 h-4 w-4" /> Imprimir
+            <Printer className="mr-2 h-4 w-4" /> {t('laudoViewer.print')}
           </Button>
           <Button size="sm" onClick={handleDownload} disabled={!conteudoText}>
-            <Download className="mr-2 h-4 w-4" /> Baixar PDF
+            <Download className="mr-2 h-4 w-4" /> {t('laudoViewer.downloadPdf')}
           </Button>
         </div>
       </div>
@@ -108,14 +119,14 @@ export default function LaudoViewerPage() {
       <article className="rounded-xl border border-border bg-card p-8 print:border-0 print:p-0 print:shadow-none">
         <header className="border-b border-border pb-4">
           <h1 className="font-heading text-2xl font-bold text-foreground">
-            Laudo de apoio diagnóstico — DMG
+            {t('laudoViewer.headerTitle')}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            <span><strong className="text-foreground">Paciente:</strong> {laudo.paciente_nome}</span>
+            <span><strong className="text-foreground">{t('laudoViewer.patientLabel')}</strong> {laudo.paciente_nome}</span>
             {laudo.cenario_clinico && (
-              <Badge variant="outline">Cenário {laudo.cenario_clinico}</Badge>
+              <Badge variant="outline">{t('laudoViewer.scenario', { cenario: laudo.cenario_clinico })}</Badge>
             )}
-            <span>Gerado em {fmtData(laudo.created_at)}</span>
+            <span>{t('laudoViewer.generatedOn', { data: fmtData(laudo.created_at, dfLocale, datePattern) })}</span>
             {laudo.status !== 'pronto' && (
               <Badge variant="secondary">{laudo.status}</Badge>
             )}
@@ -125,7 +136,7 @@ export default function LaudoViewerPage() {
         <div className="mt-6 whitespace-pre-wrap font-body text-[15px] leading-relaxed text-foreground">
           {conteudoText || (
             <p className="text-muted-foreground">
-              Este laudo ainda não possui conteúdo gerado.
+              {t('laudoViewer.noContent')}
             </p>
           )}
         </div>

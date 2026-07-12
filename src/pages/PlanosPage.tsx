@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
@@ -23,18 +24,19 @@ interface Plano {
   link_pagamento_asaas: string | null;
 }
 
-function formatPreco(valor: number): string {
-  return `R$ ${valor.toFixed(2).replace('.', ',')}/mês`;
-}
-
-function labelSuporte(suporte: string): string {
-  if (suporte === 'email') return 'Suporte por e-mail';
-  if (suporte === 'prioritario') return 'Suporte prioritário';
-  return suporte;
+function formatPreco(valor: number, perMonth: string): string {
+  return `R$ ${valor.toFixed(2).replace('.', ',')}${perMonth}`;
 }
 
 export default function PlanosPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
+
+  const labelSuporte = (suporte: string): string => {
+    if (suporte === 'email') return t('planos.supportEmail');
+    if (suporte === 'prioritario') return t('planos.supportPriority');
+    return suporte;
+  };
   const navigate = useNavigate();
   const { profissionalData } = useProfissionalData();
 
@@ -78,14 +80,14 @@ export default function PlanosPage() {
       {user && (
         <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
-          Voltar
+          {t('common.back')}
         </Button>
       )}
       <h1 className="font-heading text-3xl font-bold text-foreground">
-        Escolha seu plano
+        {t('planos.chooseYourPlan')}
       </h1>
       <p className="mt-2 text-muted-foreground">
-        Comece com o plano ideal para sua prática e evolua quando precisar
+        {t('planos.chooseSubtitle')}
       </p>
     </div>
   );
@@ -107,16 +109,16 @@ export default function PlanosPage() {
           <div className="mx-auto max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
             <AlertCircle className="mx-auto mb-3 h-8 w-8 text-destructive" />
             <p className="mb-4 text-sm text-foreground">
-              Não foi possível carregar os planos. Tente recarregar a página.
+              {t('planos.loadError')}
             </p>
-            <Button onClick={fetchPlanos}>Tentar novamente</Button>
+            <Button onClick={fetchPlanos}>{t('common.tryAgain')}</Button>
           </div>
         )}
 
         {!loading && !error && planos && planos.length === 0 && (
           <div className="mx-auto max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
             <p className="text-sm text-muted-foreground">
-              Nenhum plano disponível no momento.
+              {t('planos.noPlans')}
             </p>
           </div>
         )}
@@ -128,28 +130,28 @@ export default function PlanosPage() {
               // Destaque marketing: card do meio (índice 1) — independente do plano atual.
               const destaqueMarketing = idx === 1;
 
-              let botaoTexto = `Assinar ${plano.nome}`;
+              let botaoTexto = t('planos.subscribeTo', { plano: plano.nome });
               let botaoVariant: 'default' | 'outline' | 'secondary' = 'default';
               let botaoDisabled = false;
 
               if (isAtual) {
-                botaoTexto = 'Plano atual';
+                botaoTexto = t('planos.currentPlan');
                 botaoVariant = 'outline';
                 botaoDisabled = true;
               } else if (precoAtual !== null) {
                 if (plano.preco_mensal > precoAtual) {
-                  botaoTexto = 'Fazer upgrade';
+                  botaoTexto = t('planos.upgrade');
                   botaoVariant = 'default';
                 } else if (plano.preco_mensal < precoAtual) {
-                  botaoTexto = 'Fazer downgrade';
+                  botaoTexto = t('planos.downgrade');
                   botaoVariant = 'secondary';
                 }
               }
 
               const limitePacientes =
                 plano.pacientes_max === null
-                  ? 'Pacientes ilimitados'
-                  : `Até ${plano.pacientes_max} pacientes`;
+                  ? t('planos.unlimitedPatients')
+                  : t('planos.upToPatients', { count: plano.pacientes_max });
 
               return (
                 <div
@@ -171,14 +173,14 @@ export default function PlanosPage() {
                           color: '#7E69AB',
                         }}
                       >
-                        Seu plano atual
+                        {t('planos.yourCurrentPlan')}
                       </Badge>
                     </div>
                   ) : destaqueMarketing ? (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <Badge className="bg-primary text-primary-foreground px-3 py-1 text-xs font-semibold">
                         <Crown className="mr-1 h-3 w-3" />
-                        Mais popular
+                        {t('planos.mostPopular')}
                       </Badge>
                     </div>
                   ) : null}
@@ -189,7 +191,7 @@ export default function PlanosPage() {
                     </h3>
                     <div className="mt-3">
                       <span className="font-heading text-3xl font-bold text-foreground">
-                        {formatPreco(plano.preco_mensal)}
+                        {formatPreco(plano.preco_mensal, t('planos.perMonth'))}
                       </span>
                     </div>
                   </div>
@@ -197,7 +199,7 @@ export default function PlanosPage() {
                   <ul className="mb-6 flex-1 space-y-2.5">
                     <li className="flex items-start gap-2 text-sm text-foreground">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
-                      Até {plano.laudos_por_mes} laudos por mês
+                      {t('planos.upToReportsPerMonth', { count: plano.laudos_por_mes })}
                     </li>
                     <li className="flex items-start gap-2 text-sm text-foreground">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
@@ -233,7 +235,7 @@ export default function PlanosPage() {
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Preços de lançamento. Valores podem ser ajustados após o período promocional.
+          {t('planos.launchPricingNote')}
         </p>
       </div>
     </div>

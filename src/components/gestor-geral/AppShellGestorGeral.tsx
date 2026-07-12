@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { LayoutGrid, FileBarChart, Activity, BarChart3, Settings, LogOut, Briefcase, Loader2, PlayCircle } from "lucide-react";
 import {
@@ -17,16 +18,16 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-const buildItems = (base: string) => [
-  { title: "Visão geral", path: `${base}/visao-geral`, icon: LayoutGrid, exact: false },
-  { title: "Consolidador", path: `${base}/consolidador`, icon: FileBarChart, exact: false },
-  { title: "Diagnóstico", path: `${base}/diagnostico`, icon: Activity, exact: false },
-  { title: "Comparador", path: `${base}/comparador`, icon: BarChart3, exact: false },
-  { title: "Configurações", path: `${base}/configuracoes`, icon: Settings, exact: false },
+const buildItems = (base: string, t: (key: string) => string) => [
+  { title: t("gestorGeral.appShell.navVisaoGeral"), path: `${base}/visao-geral`, icon: LayoutGrid, exact: false },
+  { title: t("gestorGeral.appShell.navConsolidador"), path: `${base}/consolidador`, icon: FileBarChart, exact: false },
+  { title: t("gestorGeral.appShell.navDiagnostico"), path: `${base}/diagnostico`, icon: Activity, exact: false },
+  { title: t("gestorGeral.appShell.navComparador"), path: `${base}/comparador`, icon: BarChart3, exact: false },
+  { title: t("gestorGeral.appShell.navConfiguracoes"), path: `${base}/configuracoes`, icon: Settings, exact: false },
   // Tutorial só no app real; a vitrine não tem rota /vitrine/consolidar/tutorial.
   ...(base.startsWith("/vitrine")
     ? []
-    : [{ title: "Tutorial", path: `${base}/tutorial`, icon: PlayCircle, exact: false }]),
+    : [{ title: t("gestorGeral.appShell.navTutorial"), path: `${base}/tutorial`, icon: PlayCircle, exact: false }]),
 ];
 
 function iniciais(nome?: string | null) {
@@ -52,10 +53,11 @@ function GestorGeralSidebar({
   basePath: string;
   onSair: () => void;
 }) {
+  const { t } = useTranslation();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
-  const items = buildItems(basePath);
+  const items = buildItems(basePath, t);
 
   const isActive = (url: string, exact: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(`${url}/`);
@@ -85,7 +87,7 @@ function GestorGeralSidebar({
                 <p className="truncate text-sm font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
                   {nome || "—"}
                 </p>
-                <p className="text-xs text-[#7E69AB]">Gestor Geral</p>
+                <p className="text-xs text-[#7E69AB]">{t("gestorGeral.appShell.roleLabel")}</p>
               </div>
             )}
           </div>
@@ -136,7 +138,7 @@ function GestorGeralSidebar({
             className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            {!collapsed && "Sair"}
+            {!collapsed && t("common.logout")}
           </Button>
         </div>
       </SidebarContent>
@@ -145,14 +147,15 @@ function GestorGeralSidebar({
 }
 
 export default function AppShellGestorGeral() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isVitrine = pathname.startsWith("/vitrine");
   const [carregando, setCarregando] = useState(!isVitrine);
-  const [nome, setNome] = useState(isVitrine ? "Dr. Demo Gestor Geral" : "");
+  const [nome, setNome] = useState(isVitrine ? t("gestorGeral.appShell.demoNome") : "");
   const [detalhe, setDetalhe] = useState(
-    isVitrine ? "Diretor Médico — Demo Health" : "",
+    isVitrine ? t("gestorGeral.appShell.demoDetalhe") : "",
   );
 
   useEffect(() => {
@@ -209,7 +212,7 @@ export default function AppShellGestorGeral() {
           <header className="flex h-14 items-center gap-3 border-b border-[#E2E8F0] bg-white px-4">
             <SidebarTrigger className="text-[#64748B]" />
             <span className="text-sm text-[#64748B]" style={{ fontFamily: "Sora, sans-serif" }}>
-              Consolidação Geral
+              {t("gestorGeral.appShell.headerLabel")}
             </span>
           </header>
           <main className="flex-1 min-w-0">

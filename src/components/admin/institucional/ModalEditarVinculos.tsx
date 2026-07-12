@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +27,7 @@ interface Props {
 const MARI_SANDBOX_NOME = "MARI Sandbox";
 
 export default function ModalEditarVinculos({ alvo, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [ids, setIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -65,7 +67,7 @@ export default function ModalEditarVinculos({ alvo, onClose, onSucesso }: Props)
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    toast.success(`Vínculos atualizados: ${data?.adicionadas ?? 0} adicionados, ${data?.removidas ?? 0} removidos.`);
+    toast.success(t("admin.institucional.vinculosUpdated", { added: data?.adicionadas ?? 0, removed: data?.removidas ?? 0 }));
     onSucesso(); onClose();
   }
 
@@ -73,7 +75,7 @@ export default function ModalEditarVinculos({ alvo, onClose, onSucesso }: Props)
     <Dialog open={!!alvo} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-[Sora] text-[#5B3A8E]">Editar vínculos</DialogTitle>
+          <DialogTitle className="font-[Sora] text-[#5B3A8E]">{t("admin.institucional.editVinculosTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="rounded-md bg-[#F5F3FA] p-3 text-sm">
@@ -88,10 +90,10 @@ export default function ModalEditarVinculos({ alvo, onClose, onSucesso }: Props)
             desabilitarEncerrados
           />
           <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t("common.cancel")}</Button>
             <Button type="submit" disabled={submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </form>

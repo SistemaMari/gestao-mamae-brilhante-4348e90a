@@ -1,4 +1,5 @@
 import { AlertTriangle, AlertCircle, Info, CheckCircle, type LucideIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export type AlertaTipo = "critico" | "atencao" | "info" | "sucesso";
 
@@ -18,6 +19,7 @@ const CONFIG: Record<AlertaTipo, { cor: string; icone: LucideIcon }> = {
 };
 
 export function AlertaCard({ tipo, titulo, numero, descricao, linkVerDetalhes }: AlertaCardProps) {
+  const { t } = useTranslation();
   const { cor, icone: Icone } = CONFIG[tipo];
 
   return (
@@ -58,7 +60,7 @@ export function AlertaCard({ tipo, titulo, numero, descricao, linkVerDetalhes }:
                 color: "#7C4DBA",
               }}
             >
-              Ver detalhes →
+              {t('admin.alerts.viewDetails')}
             </button>
           </div>
         )}

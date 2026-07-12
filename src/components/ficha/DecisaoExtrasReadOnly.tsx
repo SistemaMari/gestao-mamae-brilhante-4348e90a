@@ -5,31 +5,35 @@
  * estiver preenchido (Regra 3 / Regra manter / fichas antigas), não renderiza
  * nada — evita bloco vazio.
  */
+import { useTranslation } from 'react-i18next';
+
 interface Props {
   pactuacao: 'aceita' | 'recusa' | string | null;
   memoria: 'confirma' | 'nao_confirma' | string | null;
 }
 
-const pactLabel: Record<string, string> = {
-  aceita: 'Aceita reforçar MEV',
-  recusa: 'Recusa — iniciar insulina',
-};
-
-const memLabel: Record<string, string> = {
-  confirma: 'Confirma',
-  nao_confirma: 'Não confirma',
-};
-
 export default function DecisaoExtrasReadOnly({ pactuacao, memoria }: Props) {
+  const { t } = useTranslation();
+
+  const pactLabel: Record<string, string> = {
+    aceita: t('ficha.decisaoExtras.pactAceita'),
+    recusa: t('ficha.decisaoExtras.pactRecusa'),
+  };
+
+  const memLabel: Record<string, string> = {
+    confirma: t('ficha.decisaoExtras.memConfirma'),
+    nao_confirma: t('ficha.decisaoExtras.memNaoConfirma'),
+  };
+
   if (!pactuacao && !memoria) return null;
 
   return (
     <div className="rounded-xl border border-[#D6BCFA] bg-[#FAFAFE] p-4 space-y-2">
-      <h3 className="text-sm font-bold text-[#5B21B6]">Decisão clínica do Retorno 2</h3>
+      <h3 className="text-sm font-bold text-[#5B21B6]">{t('ficha.decisaoExtras.title')}</h3>
       <div className="divide-y divide-[#E5E0F2]">
         {memoria && (
           <div className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-xs">
-            <span className="text-foreground">Avaliação da memória do glicosímetro</span>
+            <span className="text-foreground">{t('ficha.decisaoExtras.memoriaLabel')}</span>
             <span className="font-medium text-[#5B21B6] shrink-0">
               {memLabel[memoria] ?? '—'}
             </span>
@@ -37,7 +41,7 @@ export default function DecisaoExtrasReadOnly({ pactuacao, memoria }: Props) {
         )}
         {pactuacao && (
           <div className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-xs">
-            <span className="text-foreground">Pactuação com a paciente</span>
+            <span className="text-foreground">{t('ficha.decisaoExtras.pactuacaoLabel')}</span>
             <span className="font-medium text-[#5B21B6] shrink-0">
               {pactLabel[pactuacao] ?? '—'}
             </span>

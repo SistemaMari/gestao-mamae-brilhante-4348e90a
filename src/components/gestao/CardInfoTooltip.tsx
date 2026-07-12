@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function CardInfoTooltip({ text, side = 'top', ariaLabel }: Props) {
+  const { t } = useTranslation();
   const isPdf = useContext(PdfModeContext);
   if (isPdf) return null;
   return (
@@ -23,7 +25,7 @@ export default function CardInfoTooltip({ text, side = 'top', ariaLabel }: Props
         <TooltipTrigger asChild>
           <button
             type="button"
-            aria-label={ariaLabel ?? 'Mais informações'}
+            aria-label={ariaLabel ?? t('gestao.cardInfoTooltip.ariaLabel')}
             className="text-muted-foreground hover:text-foreground"
           >
             <Info className="h-3.5 w-3.5" />

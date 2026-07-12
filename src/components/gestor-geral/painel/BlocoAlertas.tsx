@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,13 +13,14 @@ interface Props {
 }
 
 export default function BlocoAlertas({ data, isLoading, isError, onRetry }: Props) {
+  const { t } = useTranslation();
   if (isError) {
     return (
       <div className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] p-5">
-        <p className="text-sm text-[#991B1B]">Não foi possível carregar os alertas.</p>
+        <p className="text-sm text-[#991B1B]">{t('gestorGeral.blocoAlertas.loadError')}</p>
         <Button size="sm" variant="outline" className="mt-2" onClick={onRetry}>
           <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          Recarregar
+          {t('gestorGeral.blocoAlertas.reload')}
         </Button>
       </div>
     );
@@ -31,10 +33,10 @@ export default function BlocoAlertas({ data, isLoading, isError, onRetry }: Prop
           className="text-base font-semibold text-[#1E293B]"
           style={{ fontFamily: "Sora, sans-serif" }}
         >
-          Atenção requerida
+          {t('gestorGeral.blocoAlertas.title')}
         </h2>
         <p className="text-xs text-[#64748B] mt-0.5">
-          Alertas determinísticos sobre o estado operacional das unidades.
+          {t('gestorGeral.blocoAlertas.subtitle')}
         </p>
       </div>
 
@@ -50,8 +52,8 @@ export default function BlocoAlertas({ data, isLoading, isError, onRetry }: Prop
             <div className="h-12 w-12 rounded-full bg-[#DCFCE7] flex items-center justify-center mb-3">
               <CheckCircle2 className="h-6 w-6 text-[#10B981]" />
             </div>
-            <p className="text-sm font-medium text-[#1E293B]">Nenhum alerta no momento.</p>
-            <p className="text-xs text-[#64748B] mt-1">Sua rede está operando normalmente.</p>
+            <p className="text-sm font-medium text-[#1E293B]">{t('gestorGeral.blocoAlertas.emptyTitle')}</p>
+            <p className="text-xs text-[#64748B] mt-1">{t('gestorGeral.blocoAlertas.emptyDesc')}</p>
           </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
@@ -81,7 +83,7 @@ export default function BlocoAlertas({ data, isLoading, isError, onRetry }: Prop
                       <p className="text-sm text-[#475569] mt-0.5">{a.mensagem}</p>
                       {a.detalhe_numerico !== null && a.detalhe_numerico !== undefined && (
                         <p className="text-xs text-[#64748B] mt-1">
-                          Detalhe: {a.detalhe_numerico}
+                          {t('gestorGeral.blocoAlertas.detalhe', { valor: a.detalhe_numerico })}
                         </p>
                       )}
                     </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { Download, FileSpreadsheet, FileText, FileJson, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,19 +26,16 @@ const COR_HOVER = "#5A3690";
 const BADGE_BG = "#EDE5F7";
 const BADGE_TXT = "#5A3690";
 
-const TIMEOUT_MSG =
-  "Exportação muito grande. Aplique filtros de período ou tipo de conta para reduzir o volume.";
-
-const CONTEUDOS = [
-  { id: "completo", label: "Relatório completo", desc: "Usuários + diagnósticos + desfechos" },
-  { id: "usuarios", label: "Usuários e unidades", desc: "Profissionais, planos, geografia" },
-  { id: "diagnosticos", label: "Diagnósticos clínicos", desc: "DMG, OVERT DM, tratamento, desfechos" },
-  { id: "profissionais_por_estado", label: "Profissionais por estado", desc: "Tabela específica" },
-  { id: "dmg_por_estado", label: "DMG por estado", desc: "Tabela específica" },
-  { id: "dmg_por_cidade", label: "DMG por cidade", desc: "Tabela específica" },
-  { id: "metricas_por_unidade", label: "Métricas por unidade", desc: "Tabela específica" },
-  { id: "funil_tratamento", label: "Funil de tratamento", desc: "Tabela específica" },
-  { id: "desfechos_perinatais", label: "Desfechos perinatais", desc: "Tabela específica" },
+const CONTEUDO_IDS = [
+  "completo",
+  "usuarios",
+  "diagnosticos",
+  "profissionais_por_estado",
+  "dmg_por_estado",
+  "dmg_por_cidade",
+  "metricas_por_unidade",
+  "funil_tratamento",
+  "desfechos_perinatais",
 ] as const;
 
 // Mapa conteudo CSV → view do admin-metrics
@@ -49,53 +47,54 @@ const CSV_VIEW: Partial<Record<string, AdminViewSlug>> = {
 };
 
 function ResumoFiltros() {
+  const { t } = useTranslation();
   const { filtros, filtrosAtivosCount } = useAdminFiltros();
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-slate-700" style={{ fontFamily: "Sora, sans-serif" }}>
-          Filtros aplicados
+          {t("admin.exportar.appliedFilters")}
         </h3>
         <span
           className="rounded-full px-2 py-0.5 text-xs font-semibold"
           style={{ background: BADGE_BG, color: BADGE_TXT }}
         >
-          {filtrosAtivosCount} ativo{filtrosAtivosCount === 1 ? "" : "s"}
+          {t("admin.exportar.activeCount", { count: filtrosAtivosCount })}
         </span>
       </div>
       <dl className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-xs">
         <div>
-          <dt className="text-slate-500">Período</dt>
+          <dt className="text-slate-500">{t("admin.exportar.period")}</dt>
           <dd className="text-slate-800">
             {filtros.periodo_inicio ?? "—"} → {filtros.periodo_fim ?? "—"}
           </dd>
         </div>
         <div>
-          <dt className="text-slate-500">País</dt>
-          <dd className="text-slate-800">{filtros.pais === "todos" ? "Todos" : filtros.pais}</dd>
+          <dt className="text-slate-500">{t("admin.overview.colCountry")}</dt>
+          <dd className="text-slate-800">{filtros.pais === "todos" ? t("common.all") : filtros.pais}</dd>
         </div>
         <div>
-          <dt className="text-slate-500">Estado</dt>
-          <dd className="text-slate-800">{filtros.estado === "todos" ? "Todos" : filtros.estado}</dd>
+          <dt className="text-slate-500">{t("admin.overview.colState")}</dt>
+          <dd className="text-slate-800">{filtros.estado === "todos" ? t("common.all") : filtros.estado}</dd>
         </div>
         <div>
-          <dt className="text-slate-500">Cidade</dt>
-          <dd className="text-slate-800">{filtros.cidade === "todos" ? "Todas" : filtros.cidade}</dd>
+          <dt className="text-slate-500">{t("admin.overview.colCity")}</dt>
+          <dd className="text-slate-800">{filtros.cidade === "todos" ? t("admin.exportar.allFemale") : filtros.cidade}</dd>
         </div>
         <div>
-          <dt className="text-slate-500">Tipo de conta</dt>
-          <dd className="text-slate-800">{filtros.tipo_conta === "todos" ? "Todas" : filtros.tipo_conta}</dd>
+          <dt className="text-slate-500">{t("admin.exportar.accountType")}</dt>
+          <dd className="text-slate-800">{filtros.tipo_conta === "todos" ? t("admin.exportar.allFemale") : filtros.tipo_conta}</dd>
         </div>
         <div>
-          <dt className="text-slate-500">Unidade</dt>
+          <dt className="text-slate-500">{t("admin.overview.colUnit")}</dt>
           <dd className="text-slate-800">
-            {filtros.unidade_id === "todos" ? "Todas" : filtros.unidade_id.slice(0, 8) + "…"}
+            {filtros.unidade_id === "todos" ? t("admin.exportar.allFemale") : filtros.unidade_id.slice(0, 8) + "…"}
           </dd>
         </div>
         <div>
-          <dt className="text-slate-500">Momento dx</dt>
+          <dt className="text-slate-500">{t("admin.exportar.diagnosisMoment")}</dt>
           <dd className="text-slate-800">
-            {filtros.momento_diagnostico === "todos" ? "Todos" : filtros.momento_diagnostico}
+            {filtros.momento_diagnostico === "todos" ? t("common.all") : filtros.momento_diagnostico}
           </dd>
         </div>
       </dl>
@@ -104,10 +103,18 @@ function ResumoFiltros() {
 }
 
 export default function ExportarPage() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const previewMode = pathname.startsWith("/vitrine");
   const queryClient = useQueryClient();
   const { contratoExportacao } = useAdminFiltros();
+
+  const TIMEOUT_MSG = t("admin.exportar.timeoutMsg");
+  const CONTEUDOS = CONTEUDO_IDS.map((id) => ({
+    id,
+    label: t(`admin.exportar.conteudos.${id}.label`),
+    desc: t(`admin.exportar.conteudos.${id}.desc`),
+  }));
 
   const [conteudo, setConteudo] = useState<string>("completo");
   const [formato, setFormato] = useState<Formato>("xlsx");
@@ -124,7 +131,7 @@ export default function ExportarPage() {
 
     if (previewMode) {
       setEstado("erro");
-      setMensagem("Exportação indisponível no modo vitrine. Acesse /admin com login real.");
+      setMensagem(t("admin.exportar.previewUnavailable"));
       return;
     }
 
@@ -132,9 +139,7 @@ export default function ExportarPage() {
       const view = CSV_VIEW[conteudo];
       if (!view) {
         setEstado("erro");
-        setMensagem(
-          "CSV disponível apenas para tabelas específicas (usuários, profissionais por estado, DMG por cidade, métricas por unidade). Para o relatório completo, use Excel ou PDF.",
-        );
+        setMensagem(t("admin.exportar.csvOnlySpecific"));
         return;
       }
       setEstado("carregando");
@@ -147,10 +152,10 @@ export default function ExportarPage() {
       });
       if (res.ok) {
         setEstado("ok");
-        setMensagem("Arquivo CSV gerado e baixado.");
+        setMensagem(t("admin.exportar.csvGenerated"));
       } else {
         setEstado("erro");
-        setMensagem(res.mensagem ?? "Falha ao gerar CSV.");
+        setMensagem(res.mensagem ?? t("admin.exportar.csvFailed"));
       }
       return;
     }
@@ -193,7 +198,7 @@ export default function ExportarPage() {
           setMensagem(TIMEOUT_MSG);
         } else {
           setEstado("erro");
-          setMensagem(`Falha ao gerar relatório (${status ?? "?"}). ${respText ?? error.message ?? ""}`.slice(0, 220));
+          setMensagem(`${t("admin.exportar.reportFailed", { status: status ?? "?" })} ${respText ?? error.message ?? ""}`.slice(0, 220));
         }
         return;
       }
@@ -207,7 +212,7 @@ export default function ExportarPage() {
 
       if (payload?.status === "vazio") {
         setEstado("vazio");
-        setMensagem(payload.mensagem ?? "Sem dados para os filtros aplicados.");
+        setMensagem(payload.mensagem ?? t("admin.exportar.noDataForFilters"));
         return;
       }
 
@@ -215,7 +220,7 @@ export default function ExportarPage() {
         setArquivoUrl(payload.arquivo_url);
         setArquivoNome(payload.arquivo_nome ?? `relatorio.${formato}`);
         setEstado("ok");
-        setMensagem("Relatório gerado com sucesso.");
+        setMensagem(t("admin.exportar.reportGenerated"));
         // Inicia download automaticamente
         const a = document.createElement("a");
         a.href = payload.arquivo_url;
@@ -226,7 +231,7 @@ export default function ExportarPage() {
         document.body.removeChild(a);
       } else {
         setEstado("erro");
-        setMensagem("Resposta inesperada do servidor.");
+        setMensagem(t("admin.exportar.unexpectedResponse"));
       }
     } catch (e: unknown) {
       console.error(
@@ -241,7 +246,7 @@ export default function ExportarPage() {
         setMensagem(TIMEOUT_MSG);
       } else {
         setEstado("erro");
-        setMensagem(`Falha ao gerar relatório: ${(e as Error)?.message ?? "erro desconhecido"}`.slice(0, 220));
+        setMensagem(t("admin.exportar.reportFailedGeneric", { message: (e as Error)?.message ?? t("admin.exportar.unknownError") }).slice(0, 220));
       }
     }
   };
@@ -255,10 +260,10 @@ export default function ExportarPage() {
           className="text-2xl font-semibold mb-1"
           style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
         >
-          Exportar relatórios
+          {t("admin.exportar.title")}
         </h2>
         <p className="text-sm text-slate-600">
-          Gere arquivos consolidados respeitando os filtros aplicados abaixo.
+          {t("admin.exportar.subtitle")}
         </p>
       </div>
 
@@ -268,7 +273,7 @@ export default function ExportarPage() {
 
       <Card className="p-5">
         <h3 className="text-sm font-semibold text-slate-700 mb-3" style={{ fontFamily: "Sora, sans-serif" }}>
-          Conteúdo
+          {t("admin.exportar.contentLabel")}
         </h3>
         <Select value={conteudo} onValueChange={setConteudo}>
           <SelectTrigger className="w-full md:w-[420px]">
@@ -287,13 +292,13 @@ export default function ExportarPage() {
         </Select>
 
         <h3 className="mt-6 text-sm font-semibold text-slate-700 mb-3" style={{ fontFamily: "Sora, sans-serif" }}>
-          Formato
+          {t("admin.exportar.formatLabel")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {[
-            { id: "xlsx" as const, icon: FileSpreadsheet, label: "Excel (.xlsx)", desc: "Múltiplas abas com dados estruturados" },
-            { id: "pdf" as const, icon: FileText, label: "PDF (.pdf)", desc: "Relatório formatado para impressão" },
-            { id: "csv" as const, icon: FileJson, label: "CSV (.csv)", desc: "Tabelas individuais (sem agregações)" },
+            { id: "xlsx" as const, icon: FileSpreadsheet, label: t("admin.exportar.formatXlsx"), desc: t("admin.exportar.formatXlsxDesc") },
+            { id: "pdf" as const, icon: FileText, label: t("admin.exportar.formatPdf"), desc: t("admin.exportar.formatPdfDesc") },
+            { id: "csv" as const, icon: FileJson, label: t("admin.exportar.formatCsv"), desc: t("admin.exportar.formatCsvDesc") },
           ].map((opt) => {
             const ativo = formato === opt.id;
             const Icon = opt.icon;
@@ -330,10 +335,10 @@ export default function ExportarPage() {
           >
             {desabilitado ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             {estado === "carregando"
-              ? "Carregando dados..."
+              ? t("admin.exportar.loadingData")
               : estado === "gerando"
-              ? "Gerando relatório..."
-              : "Gerar e baixar"}
+              ? t("admin.exportar.generatingReport")
+              : t("admin.exportar.generateDownload")}
           </Button>
 
           {estado === "ok" && (
@@ -350,7 +355,7 @@ export default function ExportarPage() {
           )}
           {estado === "erro" && (
             <Button variant="outline" size="sm" onClick={exportar}>
-              Tentar novamente
+              {t("common.tryAgain")}
             </Button>
           )}
         </div>
@@ -365,9 +370,9 @@ export default function ExportarPage() {
               style={{ color: COR }}
             >
               <Download className="h-4 w-4" />
-              Baixar novamente: {arquivoNome}
+              {t("admin.exportar.downloadAgain", { nome: arquivoNome })}
             </a>
-            <p className="mt-1 text-xs text-slate-500">Link válido por 1 hora.</p>
+            <p className="mt-1 text-xs text-slate-500">{t("admin.exportar.linkValid")}</p>
           </div>
         )}
       </Card>

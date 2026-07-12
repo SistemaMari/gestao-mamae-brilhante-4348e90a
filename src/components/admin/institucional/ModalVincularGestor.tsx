@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export default function ModalVincularGestor({ alvo, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [selecionadoId, setSelecionadoId] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -63,9 +65,9 @@ export default function ModalVincularGestor({ alvo, onClose, onSucesso }: Props)
   const titulo = useMemo(() => {
     if (!alvo) return "";
     return alvo.modo === "fixar_gestor"
-      ? `Vincular ${alvo.gestor_nome} a uma unidade`
-      : `Vincular gestor à ${alvo.unidade_nome}`;
-  }, [alvo]);
+      ? t("admin.institucional.linkManagerToUnit", { nome: alvo.gestor_nome })
+      : t("admin.institucional.linkManagerToNamedUnit", { unidade: alvo.unidade_nome });
+  }, [alvo, t]);
 
   async function handleSubmit() {
     if (!alvo || !selecionadoId || submitting) return;
@@ -83,7 +85,7 @@ export default function ModalVincularGestor({ alvo, onClose, onSucesso }: Props)
       setErro(mensagem || FALLBACK_GENERICO);
       return;
     }
-    toast.success("Vínculo criado com sucesso.");
+    toast.success(t("admin.institucional.linkCreated"));
     onSucesso();
     onClose();
   }
@@ -94,20 +96,22 @@ export default function ModalVincularGestor({ alvo, onClose, onSucesso }: Props)
         <DialogHeader>
           <DialogTitle className="font-[Sora] text-[#5B3A8E]">{titulo}</DialogTitle>
           <DialogDescription>
-            Escolha {alvo?.modo === "fixar_gestor" ? "uma unidade em aberto" : "um gestor disponível"} para criar o vínculo.
+            {alvo?.modo === "fixar_gestor"
+              ? t("admin.institucional.linkDescChooseUnit")
+              : t("admin.institucional.linkDescChooseManager")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           {alvo?.modo === "fixar_gestor" && (
             <div className="space-y-1.5">
-              <Label>Unidade</Label>
+              <Label>{t("admin.institucional.unitLabel")}</Label>
               {unidadesAbertas.length === 0 ? (
                 <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                  Nenhuma unidade em aberto disponível.
+                  {t("admin.institucional.noOpenUnits")}
                 </p>
               ) : (
                 <Select value={selecionadoId} onValueChange={setSelecionadoId} disabled={submitting}>
-                  <SelectTrigger><SelectValue placeholder="Escolha uma unidade…" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("admin.institucional.chooseUnit")} /></SelectTrigger>
                   <SelectContent>
                     {unidadesAbertas.map((u) => (
                       <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
@@ -119,14 +123,14 @@ export default function ModalVincularGestor({ alvo, onClose, onSucesso }: Props)
           )}
           {alvo?.modo === "fixar_unidade" && (
             <div className="space-y-1.5">
-              <Label>Gestor</Label>
+              <Label>{t("admin.institucional.managerLabel")}</Label>
               {gestoresDisponiveis.length === 0 ? (
                 <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                  Nenhum gestor disponível. Cadastre um gestor solto na aba Gestores de Unidade.
+                  {t("admin.institucional.noManagersLoose")}
                 </p>
               ) : (
                 <Select value={selecionadoId} onValueChange={setSelecionadoId} disabled={submitting}>
-                  <SelectTrigger><SelectValue placeholder="Escolha um gestor…" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("admin.institucional.chooseManager")} /></SelectTrigger>
                   <SelectContent>
                     {gestoresDisponiveis.map((g) => (
                       <SelectItem key={g.id} value={g.id}>
@@ -145,10 +149,10 @@ export default function ModalVincularGestor({ alvo, onClose, onSucesso }: Props)
           )}
         </div>
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} disabled={submitting}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose} disabled={submitting}>{t("common.cancel")}</Button>
           <Button onClick={handleSubmit} disabled={!selecionadoId || submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Confirmar vínculo
+            {t("admin.institucional.confirmLink")}
           </Button>
         </DialogFooter>
       </DialogContent>

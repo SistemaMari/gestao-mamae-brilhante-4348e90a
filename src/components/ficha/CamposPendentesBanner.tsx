@@ -1,4 +1,5 @@
 import { AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * CamposPendentesBanner — banner amarelo claro no topo da ficha quando
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export default function CamposPendentesBanner({ pendentes, ativo, className = '' }: Props) {
+  const { t } = useTranslation();
   if (!ativo) return null;
   if (pendentes.length === 0) return null;
 
@@ -36,7 +38,7 @@ export default function CamposPendentesBanner({ pendentes, ativo, className = ''
       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden />
       <div className="space-y-1 text-xs text-amber-900">
         <p className="font-semibold">
-          Esta ficha está em rascunho. Campos pendentes:
+          {t('ficha.camposPendentesBanner.title')}
         </p>
         <ul className="list-disc space-y-0.5 pl-4">
           {pendentes.map((campo) => (

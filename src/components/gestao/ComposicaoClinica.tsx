@@ -1,4 +1,5 @@
 import { Stethoscope } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import CardInfoTooltip from './CardInfoTooltip';
 
 export interface ProfissionalEquipe {
@@ -20,12 +21,12 @@ function classificar(p: ProfissionalEquipe): Categoria {
   return 'outros';
 }
 
-const LABELS: Record<Categoria, string> = {
-  gineco: 'Ginecologistas/Obstetras',
-  endo: 'Endocrinologistas',
-  enfermeira: 'Enfermeiras',
-  nutri: 'Nutricionistas',
-  outros: 'Outros',
+const LABEL_KEYS: Record<Categoria, string> = {
+  gineco: 'gestao.composicaoClinica.gineco',
+  endo: 'gestao.composicaoClinica.endo',
+  enfermeira: 'gestao.composicaoClinica.enfermeira',
+  nutri: 'gestao.composicaoClinica.nutri',
+  outros: 'gestao.composicaoClinica.outros',
 };
 
 const ORDEM: Categoria[] = ['gineco', 'endo', 'enfermeira', 'nutri', 'outros'];
@@ -37,6 +38,7 @@ interface Props {
 }
 
 export default function ComposicaoClinica({ profissionais, loading, erro }: Props) {
+  const { t } = useTranslation();
   const counts: Record<Categoria, number> = {
     gineco: 0, endo: 0, enfermeira: 0, nutri: 0, outros: 0,
   };
@@ -49,9 +51,9 @@ export default function ComposicaoClinica({ profissionais, loading, erro }: Prop
       <div className="mb-4 flex items-center gap-2">
         <Stethoscope className="h-5 w-5 text-primary" />
         <h2 className="font-heading text-lg font-semibold text-foreground">
-          Composição clínica da equipe
+          {t('gestao.composicaoClinica.title')}
         </h2>
-        <CardInfoTooltip text="Distribuição da sua equipe por especialidade clínica. Útil para identificar lacunas de cobertura — por exemplo, equipe sem endocrinologista pode ter dificuldade em casos com insulinoterapia." />
+        <CardInfoTooltip text={t('gestao.composicaoClinica.tooltip')} />
       </div>
 
       {loading ? (
@@ -61,7 +63,7 @@ export default function ComposicaoClinica({ profissionais, loading, erro }: Prop
           ))}
         </div>
       ) : erro ? (
-        <p className="text-sm text-muted-foreground">Erro ao carregar composição.</p>
+        <p className="text-sm text-muted-foreground">{t('gestao.composicaoClinica.erro')}</p>
       ) : (
         <>
           <div className="space-y-3">
@@ -71,7 +73,7 @@ export default function ComposicaoClinica({ profissionais, loading, erro }: Prop
               return (
                 <div key={cat} className="flex items-center gap-3">
                   <span className="w-[180px] shrink-0 text-sm text-foreground">
-                    {LABELS[cat]}
+                    {t(LABEL_KEYS[cat])}
                   </span>
                   <div className="h-[18px] flex-1 overflow-hidden rounded-full bg-slate-100">
                     <div
@@ -99,7 +101,7 @@ export default function ComposicaoClinica({ profissionais, loading, erro }: Prop
                 padding: '10px 12px',
               }}
             >
-              ⚠️ Nenhum endocrinologista na equipe. Considere convidar um para apoio em casos de DMG com insulinoterapia.
+              ⚠️ {t('gestao.composicaoClinica.semEndoAviso')}
             </div>
           )}
         </>

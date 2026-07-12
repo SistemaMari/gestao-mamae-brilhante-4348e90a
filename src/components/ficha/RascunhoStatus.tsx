@@ -1,4 +1,5 @@
 import { Cloud, CheckCircle2, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -43,6 +44,7 @@ function formatHHMM(iso: string | null): string {
 }
 
 export default function RascunhoStatus({ state, savedAt, onRetry, className = '' }: Props) {
+  const { t } = useTranslation();
   if (state === 'idle') return null;
 
   const hhmm = formatHHMM(savedAt);
@@ -55,7 +57,7 @@ export default function RascunhoStatus({ state, savedAt, onRetry, className = ''
         className={`inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 text-xs text-gray-700 ${className}`}
       >
         <Cloud className="h-3.5 w-3.5" aria-hidden />
-        Rascunho salvo localmente{hhmm && ` às ${hhmm}`}
+        {hhmm ? t('ficha.rascunhoStatus.localAt', { hora: hhmm }) : t('ficha.rascunhoStatus.local')}
       </span>
     );
   }
@@ -68,7 +70,7 @@ export default function RascunhoStatus({ state, savedAt, onRetry, className = ''
         className={`inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 text-xs text-emerald-800 ${className}`}
       >
         <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-        Rascunho salvo no servidor{hhmm && ` às ${hhmm}`}
+        {hhmm ? t('ficha.rascunhoStatus.servidorAt', { hora: hhmm }) : t('ficha.rascunhoStatus.servidor')}
       </span>
     );
   }
@@ -81,7 +83,7 @@ export default function RascunhoStatus({ state, savedAt, onRetry, className = ''
         className={`inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-1 text-xs text-amber-800 ${className}`}
       >
         <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
-        Alterações não salvas{hhmm && ` (último save: ${hhmm})`}
+        {hhmm ? t('ficha.rascunhoStatus.dirtyAt', { hora: hhmm }) : t('ficha.rascunhoStatus.dirty')}
       </span>
     );
   }
@@ -94,7 +96,7 @@ export default function RascunhoStatus({ state, savedAt, onRetry, className = ''
         className={`inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 text-xs text-gray-700 ${className}`}
       >
         <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-        Salvando…
+        {t('common.saving')}
       </span>
     );
   }
@@ -106,7 +108,7 @@ export default function RascunhoStatus({ state, savedAt, onRetry, className = ''
       className={`inline-flex items-center gap-2 rounded-md bg-red-50 px-2.5 py-1 text-xs text-red-800 ${className}`}
     >
       <XCircle className="h-3.5 w-3.5" aria-hidden />
-      Erro ao salvar — verificar conexão
+      {t('ficha.rascunhoStatus.erro')}
       {onRetry && (
         <Button
           type="button"
@@ -115,7 +117,7 @@ export default function RascunhoStatus({ state, savedAt, onRetry, className = ''
           className="ml-1 h-6 px-2 text-xs text-red-800 hover:bg-red-100"
           onClick={onRetry}
         >
-          Tentar novamente
+          {t('common.tryAgain')}
         </Button>
       )}
     </span>

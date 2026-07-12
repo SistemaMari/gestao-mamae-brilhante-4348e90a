@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -32,12 +33,12 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as strin
 const PERFIS = ['consultorio', 'institucional', 'gestor', 'gestor_geral', 'admin'] as const;
 type Perfil = (typeof PERFIS)[number];
 
-const PERFIL_LABEL: Record<Perfil, string> = {
-  consultorio: 'Consultório',
-  institucional: 'Institucional',
-  gestor: 'Gestor',
-  gestor_geral: 'Gestor Geral',
-  admin: 'Administrador',
+const PERFIL_LABEL_KEY: Record<Perfil, string> = {
+  consultorio: 'admin.tutoriais.perfilConsultorio',
+  institucional: 'admin.tutoriais.perfilInstitucional',
+  gestor: 'admin.tutoriais.perfilGestor',
+  gestor_geral: 'admin.tutoriais.perfilGestorGeral',
+  admin: 'admin.tutoriais.perfilAdmin',
 };
 
 interface TutorialRow {
@@ -80,6 +81,7 @@ function SeletorArquivo({
   placeholder: string;
   onSelect: (f: File | null) => void;
 }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div className="flex items-center gap-3 rounded-md border border-input bg-background px-2 py-1.5">
@@ -89,7 +91,7 @@ function SeletorArquivo({
         onClick={() => ref.current?.click()}
         className="shrink-0 bg-[#E8E0FF] text-[#7C4DBA] hover:bg-[#dcd0ff]"
       >
-        Escolher arquivo
+        {t('admin.tutoriais.chooseFile')}
       </Button>
       <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
         {file?.name ?? placeholder}
@@ -127,10 +129,11 @@ async function uploadArquivo(
   file: File,
   onProgress: (pct: number) => void,
   xhrRef: { current: XMLHttpRequest | null },
+  t: (key: string, opts?: Record<string, unknown>) => string,
 ): Promise<void> {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
-  if (!token) throw new Error('Sessão expirada. Entre novamente.');
+  if (!token) throw new Error(t('admin.tutoriais.sessionExpired'));
 
   const url = `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`;
   const formData = new FormData();
@@ -150,19 +153,20 @@ async function uploadArquivo(
     xhr.onload = () =>
       xhr.status >= 200 && xhr.status < 300
         ? resolve()
-        : reject(new Error(`Upload falhou (HTTP ${xhr.status})`));
-    xhr.onerror = () => reject(new Error('Erro de rede durante o upload.'));
+        : reject(new Error(t('admin.tutoriais.uploadFailed', { status: xhr.status })));
+    xhr.onerror = () => reject(new Error(t('admin.tutoriais.uploadNetworkError')));
     xhr.onabort = () => reject(new DOMException('cancelado', 'AbortError'));
     xhr.send(formData);
   });
 }
 
 export default function TutoriaisAdminPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [form, setForm] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadPct, setUploadPct] = useState<number | null>(null);
-  const [faseUpload, setFaseUpload] = useState('Enviando');
+  const [faseUpload, setFaseUpload] = useState(() => t('admin.tutoriais.phaseSending'));
   const xhrRef = useRef<XMLHttpRequest | null>(null);
   const [excluirAlvo, setExcluirAlvo] = useState<TutorialRow | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
@@ -200,11 +204,11 @@ export default function TutoriaisAdminPage() {
   async function salvar() {
     if (!form) return;
     if (!form.titulo.trim()) {
-      toast.error('Informe o título do vídeo.');
+      toast.error(t('admin.tutoriais.titleRequired'));
       return;
     }
     if (!form.id && !form.videoFile) {
-      toast.error('Selecione o arquivo de vídeo.');
+      toast.error(t('admin.tutoriais.videoRequired'));
       return;
     }
     setSaving(true);
@@ -214,18 +218,18 @@ export default function TutoriaisAdminPage() {
 
       if (form.videoFile) {
         const novo = `${form.perfil}/${crypto.randomUUID()}.${extDe(form.videoFile.name)}`;
-        setFaseUpload('Enviando vídeo');
+        setFaseUpload(t('admin.tutoriais.phaseSendingVideo'));
         setUploadPct(0);
-        await uploadArquivo(novo, form.videoFile, setUploadPct, xhrRef);
+        await uploadArquivo(novo, form.videoFile, setUploadPct, xhrRef, t);
         if (form.video_path) await supabase.storage.from(BUCKET).remove([form.video_path]);
         videoPath = novo;
       }
 
       if (form.thumbFile) {
         const novo = `${form.perfil}/thumb-${crypto.randomUUID()}.${extDe(form.thumbFile.name)}`;
-        setFaseUpload('Enviando thumbnail');
+        setFaseUpload(t('admin.tutoriais.phaseSendingThumb'));
         setUploadPct(0);
-        await uploadArquivo(novo, form.thumbFile, setUploadPct, xhrRef);
+        await uploadArquivo(novo, form.thumbFile, setUploadPct, xhrRef, t);
         if (form.thumbnail_path) await supabase.storage.from(BUCKET).remove([form.thumbnail_path]);
         thumbPath = novo;
       }
@@ -246,19 +250,19 @@ export default function TutoriaisAdminPage() {
       if (form.id) {
         const { error } = await supabase.from('tutoriais').update(payload).eq('id', form.id);
         if (error) throw error;
-        toast.success('Tutorial atualizado.');
+        toast.success(t('admin.tutoriais.updated'));
       } else {
         const { error } = await supabase.from('tutoriais').insert(payload);
         if (error) throw error;
-        toast.success('Tutorial criado.');
+        toast.success(t('admin.tutoriais.created'));
       }
       setForm(null);
       invalidar();
     } catch (e) {
       if ((e as Error).name === 'AbortError') {
-        toast.info('Upload cancelado.');
+        toast.info(t('admin.tutoriais.uploadCancelled'));
       } else {
-        toast.error(`Erro ao salvar: ${(e as Error).message}`);
+        toast.error(t('admin.tutoriais.saveError', { message: (e as Error).message }));
       }
     } finally {
       setSaving(false);
@@ -284,11 +288,11 @@ export default function TutoriaisAdminPage() {
       if (paths.length > 0) await supabase.storage.from(BUCKET).remove(paths);
       const { error } = await supabase.from('tutoriais').delete().eq('id', excluirAlvo.id);
       if (error) throw error;
-      toast.success('Tutorial excluído.');
+      toast.success(t('admin.tutoriais.deleted'));
       setExcluirAlvo(null);
       invalidar();
     } catch (e) {
-      toast.error(`Erro ao excluir: ${(e as Error).message}`);
+      toast.error(t('admin.tutoriais.deleteError', { message: (e as Error).message }));
     }
   }
 
@@ -302,7 +306,7 @@ export default function TutoriaisAdminPage() {
       if (error) throw error;
       invalidar();
     } catch (e) {
-      toast.error(`Erro ao atualizar: ${(e as Error).message}`);
+      toast.error(t('admin.tutoriais.toggleError', { message: (e as Error).message }));
     } finally {
       setTogglingId(null);
     }
@@ -330,9 +334,9 @@ export default function TutoriaisAdminPage() {
     <div className="container max-w-5xl py-8">
       <header className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading text-3xl font-bold text-foreground">Tutoriais</h1>
+          <h1 className="font-heading text-3xl font-bold text-foreground">{t('admin.tutoriais.title')}</h1>
           <p className="mt-1 text-muted-foreground">
-            Gerencie os vídeos de capacitação exibidos para cada perfil de usuário.
+            {t('admin.tutoriais.subtitle')}
           </p>
         </div>
         <Button
@@ -341,7 +345,7 @@ export default function TutoriaisAdminPage() {
           onClick={() => setForm(novoForm('consultorio'))}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Novo tutorial
+          {t('admin.tutoriais.newTutorial')}
         </Button>
       </header>
 
@@ -356,8 +360,8 @@ export default function TutoriaisAdminPage() {
       {!isLoading && isError && (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 py-10 text-center">
           <AlertTriangle className="h-8 w-8 text-destructive" />
-          <p className="text-foreground">Não foi possível carregar os tutoriais.</p>
-          <Button variant="outline" onClick={() => invalidar()}>Tentar novamente</Button>
+          <p className="text-foreground">{t('admin.tutoriais.loadError')}</p>
+          <Button variant="outline" onClick={() => invalidar()}>{t('common.tryAgain')}</Button>
         </div>
       )}
 
@@ -369,28 +373,28 @@ export default function TutoriaisAdminPage() {
               <section key={perfil}>
                 <div className="mb-3 flex items-center gap-2">
                   <h2 className="font-heading text-lg font-semibold text-foreground">
-                    {PERFIL_LABEL[perfil]}
+                    {t(PERFIL_LABEL_KEY[perfil])}
                   </h2>
                   <Badge variant="secondary">{doPerfil.length}</Badge>
                 </div>
 
                 {doPerfil.length === 0 ? (
                   <p className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
-                    Nenhum tutorial para este perfil.
+                    {t('admin.tutoriais.emptyPerfil')}
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {doPerfil.map((t) => {
-                      const thumb = t.thumbnail_path ? thumbUrls[t.thumbnail_path] : null;
+                    {doPerfil.map((tut) => {
+                      const thumb = tut.thumbnail_path ? thumbUrls[tut.thumbnail_path] : null;
                       return (
                         <div
-                          key={t.id}
+                          key={tut.id}
                           className="flex items-center gap-4 rounded-lg border border-border bg-card p-3"
                         >
                           <div className="w-32 shrink-0 overflow-hidden rounded-md">
                             <AspectRatio ratio={16 / 9}>
                               {thumb ? (
-                                <img src={thumb} alt={t.titulo} className="h-full w-full object-cover" />
+                                <img src={thumb} alt={tut.titulo} className="h-full w-full object-cover" />
                               ) : (
                                 <div
                                   className="flex h-full w-full items-center justify-center"
@@ -404,40 +408,40 @@ export default function TutoriaisAdminPage() {
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <p className="truncate font-medium text-foreground">{t.titulo}</p>
-                              <Badge variant="outline" className="shrink-0">#{t.ordem}</Badge>
-                              {!t.video_path && (
-                                <Badge variant="secondary" className="shrink-0">sem vídeo</Badge>
+                              <p className="truncate font-medium text-foreground">{tut.titulo}</p>
+                              <Badge variant="outline" className="shrink-0">#{tut.ordem}</Badge>
+                              {!tut.video_path && (
+                                <Badge variant="secondary" className="shrink-0">{t('admin.tutoriais.noVideo')}</Badge>
                               )}
                             </div>
-                            {t.descricao && (
+                            {tut.descricao && (
                               <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
-                                {t.descricao}
+                                {tut.descricao}
                               </p>
                             )}
                             <div className="mt-2 flex items-center gap-2">
                               <Switch
-                                checked={t.ativo}
-                                disabled={togglingId === t.id}
-                                onCheckedChange={() => alternarAtivo(t)}
-                                aria-label="Ativo"
+                                checked={tut.ativo}
+                                disabled={togglingId === tut.id}
+                                onCheckedChange={() => alternarAtivo(tut)}
+                                aria-label={t('admin.tutoriais.activeAria')}
                               />
                               <span className="text-xs text-muted-foreground">
-                                {t.ativo ? 'Ativo (visível)' : 'Inativo (oculto)'}
+                                {tut.ativo ? t('admin.tutoriais.activeVisible') : t('admin.tutoriais.inactiveHidden')}
                               </span>
                             </div>
                           </div>
 
                           <div className="flex shrink-0 items-center gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => editar(t)} aria-label="Editar">
+                            <Button variant="ghost" size="icon" onClick={() => editar(tut)} aria-label={t('common.edit')}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
                               className="text-destructive hover:text-destructive"
-                              onClick={() => setExcluirAlvo(t)}
-                              aria-label="Excluir"
+                              onClick={() => setExcluirAlvo(tut)}
+                              aria-label={t('common.delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -458,17 +462,17 @@ export default function TutoriaisAdminPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-heading">
-              {form?.id ? 'Editar tutorial' : 'Novo tutorial'}
+              {form?.id ? t('admin.tutoriais.editTutorial') : t('admin.tutoriais.newTutorial')}
             </DialogTitle>
             <DialogDescription>
-              O vídeo aparece na aba Tutorial do perfil selecionado.
+              {t('admin.tutoriais.dialogDesc')}
             </DialogDescription>
           </DialogHeader>
 
           {form && (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label>Perfil</Label>
+                <Label>{t('admin.tutoriais.perfilLabel')}</Label>
                 <Select
                   value={form.perfil}
                   onValueChange={(v) => setForm({ ...form, perfil: v as Perfil })}
@@ -478,34 +482,34 @@ export default function TutoriaisAdminPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {PERFIS.map((p) => (
-                      <SelectItem key={p} value={p}>{PERFIL_LABEL[p]}</SelectItem>
+                      <SelectItem key={p} value={p}>{t(PERFIL_LABEL_KEY[p])}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-1.5">
-                <Label>Título</Label>
+                <Label>{t('admin.tutoriais.titleLabel')}</Label>
                 <Input
                   value={form.titulo}
                   onChange={(e) => setForm({ ...form, titulo: e.target.value })}
-                  placeholder="Ex.: Como cadastrar uma paciente"
+                  placeholder={t('admin.tutoriais.titlePlaceholder')}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label>Descrição (opcional)</Label>
+                <Label>{t('admin.tutoriais.descLabel')}</Label>
                 <Textarea
                   value={form.descricao}
                   onChange={(e) => setForm({ ...form, descricao: e.target.value })}
                   rows={2}
-                  placeholder="Um resumo curto do que o vídeo ensina."
+                  placeholder={t('admin.tutoriais.descPlaceholder')}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label>Ordem</Label>
+                  <Label>{t('admin.tutoriais.orderLabel')}</Label>
                   <Input
                     type="number"
                     value={form.ordem}
@@ -518,34 +522,34 @@ export default function TutoriaisAdminPage() {
                     onCheckedChange={(v) => setForm({ ...form, ativo: v })}
                     id="ativo-switch"
                   />
-                  <Label htmlFor="ativo-switch" className="cursor-pointer">Ativo</Label>
+                  <Label htmlFor="ativo-switch" className="cursor-pointer">{t('admin.tutoriais.activeLabel')}</Label>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <Label>Vídeo {form.id ? '(deixe vazio para manter o atual)' : ''}</Label>
+                <Label>{t('admin.tutoriais.videoLabel')} {form.id ? t('admin.tutoriais.keepCurrentHint') : ''}</Label>
                 <SeletorArquivo
                   accept="video/*"
                   file={form.videoFile}
                   placeholder={
-                    form.id && form.video_path ? 'Vídeo atual mantido' : 'Nenhum arquivo escolhido'
+                    form.id && form.video_path ? t('admin.tutoriais.videoKept') : t('admin.tutoriais.noFileChosen')
                   }
                   onSelect={(f) => setForm({ ...form, videoFile: f })}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label>Thumbnail (opcional)</Label>
+                <Label>{t('admin.tutoriais.thumbLabel')}</Label>
                 <SeletorArquivo
                   accept="image/*"
                   file={form.thumbFile}
                   placeholder={
-                    form.id && form.thumbnail_path ? 'Thumbnail atual mantida' : 'Nenhum arquivo escolhido'
+                    form.id && form.thumbnail_path ? t('admin.tutoriais.thumbKept') : t('admin.tutoriais.noFileChosen')
                   }
                   onSelect={(f) => setForm({ ...form, thumbFile: f })}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Sem thumbnail, o card mostra um ícone padrão.
+                  {t('admin.tutoriais.thumbHint')}
                 </p>
               </div>
             </div>
@@ -568,7 +572,7 @@ export default function TutoriaisAdminPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={cancelar}>
-              {saving ? 'Cancelar upload' : 'Cancelar'}
+              {saving ? t('admin.tutoriais.cancelUpload') : t('common.cancel')}
             </Button>
             <Button
               className="text-white hover:opacity-90"
@@ -579,9 +583,9 @@ export default function TutoriaisAdminPage() {
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {saving
                 ? uploadPct !== null
-                  ? `Enviando… ${Math.round(uploadPct * 100)}%`
-                  : 'Salvando…'
-                : 'Salvar'}
+                  ? t('admin.tutoriais.sendingPct', { pct: Math.round(uploadPct * 100) })
+                  : t('common.saving')
+                : t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -591,20 +595,20 @@ export default function TutoriaisAdminPage() {
       <AlertDialog open={!!excluirAlvo} onOpenChange={(open) => !open && setExcluirAlvo(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir tutorial?</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.tutoriais.deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
               {excluirAlvo?.titulo
-                ? `"${excluirAlvo.titulo}" será removido, junto do vídeo e da thumbnail. Esta ação não pode ser desfeita.`
-                : 'Esta ação não pode ser desfeita.'}
+                ? t('admin.tutoriais.deleteConfirmNamed', { titulo: excluirAlvo.titulo })
+                : t('admin.tutoriais.irreversible')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmarExclusao}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Excluir
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,21 +1,23 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FiltrosGestorGeralProvider } from "@/contexts/FiltrosGestorGeralContext";
 import FiltrosGlobais from "@/components/gestor-geral/painel/FiltrosGlobais";
 
-const VITRINE_MOCK = {
-  gestor: { id: "vitrine-gg", nome: "Dr. Demo Gestor Geral" },
-  unidades: [
-    { id: "u-pinheiros", nome: "UBS Demo Pinheiros" },
-    { id: "u-moema", nome: "UBS Demo Moema" },
-    { id: "u-lapa", nome: "UBS Demo Lapa" },
-    { id: "u-vilanova", nome: "UBS Demo Vila Nova" },
-  ],
-  contratantes: { primeiro: "Demo Health", outros: 0 },
-};
-
 export default function ConsolidarLayout() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const modoVitrine = pathname.startsWith("/vitrine");
+
+  const VITRINE_MOCK = {
+    gestor: { id: "vitrine-gg", nome: t("consolidar.vitrine.gestorNome") },
+    unidades: [
+      { id: "u-pinheiros", nome: t("consolidar.vitrine.unidadePinheiros") },
+      { id: "u-moema", nome: t("consolidar.vitrine.unidadeMoema") },
+      { id: "u-lapa", nome: t("consolidar.vitrine.unidadeLapa") },
+      { id: "u-vilanova", nome: t("consolidar.vitrine.unidadeVilaNova") },
+    ],
+    contratantes: { primeiro: t("consolidar.vitrine.contratante"), outros: 0 },
+  };
 
   return (
     <FiltrosGestorGeralProvider modoVitrine={modoVitrine} mockData={VITRINE_MOCK}>

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Trans } from "react-i18next";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -20,6 +22,7 @@ interface Props {
 }
 
 export default function AlertRevogarGestorUnidade({ alvo, onClose, onSucesso, onIrParaUnidades }: Props) {
+  const { t } = useTranslation();
   const [motivo, setMotivo] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [bloqueio, setBloqueio] = useState<{ unidadeNome: string | null } | null>(null);
@@ -48,7 +51,7 @@ export default function AlertRevogarGestorUnidade({ alvo, onClose, onSucesso, on
       toast.error(mensagem || FALLBACK_GENERICO);
       return;
     }
-    toast.success(`Acesso de ${alvo.nome} revogado.`);
+    toast.success(t("admin.revogarGestor.revokedToast", { nome: alvo.nome }));
     onSucesso();
     handleClose();
   }
@@ -58,23 +61,23 @@ export default function AlertRevogarGestorUnidade({ alvo, onClose, onSucesso, on
       <AlertDialog open={!!alvo} onOpenChange={(v) => !v && handleClose()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[#DC2626]">Não é possível revogar</AlertDialogTitle>
+            <AlertDialogTitle className="text-[#DC2626]">{t("admin.revogarGestor.cannotRevokeTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Este gestor ainda está vinculado à unidade
-              {bloqueio.unidadeNome ? ` "${bloqueio.unidadeNome}"` : ""}.
+              {bloqueio.unidadeNome
+                ? t("admin.revogarGestor.stillLinkedNamed", { unidade: bloqueio.unidadeNome })
+                : t("admin.revogarGestor.stillLinked")}
               <br /><br />
-              Antes de revogar o acesso, vá até a aba <strong>Unidades</strong> e use o botão
-              "Trocar gestor" desta unidade.
+              <Trans i18nKey="admin.revogarGestor.beforeRevokeHint" components={{ b: <strong /> }} />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleClose}>Fechar</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleClose}>{t("common.close")}</AlertDialogCancel>
             {onIrParaUnidades && (
               <Button
                 onClick={() => { handleClose(); onIrParaUnidades(); }}
                 className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
               >
-                Ir para aba Unidades
+                {t("admin.revogarGestor.goToUnits")}
               </Button>
             )}
           </AlertDialogFooter>
@@ -87,27 +90,27 @@ export default function AlertRevogarGestorUnidade({ alvo, onClose, onSucesso, on
     <AlertDialog open={!!alvo} onOpenChange={(v) => !v && handleClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Revogar acesso de {alvo?.nome}?</AlertDialogTitle>
+          <AlertDialogTitle>{t("admin.revogarGestor.confirmTitle", { nome: alvo?.nome })}</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>→ O gestor perde acesso ao sistema imediatamente</p>
-              <p>→ Os dados da unidade permanecem intactos</p>
-              <p>→ Esta ação pode ser revertida com "Reativar acesso"</p>
+              <p>{t("admin.revogarGestor.consequence1")}</p>
+              <p>{t("admin.revogarGestor.consequence2")}</p>
+              <p>{t("admin.revogarGestor.consequence3")}</p>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-1.5">
-          <Label>Motivo (opcional)</Label>
+          <Label>{t("admin.revogarGestor.reasonLabel")}</Label>
           <Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} disabled={submitting} rows={2} />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting} onClick={handleClose}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting} onClick={handleClose}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => { e.preventDefault(); confirmar(); }}
             disabled={submitting}
             className="bg-[#DC2626] text-white hover:bg-[#B91C1C]"
           >
-            Confirmar revogação
+            {t("admin.revogarGestor.confirmButton")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

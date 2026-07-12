@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * DivergenciaIgBanner — banner laranja informativo (não bloqueante) que aparece
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function DivergenciaIgBanner({ ativo, className = '' }: Props) {
+  const { t } = useTranslation();
   if (!ativo) return null;
   return (
     <div
@@ -26,8 +28,8 @@ export default function DivergenciaIgBanner({ ativo, className = '' }: Props) {
     >
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" aria-hidden />
       <p className="text-xs text-orange-900">
-        <strong className="font-semibold">Atenção:</strong> a IG calculada pela USG diverge em mais
-        de 7 dias da IG calculada pela DUM. Verificar consistência dos dados.
+        <strong className="font-semibold">{t('ficha.divergenciaIg.label')}</strong>{' '}
+        {t('ficha.divergenciaIg.mensagem')}
       </p>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function AlertReativarAcesso({ profissional, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
 
   if (!profissional) return null;
@@ -33,7 +35,7 @@ export default function AlertReativarAcesso({ profissional, onClose, onSucesso }
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    toast.success(`Acesso de ${profissional.nome} reativado.`);
+    toast.success(t("admin.reativarAcesso.success", { nome: profissional.nome }));
     onSucesso();
     onClose();
   }
@@ -43,22 +45,22 @@ export default function AlertReativarAcesso({ profissional, onClose, onSucesso }
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[#5B3A8E]">
-            Reativar o acesso de {profissional.nome}?
+            {t("admin.reativarAcesso.title", { nome: profissional.nome })}
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <ul className="list-disc pl-5 space-y-1 text-sm">
-              <li>O profissional poderá logar novamente com a senha atual.</li>
-              <li>Voltará a ver os pacientes da unidade {profissional.unidade_nome}.</li>
-              <li>Não é necessário enviar novo convite.</li>
+              <li>{t("admin.reativarAcesso.bullet1")}</li>
+              <li>{t("admin.reativarAcesso.bullet2", { unidade: profissional.unidade_nome })}</li>
+              <li>{t("admin.reativarAcesso.bullet3")}</li>
             </ul>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button onClick={confirmar} disabled={submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Confirmar reativação
+              {t("admin.reativarAcesso.confirm")}
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

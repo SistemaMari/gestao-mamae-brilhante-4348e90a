@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, ArrowUpDown, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -36,22 +37,22 @@ type SortDir = "asc" | "desc";
 
 const STATUS_MAP: Record<
   string,
-  { label: string; classes: string }
+  { labelKey: string; classes: string }
 > = {
   ativa: {
-    label: "Ativa",
+    labelKey: "gestorGeral.blocoRanking.statusAtiva",
     classes: "bg-[#DCFCE7] text-[#065F46] border-[#A7F3D0]",
   },
   atencao: {
-    label: "Atenção",
+    labelKey: "gestorGeral.blocoRanking.statusAtencao",
     classes: "bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]",
   },
   inativa: {
-    label: "Inativa",
+    labelKey: "gestorGeral.blocoRanking.statusInativa",
     classes: "bg-[#FEE2E2] text-[#7F1D1D] border-[#FECACA]",
   },
   nao_iniciada: {
-    label: "Não iniciada",
+    labelKey: "gestorGeral.blocoRanking.statusNaoIniciada",
     classes: "bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]",
   },
 };
@@ -64,6 +65,7 @@ const STATUS_ORDER: Record<string, number> = {
 };
 
 export default function BlocoRanking({ data, isLoading, isError, onRetry }: Props) {
+  const { t } = useTranslation();
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -127,10 +129,10 @@ export default function BlocoRanking({ data, isLoading, isError, onRetry }: Prop
   if (isError) {
     return (
       <div className="rounded-xl border border-[#FEE2E2] bg-[#FEF2F2] p-5">
-        <p className="text-sm text-[#991B1B]">Não foi possível carregar o ranking.</p>
+        <p className="text-sm text-[#991B1B]">{t('gestorGeral.blocoRanking.loadError')}</p>
         <Button size="sm" variant="outline" className="mt-2" onClick={onRetry}>
           <RefreshCw className="mr-2 h-3.5 w-3.5" />
-          Recarregar
+          {t('gestorGeral.blocoRanking.reload')}
         </Button>
       </div>
     );
@@ -143,10 +145,10 @@ export default function BlocoRanking({ data, isLoading, isError, onRetry }: Prop
           className="text-base font-semibold text-[#1E293B]"
           style={{ fontFamily: "Sora, sans-serif" }}
         >
-          Ranking de unidades
+          {t('gestorGeral.blocoRanking.title')}
         </h2>
         <p className="text-xs text-[#64748B] mt-0.5">
-          Por status operacional. Clique nas colunas para reordenar.
+          {t('gestorGeral.blocoRanking.subtitle')}
         </p>
       </div>
 
@@ -158,19 +160,19 @@ export default function BlocoRanking({ data, isLoading, isError, onRetry }: Prop
         </div>
       ) : rows.length === 0 ? (
         <div className="p-8 text-center text-sm text-[#64748B]">
-          Nenhuma unidade registrou atividade no período selecionado.
+          {t('gestorGeral.blocoRanking.empty')}
         </div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow className="bg-[#F8FAFC]">
-              <Header k="unidade_nome" label="Unidade" />
-              <Header k="pacientes_ativos" label="Pacientes" tooltip="Gestantes com DUM nos últimos 280 dias." />
-              <Header k="laudos_emitidos" label="Laudos" tooltip="Laudos gerados no período selecionado." />
-              <Header k="taxa_dmg_positivo_pct" label="Taxa DMG+" tooltip="Percentual de laudos do período com diagnóstico positivo de DMG." />
-              <Header k="tempo_medio_fechamento_dias" label="Tempo médio" tooltip="Dias médios entre DUM e parto registrado no período. '—' quando não há partos elegíveis." />
-              <Header k="ultima_atividade" label="Última atividade" tooltip="Último registro (paciente, laudo, exame ou atendimento) na unidade." />
-              <Header k="status_operacional" label="Status" tooltip="Ativa: registro nos últimos 30d. Atenção: 30-60d. Inativa: >60d. Não iniciada: sem registros." />
+              <Header k="unidade_nome" label={t('gestorGeral.blocoRanking.colUnidade')} />
+              <Header k="pacientes_ativos" label={t('gestorGeral.blocoRanking.colPacientes')} tooltip={t('gestorGeral.blocoRanking.tipPacientes')} />
+              <Header k="laudos_emitidos" label={t('gestorGeral.blocoRanking.colLaudos')} tooltip={t('gestorGeral.blocoRanking.tipLaudos')} />
+              <Header k="taxa_dmg_positivo_pct" label={t('gestorGeral.blocoRanking.colTaxaDmg')} tooltip={t('gestorGeral.blocoRanking.tipTaxaDmg')} />
+              <Header k="tempo_medio_fechamento_dias" label={t('gestorGeral.blocoRanking.colTempoMedio')} tooltip={t('gestorGeral.blocoRanking.tipTempoMedio')} />
+              <Header k="ultima_atividade" label={t('gestorGeral.blocoRanking.colUltimaAtividade')} tooltip={t('gestorGeral.blocoRanking.tipUltimaAtividade')} />
+              <Header k="status_operacional" label={t('gestorGeral.blocoRanking.colStatus')} tooltip={t('gestorGeral.blocoRanking.tipStatus')} />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -192,14 +194,14 @@ export default function BlocoRanking({ data, isLoading, isError, onRetry }: Prop
                     r.tempo_medio_fechamento_dias === undefined ||
                     r.tempo_medio_fechamento_dias === 0
                       ? "—"
-                      : `${r.tempo_medio_fechamento_dias.toFixed(1)} d`}
+                      : t('gestorGeral.blocoRanking.dias', { valor: r.tempo_medio_fechamento_dias.toFixed(1) })}
                   </TableCell>
                   <TableCell className="text-[#475569]">
                     {humanizeUltimaAtividade(r.ultima_atividade)}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn("font-medium", st.classes)}>
-                      {st.label}
+                      {t(st.labelKey)}
                     </Badge>
                   </TableCell>
                 </TableRow>

@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import LaudoCabecalho from './LaudoCabecalho';
 import BlocosTextoLaudo from './BlocosTextoLaudo';
 import BannerUrgenciaEndocrino from './BannerUrgenciaEndocrino';
@@ -58,6 +59,7 @@ export default function LaudoCompleto({
   igMaior24,
   onTentarNovamente,
 }: LaudoCompletoProps) {
+  const { t, i18n } = useTranslation();
   // Critério 6/7: o rodapé legal impresso só aparece quando os textos oficiais
   // estão publicados (laudo completo). A UI de impressão na tela (botão e a
   // instrução de Ctrl+P) foi removida a pedido do time clínico — a impressão
@@ -79,10 +81,10 @@ export default function LaudoCompleto({
             quantos dias a paciente preencheu. */}
         {periodoMonitorado && (periodoMonitorado.inicio || periodoMonitorado.fim) && (
           <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">Período monitorado:</span>{' '}
-            {periodoMonitorado.inicio ?? '—'} a {periodoMonitorado.fim ?? '—'}
+            <span className="font-medium text-foreground">{t('laudo.laudoCompleto.periodoMonitorado')}</span>{' '}
+            {t('laudo.laudoCompleto.periodoRange', { inicio: periodoMonitorado.inicio ?? '—', fim: periodoMonitorado.fim ?? '—' })}
             {periodoMonitorado.dias != null && (
-              <> · {periodoMonitorado.dias} {periodoMonitorado.dias === 1 ? 'dia' : 'dias'} preenchido{periodoMonitorado.dias === 1 ? '' : 's'}</>
+              <> · {t('laudo.laudoCompleto.diasPreenchidos', { count: periodoMonitorado.dias })}</>
             )}
           </div>
         )}
@@ -118,7 +120,7 @@ export default function LaudoCompleto({
             de PDF na tela, a pedido do time clínico. */}
         {mostrarRodapeLegal && (
           <p className="print-only mt-4 text-center text-[10px] text-muted-foreground">
-            Gerado por MARI — {dataLaudo.toLocaleDateString('pt-BR')} — Este documento não substitui a avaliação médica.
+            {t('laudo.laudoCompleto.rodapeLegal', { data: dataLaudo.toLocaleDateString(i18n.language) })}
           </p>
         )}
       </div>

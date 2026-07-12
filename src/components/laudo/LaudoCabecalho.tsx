@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { type Cenario } from '@/lib/laudoMapping';
 
 interface Props {
@@ -12,16 +13,17 @@ interface Props {
 }
 
 export default function LaudoCabecalho({ paciente, igSemanas, igDias, dataLaudo }: Props) {
+  const { t } = useTranslation();
   const igTexto =
     igSemanas != null && igDias != null
       ? `${igSemanas}s ${igDias}d`
-      : 'Referência de IG não definida';
+      : t('laudo.cabecalho.igNaoDefinida');
 
   return (
     <header className="laudo-cabecalho rounded-t-xl border-b-2 border-[#D6BCFA] bg-white px-5 py-4">
       <div>
         <p className="font-heading text-[11px] uppercase tracking-wider text-[#7E69AB]">
-          Laudo
+          {t('laudo.cabecalho.laudo')}
         </p>
         <h2 className="font-heading text-base font-bold text-[#5B21B6]">
           MARI
@@ -30,15 +32,15 @@ export default function LaudoCabecalho({ paciente, igSemanas, igDias, dataLaudo 
 
       <dl className="mt-3 grid grid-cols-1 gap-1 text-xs text-[#4C1D95] sm:grid-cols-3">
         <div>
-          <dt className="inline font-semibold text-[#5B21B6]">Paciente: </dt>
+          <dt className="inline font-semibold text-[#5B21B6]">{t('laudo.cabecalho.paciente')} </dt>
           <dd className="inline">{paciente.nome}</dd>
         </div>
         <div>
-          <dt className="inline font-semibold text-[#5B21B6]">IG: </dt>
+          <dt className="inline font-semibold text-[#5B21B6]">{t('laudo.cabecalho.ig')} </dt>
           <dd className="inline">{igTexto}</dd>
         </div>
         <div className="sm:text-right">
-          <dt className="inline font-semibold text-[#5B21B6]">Data: </dt>
+          <dt className="inline font-semibold text-[#5B21B6]">{t('laudo.cabecalho.data')} </dt>
           <dd className="inline">{format(dataLaudo, 'dd/MM/yyyy')}</dd>
         </div>
       </dl>

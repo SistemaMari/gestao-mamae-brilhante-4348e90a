@@ -2,6 +2,7 @@
  * Grade glicêmica readonly compacta para o laudo.
  * 4 ou 6 pontos × N dias, células coloridas conforme alvo, "—" para vazio.
  */
+import { useTranslation } from "react-i18next";
 
 export interface GradeGlicemicaProps {
   pontos: 4 | 6;
@@ -11,8 +12,8 @@ export interface GradeGlicemicaProps {
   diasPreenchidos?: number;
 }
 
-const PONTOS_4 = ['Jejum', 'Pós-café', 'Pós-almoço', 'Pós-jantar'];
-const PONTOS_6 = ['Jejum', 'Pós-café', 'Pré-almoço', 'Pós-almoço', 'Pré-jantar', 'Pós-jantar'];
+const PONTOS_4_KEYS = ['jejum', 'posCafe', 'posAlmoco', 'posJantar'];
+const PONTOS_6_KEYS = ['jejum', 'posCafe', 'preAlmoco', 'posAlmoco', 'preJantar', 'posJantar'];
 
 // Alvos (mg/dL): jejum < 95; pré-prandial 70–100; pós-prandial ≤ 140 (1h)
 function dentroMeta(valor: number, indicePonto: number, pontos: 4 | 6): boolean {
@@ -27,7 +28,9 @@ function dentroMeta(valor: number, indicePonto: number, pontos: 4 | 6): boolean 
 }
 
 export default function GradeGlicemicaCompacta({ pontos, valores, percentual, diasPreenchidos }: GradeGlicemicaProps) {
-  const labels = pontos === 4 ? PONTOS_4 : PONTOS_6;
+  const { t } = useTranslation();
+  const labelKeys = pontos === 4 ? PONTOS_4_KEYS : PONTOS_6_KEYS;
+  const labels = labelKeys.map((k) => t(`laudo.gradeGlicemica.pontos.${k}`));
   const dias = valores.length;
   const adequado = percentual >= 70;
 
@@ -35,11 +38,11 @@ export default function GradeGlicemicaCompacta({ pontos, valores, percentual, di
     <section className="laudo-grade rounded-xl border border-border bg-white p-3">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="font-heading text-xs font-semibold text-foreground">
-          Perfil glicêmico ({pontos} pontos × {dias} dias)
+          {t("laudo.gradeGlicemica.title", { pontos, dias })}
         </h3>
         {diasPreenchidos !== undefined && (
           <span className="text-[10px] text-muted-foreground">
-            {diasPreenchidos}/{dias} dias preenchidos
+            {t("laudo.gradeGlicemica.diasPreenchidos", { preenchidos: diasPreenchidos, dias })}
           </span>
         )}
       </div>
@@ -48,7 +51,7 @@ export default function GradeGlicemicaCompacta({ pontos, valores, percentual, di
         <table className="min-w-full border-collapse text-[10px]">
           <thead>
             <tr>
-              <th className="border border-border bg-muted px-1.5 py-1 text-left font-semibold text-foreground">Dia</th>
+              <th className="border border-border bg-muted px-1.5 py-1 text-left font-semibold text-foreground">{t("laudo.gradeGlicemica.dia")}</th>
               {labels.map((l) => (
                 <th key={l} className="border border-border bg-muted px-1.5 py-1 text-center font-semibold text-foreground">
                   {l}
@@ -89,9 +92,14 @@ export default function GradeGlicemicaCompacta({ pontos, valores, percentual, di
       </div>
 
       <div className="mt-2 flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">Dentro da meta</span>
+        <span className="text-muted-foreground">{t("laudo.gradeGlicemica.dentroDaMeta")}</span>
         <span className={`font-semibold ${adequado ? 'text-[#166534]' : 'text-[#991B1B]'}`}>
-          {percentual}% — {adequado ? 'controle adequado' : 'controle inadequado'}
+          {t("laudo.gradeGlicemica.resultado", {
+            percentual,
+            controle: adequado
+              ? t("laudo.gradeGlicemica.controleAdequado")
+              : t("laudo.gradeGlicemica.controleInadequado"),
+          })}
         </span>
       </div>
     </section>

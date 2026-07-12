@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [unidadeId, setUnidadeId] = useState<string>(SEM_VINCULO);
@@ -83,8 +85,8 @@ export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSuce
     setSubmitting(false);
     toast.success(
       unidadeId !== SEM_VINCULO
-        ? `Gestor cadastrado e vinculado à unidade. E-mail enviado para ${email.trim()}.`
-        : `Gestor cadastrado! E-mail enviado para ${email.trim()}.`,
+        ? t("admin.cadastrarGestorUnidade.successLinked", { email: email.trim() })
+        : t("admin.cadastrarGestorUnidade.success", { email: email.trim() }),
     );
     handleOpenChange(false);
     onSucesso();
@@ -95,28 +97,27 @@ export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSuce
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="font-[Sora] text-[#5B3A8E]">
-            Cadastrar gestor de unidade
+            {t("admin.cadastrarGestorUnidade.title")}
           </DialogTitle>
           <DialogDescription>
-            O gestor receberá um e-mail para definir senha. Você pode vinculá-lo já a uma unidade
-            existente sem gestor, ou deixar para depois.
+            {t("admin.cadastrarGestorUnidade.description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Nome</Label>
+            <Label>{t("common.name")}</Label>
             <Input value={nome} onChange={(e) => setNome(e.target.value)} disabled={submitting} />
           </div>
           <div className="space-y-1.5">
-            <Label>E-mail</Label>
+            <Label>{t("common.email")}</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={submitting} />
           </div>
           <div className="space-y-1.5">
-            <Label>Unidade (opcional)</Label>
+            <Label>{t("admin.cadastrarGestorUnidade.unitLabel")}</Label>
             <Select value={unidadeId} onValueChange={setUnidadeId} disabled={submitting || loadingUnidades}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={SEM_VINCULO}>— Não vincular agora —</SelectItem>
+                <SelectItem value={SEM_VINCULO}>{t("admin.cadastrarGestorUnidade.noLinkNow")}</SelectItem>
                 {unidadesSemGestor.map((u) => (
                   <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
                 ))}
@@ -124,7 +125,7 @@ export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSuce
             </Select>
             {!loadingUnidades && unidadesSemGestor.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                Nenhuma unidade sem gestor disponível. O gestor será cadastrado solto.
+                {t("admin.cadastrarGestorUnidade.noUnitAvailable")}
               </p>
             )}
           </div>
@@ -135,10 +136,10 @@ export default function ModalCadastrarGestorUnidade({ open, onOpenChange, onSuce
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>{t("common.cancel")}</Button>
             <Button type="submit" disabled={!valido || submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Cadastrar gestor
+              {t("admin.cadastrarGestorUnidade.submit")}
             </Button>
           </DialogFooter>
         </form>

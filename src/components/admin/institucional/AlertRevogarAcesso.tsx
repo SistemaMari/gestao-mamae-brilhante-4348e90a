@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export default function AlertRevogarAcesso({ profissional, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [motivo, setMotivo] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,7 +44,7 @@ export default function AlertRevogarAcesso({ profissional, onClose, onSucesso }:
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    toast.success(`Acesso de ${profissional.nome} desativado.`);
+    toast.success(t("admin.revogar.success", { nome: profissional.nome }));
     onSucesso();
     onClose();
   }
@@ -52,34 +54,34 @@ export default function AlertRevogarAcesso({ profissional, onClose, onSucesso }:
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="text-destructive">
-            Desativar acesso de {profissional.nome}?
+            {t("admin.revogar.title", { nome: profissional.nome })}
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm">
               <ul className="list-disc pl-5 space-y-1">
-                <li>O profissional perde acesso ao sistema imediatamente.</li>
-                <li>Os dados clínicos criados por ele permanecem intactos.</li>
-                <li>Os carimbos de autoria nos prontuários são preservados.</li>
-                <li>Esta ação pode ser revertida com o botão "Reativar acesso".</li>
+                <li>{t("admin.revogar.bullet1")}</li>
+                <li>{t("admin.revogar.bullet2")}</li>
+                <li>{t("admin.revogar.bullet3")}</li>
+                <li>{t("admin.revogar.bullet4")}</li>
               </ul>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-1.5">
-          <Label>Motivo (opcional)</Label>
+          <Label>{t("admin.revogar.reasonLabel")}</Label>
           <Textarea
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
-            placeholder="Ex: profissional saiu da unidade"
+            placeholder={t("admin.revogar.reasonPlaceholder")}
             disabled={submitting}
           />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button onClick={confirmar} disabled={submitting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Confirmar desativação
+              {t("admin.revogar.confirm")}
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

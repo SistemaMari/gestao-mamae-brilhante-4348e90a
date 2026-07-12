@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Loader2, Copy, Check, AlertCircle, UserPlus, Upload } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -40,18 +42,21 @@ interface Resultado {
   action_link?: string;
 }
 
-const PERFIL_LABEL: Record<Perfil, string> = {
-  admin: "Admin",
-  consultorio: "Médico (consultório)",
-  institucional: "Médico (institucional)",
-  gestor: "Gestor de unidade",
-  gestor_geral: "Gestor geral institucional",
+const PERFIL_KEYS: Record<Perfil, string> = {
+  admin: "admin.usuarios.perfilAdmin",
+  consultorio: "admin.usuarios.perfilConsultorio",
+  institucional: "admin.usuarios.perfilInstitucional",
+  gestor: "admin.usuarios.perfilGestor",
+  gestor_geral: "admin.usuarios.perfilGestorGeral",
 };
+
+const perfilLabel = (t: TFunction, p: Perfil): string => t(PERFIL_KEYS[p]);
 
 const PERFIS_QUE_PRECISAM_UNIDADE: Perfil[] = ["institucional", "gestor", "gestor_geral"];
 const PERFIS_QUE_TEM_PLANO: Perfil[] = ["consultorio", "institucional", "gestor"];
 
 export default function UsuariosPage() {
+  const { t } = useTranslation();
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [planos, setPlanos] = useState<Plano[]>([]);
   const [carregandoMeta, setCarregandoMeta] = useState(true);
@@ -79,20 +84,17 @@ export default function UsuariosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[#1F2937] font-[Sora]">Criar usuários</h1>
+        <h1 className="text-2xl font-semibold text-[#1F2937] font-[Sora]">{t("admin.usuarios.title")}</h1>
         <p className="text-sm text-[#64748B] mt-1">
-          Cadastre contas sem senha. O sistema envia um link "Definir senha" por e-mail.
+          {t("admin.usuarios.subtitle")}
         </p>
       </div>
 
       <Alert className="bg-[#FEF3C7] border-[#FDE68A]">
         <AlertCircle className="h-4 w-4 text-[#92400E]" />
-        <AlertTitle className="text-[#92400E]">Pendência: Marilza, Iracema e Claudia</AlertTitle>
+        <AlertTitle className="text-[#92400E]">{t("admin.usuarios.pendingTitle")}</AlertTitle>
         <AlertDescription className="text-[#92400E]">
-          O documento original lista essas usuárias como "Admin", mas também menciona
-          "gestor geral institucional". Confirmar com a Mari antes de criá-las
-          — pode ser que o perfil correto seja <strong>Gestor geral</strong> (ligado a
-          unidade), e não Admin de plataforma.
+          <Trans i18nKey="admin.usuarios.pendingDesc" components={{ b: <strong /> }} />
         </AlertDescription>
       </Alert>
 
@@ -100,11 +102,11 @@ export default function UsuariosPage() {
         <TabsList>
           <TabsTrigger value="individual">
             <UserPlus className="h-4 w-4 mr-2" />
-            Individual
+            {t("admin.usuarios.tabIndividual")}
           </TabsTrigger>
           <TabsTrigger value="lote">
             <Upload className="h-4 w-4 mr-2" />
-            Importar lista
+            {t("admin.usuarios.tabBatch")}
           </TabsTrigger>
         </TabsList>
 
@@ -129,6 +131,7 @@ function FormIndividual({
   unidades: Unidade[];
   planos: Plano[];
 }) {
+  const { t } = useTranslation();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [perfil, setPerfil] = useState<Perfil>("consultorio");
@@ -142,11 +145,11 @@ function FormIndividual({
 
   async function submit() {
     if (!nome.trim() || !email.trim()) {
-      toast.error("Preencha nome e e-mail.");
+      toast.error(t("admin.usuarios.fillNameEmail"));
       return;
     }
     if (precisaUnidade && !unidadeId) {
-      toast.error("Selecione a unidade.");
+      toast.error(t("admin.usuarios.selectUnit"));
       return;
     }
     setEnviando(true);
@@ -165,17 +168,17 @@ function FormIndividual({
       });
       if (error) throw error;
       const r: Resultado | undefined = data?.resultados?.[0];
-      if (!r) throw new Error("Resposta vazia.");
+      if (!r) throw new Error(t("admin.usuarios.emptyResponse"));
       setResultado(r);
       if (r.ok) {
-        toast.success("Conta criada e link de definir senha gerado.");
+        toast.success(t("admin.usuarios.accountCreatedToast"));
         setNome("");
         setEmail("");
       } else {
-        toast.error(r.motivo ?? "Falha ao criar.");
+        toast.error(r.motivo ?? t("admin.usuarios.createFail"));
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro inesperado.");
+      toast.error(e instanceof Error ? e.message : t("admin.usuarios.unexpectedError"));
     } finally {
       setEnviando(false);
     }
@@ -185,27 +188,27 @@ function FormIndividual({
     <Card className="p-6 space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Nome</Label>
-          <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex.: Dra. Marilza" />
+          <Label>{t("common.name")}</Label>
+          <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder={t("admin.usuarios.namePlaceholder")} />
         </div>
         <div className="space-y-2">
-          <Label>E-mail</Label>
+          <Label>{t("common.email")}</Label>
           <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@dominio.com" />
         </div>
         <div className="space-y-2">
-          <Label>Perfil</Label>
+          <Label>{t("admin.usuarios.perfilLabel")}</Label>
           <Select value={perfil} onValueChange={(v) => setPerfil(v as Perfil)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {(Object.keys(PERFIL_LABEL) as Perfil[]).map((p) => (
-                <SelectItem key={p} value={p}>{PERFIL_LABEL[p]}</SelectItem>
+              {(Object.keys(PERFIL_KEYS) as Perfil[]).map((p) => (
+                <SelectItem key={p} value={p}>{perfilLabel(t, p)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         {temPlano && (
           <div className="space-y-2">
-            <Label>Plano</Label>
+            <Label>{t("admin.usuarios.planLabel")}</Label>
             <Select value={planoSlug} onValueChange={setPlanoSlug}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -218,9 +221,9 @@ function FormIndividual({
         )}
         {precisaUnidade && (
           <div className="space-y-2 md:col-span-2">
-            <Label>Unidade</Label>
+            <Label>{t("admin.usuarios.unitLabel")}</Label>
             <Select value={unidadeId} onValueChange={setUnidadeId}>
-              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("admin.usuarios.selectPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {unidades.map((u) => (
                   <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
@@ -233,7 +236,7 @@ function FormIndividual({
 
       <div className="flex justify-end">
         <Button onClick={submit} disabled={enviando} className="bg-[#7C4DBA] hover:bg-[#7E69AB]">
-          {enviando ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Criando…</> : "Criar conta"}
+          {enviando ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("admin.usuarios.creating")}</> : t("admin.usuarios.createAccount")}
         </Button>
       </div>
 
@@ -247,12 +250,13 @@ function FormIndividual({
 // ---------- FORM LOTE ----------
 
 function FormLote({ unidades, planos }: { unidades: Unidade[]; planos: Plano[] }) {
+  const { t } = useTranslation();
   const [texto, setTexto] = useState(
-`# Cole abaixo no formato (um por linha, separado por vírgula):
-# nome, email, perfil, plano, unidade
-# Perfis aceitos: admin, consultorio, institucional, gestor, gestor_geral
-# Plano aceitos: inicial, intermediario, profissional (ou - se admin)
-# Unidade: nome exato da unidade (deixe - se admin/consultorio)
+`# ${t("admin.usuarios.csvTplLine1")}
+# ${t("admin.usuarios.csvTplLine2")}
+# ${t("admin.usuarios.csvTplLine3")}
+# ${t("admin.usuarios.csvTplLine4")}
+# ${t("admin.usuarios.csvTplLine5")}
 Raul Silva, raul@email.com, admin, -, -
 Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
   );
@@ -281,7 +285,7 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
         novos.push({
           raw: linha, nome: "", email: "", perfil: "consultorio",
           plano_slug: null, unidade_id: null,
-          erro: "Esperado: nome, email, perfil, plano, unidade",
+          erro: t("admin.usuarios.errExpectedFormat"),
         });
         continue;
       }
@@ -290,7 +294,7 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
 
       const perfil = perfilStr.toLowerCase().replace(/-/g, "_") as Perfil;
       if (!(["admin", "consultorio", "institucional", "gestor", "gestor_geral"] as Perfil[]).includes(perfil)) {
-        erro = `Perfil inválido: "${perfilStr}"`;
+        erro = t("admin.usuarios.errInvalidPerfil", { value: perfilStr });
       }
       let planoSlug: string | null = null;
       if (PERFIS_QUE_TEM_PLANO.includes(perfil)) {
@@ -300,22 +304,22 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
         } else if (planoSlugs.has(slug)) {
           planoSlug = slug;
         } else {
-          erro = erro ?? `Plano inválido: "${planoStr}"`;
+          erro = erro ?? t("admin.usuarios.errInvalidPlano", { value: planoStr });
         }
       }
       let unidadeId: string | null = null;
       if (PERFIS_QUE_PRECISAM_UNIDADE.includes(perfil)) {
         if (!unidadeStr || unidadeStr === "-") {
-          erro = erro ?? "Unidade obrigatória para esse perfil.";
+          erro = erro ?? t("admin.usuarios.errUnitRequired");
         } else {
           const id = unidadePorNome.get(unidadeStr.toLowerCase());
-          if (!id) erro = erro ?? `Unidade não encontrada: "${unidadeStr}"`;
+          if (!id) erro = erro ?? t("admin.usuarios.errUnitNotFound", { value: unidadeStr });
           else unidadeId = id;
         }
       }
-      if (!nome) erro = erro ?? "Nome vazio.";
+      if (!nome) erro = erro ?? t("admin.usuarios.errEmptyName");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "")) {
-        erro = erro ?? `E-mail inválido: "${email}"`;
+        erro = erro ?? t("admin.usuarios.errInvalidEmail", { value: email });
       }
 
       novos.push({
@@ -335,7 +339,7 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
   async function criarTodos() {
     const validos = itens.filter((i) => !i.erro);
     if (validos.length === 0) {
-      toast.error("Nenhum item válido para criar.");
+      toast.error(t("admin.usuarios.noValidItems"));
       return;
     }
     setEnviando(true);
@@ -355,9 +359,9 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
       if (error) throw error;
       setResultados(data?.resultados ?? []);
       const oks = (data?.resultados ?? []).filter((r: Resultado) => r.ok).length;
-      toast.success(`${oks} de ${validos.length} contas criadas.`);
+      toast.success(t("admin.usuarios.batchCreatedToast", { oks, total: validos.length }));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro inesperado.");
+      toast.error(e instanceof Error ? e.message : t("admin.usuarios.unexpectedError"));
     } finally {
       setEnviando(false);
     }
@@ -366,7 +370,7 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
   return (
     <Card className="p-6 space-y-4">
       <div className="space-y-2">
-        <Label>Lista (CSV)</Label>
+        <Label>{t("admin.usuarios.csvListLabel")}</Label>
         <Textarea
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
@@ -376,13 +380,13 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
       </div>
 
       <div className="flex gap-2">
-        <Button variant="outline" onClick={parsear}>Validar lista</Button>
+        <Button variant="outline" onClick={parsear}>{t("admin.usuarios.validateList")}</Button>
         <Button
           onClick={criarTodos}
           disabled={enviando || itens.length === 0 || itens.every((i) => !!i.erro)}
           className="bg-[#7C4DBA] hover:bg-[#7E69AB]"
         >
-          {enviando ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Criando…</> : "Criar válidos"}
+          {enviando ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("admin.usuarios.creating")}</> : t("admin.usuarios.createValid")}
         </Button>
       </div>
 
@@ -391,10 +395,10 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
           <table className="w-full text-sm">
             <thead className="bg-[#F8FAFC] text-[#64748B]">
               <tr>
-                <th className="text-left p-2">Nome</th>
-                <th className="text-left p-2">E-mail</th>
-                <th className="text-left p-2">Perfil</th>
-                <th className="text-left p-2">Status</th>
+                <th className="text-left p-2">{t("common.name")}</th>
+                <th className="text-left p-2">{t("common.email")}</th>
+                <th className="text-left p-2">{t("admin.usuarios.perfilLabel")}</th>
+                <th className="text-left p-2">{t("common.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -404,20 +408,20 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
                   <tr key={idx} className="border-t border-[#E2E8F0]">
                     <td className="p-2">{i.nome || <span className="text-[#94A3B8]">—</span>}</td>
                     <td className="p-2">{i.email}</td>
-                    <td className="p-2">{PERFIL_LABEL[i.perfil] ?? i.perfil}</td>
+                    <td className="p-2">{PERFIL_KEYS[i.perfil] ? perfilLabel(t, i.perfil) : i.perfil}</td>
                     <td className="p-2">
                       {i.erro ? (
                         <span className="text-[#DC2626] text-xs">⚠ {i.erro}</span>
                       ) : r ? (
                         r.ok ? (
                           <span className="text-[#16A34A] text-xs flex items-center gap-1">
-                            <Check className="h-3 w-3" /> Criado
+                            <Check className="h-3 w-3" /> {t("admin.usuarios.statusCreated")}
                           </span>
                         ) : (
                           <span className="text-[#DC2626] text-xs">⚠ {r.motivo}</span>
                         )
                       ) : (
-                        <span className="text-[#16A34A] text-xs">Pronto para criar</span>
+                        <span className="text-[#16A34A] text-xs">{t("admin.usuarios.statusReady")}</span>
                       )}
                     </td>
                   </tr>
@@ -431,7 +435,7 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
       {resultados.filter((r) => r.ok && r.action_link).length > 0 && (
         <Card className="p-4 bg-[#F0FDF4] border-[#BBF7D0]">
           <p className="text-sm text-[#166534] mb-2">
-            Links de "definir senha" gerados (use caso o e-mail não chegue):
+            {t("admin.usuarios.linksGenerated")}
           </p>
           <ul className="space-y-1">
             {resultados.filter((r) => r.ok && r.action_link).map((r, i) => (
@@ -448,6 +452,7 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
 }
 
 function ResultadoCard({ resultado }: { resultado: Resultado }) {
+  const { t } = useTranslation();
   if (!resultado.ok) {
     return (
       <Alert className="bg-[#FEF2F2] border-[#FECACA]">
@@ -459,9 +464,9 @@ function ResultadoCard({ resultado }: { resultado: Resultado }) {
   return (
     <Alert className="bg-[#F0FDF4] border-[#BBF7D0]">
       <Check className="h-4 w-4 text-[#166534]" />
-      <AlertTitle className="text-[#166534]">Conta criada</AlertTitle>
+      <AlertTitle className="text-[#166534]">{t("admin.usuarios.accountCreatedTitle")}</AlertTitle>
       <AlertDescription className="text-[#166534] space-y-2">
-        <div>O usuário receberá um e-mail com link para definir a senha.</div>
+        <div>{t("admin.usuarios.accountCreatedDesc")}</div>
         {resultado.action_link && (
           <div className="flex items-center gap-2">
             <Input value={resultado.action_link} readOnly className="text-xs font-mono" />

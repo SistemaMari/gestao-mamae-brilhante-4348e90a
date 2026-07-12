@@ -1,4 +1,5 @@
 import { useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Info } from 'lucide-react';
 import {
   CartesianGrid,
@@ -27,10 +28,8 @@ interface Props {
   showDataLabels?: boolean;
 }
 
-const TOOLTIP_TEXT =
-  'Cada ponto do gráfico representa uma fotografia daquele mês: quantas gestantes estavam grávidas e quantas tinham DMG confirmado naquele momento. Como o diagnóstico de DMG geralmente acontece entre 24-28 semanas (3 a 5 meses após a primeira consulta), uma paciente pode entrar na unidade em um mês e aparecer como diagnosticada vários meses depois — por isso a fotografia mensal é a forma correta de medir prevalência ao longo do tempo.';
-
 export default function BlocoTendencia({ data, loading, error, showDataLabels }: Props) {
+  const { t } = useTranslation();
   const isPdf = useContext(PdfModeContext);
   const semDados = data.every(d => d.total_gestantes === 0 && d.total_dmg_confirmadas === 0);
 
@@ -38,7 +37,7 @@ export default function BlocoTendencia({ data, loading, error, showDataLabels }:
     <section className="space-y-3" data-pdf-section="tendencia">
       <div className="flex items-center gap-2">
         <h2 className="font-heading text-lg font-semibold text-foreground">
-          Tendência da unidade
+          {t('gestao.blocoTendencia.title')}
         </h2>
         {!isPdf && (
           <TooltipProvider delayDuration={150}>
@@ -46,14 +45,14 @@ export default function BlocoTendencia({ data, loading, error, showDataLabels }:
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  aria-label="Como ler este gráfico"
+                  aria-label={t('gestao.blocoTendencia.howToRead')}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   <Info className="h-4 w-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right" className="max-w-sm text-xs leading-relaxed">
-                {TOOLTIP_TEXT}
+                {t('gestao.blocoTendencia.tooltip')}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -70,7 +69,7 @@ export default function BlocoTendencia({ data, loading, error, showDataLabels }:
         <div className="rounded-xl border border-border bg-card p-5">
           {semDados ? (
             <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-              Sem dados nos últimos 6 meses.
+              {t('gestao.blocoTendencia.noData6m')}
             </div>
           ) : (
             <div style={{ width: '100%', height: showDataLabels ? 320 : 280 }}>
@@ -108,7 +107,7 @@ export default function BlocoTendencia({ data, loading, error, showDataLabels }:
                   <Line
                     type="monotone"
                     dataKey="total_gestantes"
-                    name="Gestantes ativas"
+                    name={t('gestao.blocoTendencia.seriesGestantes')}
                     stroke="#9b87f5"
                     strokeWidth={2}
                     dot={{ r: 4 }}
@@ -126,7 +125,7 @@ export default function BlocoTendencia({ data, loading, error, showDataLabels }:
                   <Line
                     type="monotone"
                     dataKey="total_dmg_confirmadas"
-                    name="DMG confirmadas"
+                    name={t('gestao.blocoTendencia.seriesDmg')}
                     stroke="#7E69AB"
                     strokeWidth={2}
                     dot={{ r: 4 }}
@@ -147,8 +146,7 @@ export default function BlocoTendencia({ data, loading, error, showDataLabels }:
           )}
 
           <p className="mt-2 text-right text-[12px] text-muted-foreground">
-            Cada mês reflete o total de gestantes ativas (DUM nos últimos 280 dias)
-            e DMG diagnosticadas até aquela data.
+            {t('gestao.blocoTendencia.footer')}
           </p>
         </div>
       )}

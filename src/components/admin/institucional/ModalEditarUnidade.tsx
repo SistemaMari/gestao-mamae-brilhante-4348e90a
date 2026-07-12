@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ interface Props {
 }
 
 export default function ModalEditarUnidade({ unidade, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("UBS");
   const [cnes, setCnes] = useState("");
@@ -84,7 +86,7 @@ export default function ModalEditarUnidade({ unidade, onClose, onSucesso }: Prop
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    toast.success("Unidade atualizada.");
+    toast.success(t("admin.editarUnidade.updatedToast"));
     onSucesso();
     onClose();
   }
@@ -93,16 +95,16 @@ export default function ModalEditarUnidade({ unidade, onClose, onSucesso }: Prop
     <Dialog open={!!unidade} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle className="font-[Sora] text-[#5B3A8E]">Editar unidade</DialogTitle>
+          <DialogTitle className="font-[Sora] text-[#5B3A8E]">{t("admin.editarUnidade.title")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Nome</Label>
+            <Label>{t("common.name")}</Label>
             <Input value={nome} onChange={(e) => setNome(e.target.value)} disabled={submitting} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Tipo</Label>
+              <Label>{t("admin.editarUnidade.type")}</Label>
               <Select value={tipo} onValueChange={setTipo} disabled={submitting}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -117,7 +119,7 @@ export default function ModalEditarUnidade({ unidade, onClose, onSucesso }: Prop
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label>País</Label>
+              <Label>{t("patient.country")}</Label>
               <Select value={pais} onValueChange={(v) => { setPais(v); setEstado(""); setCidade(""); }} disabled={submitting}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -126,7 +128,7 @@ export default function ModalEditarUnidade({ unidade, onClose, onSucesso }: Prop
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Estado</Label>
+              <Label>{t("patient.state")}</Label>
               <Select value={estado} onValueChange={(v) => { setEstado(v); setCidade(""); }} disabled={submitting}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                 <SelectContent>
@@ -135,15 +137,15 @@ export default function ModalEditarUnidade({ unidade, onClose, onSucesso }: Prop
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Cidade</Label>
+              <Label>{t("patient.city")}</Label>
               <CidadeCombobox value={cidade} onChange={setCidade} cidades={cidades} disabled={submitting || !estado} />
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t("common.cancel")}</Button>
             <Button type="submit" disabled={submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </form>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { Calendar as CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
@@ -34,6 +35,7 @@ import {
 const DEBOUNCE_MS = 500;
 
 export default function FiltrosGlobais() {
+  const { t } = useTranslation();
   const { unidades, filtros, setFiltros } = useFiltrosGestorGeral();
 
   const [draft, setDraft] = useState<FiltrosState>(filtros);
@@ -55,10 +57,10 @@ export default function FiltrosGlobais() {
   const numSelecionadas = sel === null ? todasIds.length : sel.length;
 
   const labelUnidades = todasSelecionadas
-    ? `Todas as unidades (${todasIds.length})`
+    ? t('gestorGeral.filtrosGlobais.todasUnidades', { count: todasIds.length })
     : numSelecionadas === 0
-      ? `Nenhuma unidade selecionada`
-      : `${numSelecionadas} de ${todasIds.length} selecionadas`;
+      ? t('gestorGeral.filtrosGlobais.nenhumaSelecionada')
+      : t('gestorGeral.filtrosGlobais.parcialSelecionadas', { sel: numSelecionadas, total: todasIds.length });
 
   const toggleSelecionarTodas = () => {
     // Toggle: se todas marcadas → desmarca tudo (=> []). Senão (incluindo []) → marca todas (=> null).
@@ -129,7 +131,7 @@ export default function FiltrosGlobais() {
         {/* Unidades */}
         <div className="flex-1 min-w-0">
           <label className="mb-1 block text-xs font-medium text-muted-foreground">
-            Unidades
+            {t('gestorGeral.filtrosGlobais.unidadesLabel')}
           </label>
           <Popover open={openUnidades} onOpenChange={setOpenUnidades}>
             <PopoverTrigger asChild>
@@ -144,18 +146,18 @@ export default function FiltrosGlobais() {
             </PopoverTrigger>
             <PopoverContent className="w-[320px] p-0" align="start">
               <Command>
-                <CommandInput placeholder="Buscar unidade…" />
+                <CommandInput placeholder={t('gestorGeral.filtrosGlobais.buscarUnidade')} />
                 <CommandList>
-                  <CommandEmpty>Nenhuma unidade encontrada.</CommandEmpty>
+                  <CommandEmpty>{t('gestorGeral.filtrosGlobais.nenhumaEncontrada')}</CommandEmpty>
                   <CommandGroup>
                     <CommandItem onSelect={toggleSelecionarTodas}>
                       <Checkbox
                         checked={todasSelecionadas}
                         className="mr-2"
-                        aria-label="Selecionar todas"
+                        aria-label={t('gestorGeral.filtrosGlobais.selecionarTodas')}
                       />
                       <span className="font-medium">
-                        {todasSelecionadas ? "Desmarcar todas" : "Selecionar todas"}
+                        {todasSelecionadas ? t('gestorGeral.filtrosGlobais.desmarcarTodas') : t('gestorGeral.filtrosGlobais.selecionarTodas')}
                       </span>
                     </CommandItem>
                     {unidades.map((u) => {
@@ -178,19 +180,19 @@ export default function FiltrosGlobais() {
         {/* Preset */}
         <div className="w-full md:w-56">
           <label className="mb-1 block text-xs font-medium text-muted-foreground">
-            Período
+            {t('gestorGeral.filtrosGlobais.periodoLabel')}
           </label>
           <Select value={draft.preset} onValueChange={(v) => onPresetChange(v as PresetPeriodo)}>
             <SelectTrigger className="bg-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7d">Últimos 7 dias</SelectItem>
-              <SelectItem value="30d">Últimos 30 dias</SelectItem>
-              <SelectItem value="90d">Últimos 90 dias</SelectItem>
-              <SelectItem value="12m">Últimos 12 meses</SelectItem>
-              <SelectItem value="ano">Ano corrente</SelectItem>
-              <SelectItem value="custom">Personalizado</SelectItem>
+              <SelectItem value="7d">{t('gestorGeral.filtrosGlobais.preset7d')}</SelectItem>
+              <SelectItem value="30d">{t('gestorGeral.filtrosGlobais.preset30d')}</SelectItem>
+              <SelectItem value="90d">{t('gestorGeral.filtrosGlobais.preset90d')}</SelectItem>
+              <SelectItem value="12m">{t('gestorGeral.filtrosGlobais.preset12m')}</SelectItem>
+              <SelectItem value="ano">{t('gestorGeral.filtrosGlobais.presetAno')}</SelectItem>
+              <SelectItem value="custom">{t('gestorGeral.filtrosGlobais.presetCustom')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -199,7 +201,7 @@ export default function FiltrosGlobais() {
         {draft.preset === "custom" && (
           <div className="w-full md:w-72">
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              Intervalo
+              {t('gestorGeral.filtrosGlobais.intervaloLabel')}
             </label>
             <Popover>
               <PopoverTrigger asChild>
@@ -207,7 +209,7 @@ export default function FiltrosGlobais() {
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {custom?.from && custom?.to
                     ? `${format(custom.from, "dd/MM/yy")} – ${format(custom.to, "dd/MM/yy")}`
-                    : "Selecione"}
+                    : t('gestorGeral.filtrosGlobais.selecione')}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">

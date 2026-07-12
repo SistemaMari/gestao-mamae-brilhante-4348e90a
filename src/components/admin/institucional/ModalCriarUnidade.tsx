@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -43,6 +44,7 @@ interface Props {
 }
 
 export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrParaContratantes }: Props) {
+  const { t } = useTranslation();
   const [contratanteId, setContratanteId] = useState("");
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("UBS");
@@ -144,10 +146,10 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
     setSubmitting(false);
     toast.success(
       gestorModo === "novo"
-        ? `Unidade criada! E-mail enviado para ${gestorEmail.trim()}.`
+        ? t("admin.institucional.unitCreatedEmailSent", { email: gestorEmail.trim() })
         : gestorModo === "existente"
-        ? "Unidade criada e gestor vinculado."
-        : "Unidade criada em aberto. Vincule um gestor depois.",
+        ? t("admin.institucional.unitCreatedManagerLinked")
+        : t("admin.institucional.unitCreatedOpen"),
     );
     handleOpenChange(false);
     onSucesso();
@@ -157,16 +159,16 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-[Sora] text-[#5B3A8E]">Criar unidade</DialogTitle>
+          <DialogTitle className="font-[Sora] text-[#5B3A8E]">{t("admin.institucional.createUnitTitle")}</DialogTitle>
           <DialogDescription>
-            Crie uma unidade e atribua um gestor — novo ou já cadastrado no sistema.
+            {t("admin.institucional.createUnitDesc")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-[#5B3A8E]">Contratante</h3>
+            <h3 className="text-sm font-semibold text-[#5B3A8E]">{t("admin.institucional.contractor")}</h3>
             <div className="space-y-1.5">
-              <Label>Contratante *</Label>
+              <Label>{t("admin.institucional.contractorRequired")}</Label>
               <SelectContratante
                 value={contratanteId}
                 onChange={setContratanteId}
@@ -180,14 +182,14 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-[#5B3A8E]">Dados da unidade</h3>
+            <h3 className="text-sm font-semibold text-[#5B3A8E]">{t("admin.institucional.unitData")}</h3>
             <div className="space-y-1.5">
-              <Label>Nome da unidade</Label>
+              <Label>{t("admin.institucional.unitName")}</Label>
               <Input value={nome} onChange={(e) => setNome(e.target.value)} disabled={submitting} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Tipo</Label>
+                <Label>{t("admin.institucional.type")}</Label>
                 <Select value={tipo} onValueChange={setTipo} disabled={submitting}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -196,13 +198,13 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>CNES (opcional)</Label>
+                <Label>{t("admin.institucional.cnesOptional")}</Label>
                 <Input value={cnes} onChange={(e) => setCnes(e.target.value)} disabled={submitting} />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label>País</Label>
+                <Label>{t("patient.country")}</Label>
                 <Select value={pais} onValueChange={(v) => { setPais(v); setEstado(""); setCidade(""); }} disabled={submitting}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -211,7 +213,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Estado</Label>
+                <Label>{t("patient.state")}</Label>
                 <Select value={estado} onValueChange={(v) => { setEstado(v); setCidade(""); }} disabled={submitting || states.length === 0}>
                   <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                   <SelectContent>
@@ -220,12 +222,12 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Cidade</Label>
+                <Label>{t("patient.city")}</Label>
                 <CidadeCombobox value={cidade} onChange={setCidade} cidades={cidades} disabled={submitting || !estado} />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label>Plano</Label>
+              <Label>{t("admin.institucional.plan")}</Label>
               <Select value={plano} onValueChange={setPlano} disabled={submitting}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -236,7 +238,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
           </section>
 
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-[#5B3A8E]">Gestor da unidade</h3>
+            <h3 className="text-sm font-semibold text-[#5B3A8E]">{t("admin.institucional.unitManager")}</h3>
             <RadioGroup
               value={gestorModo}
               onValueChange={(v) => setGestorModo(v as "novo" | "existente" | "em_aberto")}
@@ -245,26 +247,26 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
             >
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="novo" id="modo-novo" />
-                <Label htmlFor="modo-novo" className="cursor-pointer font-normal">Cadastrar novo gestor</Label>
+                <Label htmlFor="modo-novo" className="cursor-pointer font-normal">{t("admin.institucional.managerModeNew")}</Label>
               </div>
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="existente" id="modo-existente" />
-                <Label htmlFor="modo-existente" className="cursor-pointer font-normal">Selecionar gestor já cadastrado</Label>
+                <Label htmlFor="modo-existente" className="cursor-pointer font-normal">{t("admin.institucional.managerModeExisting")}</Label>
               </div>
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="em_aberto" id="modo-em-aberto" />
-                <Label htmlFor="modo-em-aberto" className="cursor-pointer font-normal">Deixar em aberto (vincular depois)</Label>
+                <Label htmlFor="modo-em-aberto" className="cursor-pointer font-normal">{t("admin.institucional.managerModeOpen")}</Label>
               </div>
             </RadioGroup>
 
             {gestorModo === "novo" && (
               <>
                 <div className="space-y-1.5">
-                  <Label>Nome do gestor</Label>
+                  <Label>{t("admin.institucional.managerName")}</Label>
                   <Input value={gestorNome} onChange={(e) => setGestorNome(e.target.value)} disabled={submitting} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>E-mail do gestor</Label>
+                  <Label>{t("admin.institucional.managerEmail")}</Label>
                   <Input type="email" value={gestorEmail} onChange={(e) => setGestorEmail(e.target.value)} disabled={submitting} />
                 </div>
                 <AvisoUnicidadeEmail />
@@ -272,19 +274,16 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
             )}
             {gestorModo === "existente" && (
               <div className="space-y-1.5">
-                <Label>Selecionar gestor</Label>
+                <Label>{t("admin.institucional.selectManager")}</Label>
                 {loadingGestores ? (
-                  <div className="text-sm text-muted-foreground">Carregando…</div>
+                  <div className="text-sm text-muted-foreground">{t("common.loading")}</div>
                 ) : gestoresDisponiveis.length === 0 ? (
                   <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                    Não há gestores cadastrados disponíveis para vinculação. Cadastre um gestor
-                    primeiro na aba "Gestores de Unidade" e volte aqui para criar a unidade.
-                    <br /><br />
-                    Como alternativa, use a opção "Cadastrar novo gestor" acima.
+                    {t("admin.institucional.noManagersAvailable")}
                   </div>
                 ) : (
                   <Select value={gestorIdSelecionado} onValueChange={setGestorIdSelecionado} disabled={submitting}>
-                    <SelectTrigger><SelectValue placeholder="Escolha um gestor disponível…" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("admin.institucional.chooseAvailableManager")} /></SelectTrigger>
                     <SelectContent>
                       {gestoresDisponiveis.map((g) => (
                         <SelectItem key={g.id} value={g.id}>
@@ -298,8 +297,7 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
             )}
             {gestorModo === "em_aberto" && (
               <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                A unidade será criada sem gestor. Você poderá vincular um gestor depois pela aba
-                Unidades ou Gestores de Unidade.
+                {t("admin.institucional.unitWithoutManagerNote")}
               </div>
             )}
           </section>
@@ -312,11 +310,11 @@ export default function ModalCriarUnidade({ open, onOpenChange, onSucesso, onIrP
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={!valido || submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Criar unidade
+              {t("admin.institucional.createUnitButton")}
             </Button>
           </DialogFooter>
         </form>

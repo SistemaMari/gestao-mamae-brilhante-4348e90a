@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AbaContratantes from "@/components/admin/institucional/AbaContratantes";
 import AbaUnidades from "@/components/admin/institucional/AbaUnidades";
@@ -7,6 +8,7 @@ import AbaProfissionais from "@/components/admin/institucional/AbaProfissionais"
 import AbaGestoresGerais from "@/components/admin/institucional/AbaGestoresGerais";
 
 export default function InstitucionaisPage() {
+  const { t } = useTranslation();
   const [aba, setAba] = useState("contratantes");
 
   const triggerCls =
@@ -18,20 +20,20 @@ export default function InstitucionaisPage() {
     <div className="space-y-6 p-6">
       <header>
         <h1 className="font-[Sora] text-2xl font-semibold text-[#5B3A8E]">
-          Gerenciamento institucional
+          {t("admin.institucionais.title")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Contratantes, unidades, gestores de unidade, profissionais e gestores gerais.
+          {t("admin.institucionais.subtitle")}
         </p>
       </header>
 
       <Tabs value={aba} onValueChange={setAba} className="w-full">
         <TabsList className="h-auto bg-transparent p-0 gap-2 border-b w-full justify-start rounded-none">
-          <TabsTrigger value="contratantes" className={triggerCls}>Contratantes</TabsTrigger>
-          <TabsTrigger value="unidades" className={triggerCls}>Unidades</TabsTrigger>
-          <TabsTrigger value="gestores-unidade" className={triggerCls}>Gestores de Unidade</TabsTrigger>
-          <TabsTrigger value="profissionais" className={triggerCls}>Profissionais</TabsTrigger>
-          <TabsTrigger value="gestores" className={triggerCls}>Gestores Gerais</TabsTrigger>
+          <TabsTrigger value="contratantes" className={triggerCls}>{t("admin.institucionais.tabContratantes")}</TabsTrigger>
+          <TabsTrigger value="unidades" className={triggerCls}>{t("admin.institucionais.tabUnidades")}</TabsTrigger>
+          <TabsTrigger value="gestores-unidade" className={triggerCls}>{t("admin.institucionais.tabGestoresUnidade")}</TabsTrigger>
+          <TabsTrigger value="profissionais" className={triggerCls}>{t("admin.institucionais.tabProfissionais")}</TabsTrigger>
+          <TabsTrigger value="gestores" className={triggerCls}>{t("admin.institucionais.tabGestoresGerais")}</TabsTrigger>
         </TabsList>
         <TabsContent value="contratantes" className="mt-6"><AbaContratantes /></TabsContent>
         <TabsContent value="unidades" className="mt-6"><AbaUnidades onIrParaContratantes={irParaContratantes} /></TabsContent>

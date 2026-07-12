@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   Select,
   SelectContent,
@@ -13,11 +14,12 @@ interface Props {
 }
 
 export function SeletorPais({ paises, valor, onChange }: Props) {
+  const { t } = useTranslation();
   const lista = paises.length > 0 ? paises : ["Brasil"];
   return (
     <Select value={valor} onValueChange={onChange}>
       <SelectTrigger className="w-[200px] bg-white">
-        <SelectValue placeholder="País" />
+        <SelectValue placeholder={t("patient.country")} />
       </SelectTrigger>
       <SelectContent>
         {lista.map((p) => (

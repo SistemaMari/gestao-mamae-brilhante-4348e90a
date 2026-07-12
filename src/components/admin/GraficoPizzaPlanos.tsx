@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { PlanoRow } from "@/lib/adminMetrics";
 import { BarrasHorizontaisRanking } from "./BarrasHorizontaisRanking";
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function GraficoPizzaPlanos({ rows }: Props) {
+  const { t } = useTranslation();
   const ordem = ["inicial", "intermediaria", "profissional"];
   const itens = ordem.map((slug) => {
     const r = rows.find((x) => x.plano_slug === slug);
@@ -29,8 +31,8 @@ export function GraficoPizzaPlanos({ rows }: Props) {
     <BarrasHorizontaisRanking
       itens={itens}
       ordenar={false}
-      vazioMsg="Nenhum profissional cadastrado ainda."
-      rodape={`${total} profissional${total === 1 ? "" : "is"} no total`}
+      vazioMsg={t("admin.planosChart.empty")}
+      rodape={t("admin.planosChart.total", { count: total })}
     />
   );
 }

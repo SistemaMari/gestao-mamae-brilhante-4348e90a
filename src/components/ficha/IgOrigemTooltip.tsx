@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDateBR } from '@/lib/dateUtils';
 import type { UsgRefInput } from '@/lib/fichaUtils';
@@ -30,14 +31,22 @@ export default function IgOrigemTooltip({
   usgAtiva,
   className = '',
 }: Props) {
+  const { t } = useTranslation();
   let texto: string | null = null;
 
   if (referenciaIg === 'dum' && dum) {
-    texto = `Calculada a partir da DUM (${formatDateBR(dum)})`;
+    texto = t('ficha.igOrigemTooltip.origemDum', { data: formatDateBR(dum) });
   } else if (referenciaIg === 'usg' && usgAtiva) {
-    const ordemLabel = usgAtiva.ordem === 1 ? '1ª USG' : `USG #${usgAtiva.ordem}`;
+    const ordemLabel =
+      usgAtiva.ordem === 1
+        ? t('ficha.igOrigemTooltip.primeiraUsg')
+        : t('ficha.igOrigemTooltip.usgOrdem', { ordem: usgAtiva.ordem });
     const laudoIg = `${usgAtiva.ig_semanas}s ${usgAtiva.ig_dias}d`;
-    texto = `Calculada a partir da ${ordemLabel} (${formatDateBR(usgAtiva.data_exame)}, laudo: ${laudoIg})`;
+    texto = t('ficha.igOrigemTooltip.origemUsg', {
+      ordemLabel,
+      data: formatDateBR(usgAtiva.data_exame),
+      laudoIg,
+    });
   }
 
   if (!texto) return null;
@@ -49,7 +58,7 @@ export default function IgOrigemTooltip({
           <button
             type="button"
             tabIndex={-1}
-            aria-label="Origem do cálculo da IG"
+            aria-label={t('ficha.igOrigemTooltip.ariaLabel')}
             className={`inline-flex items-center ${className}`}
           >
             <Info className="h-3 w-3 text-[#7C4DBA]" aria-hidden />

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 export interface Coluna {
@@ -26,6 +27,7 @@ export function TabelaOrdenavel({
   itensPorPagina = 20,
   denso = false,
 }: TabelaOrdenavelProps) {
+  const { t, i18n } = useTranslation();
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<Dir>("asc");
   const [pagina, setPagina] = useState(1);
@@ -43,8 +45,8 @@ export function TabelaOrdenavel({
         return sortDir === "asc" ? va - vb : vb - va;
       }
       return sortDir === "asc"
-        ? String(va).localeCompare(String(vb), "pt-BR")
-        : String(vb).localeCompare(String(va), "pt-BR");
+        ? String(va).localeCompare(String(vb), i18n.language)
+        : String(vb).localeCompare(String(va), i18n.language);
     });
     return copia;
   }, [dados, sortKey, sortDir]);
@@ -72,7 +74,7 @@ export function TabelaOrdenavel({
         className="rounded-lg border bg-white py-10 text-center"
         style={{ borderColor: "#E2E8F0", color: "#94A3B8", fontFamily: "Plus Jakarta Sans, sans-serif" }}
       >
-        Nenhum dado para exibir
+        {t("admin.tabela.noData")}
       </div>
     );
   }
@@ -155,8 +157,11 @@ export function TabelaOrdenavel({
           }}
         >
           <span>
-            Mostrando {inicio + 1}-{Math.min(fim, dadosOrdenados.length)} de{" "}
-            {dadosOrdenados.length}
+            {t("admin.tabela.showing", {
+              from: inicio + 1,
+              to: Math.min(fim, dadosOrdenados.length),
+              total: dadosOrdenados.length,
+            })}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -166,7 +171,7 @@ export function TabelaOrdenavel({
               className="rounded border px-2 py-1 disabled:opacity-40"
               style={{ borderColor: "#E2E8F0" }}
             >
-              {"< Anterior"}
+              {t("admin.tabela.previous")}
             </button>
             {Array.from({ length: totalPaginas }).map((_, idx) => {
               const n = idx + 1;
@@ -195,7 +200,7 @@ export function TabelaOrdenavel({
               className="rounded border px-2 py-1 disabled:opacity-40"
               style={{ borderColor: "#E2E8F0" }}
             >
-              {"Próxima >"}
+              {t("admin.tabela.next")}
             </button>
           </div>
         </div>

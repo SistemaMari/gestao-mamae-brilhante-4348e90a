@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Building2, Users, ArrowRight, CalendarCheck, Check, Clock, LifeBuoy, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import i18n from '@/i18n';
 
 interface UnidadeData {
   nome: string;
@@ -34,7 +36,7 @@ const formatCNPJ = (raw: string | null) => {
 const capitalize = (s: string | null) => s ? s.charAt(0).toUpperCase() + s.slice(1) : null;
 
 const formatDateBR = (iso: string) => {
-  try { return new Date(iso).toLocaleDateString('pt-BR'); } catch { return ''; }
+  try { return new Date(iso).toLocaleDateString(i18n.language); } catch { return ''; }
 };
 
 /** Iniciais ignorando honoríficos. "Dr. Gestor Demo" → "GD"; "João" → "J"; "Dra. Ana Maria Costa" → "AC" */
@@ -94,6 +96,7 @@ function IdentidadeGestor({
   email: string | null;
   unidadeNome: string | null;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="mb-6 flex items-center gap-4 rounded-xl border border-[#E9E3F2] bg-[#F5F3FA] p-4">
       {loading ? (
@@ -123,7 +126,7 @@ function IdentidadeGestor({
               <span className="text-[12px] md:text-[13px] text-[#475569] truncate">{email}</span>
             )}
             <span className="text-[11px] md:text-[12px] text-[#64748B] truncate">
-              Gestor de Unidade{unidadeNome ? ` · ${unidadeNome}` : ''}
+              {t('gestor.appShell.gestorUnidade')}{unidadeNome ? ` · ${unidadeNome}` : ''}
             </span>
           </div>
         </>
@@ -133,6 +136,7 @@ function IdentidadeGestor({
 }
 
 export default function ConfiguracoesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -304,16 +308,16 @@ export default function ConfiguracoesPage() {
     const base = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
     const ant = new Date(base.getFullYear(), base.getMonth() - 1, 1);
     const fmt = (d: Date) =>
-      d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+      d.toLocaleDateString(i18n.language, { day: '2-digit', month: 'long', year: 'numeric' });
     return { labelMesAnterior: fmt(ant), labelProximo: fmt(base) };
-  }, []);
+  }, [i18n.language]);
 
   return (
     <div className="px-6 py-8 lg:px-10">
       <div className="mx-auto max-w-4xl">
         <div className="mb-6">
-          <h1 className="font-heading text-2xl font-bold text-foreground">Configurações da unidade</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Visão geral dos dados, equipe e preferências da sua unidade.</p>
+          <h1 className="font-heading text-2xl font-bold text-foreground">{t('gestao.configuracoes.title')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('gestao.configuracoes.subtitle')}</p>
         </div>
 
         <IdentidadeGestor
@@ -326,7 +330,7 @@ export default function ConfiguracoesPage() {
         <div className="flex flex-col gap-6">
           {/* Card 1 — Dados da Unidade */}
           <CardShell>
-            <CardHeader Icon={Building2} title="Dados da Unidade" subtitle="Para alterar estes dados, contate o suporte." />
+            <CardHeader Icon={Building2} title={t('gestao.configuracoes.dadosUnidadeTitle')} subtitle={t('gestao.configuracoes.dadosUnidadeSubtitle')} />
 
             {loading ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -338,25 +342,25 @@ export default function ConfiguracoesPage() {
                 ))}
               </div>
             ) : erroUnidade || !unidade ? (
-              <p className="text-sm text-muted-foreground">Não foi possível carregar os dados da unidade. Tente recarregar a página.</p>
+              <p className="text-sm text-muted-foreground">{t('gestao.configuracoes.loadUnidadeError')}</p>
             ) : (
               <>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <Field label="Nome da unidade" value={unidade.nome} />
-                  <Field label="Tipo" value={capitalize(unidade.tipo) || '—'} />
-                  <Field label="Localização" value={localizacao} />
+                  <Field label={t('gestao.configuracoes.nomeUnidade')} value={unidade.nome} />
+                  <Field label={t('gestao.configuracoes.tipo')} value={capitalize(unidade.tipo) || '—'} />
+                  <Field label={t('gestao.configuracoes.localizacao')} value={localizacao} />
                   {unidade.cnes && unidade.cnes.trim() && (
-                    <Field label="CNES" value={unidade.cnes} />
+                    <Field label={t('gestao.configuracoes.cnes')} value={unidade.cnes} />
                   )}
                   {contratante && contratante.nome && (
-                    <Field label="Contratante" value={contratante.nome} />
+                    <Field label={t('gestao.configuracoes.contratante')} value={contratante.nome} />
                   )}
                   {contratante && contratante.cnpj && (
-                    <Field label="CNPJ do contratante" value={formatCNPJ(contratante.cnpj)} />
+                    <Field label={t('gestao.configuracoes.cnpjContratante')} value={formatCNPJ(contratante.cnpj)} />
                   )}
                 </div>
                 <p className="mt-4 text-xs text-[#64748B]">
-                  Modelo de contratação: Contrato institucional — gerenciado externamente.
+                  {t('gestao.configuracoes.modeloContratacao')}
                 </p>
               </>
             )}
@@ -364,7 +368,7 @@ export default function ConfiguracoesPage() {
 
           {/* Card 2 — Equipe */}
           <CardShell>
-            <CardHeader Icon={Users} title="Equipe" subtitle="Profissionais ativos na sua unidade." />
+            <CardHeader Icon={Users} title={t('nav.team')} subtitle={t('gestao.configuracoes.equipeSubtitle')} />
 
             {loading ? (
               <div className="space-y-3">
@@ -378,12 +382,12 @@ export default function ConfiguracoesPage() {
                     {equipe.total}
                   </span>
                   <span className="text-sm text-foreground">
-                    {equipe.total === 1 ? 'profissional ativo' : 'profissionais ativos'}
+                    {t('gestao.configuracoes.profissionaisAtivos', { count: equipe.total })}
                   </span>
                 </div>
                 {equipe.ultimaInclusao && equipe.total > 0 && (
                   <p className="mt-3 text-sm text-muted-foreground">
-                    Última inclusão: {equipe.ultimaInclusao.nome} em {formatDateBR(equipe.ultimaInclusao.created_at)}
+                    {t('gestao.configuracoes.ultimaInclusao', { nome: equipe.ultimaInclusao.nome, data: formatDateBR(equipe.ultimaInclusao.created_at) })}
                   </p>
                 )}
               </>
@@ -391,7 +395,7 @@ export default function ConfiguracoesPage() {
 
             <div className="mt-5">
               <Button variant="outline" size="sm" onClick={() => navigate(`${basePath}/equipe`)}>
-                Gerenciar equipe <ArrowRight className="h-4 w-4" />
+                {t('management.manageTeam')} <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </CardShell>
@@ -400,8 +404,8 @@ export default function ConfiguracoesPage() {
           <CardShell>
             <CardHeader
               Icon={CalendarCheck}
-              title="Relatório Automático Mensal"
-              subtitle="Gerado automaticamente todo dia 1º para abastecer o painel do Gestor Geral."
+              title={t('gestao.configuracoes.relatorioTitle')}
+              subtitle={t('gestao.configuracoes.relatorioSubtitle')}
             />
 
             <ul className="space-y-3">
@@ -416,7 +420,7 @@ export default function ConfiguracoesPage() {
                   <>
                     <Check className="h-4 w-4 shrink-0 text-green-600" />
                     <span className="text-[#475569]">
-                      {labelMesAnterior} <span className="text-[#64748B]">— Gerado</span>
+                      {labelMesAnterior} <span className="text-[#64748B]">{t('gestao.configuracoes.statusGerado')}</span>
                     </span>
                   </>
                 ) : statusMesAnterior === 'aguardando' ? (
@@ -424,7 +428,7 @@ export default function ConfiguracoesPage() {
                     <Clock className="h-4 w-4 shrink-0 text-[#9b87f5]" />
                     <span className="text-[#475569]">
                       {labelMesAnterior}{' '}
-                      <span className="text-[#64748B]">— Aguardando geração — prevista para hoje 03:00</span>
+                      <span className="text-[#64748B]">{t('gestao.configuracoes.statusAguardando')}</span>
                     </span>
                   </>
                 ) : (
@@ -432,7 +436,7 @@ export default function ConfiguracoesPage() {
                     <AlertTriangle className="h-4 w-4 shrink-0 text-[#D97706]" />
                     <span className="text-[#475569]">
                       {labelMesAnterior}{' '}
-                      <span className="font-semibold text-[#B45309]">— Não gerado — contate o suporte</span>
+                      <span className="font-semibold text-[#B45309]">{t('gestao.configuracoes.statusNaoGerado')}</span>
                     </span>
                   </>
                 )}
@@ -442,21 +446,21 @@ export default function ConfiguracoesPage() {
               <li className="flex items-center gap-3 text-sm">
                 <Clock className="h-4 w-4 shrink-0 text-[#9b87f5]" />
                 <span className="font-semibold text-[#5B3A8C]">
-                  {labelProximo} <span className="font-semibold">(próximo)</span>
+                  {labelProximo} <span className="font-semibold">{t('gestao.configuracoes.proximo')}</span>
                 </span>
               </li>
             </ul>
 
             <p className="mt-5 text-xs text-[#64748B]">
-              Estes relatórios alimentam o painel consolidado do Gestor Geral. Você não precisa fazer nada — o sistema gera automaticamente.
+              {t('gestao.configuracoes.relatorioNota')}
             </p>
           </CardShell>
 
           {/* Card 4 — Suporte */}
           <CardShell>
-            <CardHeader Icon={LifeBuoy} title="Suporte" subtitle="Precisa de ajuda? Fale com a gente." />
+            <CardHeader Icon={LifeBuoy} title={t('gestao.configuracoes.suporteTitle')} subtitle={t('gestao.configuracoes.suporteSubtitle')} />
             <p className="text-sm text-foreground">
-              Falar com o suporte:{' '}
+              {t('gestao.configuracoes.falarComSuporte')}{' '}
               <a
                 href={`mailto:${SUPORTE_EMAIL}`}
                 className="font-medium text-[#7C4DBA] hover:underline"

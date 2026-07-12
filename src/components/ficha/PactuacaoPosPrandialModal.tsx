@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
 import {
   AlertDialog, AlertDialogContent, AlertDialogDescription,
@@ -13,9 +14,9 @@ interface PactuacaoPosPrandialModalProps {
   onCancel: () => void;
 }
 
-const OPCOES: { value: JanelaPosPrandial; titulo: string }[] = [
-  { value: '1h', titulo: '1 hora' },
-  { value: '2h', titulo: '2 horas' },
+const OPCOES: { value: JanelaPosPrandial; tituloKey: string }[] = [
+  { value: '1h', tituloKey: 'ficha.pactuacaoPosPrandial.opcao1h' },
+  { value: '2h', tituloKey: 'ficha.pactuacaoPosPrandial.opcao2h' },
 ];
 
 // 35B — Passo de pactuação bloqueante antes da grade (Fichas A/B/C/D).
@@ -26,6 +27,7 @@ const OPCOES: { value: JanelaPosPrandial; titulo: string }[] = [
 export default function PactuacaoPosPrandialModal({
   open, onConfirm, onCancel,
 }: PactuacaoPosPrandialModalProps) {
+  const { t } = useTranslation();
   const [janela, setJanela] = useState<JanelaPosPrandial>('1h');
   const card1hRef = useRef<HTMLButtonElement>(null);
 
@@ -40,16 +42,16 @@ export default function PactuacaoPosPrandialModal({
       >
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[#5B21B6]">
-            Pactuação das medições pós-prandiais
+            {t('ficha.pactuacaoPosPrandial.title')}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-foreground">
-            Você pactuou com a paciente medições pós-prandiais de 1 hora ou 2 horas?
+            {t('ficha.pactuacaoPosPrandial.description')}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div
           role="radiogroup"
-          aria-label="Janela das medições pós-prandiais"
+          aria-label={t('ficha.pactuacaoPosPrandial.radiogroupLabel')}
           className="grid grid-cols-1 gap-3 sm:grid-cols-2"
         >
           {OPCOES.map((op) => {
@@ -73,12 +75,12 @@ export default function PactuacaoPosPrandialModal({
                     <Check className="h-3 w-3" />
                   </span>
                 )}
-                <span className="block text-lg font-bold text-[#5B21B6]">{op.titulo}</span>
+                <span className="block text-lg font-bold text-[#5B21B6]">{t(op.tituloKey)}</span>
                 <span className="mt-1 block text-xs text-[#6D28D9]">
-                  {prefixoHora(op.value)} pós café / almoço / jantar
+                  {t('ficha.pactuacaoPosPrandial.aposRefeicoes', { prefixo: prefixoHora(op.value) })}
                 </span>
                 <span className="mt-1 block text-xs font-medium text-muted-foreground">
-                  Meta: &lt; {metaPosPrandial(op.value)} mg/dL
+                  {t('ficha.pactuacaoPosPrandial.meta', { valor: metaPosPrandial(op.value) })}
                 </span>
               </button>
             );
@@ -86,20 +88,18 @@ export default function PactuacaoPosPrandialModal({
         </div>
 
         <p className="text-xs text-muted-foreground">
-          A medição de 1 hora é a mais usada. A de 2 horas pode ser pactuada por comodidade da
-          paciente. É uma escolha clínica feita junto com a paciente e não pode ser alterada depois
-          nesta ficha.
+          {t('ficha.pactuacaoPosPrandial.explicacao')}
         </p>
 
         <AlertDialogFooter>
           <Button variant="outline" onClick={onCancel}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={() => onConfirm(janela)}
             className="bg-[#7C4DBA] text-white hover:bg-[#7E69AB]"
           >
-            Confirmar e abrir ficha
+            {t('ficha.pactuacaoPosPrandial.confirmar')}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

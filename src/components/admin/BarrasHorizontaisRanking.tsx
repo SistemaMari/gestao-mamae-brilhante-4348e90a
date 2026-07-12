@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 const FONT_CORPO = "Plus Jakarta Sans, sans-serif";
 const COR_CINZA = "#94A3B8";
 
@@ -21,10 +23,12 @@ interface Props {
  */
 export function BarrasHorizontaisRanking({
   itens,
-  vazioMsg = "Sem dados no período.",
+  vazioMsg,
   ordenar = true,
   rodape,
 }: Props) {
+  const { t } = useTranslation();
+  const msgVazio = vazioMsg ?? t("admin.barrasRanking.emptyPeriod");
   const total = itens.reduce((s, i) => s + i.valor, 0);
   if (total === 0) {
     return (
@@ -32,7 +36,7 @@ export function BarrasHorizontaisRanking({
         className="rounded-lg border border-dashed p-6 text-center text-sm"
         style={{ borderColor: "#E2E8F0", color: COR_CINZA, fontFamily: FONT_CORPO }}
       >
-        {vazioMsg}
+        {msgVazio}
       </div>
     );
   }

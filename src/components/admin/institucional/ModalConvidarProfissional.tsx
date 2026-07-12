@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export default function ModalConvidarProfissional({ open, onOpenChange, unidades, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [unidadeId, setUnidadeId] = useState("");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -72,7 +74,7 @@ export default function ModalConvidarProfissional({ open, onOpenChange, unidades
       return;
     }
     setSubmitting(false);
-    toast.success(`Convite enviado para ${email.trim()}.`);
+    toast.success(t("admin.convidarProf.inviteSent", { email: email.trim() }));
     handleOpenChange(false);
     onSucesso();
   }
@@ -81,31 +83,31 @@ export default function ModalConvidarProfissional({ open, onOpenChange, unidades
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle className="font-[Sora] text-[#5B3A8E]">Convidar profissional</DialogTitle>
+          <DialogTitle className="font-[Sora] text-[#5B3A8E]">{t("admin.convidarProf.title")}</DialogTitle>
           <DialogDescription>
-            O profissional receberá um e-mail em nome da unidade para definir senha e acessar.
+            {t("admin.convidarProf.description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Unidade</Label>
+            <Label>{t("admin.convidarProf.unit")}</Label>
             <Select value={unidadeId} onValueChange={setUnidadeId} disabled={submitting}>
-              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("admin.convidarProf.selectPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {unidades.map((u) => <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Nome</Label>
+            <Label>{t("common.name")}</Label>
             <Input value={nome} onChange={(e) => setNome(e.target.value)} disabled={submitting} />
           </div>
           <div className="space-y-1.5">
-            <Label>E-mail</Label>
+            <Label>{t("common.email")}</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={submitting} />
           </div>
           <div className="space-y-1.5">
-            <Label>Perfil clínico</Label>
+            <Label>{t("admin.convidarProf.clinicalProfile")}</Label>
             <Select value={perfil} onValueChange={setPerfil} disabled={submitting}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -124,11 +126,11 @@ export default function ModalConvidarProfissional({ open, onOpenChange, unidades
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={!valido || submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Enviar convite
+              {t("admin.convidarProf.sendInvite")}
             </Button>
           </DialogFooter>
         </form>

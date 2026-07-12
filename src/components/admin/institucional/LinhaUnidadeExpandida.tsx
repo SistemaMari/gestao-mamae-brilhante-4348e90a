@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,16 +20,16 @@ interface Props {
   onTransferir?: () => void;
 }
 
-const PERFIL_LABEL: Record<string, string> = {
-  gestor: "Gestor",
-  institucional: "Institucional",
-  consultorio: "Consultório",
-};
-
 export default function LinhaUnidadeExpandida({
   unidadeId, cnes, plano, gestorEmail, createdAt,
   contratanteAtivo, onTransferir,
 }: Props) {
+  const { t, i18n } = useTranslation();
+  const PERFIL_LABEL: Record<string, string> = {
+    gestor: t("admin.linhaUnidade.perfilGestor"),
+    institucional: t("admin.linhaUnidade.perfilInstitucional"),
+    consultorio: t("admin.linhaUnidade.perfilConsultorio"),
+  };
   const { data, isLoading } = useQuery({
     queryKey: ["institucional", "unidade-profissionais", unidadeId],
     queryFn: async () => {
@@ -44,25 +45,25 @@ export default function LinhaUnidadeExpandida({
   return (
     <div className="border-l-4 border-l-[#7C4DBA] bg-[#F9F7FC] p-4">
       <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
-        <div><span className="text-muted-foreground">CNES:</span> <strong>{cnes || "—"}</strong></div>
-        <div><span className="text-muted-foreground">Plano:</span> <strong>{plano || "—"}</strong></div>
-        <div><span className="text-muted-foreground">E-mail do gestor:</span> <strong>{gestorEmail || "—"}</strong></div>
-        <div><span className="text-muted-foreground">Cadastrada em:</span> <strong>{new Date(createdAt).toLocaleDateString("pt-BR")}</strong></div>
+        <div><span className="text-muted-foreground">{t("admin.linhaUnidade.cnes")}</span> <strong>{cnes || "—"}</strong></div>
+        <div><span className="text-muted-foreground">{t("admin.linhaUnidade.plano")}</span> <strong>{plano || "—"}</strong></div>
+        <div><span className="text-muted-foreground">{t("admin.linhaUnidade.gestorEmail")}</span> <strong>{gestorEmail || "—"}</strong></div>
+        <div><span className="text-muted-foreground">{t("admin.linhaUnidade.cadastradaEm")}</span> <strong>{new Date(createdAt).toLocaleDateString(i18n.language)}</strong></div>
       </div>
 
       <div className="mt-4">
-        <h4 className="mb-2 text-sm font-semibold text-[#5B3A8E]">Profissionais vinculados</h4>
+        <h4 className="mb-2 text-sm font-semibold text-[#5B3A8E]">{t("admin.linhaUnidade.linkedProfessionals")}</h4>
         {isLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : !data || data.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum profissional vinculado ainda.</p>
+          <p className="text-sm text-muted-foreground">{t("admin.linhaUnidade.noLinkedProfessionals")}</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Especialidade/Perfil</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("common.name")}</TableHead>
+                <TableHead>{t("admin.linhaUnidade.colSpecialtyProfile")}</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -70,7 +71,7 @@ export default function LinhaUnidadeExpandida({
                 <TableRow key={p.id}>
                   <TableCell>{p.nome}</TableCell>
                   <TableCell>{p.especialidade || PERFIL_LABEL[p.perfil_institucional ?? ""] || "—"}</TableCell>
-                  <TableCell>{p.plano_status === "ativo" ? "Ativo" : "Convite pendente"}</TableCell>
+                  <TableCell>{p.plano_status === "ativo" ? t("admin.linhaUnidade.statusActive") : t("admin.linhaUnidade.statusPendingInvite")}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -90,13 +91,13 @@ export default function LinhaUnidadeExpandida({
                     onClick={onTransferir}
                     disabled={!contratanteAtivo}
                   >
-                    <ArrowRightLeft className="mr-1 h-3 w-3" /> Transferir contratante
+                    <ArrowRightLeft className="mr-1 h-3 w-3" /> {t("admin.linhaUnidade.transferContractor")}
                   </Button>
                 </span>
               </TooltipTrigger>
               {!contratanteAtivo && (
                 <TooltipContent>
-                  Reative o contratante atual ou aguarde reativação para transferir.
+                  {t("admin.linhaUnidade.transferDisabledTip")}
                 </TooltipContent>
               )}
             </Tooltip>

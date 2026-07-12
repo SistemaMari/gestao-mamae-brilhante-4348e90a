@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import CardInfoTooltip from './CardInfoTooltip';
 
 export interface ProfPerformance {
@@ -16,6 +17,7 @@ interface Props {
 }
 
 function Linha({ p, cor }: { p: ProfPerformance; cor: string }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-between border-t border-border/40 py-2.5 first:border-t-0">
       <div>
@@ -24,10 +26,10 @@ function Linha({ p, cor }: { p: ProfPerformance; cor: string }) {
       </div>
       <div className="text-right">
         <div className="text-sm" style={{ color: cor, fontWeight: 500 }}>
-          {p.laudos} {p.laudos === 1 ? 'laudo' : 'laudos'}
+          {t('gestao.performanceIndividual.laudosCount', { count: p.laudos })}
         </div>
         <div className="text-[11px] text-muted-foreground">
-          {p.pacientes} {p.pacientes === 1 ? 'paciente' : 'pacientes'}
+          {t('gestao.performanceIndividual.pacientesCount', { count: p.pacientes })}
         </div>
       </div>
     </div>
@@ -45,6 +47,7 @@ function Skeleton() {
 }
 
 export default function PerformanceIndividual({ profissionais, loading, erro }: Props) {
+  const { t } = useTranslation();
   // Ordenar por laudos desc para "mais ativos"; asc para "menos ativos"
   const total = profissionais.length;
   const sortedDesc = [...profissionais].sort((a, b) => b.laudos - a.laudos);
@@ -62,16 +65,16 @@ export default function PerformanceIndividual({ profissionais, loading, erro }: 
         <div className="mb-4 flex items-center gap-2">
           <TrendingUp className="h-5 w-5" style={{ color: '#1D9E75' }} />
           <h3 className="font-heading text-base font-semibold text-foreground">
-            Mais ativos
+            {t('gestao.performanceIndividual.maisAtivos')}
           </h3>
-          <CardInfoTooltip text="Os 3 profissionais com maior produção de laudos da equipe. Pode ser útil para reconhecimento, mentoria de novos membros ou redistribuição de carga." />
+          <CardInfoTooltip text={t('gestao.performanceIndividual.maisAtivosTooltip')} />
         </div>
         {loading ? (
           <Skeleton />
         ) : erro ? (
-          <p className="text-sm text-muted-foreground">Erro ao carregar.</p>
+          <p className="text-sm text-muted-foreground">{t('gestao.performanceIndividual.erroCarregar')}</p>
         ) : top3.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sem dados disponíveis.</p>
+          <p className="text-sm text-muted-foreground">{t('gestao.performanceIndividual.semDados')}</p>
         ) : (
           <div>
             {top3.map(p => <Linha key={p.id} p={p} cor="#1D9E75" />)}
@@ -84,17 +87,17 @@ export default function PerformanceIndividual({ profissionais, loading, erro }: 
         <div className="mb-4 flex items-center gap-2">
           <TrendingDown className="h-5 w-5" style={{ color: '#BA7517' }} />
           <h3 className="font-heading text-base font-semibold text-foreground">
-            Menos ativos
+            {t('gestao.performanceIndividual.menosAtivos')}
           </h3>
-          <CardInfoTooltip text="Os 3 profissionais com menor produção de laudos da equipe. Avalie se há sobrecarga em outros profissionais que justifique redistribuição, ou se algum membro precisa de suporte." />
+          <CardInfoTooltip text={t('gestao.performanceIndividual.menosAtivosTooltip')} />
         </div>
         {loading ? (
           <Skeleton />
         ) : erro ? (
-          <p className="text-sm text-muted-foreground">Erro ao carregar.</p>
+          <p className="text-sm text-muted-foreground">{t('gestao.performanceIndividual.erroCarregar')}</p>
         ) : equipePequena || bottom3.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Equipe pequena — sem distinção de menos ativos.
+            {t('gestao.performanceIndividual.equipePequena')}
           </p>
         ) : (
           <div>
