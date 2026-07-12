@@ -2418,7 +2418,6 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_gestor_geral: { Args: { _user_id: string }; Returns: boolean }
       metricas_diagnosticos_admin: { Args: never; Returns: Json }
-      metricas_encerramentos_admin: { Args: never; Returns: Json }
       move_to_dlq: {
         Args: {
           dlq_name: string
