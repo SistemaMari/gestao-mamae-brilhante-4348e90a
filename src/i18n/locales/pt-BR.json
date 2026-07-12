@@ -267,7 +267,110 @@
     "filterByPlan": "Filtrar por plano",
     "filterByProfile": "Filtrar por perfil",
     "exportCsv": "Exportar CSV",
-    "noProfessionals": "Nenhum profissional encontrado"
+    "noProfessionals": "Nenhum profissional encontrado",
+    "scope": {
+      "consultorio": "Consultório",
+      "institucional": "Institucional",
+      "ambos": "Consultório + Institucional",
+      "badgeTitle": "Escopo: {{escopo}}"
+    },
+    "alerts": {
+      "appliesTo": "Aplica-se a: {{escopo}}",
+      "viewDetails": "Ver detalhes →",
+      "profissional_inativo_30d": {
+        "titulo": "Plano Profissional sem uso há 30+ dias",
+        "descricao": "Profissionais do plano Profissional inativos no último mês"
+      },
+      "intermediaria_inativo_30d": {
+        "titulo": "Plano Intermediária sem uso há 30+ dias",
+        "descricao": "Profissionais do plano Intermediária inativos no último mês"
+      },
+      "inicial_inativo_30d": {
+        "titulo": "Plano Inicial sem uso há 30+ dias",
+        "descricao": "Profissionais do plano Inicial inativos no último mês"
+      },
+      "unidade_dormente": {
+        "titulo": "Unidades sem profissionais ativos no mês",
+        "descricao": "Unidades sem nenhum profissional com atividade nos últimos 30 dias"
+      },
+      "onboarding_travado": {
+        "titulo": "Cadastros há 7+ dias sem completar perfil",
+        "descricao": "Profissionais cadastrados há mais de 7 dias com perfil incompleto"
+      }
+    },
+    "overview": {
+      "greeting": "Olá, {{nome}} ✨",
+      "welcome": "Bem-vindo ao painel administrativo da MARI.",
+      "adminFallback": "Administrador",
+      "title": "Visão Geral",
+      "subtitle": "Panorama do sistema em tempo quase real.",
+      "cardProfessionals": "Total de profissionais",
+      "cardProfessionalsTip": "Todos os profissionais cadastrados na plataforma — consultório e institucional, ativos e inativos.",
+      "cardUnits": "Total de unidades",
+      "cardUnitsTip": "Unidades de saúde institucionais cadastradas (UBS, hospitais, clínicas, etc.).",
+      "cardPatients": "Total de pacientes",
+      "cardPatientsTip": "Total histórico de pacientes cadastradas no sistema. Vem da view agregada — o admin não acessa o dado clínico individual.",
+      "cardReports": "Total de laudos gerados",
+      "cardReportsTip": "Total histórico de laudos emitidos pela MARI. Cada laudo corresponde a uma consulta finalizada.",
+      "alertsTitle": "Alertas Operacionais",
+      "alertsDesc": "Sinais que merecem atenção da operação.",
+      "alertsTip": "Contagem de sinais operacionais (inadimplência, cotas estouradas, contas inativas, etc.) sobre a base completa — ignora filtros abaixo.",
+      "analysisTitle": "Análises detalhadas",
+      "analysisDesc": "Filtre por período, região e tipo de conta. Os totais e alertas acima consideram sempre a base completa.",
+      "evolTitle": "Evolução mensal de profissionais",
+      "evolDesc": "Comparativo separado entre profissionais de consultório (assinantes individuais) e institucionais (vinculados a uma unidade).",
+      "evolConsultorioTitle": "Profissionais de consultório",
+      "evolConsultorioDesc": "Assinantes individuais dos planos Inicial, Intermediária e Profissional.",
+      "evolConsultorioTip": "Somente profissionais SEM vínculo com unidade institucional. Novos = cadastrados no mês. Ativos = com pelo menos uma atividade (paciente, consulta, laudo ou parto) no mês.",
+      "evolInstitucionalTitle": "Profissionais institucionais",
+      "evolInstitucionalDesc": "Profissionais vinculados a unidades (UBS, hospitais, clínicas contratantes).",
+      "evolInstitucionalTip": "Somente profissionais COM vínculo a uma unidade institucional. Novos = cadastrados no mês. Ativos = com pelo menos uma atividade no mês.",
+      "seriesNew": "Novos profissionais",
+      "seriesActive": "Ativos no mês",
+      "byPlanTitle": "Profissionais por plano",
+      "byPlanTip": "Distribuição dos profissionais de consultório ativos por plano contratado (Inicial, Intermediária, Profissional).",
+      "unitsByTypeTitle": "Unidades por tipo",
+      "unitsByTypeTip": "Distribuição das unidades cadastradas por categoria (UBS, hospital, clínica, etc.), considerando os filtros de região selecionados.",
+      "planEvolTitle": "Evolução mensal de planos",
+      "planEvolDesc": "Novos profissionais de consultório por plano (Inicial, Intermediária, Profissional) nos últimos 12 meses.",
+      "planEvolTip": "Assinaturas mensais dos planos comerciais de consultório. Contas institucionais não entram nesta série — elas são contratadas por unidade.",
+      "byCountryTitle": "Distribuição por país",
+      "byCountryTip": "Profissionais de consultório (sem vínculo com unidade) por país, com o percentual sobre o total. Profissionais institucionais aparecem nas tabelas por unidade.",
+      "byStateTitle": "Distribuição por estado",
+      "byStateTip": "Profissionais de consultório (sem vínculo com unidade) por estado, com o percentual sobre o total do país.",
+      "topCitiesTitle": "Top 20 cidades",
+      "topCitiesTip": "Ranking das 20 cidades com mais profissionais de consultório (sem vínculo com unidade).",
+      "profByUnitTitle": "Profissionais por unidade",
+      "profByUnitTip": "Profissionais vinculados a unidades (institucional), agrupados pela unidade de atendimento.",
+      "patByUnitTitle": "Pacientes por unidade",
+      "patByUnitDesc": "Histórico acumulado de pacientes e laudos gerados por unidade.",
+      "colCountry": "País",
+      "colProfessionals": "Profissionais",
+      "colPctProfessionals": "% profissionais",
+      "colState": "Estado",
+      "colPctInCountry": "% no país",
+      "colCity": "Cidade",
+      "colUnit": "Unidade",
+      "colType": "Tipo",
+      "colUf": "UF",
+      "colPatientsHist": "Pacientes (histórico)",
+      "colReportsGenerated": "Laudos gerados",
+      "notInformed": "Não informado",
+      "managersTotal": "Total de gestores gerais",
+      "consolidationsActive": "Consolidações ativas",
+      "consultorioGroupTitle": "Análises de Consultório",
+      "consultorioGroupDesc": "Indicadores de profissionais autônomos — planos comerciais, distribuição geográfica e ranking de cidades.",
+      "institutionalGroupTitle": "Análises Institucionais",
+      "institutionalGroupDesc": "Indicadores de unidades contratantes — UBS, hospitais e clínicas — e dos profissionais vinculados a elas.",
+      "colProfShort": "Prof.",
+      "colPctCountryShort": "% país",
+      "managersUnit": "Total de gestores de unidade"
+    },
+    "groupScope": {
+      "consultorioSub": "Profissionais autônomos, assinantes individuais.",
+      "institucionalSub": "Profissionais vinculados a UBS, hospitais e clínicas.",
+      "badge": "Escopo · {{escopo}}"
+    }
   },
   "banners": {
     "planSuspended": "Plano suspenso",

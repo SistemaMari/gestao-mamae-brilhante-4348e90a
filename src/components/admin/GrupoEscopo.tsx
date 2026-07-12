@@ -1,15 +1,14 @@
 import { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Briefcase, Building2 } from "lucide-react";
 
 type Escopo = "consultorio" | "institucional";
 
 const STYLES: Record<
   Escopo,
-  { label: string; sub: string; bg: string; fg: string; bar: string; ring: string; icon: ReactNode }
+  { bg: string; fg: string; bar: string; ring: string; icon: ReactNode }
 > = {
   consultorio: {
-    label: "Consultório",
-    sub: "Profissionais autônomos, assinantes individuais.",
     bg: "linear-gradient(90deg, #F5F0FF 0%, #EDE9FE 100%)",
     fg: "#6D28D9",
     bar: "#7C4DBA",
@@ -17,8 +16,6 @@ const STYLES: Record<
     icon: <Briefcase size={22} style={{ color: "#6D28D9" }} />,
   },
   institucional: {
-    label: "Institucional",
-    sub: "Profissionais vinculados a UBS, hospitais e clínicas.",
     bg: "linear-gradient(90deg, #ECFDF5 0%, #CCFBF1 100%)",
     fg: "#0F766E",
     bar: "#0F766E",
@@ -35,7 +32,10 @@ interface Props {
 }
 
 export function GrupoEscopo({ escopo, titulo, descricao, children }: Props) {
+  const { t } = useTranslation();
   const s = STYLES[escopo];
+  const label = t(`admin.scope.${escopo}`);
+  const sub = t(`admin.groupScope.${escopo}Sub`);
   return (
     <section className="space-y-5">
       <div
@@ -64,7 +64,7 @@ export function GrupoEscopo({ escopo, titulo, descricao, children }: Props) {
                 letterSpacing: "0.08em",
               }}
             >
-              Escopo · {s.label}
+              {t("admin.groupScope.badge", { escopo: label })}
             </span>
             {titulo && (
               <h3
@@ -76,7 +76,7 @@ export function GrupoEscopo({ escopo, titulo, descricao, children }: Props) {
             )}
           </div>
           <p className="text-sm mt-1" style={{ color: "#475569" }}>
-            {descricao ?? s.sub}
+            {descricao ?? sub}
           </p>
         </div>
       </div>

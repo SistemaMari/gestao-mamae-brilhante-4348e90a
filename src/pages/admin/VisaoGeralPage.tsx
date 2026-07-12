@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useOutletContext } from "react-router-dom";
 import { Users, Building2 } from "lucide-react";
 import { BarraFiltrosGlobais } from "@/components/admin/BarraFiltrosGlobais";
@@ -34,16 +35,17 @@ interface Resumo {
   laudos: number | null;
 }
 
-const fmtMes = (mes: string) => {
-  const d = new Date(mes);
-  return d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
-};
-
 export default function VisaoGeralPage() {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
+  const fmtMes = (mes: string) =>
+    new Date(mes).toLocaleDateString(locale, { month: "short", year: "2-digit" });
+  const fmtPct = (v: unknown) => `${(v as number).toLocaleString(locale)}%`;
+
   const { pathname } = useLocation();
   const isPreview = pathname.startsWith("/vitrine");
   const outletCtx = useOutletContext<{ nomeAdmin?: string } | null>();
-  const nomeAdmin = outletCtx?.nomeAdmin || "Administrador";
+  const nomeAdmin = outletCtx?.nomeAdmin || t("admin.overview.adminFallback");
 
   // ----- Cards de resumo do topo (mantidos do código original) -----
   const [resumo, setResumo] = useState<Resumo>({
@@ -130,7 +132,7 @@ export default function VisaoGeralPage() {
         novos: r.novos_profissionais,
         ativos: r.profissionais_ativos,
       })),
-    [evolProf.data],
+    [evolProf.data, locale],
   );
 
   const dadosPorTipo = (tipo: "consultorio" | "institucional") => {
@@ -144,8 +146,8 @@ export default function VisaoGeralPage() {
         ativos: r.profissionais_ativos,
       }));
   };
-  const evolConsultorio = useMemo(() => dadosPorTipo("consultorio"), [evolProfTipo.data]);
-  const evolInstitucional = useMemo(() => dadosPorTipo("institucional"), [evolProfTipo.data]);
+  const evolConsultorio = useMemo(() => dadosPorTipo("consultorio"), [evolProfTipo.data, locale]);
+  const evolInstitucional = useMemo(() => dadosPorTipo("institucional"), [evolProfTipo.data, locale]);
 
   const evolPlanosDados = useMemo(() => {
     const meses = Array.from(new Set((evolPlanos.data ?? []).map((r) => r.mes))).sort();
@@ -158,8 +160,9 @@ export default function VisaoGeralPage() {
         });
       return linha;
     });
-  }, [evolPlanos.data]);
+  }, [evolPlanos.data, locale]);
 
+  // Nomes de plano ficam como no banco (i18n de nomes de plano = fase futura).
   const seriesPlanos = [
     { chave: "inicial", nome: "Inicial", cor: "#5EEAD4" },
     { chave: "intermediaria", nome: "Intermediária", cor: "#D6BCFA" },
@@ -180,11 +183,11 @@ export default function VisaoGeralPage() {
   const tiposUnidade = useMemo(() => {
     const m = new Map<string, number>();
     unidadesFiltradas.forEach((u) => {
-      const k = u.tipo ?? "Não informado";
+      const k = u.tipo ?? t("admin.overview.notInformed");
       m.set(k, (m.get(k) ?? 0) + 1);
     });
     return Array.from(m.entries()).map(([tipo, total]) => ({ tipo, total }));
-  }, [unidadesFiltradas]);
+  }, [unidadesFiltradas, locale]);
 
   // Distribuição filtrada por geo
   const distribuicaoFiltrada = useMemo(() => {
@@ -248,10 +251,10 @@ export default function VisaoGeralPage() {
           className="text-4xl md:text-5xl font-bold tracking-tight"
           style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
         >
-          Olá, {nomeAdmin} ✨
+          {t("admin.overview.greeting", { nome: nomeAdmin })}
         </h1>
         <p className="mt-2 text-base" style={{ color: "#64748B" }}>
-          Bem-vindo ao painel administrativo da MARI.
+          {t("admin.overview.welcome")}
         </p>
       </div>
 
@@ -260,46 +263,46 @@ export default function VisaoGeralPage() {
           className="text-2xl font-semibold mb-1"
           style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
         >
-          Visão Geral
+          {t("admin.overview.title")}
         </h2>
         <p className="text-sm" style={{ color: "#64748B" }}>
-          Panorama do sistema em tempo quase real.
+          {t("admin.overview.subtitle")}
         </p>
       </div>
 
       {/* Cards rápidos */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <CardResumo
-          label="Total de profissionais"
+          label={t("admin.overview.cardProfessionals")}
           valor={resumo.profissionais}
           loading={loadingResumo}
-          tooltip="Todos os profissionais cadastrados na plataforma — consultório e institucional, ativos e inativos."
+          tooltip={t("admin.overview.cardProfessionalsTip")}
         />
         <CardResumo
-          label="Total de unidades"
+          label={t("admin.overview.cardUnits")}
           valor={resumo.unidades}
           loading={loadingResumo}
-          tooltip="Unidades de saúde institucionais cadastradas (UBS, hospitais, clínicas, etc.)."
+          tooltip={t("admin.overview.cardUnitsTip")}
         />
         <CardResumo
-          label="Total de pacientes"
+          label={t("admin.overview.cardPatients")}
           valor={isPreview ? resumo.pacientes : (r0?.total_pacientes ?? null)}
           loading={isPreview ? loadingResumo : resumoGlobal.isLoading}
-          tooltip="Total histórico de pacientes cadastradas no sistema. Vem da view agregada — o admin não acessa o dado clínico individual."
+          tooltip={t("admin.overview.cardPatientsTip")}
         />
         <CardResumo
-          label="Total de laudos gerados"
+          label={t("admin.overview.cardReports")}
           valor={isPreview ? resumo.laudos : (r0?.total_laudos ?? null)}
           loading={isPreview ? loadingResumo : resumoGlobal.isLoading}
-          tooltip="Total histórico de laudos emitidos pela MARI. Cada laudo corresponde a uma consulta finalizada."
+          tooltip={t("admin.overview.cardReportsTip")}
         />
       </div>
 
       {/* Alertas operacionais */}
       <SecaoBloco
-        titulo="Alertas Operacionais"
-        descricao="Sinais que merecem atenção da operação."
-        tooltip="Contagem de sinais operacionais (inadimplência, cotas estouradas, contas inativas, etc.) sobre a base completa — ignora filtros abaixo."
+        titulo={t("admin.overview.alertsTitle")}
+        descricao={t("admin.overview.alertsDesc")}
+        tooltip={t("admin.overview.alertsTip")}
         loading={alertas.isLoading}
         skeleton={
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -329,11 +332,10 @@ export default function VisaoGeralPage() {
               className="text-2xl font-semibold mb-1"
               style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
             >
-              Análises detalhadas
+              {t("admin.overview.analysisTitle")}
             </h2>
             <p className="text-sm" style={{ color: "#64748B" }}>
-              Filtre por período, região e tipo de conta. Os totais e alertas acima
-              consideram sempre a base completa.
+              {t("admin.overview.analysisDesc")}
             </p>
           </div>
           <BarraFiltrosGlobais />
@@ -347,19 +349,18 @@ export default function VisaoGeralPage() {
             className="text-2xl font-semibold mb-1"
             style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
           >
-            Evolução mensal de profissionais
+            {t("admin.overview.evolTitle")}
           </h2>
           <p className="text-sm" style={{ color: "#64748B" }}>
-            Comparativo separado entre profissionais de consultório (assinantes
-            individuais) e institucionais (vinculados a uma unidade).
+            {t("admin.overview.evolDesc")}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SecaoBloco
-            titulo="Profissionais de consultório"
-            descricao="Assinantes individuais dos planos Inicial, Intermediária e Profissional."
-            tooltip="Somente profissionais SEM vínculo com unidade institucional. Novos = cadastrados no mês. Ativos = com pelo menos uma atividade (paciente, consulta, laudo ou parto) no mês."
+            titulo={t("admin.overview.evolConsultorioTitle")}
+            descricao={t("admin.overview.evolConsultorioDesc")}
+            tooltip={t("admin.overview.evolConsultorioTip")}
             acao={<BadgeEscopo escopo="consultorio" />}
             loading={evolProfTipo.isLoading}
             skeletonHeight={280}
@@ -368,17 +369,17 @@ export default function VisaoGeralPage() {
               <GraficoLinhaEvolucao
                 dados={evolConsultorio}
                 series={[
-                  { chave: "novos", nome: "Novos profissionais", cor: "#7C4DBA" },
-                  { chave: "ativos", nome: "Ativos no mês", cor: "#5EEAD4" },
+                  { chave: "novos", nome: t("admin.overview.seriesNew"), cor: "#7C4DBA" },
+                  { chave: "ativos", nome: t("admin.overview.seriesActive"), cor: "#5EEAD4" },
                 ]}
               />
             </div>
           </SecaoBloco>
 
           <SecaoBloco
-            titulo="Profissionais institucionais"
-            descricao="Profissionais vinculados a unidades (UBS, hospitais, clínicas contratantes)."
-            tooltip="Somente profissionais COM vínculo a uma unidade institucional. Novos = cadastrados no mês. Ativos = com pelo menos uma atividade no mês."
+            titulo={t("admin.overview.evolInstitucionalTitle")}
+            descricao={t("admin.overview.evolInstitucionalDesc")}
+            tooltip={t("admin.overview.evolInstitucionalTip")}
             acao={<BadgeEscopo escopo="institucional" />}
             loading={evolProfTipo.isLoading}
             skeletonHeight={280}
@@ -387,8 +388,8 @@ export default function VisaoGeralPage() {
               <GraficoLinhaEvolucao
                 dados={evolInstitucional}
                 series={[
-                  { chave: "novos", nome: "Novos profissionais", cor: "#0F766E" },
-                  { chave: "ativos", nome: "Ativos no mês", cor: "#5EEAD4" },
+                  { chave: "novos", nome: t("admin.overview.seriesNew"), cor: "#0F766E" },
+                  { chave: "ativos", nome: t("admin.overview.seriesActive"), cor: "#5EEAD4" },
                 ]}
               />
             </div>
@@ -399,12 +400,12 @@ export default function VisaoGeralPage() {
       {/* ========== GRUPO CONSULTÓRIO ========== */}
       <GrupoEscopo
         escopo="consultorio"
-        titulo="Análises de Consultório"
-        descricao="Indicadores de profissionais autônomos — planos comerciais, distribuição geográfica e ranking de cidades."
+        titulo={t("admin.overview.consultorioGroupTitle")}
+        descricao={t("admin.overview.consultorioGroupDesc")}
       >
         <SecaoBloco
-          titulo="Profissionais por plano"
-          tooltip="Distribuição dos profissionais de consultório ativos por plano contratado (Inicial, Intermediária, Profissional)."
+          titulo={t("admin.overview.byPlanTitle")}
+          tooltip={t("admin.overview.byPlanTip")}
           acao={<BadgeEscopo escopo="consultorio" />}
           loading={planos.isLoading}
           skeletonHeight={280}
@@ -415,9 +416,9 @@ export default function VisaoGeralPage() {
         </SecaoBloco>
 
         <SecaoBloco
-          titulo="Evolução mensal de planos"
-          descricao="Novos profissionais de consultório por plano (Inicial, Intermediária, Profissional) nos últimos 12 meses."
-          tooltip="Assinaturas mensais dos planos comerciais de consultório. Contas institucionais não entram nesta série — elas são contratadas por unidade."
+          titulo={t("admin.overview.planEvolTitle")}
+          descricao={t("admin.overview.planEvolDesc")}
+          tooltip={t("admin.overview.planEvolTip")}
           acao={<BadgeEscopo escopo="consultorio" />}
           loading={evolPlanos.isLoading}
           skeletonHeight={280}
@@ -429,8 +430,8 @@ export default function VisaoGeralPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <SecaoBloco
-            titulo="Distribuição por país"
-            tooltip="Profissionais de consultório (sem vínculo com unidade) por país, com o percentual sobre o total."
+            titulo={t("admin.overview.byCountryTitle")}
+            tooltip={t("admin.overview.byCountryTip")}
             acao={<BadgeEscopo escopo="consultorio" />}
             loading={distribuicao.isLoading}
             skeletonHeight={180}
@@ -438,22 +439,17 @@ export default function VisaoGeralPage() {
             <TabelaOrdenavel
               denso
               colunas={[
-                { chave: "pais", titulo: "País" },
-                { chave: "total_profissionais", titulo: "Prof.", alinhamento: "right" },
-                {
-                  chave: "pct",
-                  titulo: "%",
-                  alinhamento: "right",
-                  formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
-                },
+                { chave: "pais", titulo: t("admin.overview.colCountry") },
+                { chave: "total_profissionais", titulo: t("admin.overview.colProfShort"), alinhamento: "right" },
+                { chave: "pct", titulo: "%", alinhamento: "right", formato: fmtPct },
               ]}
               dados={distPais}
             />
           </SecaoBloco>
 
           <SecaoBloco
-            titulo="Distribuição por estado"
-            tooltip="Profissionais de consultório (sem vínculo com unidade) por estado, com o percentual sobre o total do país."
+            titulo={t("admin.overview.byStateTitle")}
+            tooltip={t("admin.overview.byStateTip")}
             acao={<BadgeEscopo escopo="consultorio" />}
             loading={distribuicao.isLoading}
             skeletonHeight={220}
@@ -461,22 +457,17 @@ export default function VisaoGeralPage() {
             <TabelaOrdenavel
               denso
               colunas={[
-                { chave: "estado", titulo: "Estado" },
-                { chave: "total_profissionais", titulo: "Prof.", alinhamento: "right" },
-                {
-                  chave: "pct",
-                  titulo: "% país",
-                  alinhamento: "right",
-                  formato: (v) => `${(v as number).toLocaleString("pt-BR")}%`,
-                },
+                { chave: "estado", titulo: t("admin.overview.colState") },
+                { chave: "total_profissionais", titulo: t("admin.overview.colProfShort"), alinhamento: "right" },
+                { chave: "pct", titulo: t("admin.overview.colPctCountryShort"), alinhamento: "right", formato: fmtPct },
               ]}
               dados={distEstado}
             />
           </SecaoBloco>
 
           <SecaoBloco
-            titulo="Top 20 cidades"
-            tooltip="Ranking das 20 cidades com mais profissionais de consultório (sem vínculo com unidade)."
+            titulo={t("admin.overview.topCitiesTitle")}
+            tooltip={t("admin.overview.topCitiesTip")}
             acao={<BadgeEscopo escopo="consultorio" />}
             loading={topCidades.isLoading}
             skeletonHeight={220}
@@ -485,9 +476,9 @@ export default function VisaoGeralPage() {
               denso
               colunas={[
                 { chave: "posicao", titulo: "#", alinhamento: "right" },
-                { chave: "cidade", titulo: "Cidade" },
-                { chave: "estado", titulo: "UF" },
-                { chave: "total_profissionais", titulo: "Prof.", alinhamento: "right" },
+                { chave: "cidade", titulo: t("admin.overview.colCity") },
+                { chave: "estado", titulo: t("admin.overview.colUf") },
+                { chave: "total_profissionais", titulo: t("admin.overview.colProfShort"), alinhamento: "right" },
               ]}
               dados={topCidadesFiltradas}
             />
@@ -498,12 +489,12 @@ export default function VisaoGeralPage() {
       {/* ========== GRUPO INSTITUCIONAL ========== */}
       <GrupoEscopo
         escopo="institucional"
-        titulo="Análises Institucionais"
-        descricao="Indicadores de unidades contratantes — UBS, hospitais e clínicas — e dos profissionais vinculados a elas."
+        titulo={t("admin.overview.institutionalGroupTitle")}
+        descricao={t("admin.overview.institutionalGroupDesc")}
       >
         <SecaoBloco
-          titulo="Unidades por tipo"
-          tooltip="Distribuição das unidades cadastradas por categoria (UBS, hospital, clínica, etc.), considerando os filtros de região selecionados."
+          titulo={t("admin.overview.unitsByTypeTitle")}
+          tooltip={t("admin.overview.unitsByTypeTip")}
           acao={<BadgeEscopo escopo="institucional" />}
           loading={unidades.isLoading}
           skeletonHeight={280}
@@ -516,37 +507,37 @@ export default function VisaoGeralPage() {
         {mostrarTabelasInstitucionais && (
           <>
             <SecaoBloco
-              titulo="Profissionais por unidade"
-              tooltip="Profissionais vinculados a unidades (institucional), agrupados pela unidade de atendimento."
+              titulo={t("admin.overview.profByUnitTitle")}
+              tooltip={t("admin.overview.profByUnitTip")}
               acao={<BadgeEscopo escopo="institucional" />}
               loading={unidades.isLoading}
               skeletonHeight={220}
             >
               <TabelaOrdenavel
                 colunas={[
-                  { chave: "nome", titulo: "Unidade" },
-                  { chave: "tipo", titulo: "Tipo" },
-                  { chave: "cidade", titulo: "Cidade" },
-                  { chave: "estado", titulo: "UF" },
-                  { chave: "total_profissionais", titulo: "Profissionais", alinhamento: "right" },
+                  { chave: "nome", titulo: t("admin.overview.colUnit") },
+                  { chave: "tipo", titulo: t("admin.overview.colType") },
+                  { chave: "cidade", titulo: t("admin.overview.colCity") },
+                  { chave: "estado", titulo: t("admin.overview.colUf") },
+                  { chave: "total_profissionais", titulo: t("admin.overview.colProfessionals"), alinhamento: "right" },
                 ]}
                 dados={unidadesFiltradas}
               />
             </SecaoBloco>
 
             <SecaoBloco
-              titulo="Pacientes por unidade"
-              descricao="Histórico acumulado de pacientes e laudos gerados por unidade."
+              titulo={t("admin.overview.patByUnitTitle")}
+              descricao={t("admin.overview.patByUnitDesc")}
               acao={<BadgeEscopo escopo="institucional" />}
               loading={unidades.isLoading}
               skeletonHeight={220}
             >
               <TabelaOrdenavel
                 colunas={[
-                  { chave: "nome", titulo: "Unidade" },
-                  { chave: "cidade", titulo: "Cidade" },
-                  { chave: "total_pacientes", titulo: "Pacientes (histórico)", alinhamento: "right" },
-                  { chave: "total_laudos", titulo: "Laudos gerados", alinhamento: "right" },
+                  { chave: "nome", titulo: t("admin.overview.colUnit") },
+                  { chave: "cidade", titulo: t("admin.overview.colCity") },
+                  { chave: "total_pacientes", titulo: t("admin.overview.colPatientsHist"), alinhamento: "right" },
+                  { chave: "total_laudos", titulo: t("admin.overview.colReportsGenerated"), alinhamento: "right" },
                 ]}
                 dados={unidadesFiltradas}
               />
@@ -554,7 +545,6 @@ export default function VisaoGeralPage() {
           </>
         )}
       </GrupoEscopo>
-
 
       {/* Cards finais */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -565,7 +555,7 @@ export default function VisaoGeralPage() {
           <Users size={28} style={{ color: "#7E69AB" }} />
           <div>
             <div style={{ fontFamily: "Plus Jakarta Sans, sans-serif", color: "#64748B", fontSize: 13 }}>
-              Total de gestores gerais
+              {t("admin.overview.managersTotal")}
             </div>
             <div
               style={{
@@ -577,7 +567,7 @@ export default function VisaoGeralPage() {
             >
               {resumoGlobal.isLoading
                 ? "—"
-                : (r0?.total_gestores_gerais ?? 0).toLocaleString("pt-BR")}
+                : (r0?.total_gestores_gerais ?? 0).toLocaleString(locale)}
             </div>
           </div>
         </div>
@@ -588,7 +578,7 @@ export default function VisaoGeralPage() {
           <Users size={28} style={{ color: "#9b87f5" }} />
           <div>
             <div style={{ fontFamily: "Plus Jakarta Sans, sans-serif", color: "#64748B", fontSize: 13 }}>
-              Total de gestores de unidade
+              {t("admin.overview.managersUnit")}
             </div>
             <div
               style={{
@@ -600,7 +590,7 @@ export default function VisaoGeralPage() {
             >
               {resumoGlobal.isLoading
                 ? "—"
-                : (r0?.total_gestores_unidade ?? 0).toLocaleString("pt-BR")}
+                : (r0?.total_gestores_unidade ?? 0).toLocaleString(locale)}
             </div>
           </div>
         </div>
@@ -611,7 +601,7 @@ export default function VisaoGeralPage() {
           <Building2 size={28} style={{ color: "#0F766E" }} />
           <div>
             <div style={{ fontFamily: "Plus Jakarta Sans, sans-serif", color: "#64748B", fontSize: 13 }}>
-              Consolidações ativas
+              {t("admin.overview.consolidationsActive")}
             </div>
             <div
               style={{
@@ -623,7 +613,7 @@ export default function VisaoGeralPage() {
             >
               {resumoGlobal.isLoading
                 ? "—"
-                : (r0?.total_consolidacoes ?? 0).toLocaleString("pt-BR")}
+                : (r0?.total_consolidacoes ?? 0).toLocaleString(locale)}
             </div>
           </div>
         </div>
