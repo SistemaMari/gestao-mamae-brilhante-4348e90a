@@ -203,6 +203,30 @@ export default function FeedbacksAdminPage() {
                 </div>
               </div>
               <p className="whitespace-pre-wrap text-sm text-foreground">{f.mensagem}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">
+                {f.email && <span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{f.email}</span>}
+                {f.telefone && <span className="inline-flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" />{f.telefone}</span>}
+                {!f.email && !f.telefone && <span className="italic">Sem contato cadastrado</span>}
+                <div className="ml-auto flex flex-wrap gap-2">
+                  {f.email && (
+                    <a
+                      href={`mailto:${f.email}?subject=${encodeURIComponent('Re: seu feedback no MARI')}&body=${encodeURIComponent(`Olá ${f.autor || ''},\n\nSobre sua mensagem:\n"${f.mensagem}"\n\n`)}`}
+                      className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/5 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+                    >
+                      <Mail className="h-3.5 w-3.5" /> Responder por e-mail
+                    </a>
+                  )}
+                  {f.telefone && (
+                    <a
+                      href={`https://wa.me/${f.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${f.autor || ''}, aqui é do suporte MARI. Recebemos seu feedback: "${f.mensagem}"`)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                    </a>
+                  )}
+                </div>
+              </div>
               {f.anexo_url && (
                 <button
                   type="button"
