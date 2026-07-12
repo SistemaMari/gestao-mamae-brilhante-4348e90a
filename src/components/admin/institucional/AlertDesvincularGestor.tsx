@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function AlertDesvincularGestor({ alvo, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
 
   async function confirmar() {
@@ -34,7 +36,7 @@ export default function AlertDesvincularGestor({ alvo, onClose, onSucesso }: Pro
       toast.error((codigo && MENSAGENS_UNICIDADE[codigo]) || mensagem || FALLBACK_GENERICO);
       return;
     }
-    toast.success(`${alvo.gestor_nome} desvinculado de ${alvo.unidade_nome}.`);
+    toast.success(t("admin.desvincularGestor.success", { gestor: alvo.gestor_nome, unidade: alvo.unidade_nome }));
     onSucesso();
     onClose();
   }
@@ -43,24 +45,24 @@ export default function AlertDesvincularGestor({ alvo, onClose, onSucesso }: Pro
     <AlertDialog open={!!alvo} onOpenChange={(v) => !v && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Desvincular {alvo?.gestor_nome} de {alvo?.unidade_nome}?</AlertDialogTitle>
+          <AlertDialogTitle>{t("admin.desvincularGestor.title", { gestor: alvo?.gestor_nome, unidade: alvo?.unidade_nome })}</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>→ O gestor <strong>continua ativo</strong> e pode logar normalmente</p>
-              <p>→ Ele ficará <strong>solto</strong> (sem unidade) até ser vinculado novamente</p>
-              <p>→ A unidade ficará <strong>em aberto</strong>, pronta para receber outro gestor</p>
-              <p>→ Esta ação <strong>não revoga</strong> o acesso. Para revogar, use a aba Gestores de Unidade</p>
+              <p>→ <Trans i18nKey="admin.desvincularGestor.point1" components={{ strong: <strong /> }} /></p>
+              <p>→ <Trans i18nKey="admin.desvincularGestor.point2" components={{ strong: <strong /> }} /></p>
+              <p>→ <Trans i18nKey="admin.desvincularGestor.point3" components={{ strong: <strong /> }} /></p>
+              <p>→ <Trans i18nKey="admin.desvincularGestor.point4" components={{ strong: <strong /> }} /></p>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => { e.preventDefault(); confirmar(); }}
             disabled={submitting}
             className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
           >
-            Confirmar desvinculação
+            {t("admin.desvincularGestor.confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

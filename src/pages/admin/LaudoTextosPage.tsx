@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { FileText, Pencil, Loader2, AlertTriangle, Info } from 'lucide-react';
@@ -40,6 +41,7 @@ interface CenarioAgrupado {
 }
 
 export default function LaudoTextosPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -112,7 +114,7 @@ export default function LaudoTextosPage() {
   const salvarRascunho = async () => {
     if (!editando || editando.bloco.publicados.length === 0) return;
     if (!formTexto.trim()) {
-      toast.error('O texto não pode ficar vazio.');
+      toast.error(t('admin.laudoTextos.textoVazioError'));
       return;
     }
     setSaving(true);
@@ -140,12 +142,12 @@ export default function LaudoTextosPage() {
           if (error) throw error;
         }
       }
-      toast.success('Rascunho salvo. Publique para valer no laudo.');
+      toast.success(t('admin.laudoTextos.rascunhoSalvo'));
       setEditando(null);
       refresh();
     } catch (e) {
       console.error('[laudo-textos] salvar rascunho:', e);
-      toast.error('Erro ao salvar o rascunho.');
+      toast.error(t('admin.laudoTextos.rascunhoSalvarError'));
     } finally {
       setSaving(false);
     }
@@ -173,12 +175,12 @@ export default function LaudoTextosPage() {
         const { error: delErr } = await supabase.from('laudo_textos').delete().eq('id', rasc.id);
         if (delErr) throw delErr;
       }
-      toast.success('Texto publicado. Já vale nos novos laudos.');
+      toast.success(t('admin.laudoTextos.textoPublicado'));
       setPublicarAlvo(null);
       refresh();
     } catch (e) {
       console.error('[laudo-textos] publicar:', e);
-      toast.error('Erro ao publicar.');
+      toast.error(t('admin.laudoTextos.publicarError'));
     } finally {
       setSaving(false);
     }
@@ -193,12 +195,12 @@ export default function LaudoTextosPage() {
         const { error } = await supabase.from('laudo_textos').delete().eq('id', rasc.id);
         if (error) throw error;
       }
-      toast.success('Rascunho descartado.');
+      toast.success(t('admin.laudoTextos.rascunhoDescartado'));
       setDescartarAlvo(null);
       refresh();
     } catch (e) {
       console.error('[laudo-textos] descartar:', e);
-      toast.error('Erro ao descartar o rascunho.');
+      toast.error(t('admin.laudoTextos.descartarError'));
     } finally {
       setSaving(false);
     }
@@ -209,17 +211,17 @@ export default function LaudoTextosPage() {
   return (
     <div className="space-y-6 p-6">
       <header>
-        <h1 className="font-[Sora] text-2xl font-semibold text-[#5B3A8E]">Textos de Laudo</h1>
+        <h1 className="font-[Sora] text-2xl font-semibold text-[#5B3A8E]">{t('admin.laudoTextos.title')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isLoading
-            ? 'Carregando…'
-            : `Edite os textos exibidos nos laudos. ${totalRascunhos > 0 ? `${totalRascunhos} rascunho(s) aguardando publicação.` : 'Nenhum rascunho pendente.'}`}
+            ? t('common.loading')
+            : `${t('admin.laudoTextos.subtitleBase')} ${totalRascunhos > 0 ? t('admin.laudoTextos.rascunhosPendentes', { count: totalRascunhos }) : t('admin.laudoTextos.nenhumRascunho')}`}
         </p>
       </header>
 
       <details className="rounded-lg border border-[#E2E8F0] bg-white p-4">
         <summary className="cursor-pointer text-sm font-medium text-[#5B3A8E]">
-          Variáveis disponíveis (escreva entre colchetes, ex.: [nome da paciente])
+          {t('admin.laudoTextos.variaveisSummary')}
         </summary>
         <ul className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
           {VARIAVEIS_LAUDO.map((v) => (
@@ -233,7 +235,7 @@ export default function LaudoTextosPage() {
       {isLoading ? (
         <Skeleton className="h-64 w-full" />
       ) : isError ? (
-        <p className="text-sm text-red-600">Erro ao carregar os textos. Recarregue a página.</p>
+        <p className="text-sm text-red-600">{t('admin.laudoTextos.carregarError')}</p>
       ) : (
         <Accordion type="multiple" className="space-y-2">
           {cenarios.map((cen) => {
@@ -258,7 +260,7 @@ export default function LaudoTextosPage() {
                           <span
                             onClick={(e) => e.stopPropagation()}
                             className="inline-flex cursor-help"
-                            aria-label="O que é este cenário"
+                            aria-label={t('admin.laudoTextos.oQueEsteCenario')}
                           >
                             <Info className="h-3.5 w-3.5 text-[#7C4DBA]" />
                           </span>
@@ -270,7 +272,7 @@ export default function LaudoTextosPage() {
                     )}
                     {rascunhosNoCenario > 0 && (
                       <Badge className="border-0 bg-amber-100 text-amber-800">
-                        {rascunhosNoCenario} rascunho(s)
+                        {t('admin.laudoTextos.rascunhosBadge', { count: rascunhosNoCenario })}
                       </Badge>
                     )}
                   </span>
@@ -290,14 +292,14 @@ export default function LaudoTextosPage() {
                           {b.rascunhos.length > 0 ? (
                             <>
                               <Button size="sm" variant="outline" onClick={() => abrirEdicao(cen, b)}>
-                                <Pencil className="mr-1 h-3.5 w-3.5" /> Editar rascunho
+                                <Pencil className="mr-1 h-3.5 w-3.5" /> {t('admin.laudoTextos.editarRascunho')}
                               </Button>
                               <Button
                                 size="sm"
                                 className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
                                 onClick={() => setPublicarAlvo(b)}
                               >
-                                Publicar
+                                {t('admin.laudoTextos.publicar')}
                               </Button>
                               <Button
                                 size="sm"
@@ -305,25 +307,25 @@ export default function LaudoTextosPage() {
                                 className="text-red-600 hover:bg-red-50"
                                 onClick={() => setDescartarAlvo(b)}
                               >
-                                Descartar
+                                {t('admin.laudoTextos.descartar')}
                               </Button>
                             </>
                           ) : (
                             <Button size="sm" variant="outline" onClick={() => abrirEdicao(cen, b)}>
-                              <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
+                              <Pencil className="mr-1 h-3.5 w-3.5" /> {t('common.edit')}
                             </Button>
                           )}
                         </div>
                       </div>
 
                       <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
-                        {b.publicados[0]?.texto ?? <span className="italic">Sem versão publicada.</span>}
+                        {b.publicados[0]?.texto ?? <span className="italic">{t('admin.laudoTextos.semVersaoPublicada')}</span>}
                       </p>
 
                       {b.rascunhos.length > 0 && (
                         <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2">
                           <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
-                            Rascunho pendente
+                            {t('admin.laudoTextos.rascunhoPendente')}
                           </p>
                           <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-amber-900">
                             {b.rascunhos[0].texto}
@@ -343,12 +345,12 @@ export default function LaudoTextosPage() {
       <Dialog open={!!editando} onOpenChange={(o) => { if (!o) setEditando(null); }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Editar texto{editando ? ` — ${labelBloco(editando.bloco.bloco)}` : ''}</DialogTitle>
+            <DialogTitle>{t('admin.laudoTextos.editarTexto')}{editando ? ` — ${labelBloco(editando.bloco.bloco)}` : ''}</DialogTitle>
             <DialogDescription>
               {editando
                 ? rotuloCenario(editando.cenario.familia, editando.cenario.desfecho_clinico)
                 : ''}
-              {' · '}A edição vira um rascunho; nada muda no laudo até você publicar.
+              {' · '}{t('admin.laudoTextos.editarDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -360,11 +362,11 @@ export default function LaudoTextosPage() {
               </div>
             )}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[#5B3A8E]">Título do bloco</label>
-              <Input value={formTitulo} onChange={(e) => setFormTitulo(e.target.value)} placeholder="(opcional)" />
+              <label className="text-xs font-medium text-[#5B3A8E]">{t('admin.laudoTextos.tituloBlocoLabel')}</label>
+              <Input value={formTitulo} onChange={(e) => setFormTitulo(e.target.value)} placeholder={t('common.optional')} />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[#5B3A8E]">Texto</label>
+              <label className="text-xs font-medium text-[#5B3A8E]">{t('admin.laudoTextos.textoLabel')}</label>
               <Textarea
                 value={formTexto}
                 onChange={(e) => setFormTexto(e.target.value)}
@@ -377,14 +379,13 @@ export default function LaudoTextosPage() {
               <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>
-                  Variável não reconhecida: {varsDesc.map((v) => `[${v}]`).join(', ')}. No laudo, ela vira
-                  "(não informado)". Confira a legenda abaixo.
+                  {t('admin.laudoTextos.variavelNaoReconhecida', { vars: varsDesc.map((v) => `[${v}]`).join(', ') })}
                 </span>
               </div>
             )}
 
             <details className="text-xs">
-              <summary className="cursor-pointer text-[#7C4DBA]">Ver variáveis disponíveis</summary>
+              <summary className="cursor-pointer text-[#7C4DBA]">{t('admin.laudoTextos.verVariaveis')}</summary>
               <ul className="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
                 {VARIAVEIS_LAUDO.map((v) => (
                   <li key={v.chave} className="text-muted-foreground">
@@ -397,7 +398,7 @@ export default function LaudoTextosPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditando(null)} disabled={saving}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
@@ -405,7 +406,7 @@ export default function LaudoTextosPage() {
               disabled={saving}
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar rascunho
+              {t('admin.laudoTextos.salvarRascunho')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -415,20 +416,20 @@ export default function LaudoTextosPage() {
       <AlertDialog open={!!publicarAlvo} onOpenChange={(o) => { if (!o) setPublicarAlvo(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Publicar este texto?</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.laudoTextos.publicarConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              O rascunho substituirá a versão publicada e passará a aparecer nos novos laudos.
+              {t('admin.laudoTextos.publicarConfirmDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={saving}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={saving}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
               onClick={(e) => { e.preventDefault(); publicar(); }}
               disabled={saving}
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Publicar
+              {t('admin.laudoTextos.publicar')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -438,20 +439,20 @@ export default function LaudoTextosPage() {
       <AlertDialog open={!!descartarAlvo} onOpenChange={(o) => { if (!o) setDescartarAlvo(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Descartar o rascunho?</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.laudoTextos.descartarConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              A edição não publicada será perdida. A versão publicada continua como está.
+              {t('admin.laudoTextos.descartarConfirmDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={saving}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={saving}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 text-white hover:bg-red-700"
               onClick={(e) => { e.preventDefault(); descartar(); }}
               disabled={saving}
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Descartar
+              {t('admin.laudoTextos.descartar')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

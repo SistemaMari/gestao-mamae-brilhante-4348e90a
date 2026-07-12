@@ -1,4 +1,5 @@
 import { useState, useMemo, Fragment } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, RotateCw, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +39,7 @@ const MARI_SANDBOX_NOME = "MARI Sandbox";
 type StatusGestorFiltro = "todos" | "com_gestor" | "em_aberto";
 
 export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContratantes?: () => void } = {}) {
+  const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [openCriar, setOpenCriar] = useState(false);
   const [editar, setEditar] = useState<UnidadeEditavel | null>(null);
@@ -99,22 +101,22 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex items-end gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Status do gestor</label>
+            <label className="text-xs text-muted-foreground">{t("admin.unidades.gestorStatusLabel")}</label>
             <Select value={filtroGestor} onValueChange={(v) => setFiltroGestor(v as StatusGestorFiltro)}>
               <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="com_gestor">Com gestor</SelectItem>
-                <SelectItem value="em_aberto">Em aberto</SelectItem>
+                <SelectItem value="todos">{t("common.all")}</SelectItem>
+                <SelectItem value="com_gestor">{t("admin.unidades.withGestor")}</SelectItem>
+                <SelectItem value="em_aberto">{t("admin.unidades.open")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Contratante</label>
+            <label className="text-xs text-muted-foreground">{t("admin.unidades.contratanteLabel")}</label>
             <Select value={filtroContratante} onValueChange={setFiltroContratante}>
               <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos os contratantes</SelectItem>
+                <SelectItem value="todos">{t("admin.unidades.allContratantes")}</SelectItem>
                 {contratantesOpt.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                 ))}
@@ -122,18 +124,18 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
             </Select>
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Buscar por nome da unidade</label>
+            <label className="text-xs text-muted-foreground">{t("admin.unidades.searchLabel")}</label>
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input className="pl-8 w-[260px]" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Digite o nome do hospital…" />
+              <Input className="pl-8 w-[260px]" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={t("admin.unidades.searchPlaceholder")} />
             </div>
           </div>
           <p className="text-sm text-muted-foreground pb-2">
-            {isLoading ? "Carregando…" : `${unidades.length} unidade${unidades.length === 1 ? "" : "s"}`}
+            {isLoading ? t("common.loading") : t("admin.unidades.count", { count: unidades.length })}
           </p>
         </div>
         <Button onClick={() => setOpenCriar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
-          <Plus className="mr-2 h-4 w-4" /> Criar unidade
+          <Plus className="mr-2 h-4 w-4" /> {t("admin.unidades.createUnit")}
         </Button>
       </div>
 
@@ -141,7 +143,17 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-[#5B3A8E]">
-              {["Nome", "Tipo", "Cidade", "Contratante", "Gestor", "Profis.", "Pacient.", "Desde", "Ações"].map((h, i) => (
+              {[
+                t("common.name"),
+                t("admin.unidades.colType"),
+                t("admin.unidades.colCity"),
+                t("admin.unidades.colContratante"),
+                t("admin.unidades.colGestor"),
+                t("admin.unidades.colProfShort"),
+                t("admin.unidades.colPatientsShort"),
+                t("admin.unidades.colSince"),
+                t("common.actions"),
+              ].map((h, i) => (
                 <TableHead key={h} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 8 ? "text-right" : ""}`}>
                   {h}
                 </TableHead>
@@ -153,10 +165,10 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
               <TableRow key={i}><TableCell colSpan={9}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
             ))}
             {!isLoading && isError && (
-              <TableRow><TableCell colSpan={9} className="text-center text-destructive">Erro ao carregar unidades.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center text-destructive">{t("admin.unidades.loadError")}</TableCell></TableRow>
             )}
             {!isLoading && !isError && unidades.length === 0 && (
-              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">Nenhuma unidade encontrada.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">{t("admin.unidades.empty")}</TableCell></TableRow>
             )}
             {unidades.map((u, idx) => {
               const emAberto = !u.gestor_id;
@@ -171,47 +183,47 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
                   <TableCell>{u.cidade || "—"}</TableCell>
                   <TableCell onClick={(e) => { e.stopPropagation(); onIrParaContratantes?.(); }} className={onIrParaContratantes ? "cursor-pointer hover:underline" : ""}>
                     {u.contratante_nome === MARI_SANDBOX_NOME ? (
-                      <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">⚙ Sandbox</Badge>
+                      <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">⚙ {t("admin.unidades.sandbox")}</Badge>
                     ) : (
                       <span className="inline-flex items-center gap-1">
                         {u.contratante_nome ?? "—"}
                         {u.contratante_status && u.contratante_status !== "ativo" && (
-                          <Badge className="bg-slate-200 text-slate-700 hover:bg-slate-200">⊘ Encerrado</Badge>
+                          <Badge className="bg-slate-200 text-slate-700 hover:bg-slate-200">⊘ {t("admin.unidades.closed")}</Badge>
                         )}
                       </span>
                     )}
                   </TableCell>
                   <TableCell>
                     {emAberto ? (
-                      <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⚠ Sem gestor — em aberto</Badge>
+                      <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">⚠ {t("admin.unidades.noGestorOpen")}</Badge>
                     ) : (
                       <>
                         {u.gestor_nome}
-                        {u.convite_pendente && <span className="ml-1" title="Convite pendente">⏳</span>}
+                        {u.convite_pendente && <span className="ml-1" title={t("admin.unidades.invitePending")}>⏳</span>}
                       </>
                     )}
                   </TableCell>
                   <TableCell>{u.profissionais_count}</TableCell>
                   <TableCell>{u.pacientes_count}</TableCell>
-                  <TableCell>{new Date(u.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}</TableCell>
+                  <TableCell>{new Date(u.created_at).toLocaleDateString(i18n.language, { day: "2-digit", month: "2-digit", year: "2-digit" })}</TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => setEditar(u)}>Editar</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setEditar(u)}>{t("common.edit")}</Button>
                       {emAberto ? (
                         <Button variant="ghost" size="sm" onClick={() => setVincular({ modo: "fixar_unidade", unidade_id: u.id, unidade_nome: u.nome })}>
-                          Vincular gestor
+                          {t("admin.unidades.linkGestor")}
                         </Button>
                       ) : (
                         <>
-                          <Button variant="ghost" size="sm" onClick={() => setTrocar({ id: u.id, nome: u.nome })}>Trocar gestor</Button>
-                          <Button variant="ghost" size="sm" onClick={() => setDesvincular({ gestor_id: u.gestor_id!, gestor_nome: u.gestor_nome ?? "Gestor", unidade_nome: u.nome })}>
-                            Desvincular
+                          <Button variant="ghost" size="sm" onClick={() => setTrocar({ id: u.id, nome: u.nome })}>{t("admin.unidades.changeGestor")}</Button>
+                          <Button variant="ghost" size="sm" onClick={() => setDesvincular({ gestor_id: u.gestor_id!, gestor_nome: u.gestor_nome ?? t("admin.unidades.gestorFallback"), unidade_nome: u.nome })}>
+                            {t("admin.unidades.unlink")}
                           </Button>
                         </>
                       )}
                       {u.convite_pendente && !emAberto && (
                         <Button variant="ghost" size="sm" onClick={() => setReenviar({ tipo: "gestor_unidade", id: u.id, email: u.gestor_email })}>
-                          <RotateCw className="mr-1 h-3 w-3" /> Reenviar
+                          <RotateCw className="mr-1 h-3 w-3" /> {t("admin.reenviarConvite.resendButton")}
                         </Button>
                       )}
                     </div>

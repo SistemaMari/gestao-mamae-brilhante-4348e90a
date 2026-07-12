@@ -1,4 +1,5 @@
 import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, CreditCard, Lightbulb, MessageSquareHeart, Heart, Settings, LogOut } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
@@ -20,19 +21,19 @@ import { supabase } from "@/integrations/supabase/client";
 import mariLogo from "@/assets/mari-logo.png";
 
 const baseItems = [
-  { title: "Painel", path: "", icon: BarChart3, exact: true },
-  { title: "Diagnósticos", path: "/diagnosticos", icon: Map, exact: false },
-  { title: "Filtros e Exportação", path: "/exportar", icon: Download, exact: false },
-  { title: "Administradores", path: "/admins", icon: Users, exact: false },
-  { title: "Contas Institucionais", path: "/institucionais", icon: Building2, exact: false },
-  { title: "Contas Profissionais", path: "/profissionais", icon: Stethoscope, exact: false },
-  { title: "Textos de Laudo", path: "/laudos", icon: FileText, exact: false },
-  { title: "Planos", path: "/planos", icon: CreditCard, exact: false },
-  { title: "Dicas do Dashboard", path: "/dicas", icon: Lightbulb, exact: false },
-  { title: "Feedbacks", path: "/feedbacks", icon: MessageSquareHeart, exact: false, badge: "feedbacks_novos" as const },
-  { title: "Depoimentos", path: "/depoimentos", icon: Heart, exact: false, badge: "depoimentos_pendentes" as const },
-  { title: "Gerenciar Tutoriais", path: "/tutoriais", icon: Film, exact: false },
-  { title: "Tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
+  { titleKey: "admin.sidebar.panel", path: "", icon: BarChart3, exact: true },
+  { titleKey: "admin.sidebar.diagnostics", path: "/diagnosticos", icon: Map, exact: false },
+  { titleKey: "admin.sidebar.filtersExport", path: "/exportar", icon: Download, exact: false },
+  { titleKey: "admin.sidebar.admins", path: "/admins", icon: Users, exact: false },
+  { titleKey: "admin.sidebar.institutionalAccounts", path: "/institucionais", icon: Building2, exact: false },
+  { titleKey: "admin.sidebar.professionalAccounts", path: "/profissionais", icon: Stethoscope, exact: false },
+  { titleKey: "admin.sidebar.reportTexts", path: "/laudos", icon: FileText, exact: false },
+  { titleKey: "admin.sidebar.plans", path: "/planos", icon: CreditCard, exact: false },
+  { titleKey: "admin.sidebar.dashboardTips", path: "/dicas", icon: Lightbulb, exact: false },
+  { titleKey: "admin.sidebar.feedbacks", path: "/feedbacks", icon: MessageSquareHeart, exact: false, badge: "feedbacks_novos" as const },
+  { titleKey: "admin.sidebar.testimonials", path: "/depoimentos", icon: Heart, exact: false, badge: "depoimentos_pendentes" as const },
+  { titleKey: "admin.sidebar.manageTutorials", path: "/tutoriais", icon: Film, exact: false },
+  { titleKey: "admin.sidebar.tutorial", path: "/tutorial", icon: PlayCircle, exact: false },
 ];
 
 function iniciais(nome?: string | null) {
@@ -52,13 +53,14 @@ interface AdminSidebarProps {
 }
 
 export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
+  const { t } = useTranslation();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const nomeFinal = nome || "Administrador";
+  const nomeFinal = nome || t("admin.overview.adminFallback");
   const emailFinal = email ?? user?.email ?? "";
 
   const sair =
@@ -134,7 +136,7 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
               {items.map((item) => {
                 const active = isActive(item.url, item.exact);
                 return (
-                  <div key={item.title}>
+                  <div key={item.titleKey}>
                     {item.path === "/tutorial" && (
                       <div className="my-1 border-t border-[#E2E8F0]" />
                     )}
@@ -150,7 +152,7 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
                           }
                         >
                           <item.icon className="h-4 w-4 shrink-0" />
-                          {!collapsed && <span className="text-sm flex-1">{item.title}</span>}
+                          {!collapsed && <span className="text-sm flex-1">{t(item.titleKey)}</span>}
                           {!collapsed && (item as any).badge && badges[(item as any).badge as keyof typeof badges] > 0 && (
                             <span className="ml-auto rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
                               {badges[(item as any).badge as keyof typeof badges]}
@@ -203,7 +205,7 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
                 }
               >
                 <Settings className="h-4 w-4 shrink-0" />
-                Configurações
+                {t("admin.sidebar.settings")}
               </NavLink>
             )}
             <Button
@@ -213,7 +215,7 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
               className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Sair
+              {t("common.logout")}
             </Button>
           </div>
         ) : (
@@ -229,7 +231,7 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
                       : "text-[#64748B] hover:bg-[#F1F5F9]",
                   )
                 }
-                aria-label="Configurações"
+                aria-label={t("admin.sidebar.settings")}
               >
                 <Settings className="h-4 w-4" />
               </NavLink>
@@ -239,7 +241,7 @@ export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
               size="icon"
               onClick={sair}
               className="text-[#64748B] hover:bg-[#F1F5F9]"
-              aria-label="Sair"
+              aria-label={t("common.logout")}
             >
               <LogOut className="h-4 w-4" />
             </Button>

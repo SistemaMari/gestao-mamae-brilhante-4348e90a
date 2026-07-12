@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -22,6 +23,7 @@ export default function ModalMudarPlanoConsultorio({
   profissionalNome: string;
   planoAtualId: string;
 }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [planoId, setPlanoId] = useState("");
   const [motivo, setMotivo] = useState("");
@@ -67,7 +69,7 @@ export default function ModalMudarPlanoConsultorio({
         return;
       }
       const planoNome = planos.find((p: any) => p.id === planoId)?.nome;
-      toast.success(`Plano alterado para ${planoNome}. Limite atualizado.`);
+      toast.success(t("admin.mudarPlano.successToast", { plano: planoNome }));
       qc.invalidateQueries({ queryKey: ["profissionais-consultorio"] });
       onOpenChange(false);
     } finally {
@@ -79,32 +81,32 @@ export default function ModalMudarPlanoConsultorio({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle className="font-[Sora] text-[#5B3A8E]">Mudar plano de {profissionalNome}</DialogTitle>
+          <DialogTitle className="font-[Sora] text-[#5B3A8E]">{t("admin.mudarPlano.title", { nome: profissionalNome })}</DialogTitle>
           <DialogDescription>
-            O limite mensal de laudos será atualizado conforme o novo plano.
+            {t("admin.mudarPlano.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
           <div>
-            <Label>Novo plano *</Label>
+            <Label>{t("admin.mudarPlano.novoPlanoLabel")}</Label>
             <Select value={planoId} onValueChange={setPlanoId}>
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("invite.selectPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {planos.filter((p: any) => p.id !== planoAtualId).map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.nome} — R$ {Number(p.preco_mensal).toFixed(2)} ({p.laudos_por_mes} laudos/mês)
+                    {t("admin.mudarPlano.planoOption", { nome: p.nome, preco: Number(p.preco_mensal).toFixed(2), laudos: p.laudos_por_mes })}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>Motivo da mudança *</Label>
+            <Label>{t("admin.mudarPlano.motivoLabel")}</Label>
             <Textarea
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              placeholder="Mínimo 10 caracteres"
+              placeholder={t("admin.mudarPlano.motivoPlaceholder")}
               rows={3}
             />
             <p className="text-xs text-muted-foreground mt-1">{motivo.trim().length}/10</p>
@@ -112,13 +114,13 @@ export default function ModalMudarPlanoConsultorio({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
           <Button
             onClick={submit}
             disabled={submitting || !motivoValido || !planoValido}
             className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
           >
-            {submitting ? "Salvando…" : "Confirmar mudança"}
+            {submitting ? t("common.saving") : t("admin.mudarPlano.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

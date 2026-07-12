@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { PERFIL_CLINICO_LABEL, FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import ModalConvidarProfissional from "./ModalConvidarProfissional";
 import ModalEditarProfissional from "./ModalEditarProfissional";
 import ModalTransferirProfissional from "./ModalTransferirProfissional";
@@ -43,6 +44,7 @@ const MARI_SANDBOX_NOME = "MARI Sandbox";
 type StatusFiltro = "todos" | "ativos" | "pendente" | "revogado";
 
 export default function AbaProfissionais() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [openConvidar, setOpenConvidar] = useState(false);
   const [editar, setEditar] = useState<ProfissionalRow | null>(null);
@@ -122,7 +124,7 @@ export default function AbaProfissionais() {
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    toast.success(`Convite reenviado para ${p.email}.`);
+    toast.success(t("admin.abaProfissionais.inviteResentToast", { email: p.email }));
     refresh();
   }
 
@@ -130,11 +132,11 @@ export default function AbaProfissionais() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Unidade</label>
+          <label className="text-xs text-muted-foreground">{t("admin.abaProfissionais.unitLabel")}</label>
           <Select value={filtroUnidade} onValueChange={setFiltroUnidade}>
             <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="todas">Todas as unidades</SelectItem>
+              <SelectItem value="todas">{t("admin.abaProfissionais.allUnits")}</SelectItem>
               {(unidades ?? []).map((u) => (
                 <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
               ))}
@@ -142,11 +144,11 @@ export default function AbaProfissionais() {
           </Select>
         </div>
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Contratante</label>
+          <label className="text-xs text-muted-foreground">{t("admin.abaProfissionais.contractorLabel")}</label>
           <Select value={filtroContratante} onValueChange={setFiltroContratante}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos os contratantes</SelectItem>
+              <SelectItem value="todos">{t("admin.abaProfissionais.allContractors")}</SelectItem>
               {contratantesOpt.map((c) => (
                 <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
               ))}
@@ -154,27 +156,27 @@ export default function AbaProfissionais() {
           </Select>
         </div>
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Status</label>
+          <label className="text-xs text-muted-foreground">{t("common.status")}</label>
           <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as StatusFiltro)}>
             <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="ativos">Ativos</SelectItem>
-              <SelectItem value="pendente">Convite pendente</SelectItem>
-              <SelectItem value="revogado">Acesso revogado</SelectItem>
+              <SelectItem value="todos">{t("common.all")}</SelectItem>
+              <SelectItem value="ativos">{t("admin.abaProfissionais.statusActives")}</SelectItem>
+              <SelectItem value="pendente">{t("admin.abaProfissionais.statusPending")}</SelectItem>
+              <SelectItem value="revogado">{t("admin.abaProfissionais.statusRevoked")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1 flex-1 min-w-[220px]">
-          <label className="text-xs text-muted-foreground">Buscar por nome ou e-mail</label>
+          <label className="text-xs text-muted-foreground">{t("admin.abaProfissionais.searchLabel")}</label>
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input className="pl-8" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Digite…" />
+            <Input className="pl-8" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={t("admin.abaProfissionais.searchPlaceholder")} />
           </div>
         </div>
-        <Button variant="outline" onClick={limpar}>Limpar filtros</Button>
+        <Button variant="outline" onClick={limpar}>{t("admin.clearFilters")}</Button>
         <Button onClick={() => setOpenConvidar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E] ml-auto">
-          <Plus className="mr-2 h-4 w-4" /> Convidar profissional
+          <Plus className="mr-2 h-4 w-4" /> {t("admin.abaProfissionais.inviteProfessional")}
         </Button>
       </div>
 
@@ -182,7 +184,16 @@ export default function AbaProfissionais() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-[#5B3A8E]">
-              {["Nome", "E-mail", "CRM", "Perfil clínico", "Unidade", "Contratante", "Status", "Ações"].map((h, i) => (
+              {[
+                t("common.name"),
+                t("common.email"),
+                t("admin.abaProfissionais.colCrm"),
+                t("admin.abaProfissionais.colClinicalProfile"),
+                t("admin.abaProfissionais.unitLabel"),
+                t("admin.abaProfissionais.contractorLabel"),
+                t("common.status"),
+                t("common.actions"),
+              ].map((h, i) => (
                 <TableHead key={h} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 7 ? "text-right" : ""}`}>
                   {h}
                 </TableHead>
@@ -194,10 +205,10 @@ export default function AbaProfissionais() {
               <TableRow key={i}><TableCell colSpan={8}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
             ))}
             {!isLoading && isError && (
-              <TableRow><TableCell colSpan={8} className="text-center text-destructive">Erro ao carregar profissionais.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-destructive">{t("admin.abaProfissionais.loadError")}</TableCell></TableRow>
             )}
             {!isLoading && !isError && lista.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Nenhum profissional encontrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">{t("admin.abaProfissionais.emptyMsg")}</TableCell></TableRow>
             )}
             {lista.map((p, idx) => (
               <TableRow
@@ -206,8 +217,8 @@ export default function AbaProfissionais() {
               >
                 <TableCell className="font-medium">
                   {p.nome}
-                  {p.convite_pendente && <span className="ml-1" title="Convite pendente">⏳</span>}
-                  {p.acesso_revogado && <span className="ml-1" title="Acesso revogado">⛔</span>}
+                  {p.convite_pendente && <span className="ml-1" title={t("admin.abaProfissionais.pendingInvite")}>⏳</span>}
+                  {p.acesso_revogado && <span className="ml-1" title={t("admin.abaProfissionais.revokedAccess")}>⛔</span>}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{p.email ?? "—"}</TableCell>
                 <TableCell>{p.crm ?? "—"}</TableCell>
@@ -217,40 +228,40 @@ export default function AbaProfissionais() {
                   {p.contratante_nome === MARI_SANDBOX_NOME ? (
                     <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">⚙ Sandbox</Badge>
                   ) : p.contratante_status === "encerrado" ? (
-                    <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100" title="Contratante encerrado">⊘ {p.contratante_nome}</Badge>
+                    <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100" title={t("admin.abaProfissionais.contractorClosed")}>⊘ {p.contratante_nome}</Badge>
                   ) : (
                     p.contratante_nome ?? "—"
                   )}
                 </TableCell>
                 <TableCell>
                   {p.acesso_revogado ? (
-                    <Badge variant="destructive">Revogado</Badge>
+                    <Badge variant="destructive">{t("admin.abaProfissionais.badgeRevoked")}</Badge>
                   ) : p.convite_pendente ? (
-                    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">Pendente</Badge>
+                    <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">{t("admin.abaProfissionais.badgePending")}</Badge>
                   ) : (
-                    <Badge className="bg-emerald-100 text-emerald-900 hover:bg-emerald-100">Ativo</Badge>
+                    <Badge className="bg-emerald-100 text-emerald-900 hover:bg-emerald-100">{t("admin.abaProfissionais.badgeActive")}</Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="sm" onClick={() => setEditar(p)} disabled={p.acesso_revogado}>
-                      <Pencil className="mr-1 h-3 w-3" /> Editar
+                      <Pencil className="mr-1 h-3 w-3" /> {t("common.edit")}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => setTransferir(p)} disabled={p.acesso_revogado}>
-                      <ArrowRightLeft className="mr-1 h-3 w-3" /> Transferir
+                      <ArrowRightLeft className="mr-1 h-3 w-3" /> {t("admin.abaProfissionais.transfer")}
                     </Button>
                     {p.acesso_revogado ? (
                       <Button variant="ghost" size="sm" onClick={() => setReativar(p)}>
-                        <RefreshCcw className="mr-1 h-3 w-3" /> Reativar
+                        <RefreshCcw className="mr-1 h-3 w-3" /> {t("admin.abaProfissionais.reactivate")}
                       </Button>
                     ) : (
                       <Button variant="ghost" size="sm" className="text-destructive" onClick={() => setRevogar(p)}>
-                        <Ban className="mr-1 h-3 w-3" /> Desativar
+                        <Ban className="mr-1 h-3 w-3" /> {t("admin.abaProfissionais.deactivate")}
                       </Button>
                     )}
                     {p.convite_pendente && !p.acesso_revogado && (
                       <Button variant="ghost" size="sm" onClick={() => reenviar(p)}>
-                        <RotateCw className="mr-1 h-3 w-3" /> Reenviar
+                        <RotateCw className="mr-1 h-3 w-3" /> {t("admin.abaProfissionais.resend")}
                       </Button>
                     )}
                   </div>

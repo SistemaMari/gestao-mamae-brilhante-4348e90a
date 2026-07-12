@@ -1,4 +1,5 @@
 import { useMemo, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export interface ContratanteOption {
@@ -23,6 +24,7 @@ export default function MultiSelectContratantes({
   disabled,
   desabilitarEncerrados = false,
 }: Props) {
+  const { t } = useTranslation();
   const total = contratantes.length;
   const sel = selecionadas.length;
   const allChecked = total > 0 && sel === total;
@@ -61,12 +63,12 @@ export default function MultiSelectContratantes({
             onCheckedChange={toggleAll}
             disabled={disabled || total === 0}
           />
-          Selecionar todos
+          {t("admin.multiSelectContratantes.selectAll")}
         </label>
         <div className="max-h-[320px] overflow-y-auto">
           {total === 0 ? (
             <p className="px-3 py-4 text-sm text-muted-foreground">
-              Nenhum contratante disponível.
+              {t("admin.multiSelectContratantes.empty")}
             </p>
           ) : (
             contratantes.map((c) => {
@@ -96,7 +98,7 @@ export default function MultiSelectContratantes({
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        {sel} de {total} selecionado{total === 1 ? "" : "s"}
+        {t("admin.multiSelectContratantes.selectedCount", { sel, total })}
       </p>
     </div>
   );

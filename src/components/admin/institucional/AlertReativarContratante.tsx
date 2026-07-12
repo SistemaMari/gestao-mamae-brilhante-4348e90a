@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function AlertReativarContratante({ contratante, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,7 +33,7 @@ export default function AlertReativarContratante({ contratante, onClose, onSuces
       return;
     }
     const reativados = (data as any)?.profissionais_restaurados_count ?? 0;
-    toast.success(`Contratante ${contratante.nome} reativado. ${reativados} profissional${reativados === 1 ? "" : "is"} voltaram a ter acesso.`);
+    toast.success(t("admin.institucional.contractorReactivated", { nome: contratante.nome, count: reativados }));
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes"] });
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes-ativos"] });
     qc.invalidateQueries({ queryKey: ["institucional", "contratantes-select"] });
@@ -48,29 +50,29 @@ export default function AlertReativarContratante({ contratante, onClose, onSuces
       <AlertDialogContent className="sm:max-w-[500px]">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-[#1E40AF]">
-            Reativar contratante {contratante?.nome}?
+            {t("admin.institucional.reactivateContractorTitle", { nome: contratante?.nome ?? "" })}
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm">
               <ul className="ml-4 space-y-1">
-                <li>→ Status volta para <strong>Ativo</strong></li>
-                <li>→ Profissionais afetados pelo encerramento têm acesso restaurado automaticamente</li>
-                <li>→ Unidades vinculadas voltam ao status <strong>Ativa</strong></li>
+                <li>→ {t("admin.institucional.reactivateBullet1Prefix")} <strong>{t("admin.institucional.reactivateStatusActive")}</strong></li>
+                <li>→ {t("admin.institucional.reactivateBullet2")}</li>
+                <li>→ {t("admin.institucional.reactivateBullet3Prefix")} <strong>{t("admin.institucional.reactivateStatusActiveFem")}</strong></li>
               </ul>
               <p className="rounded-md bg-amber-50 p-2 text-xs text-amber-900">
-                Profissionais que foram revogados <strong>individualmente</strong> (antes do encerramento) <strong>NÃO</strong> serão reativados — apenas os que perderam acesso pela cascata do encerramento.
+                {t("admin.institucional.reactivateWarnPart1")} <strong>{t("admin.institucional.reactivateWarnIndividually")}</strong> {t("admin.institucional.reactivateWarnPart2")} <strong>{t("admin.institucional.reactivateWarnNot")}</strong> {t("admin.institucional.reactivateWarnPart3")}
               </p>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirmar}
             disabled={submitting}
             className="bg-[#1E40AF] text-white hover:bg-[#1E3A8A]"
           >
-            {submitting ? "Reativando…" : "Confirmar reativação"}
+            {submitting ? t("admin.institucional.reactivating") : t("admin.institucional.confirmReactivation")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

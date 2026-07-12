@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MessageSquareHeart, Loader2, Search, Paperclip, Mail, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { formatDateBR } from '@/lib/dateUtils';
 
 interface Feedback {
@@ -24,13 +25,6 @@ interface Feedback {
   email_gestor_unidade?: string | null;
 }
 
-const TIPO_LABEL: Record<string, string> = {
-  sugestao: 'Sugestão',
-  elogio: 'Elogio',
-  erro: 'Erro',
-  duvida: 'Dúvida',
-};
-
 const STATUS_STYLE: Record<string, string> = {
   novo: 'bg-primary/10 text-primary',
   lido: 'bg-muted text-muted-foreground',
@@ -38,6 +32,9 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export default function FeedbacksAdminPage() {
+  const { t } = useTranslation();
+  const tipoLabel = (tipo: string) =>
+    t(`admin.feedbacks.tipo.${tipo}`, { defaultValue: tipo });
   const [lista, setLista] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroTipo, setFiltroTipo] = useState<string>('todos');
@@ -52,7 +49,7 @@ export default function FeedbacksAdminPage() {
       .select('id, user_id, tipo, mensagem, anexo_url, status, created_at')
       .order('created_at', { ascending: false });
     if (error) {
-      toast.error('Erro ao carregar feedbacks: ' + error.message);
+      toast.error(t('admin.feedbacks.loadError', { error: error.message }));
       setLoading(false);
       return;
     }
@@ -104,9 +101,9 @@ export default function FeedbacksAdminPage() {
     setUpdatingId(id);
     const { error } = await supabase.from('feedbacks_usuario').update({ status }).eq('id', id);
     setUpdatingId(null);
-    if (error) { toast.error('Erro ao atualizar.'); return; }
+    if (error) { toast.error(t('admin.feedbacks.updateError')); return; }
     setLista((prev) => prev.map((f) => (f.id === id ? { ...f, status } : f)));
-    toast.success('Status atualizado.');
+    toast.success(t('admin.feedbacks.statusUpdated'));
   };
 
   const verAnexo = async (path: string) => {
@@ -114,7 +111,7 @@ export default function FeedbacksAdminPage() {
       .from('avatares-profissionais')
       .createSignedUrl(path, 300);
     if (error || !data?.signedUrl) {
-      toast.error('Não foi possível abrir o anexo.');
+      toast.error(t('admin.feedbacks.attachmentError'));
       return;
     }
     window.open(data.signedUrl, '_blank');
@@ -122,27 +119,29 @@ export default function FeedbacksAdminPage() {
 
   const construirCorpoResposta = (f: Feedback) => {
     const dataStr = formatDateBR(f.created_at);
-    const tipoStr = TIPO_LABEL[f.tipo] || f.tipo;
+    const tipoStr = tipoLabel(f.tipo);
     const notaCc = (f.tipo_perfil === 'institucional' && f.email_gestor_unidade)
-      ? `\n(Com cópia para a gestão da unidade${f.unidade_nome ? ` — ${f.unidade_nome}` : ''}.)\n`
+      ? (f.unidade_nome
+          ? `\n${t('admin.feedbacks.ccNoteWithUnit', { unidade: f.unidade_nome })}\n`
+          : `\n${t('admin.feedbacks.ccNote')}\n`)
       : '';
     return (
-      `Olá ${f.autor || ''},\n\n` +
-      `Obrigada pelo seu contato com o suporte MARI. Segue nossa resposta abaixo.\n` +
+      `${t('admin.feedbacks.emailGreeting', { nome: f.autor || '' })}\n\n` +
+      `${t('admin.feedbacks.emailIntro')}\n` +
       notaCc +
       `\n\n---\n` +
-      `Histórico da sua solicitação\n` +
-      `Data: ${dataStr}\n` +
-      `Tipo: ${tipoStr}\n` +
-      `Mensagem enviada:\n"${f.mensagem}"\n` +
+      `${t('admin.feedbacks.emailHistoryTitle')}\n` +
+      `${t('admin.feedbacks.emailDate', { data: dataStr })}\n` +
+      `${t('admin.feedbacks.emailType', { tipo: tipoStr })}\n` +
+      `${t('admin.feedbacks.emailMessageSent')}\n"${f.mensagem}"\n` +
       `---\n\n` +
-      `Equipe MARI — Diagnóstico e Gestão da Diabetes Mellitus Gestacional`
+      `${t('admin.feedbacks.emailSignature')}`
     );
   };
 
   const responderPorEmail = (f: Feedback) => {
     if (!f.email) return;
-    const subject = `Re: seu feedback no MARI (${TIPO_LABEL[f.tipo] || f.tipo} — ${formatDateBR(f.created_at)})`;
+    const subject = t('admin.feedbacks.emailSubject', { tipo: tipoLabel(f.tipo), data: formatDateBR(f.created_at) });
     const body = construirCorpoResposta(f);
     // Institucional: envia cópia (Cc) para o Gestor da unidade, para transparência.
     const ccParam = (f.tipo_perfil === 'institucional' && f.email_gestor_unidade && f.email_gestor_unidade !== f.email)
@@ -151,7 +150,7 @@ export default function FeedbacksAdminPage() {
     const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(f.email)}${ccParam}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
     if (f.tipo_perfil === 'institucional' && !f.email_gestor_unidade) {
-      toast.info('Feedback institucional sem gestor cadastrado na unidade — enviado sem cópia.');
+      toast.info(t('admin.feedbacks.noGestorInfo'));
     }
   };
 
@@ -159,10 +158,10 @@ export default function FeedbacksAdminPage() {
     if (!f.telefone) return;
     const numero = f.telefone.replace(/\D/g, '');
     const texto =
-      `Olá ${f.autor || ''}, aqui é do suporte MARI 💜\n\n` +
-      `Sobre sua solicitação de ${formatDateBR(f.created_at)} (${TIPO_LABEL[f.tipo] || f.tipo}):\n` +
+      `${t('admin.feedbacks.whatsappGreeting', { nome: f.autor || '' })}\n\n` +
+      `${t('admin.feedbacks.whatsappAbout', { data: formatDateBR(f.created_at), tipo: tipoLabel(f.tipo) })}\n` +
       `"${f.mensagem}"\n\n` +
-      `Nossa resposta:\n`;
+      `${t('admin.feedbacks.whatsappResponse')}\n`;
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -184,12 +183,12 @@ export default function FeedbacksAdminPage() {
           </div>
           <div>
             <h1 className="text-3xl font-semibold text-foreground" style={{ fontFamily: 'Sora, sans-serif' }}>
-              Feedbacks
+              {t('admin.feedbacks.title')}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Mensagens enviadas pelos usuários no perfil. {totalNovos > 0 && (
+              {t('admin.feedbacks.subtitle')} {totalNovos > 0 && (
                 <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                  {totalNovos} novos
+                  {t('admin.feedbacks.newCount', { count: totalNovos })}
                 </span>
               )}
             </p>
@@ -202,7 +201,7 @@ export default function FeedbacksAdminPage() {
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar por autor ou mensagem..."
+            placeholder={t('admin.feedbacks.searchPlaceholder')}
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="pl-9"
@@ -211,20 +210,20 @@ export default function FeedbacksAdminPage() {
         <Select value={filtroTipo} onValueChange={setFiltroTipo}>
           <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="todos">Todos os tipos</SelectItem>
-            <SelectItem value="sugestao">Sugestão</SelectItem>
-            <SelectItem value="elogio">Elogio</SelectItem>
-            <SelectItem value="erro">Erro</SelectItem>
-            <SelectItem value="duvida">Dúvida</SelectItem>
+            <SelectItem value="todos">{t('admin.feedbacks.allTypes')}</SelectItem>
+            <SelectItem value="sugestao">{t('admin.feedbacks.tipo.sugestao')}</SelectItem>
+            <SelectItem value="elogio">{t('admin.feedbacks.tipo.elogio')}</SelectItem>
+            <SelectItem value="erro">{t('admin.feedbacks.tipo.erro')}</SelectItem>
+            <SelectItem value="duvida">{t('admin.feedbacks.tipo.duvida')}</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filtroStatus} onValueChange={setFiltroStatus}>
           <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="todos">Todos os status</SelectItem>
-            <SelectItem value="novo">Novos</SelectItem>
-            <SelectItem value="lido">Lidos</SelectItem>
-            <SelectItem value="resolvido">Resolvidos</SelectItem>
+            <SelectItem value="todos">{t('admin.feedbacks.allStatus')}</SelectItem>
+            <SelectItem value="novo">{t('admin.feedbacks.statusNovoPlural')}</SelectItem>
+            <SelectItem value="lido">{t('admin.feedbacks.statusLidoPlural')}</SelectItem>
+            <SelectItem value="resolvido">{t('admin.feedbacks.statusResolvidoPlural')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -232,7 +231,7 @@ export default function FeedbacksAdminPage() {
       {/* Lista */}
       {filtrada.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center text-muted-foreground">
-          Nenhum feedback encontrado com esses filtros.
+          {t('admin.feedbacks.empty')}
         </div>
       ) : (
         <div className="space-y-3">
@@ -241,21 +240,21 @@ export default function FeedbacksAdminPage() {
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline" className="border-primary/30 text-primary">
-                    {TIPO_LABEL[f.tipo] || f.tipo}
+                    {tipoLabel(f.tipo)}
                   </Badge>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[f.status]}`}>
-                    {f.status === 'novo' ? 'Novo' : f.status === 'lido' ? 'Lido' : 'Resolvido'}
+                    {f.status === 'novo' ? t('admin.feedbacks.statusNovo') : f.status === 'lido' ? t('admin.feedbacks.statusLido') : t('admin.feedbacks.statusResolvido')}
                   </span>
                   {f.tipo_perfil === 'institucional' ? (
                     <Badge variant="outline" className="border-teal-500/40 bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
-                      Institucional{f.unidade_nome ? ` · ${f.unidade_nome}` : ''}
+                      {t('admin.feedbacks.institucional')}{f.unidade_nome ? ` · ${f.unidade_nome}` : ''}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="border-primary/30 bg-primary/5 text-primary">
-                      Consultório
+                      {t('admin.feedbacks.consultorio')}
                     </Badge>
                   )}
-                  <span className="text-sm font-medium text-foreground">{f.autor || 'Usuário'}</span>
+                  <span className="text-sm font-medium text-foreground">{f.autor || t('admin.feedbacks.userFallback')}</span>
                   <span className="text-xs text-muted-foreground">{formatDateBR(f.created_at)}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -266,9 +265,9 @@ export default function FeedbacksAdminPage() {
                   >
                     <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="novo">Novo</SelectItem>
-                      <SelectItem value="lido">Lido</SelectItem>
-                      <SelectItem value="resolvido">Resolvido</SelectItem>
+                      <SelectItem value="novo">{t('admin.feedbacks.statusNovo')}</SelectItem>
+                      <SelectItem value="lido">{t('admin.feedbacks.statusLido')}</SelectItem>
+                      <SelectItem value="resolvido">{t('admin.feedbacks.statusResolvido')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -277,7 +276,7 @@ export default function FeedbacksAdminPage() {
               <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">
                 {f.email && <span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{f.email}</span>}
                 {f.telefone && <span className="inline-flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" />{f.telefone}</span>}
-                {!f.email && !f.telefone && <span className="italic">Sem contato cadastrado</span>}
+                {!f.email && !f.telefone && <span className="italic">{t('admin.feedbacks.noContact')}</span>}
                 <div className="ml-auto flex flex-wrap gap-2">
                   {f.email && (
                     <button
@@ -285,7 +284,7 @@ export default function FeedbacksAdminPage() {
                       onClick={() => responderPorEmail(f)}
                       className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/5 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
                     >
-                      <Mail className="h-3.5 w-3.5" /> Responder por e-mail
+                      <Mail className="h-3.5 w-3.5" /> {t('admin.feedbacks.replyByEmail')}
                     </button>
                   )}
                   {f.telefone && (
@@ -294,7 +293,7 @@ export default function FeedbacksAdminPage() {
                       onClick={() => responderPorWhatsapp(f)}
                       className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10"
                     >
-                      <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                      <MessageCircle className="h-3.5 w-3.5" /> {t('admin.feedbacks.whatsapp')}
                     </button>
                   )}
                 </div>
@@ -305,7 +304,7 @@ export default function FeedbacksAdminPage() {
                   onClick={() => verAnexo(f.anexo_url!)}
                   className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
                 >
-                  <Paperclip className="h-3 w-3" /> Ver anexo
+                  <Paperclip className="h-3 w-3" /> {t('admin.feedbacks.viewAttachment')}
                 </button>
               )}
             </div>

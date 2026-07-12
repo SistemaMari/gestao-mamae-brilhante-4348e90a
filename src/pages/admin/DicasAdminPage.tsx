@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,7 @@ interface Dica {
 const MAX_CHAR = 160;
 
 export default function DicasAdminPage() {
+  const { t } = useTranslation();
   const [dicas, setDicas] = useState<Dica[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -28,7 +30,7 @@ export default function DicasAdminPage() {
         .select("id, slot, texto, ativa")
         .order("slot", { ascending: true });
       if (error) {
-        toast.error("Erro ao carregar dicas: " + error.message);
+        toast.error(t("admin.dicas.loadError", { error: error.message }));
       } else {
         setDicas((data as Dica[]) || []);
       }
@@ -51,13 +53,13 @@ export default function DicasAdminPage() {
     const invalidas = dicas.filter((d) => d.ativa && d.texto.trim().length === 0);
     if (invalidas.length > 0) {
       toast.error(
-        `Slot ${invalidas.map((d) => d.slot).join(", ")}: não é possível ativar dica vazia.`,
+        t("admin.dicas.emptyActiveError", { slots: invalidas.map((d) => d.slot).join(", ") }),
       );
       return;
     }
     const alteradas = dicas.filter((d) => dirty[d.id]);
     if (alteradas.length === 0) {
-      toast.info("Nenhuma alteração para salvar.");
+      toast.info(t("admin.dicas.noChanges"));
       return;
     }
     setSaving(true);
@@ -78,9 +80,9 @@ export default function DicasAdminPage() {
     const erros = results.filter((r) => r.error);
     setSaving(false);
     if (erros.length > 0) {
-      toast.error(`Falha ao salvar ${erros.length} slot(s).`);
+      toast.error(t("admin.dicas.saveFailed", { count: erros.length }));
     } else {
-      toast.success(`${alteradas.length} dica(s) atualizada(s).`);
+      toast.success(t("admin.dicas.saveSuccess", { count: alteradas.length }));
       setDirty({});
     }
   };
@@ -106,11 +108,10 @@ export default function DicasAdminPage() {
               className="text-3xl font-semibold text-foreground"
               style={{ fontFamily: "Sora, sans-serif" }}
             >
-              Dicas do dashboard
+              {t("admin.dicas.title")}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Edite as frases exibidas no card "Dica do dia" do painel institucional. Uma dica ativa é
-              sorteada por dia.
+              {t("admin.dicas.subtitle")}
             </p>
           </div>
         </div>
@@ -120,10 +121,10 @@ export default function DicasAdminPage() {
       <div className="sticky top-0 z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-6 py-3 backdrop-blur">
         <div className="text-sm">
           <span className="font-semibold text-foreground">{ativasValidas}</span>{" "}
-          <span className="text-muted-foreground">de {dicas.length} dicas ativas</span>
+          <span className="text-muted-foreground">{t("admin.dicas.activeCount", { total: dicas.length })}</span>
           {ativasValidas === 0 && (
             <span className="ml-3 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
-              Nenhuma dica ativa — o painel usará frases padrão.
+              {t("admin.dicas.noneActive")}
             </span>
           )}
         </div>
@@ -133,7 +134,7 @@ export default function DicasAdminPage() {
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}
-          Salvar alterações
+          {t("admin.dicas.saveButton")}
           {Object.keys(dirty).length > 0 && !saving && (
             <span className="ml-2 rounded-full bg-primary-foreground/20 px-2 py-0.5 text-xs">
               {Object.keys(dirty).length}
@@ -162,7 +163,7 @@ export default function DicasAdminPage() {
                     {d.slot}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    Slot {d.slot} de 30
+                    {t("admin.dicas.slotLabel", { slot: d.slot })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -171,7 +172,7 @@ export default function DicasAdminPage() {
                       "text-xs " + (d.ativa ? "text-primary font-medium" : "text-muted-foreground")
                     }
                   >
-                    {d.ativa ? "Ativa" : "Inativa"}
+                    {d.ativa ? t("admin.dicas.active") : t("admin.dicas.inactive")}
                   </span>
                   <Switch
                     checked={d.ativa}
@@ -182,7 +183,7 @@ export default function DicasAdminPage() {
               <Textarea
                 value={d.texto}
                 onChange={(e) => atualizar(d.id, { texto: e.target.value })}
-                placeholder="Digite a frase que aparecerá no card 'Dica do dia'…"
+                placeholder={t("admin.dicas.textPlaceholder")}
                 rows={2}
                 maxLength={MAX_CHAR + 40}
                 className="resize-none"

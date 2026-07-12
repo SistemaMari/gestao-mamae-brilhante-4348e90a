@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function ModalCadastrarGestorGeral({ open, onOpenChange, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [cargo, setCargo] = useState("");
@@ -72,9 +74,9 @@ export default function ModalCadastrarGestorGeral({ open, onOpenChange, onSucess
     }
     setSubmitting(false);
     if (contratanteIds.length > 0) {
-      toast.success(`Gestor geral cadastrado! E-mail enviado. ${contratanteIds.length} contratante${contratanteIds.length === 1 ? "" : "s"} vinculado${contratanteIds.length === 1 ? "" : "s"}.`);
+      toast.success(t("admin.cadastrarGestorGeral.successWithContratantes", { count: contratanteIds.length }));
     } else {
-      toast.success("Gestor geral cadastrado! E-mail enviado. Vincule contratantes quando estiver pronto.");
+      toast.success(t("admin.cadastrarGestorGeral.successNoContratantes"));
     }
     handleOpenChange(false); onSucesso();
   }
@@ -83,28 +85,28 @@ export default function ModalCadastrarGestorGeral({ open, onOpenChange, onSucess
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-[Sora] text-[#5B3A8E]">Cadastrar gestor geral</DialogTitle>
-          <DialogDescription>Receberá e-mail para definir senha e acessar o consolidador.</DialogDescription>
+          <DialogTitle className="font-[Sora] text-[#5B3A8E]">{t("admin.cadastrarGestorGeral.title")}</DialogTitle>
+          <DialogDescription>{t("admin.cadastrarGestorGeral.description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Nome</Label>
+            <Label>{t("common.name")}</Label>
             <Input value={nome} onChange={(e) => setNome(e.target.value)} disabled={submitting} />
           </div>
           <div className="space-y-1.5">
-            <Label>E-mail</Label>
+            <Label>{t("common.email")}</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={submitting} />
           </div>
           <div className="space-y-1.5">
-            <Label>Cargo (opcional)</Label>
-            <Input value={cargo} onChange={(e) => setCargo(e.target.value)} placeholder="Ex.: Secretário Municipal de Saúde" disabled={submitting} />
+            <Label>{t("admin.cadastrarGestorGeral.cargoLabel")}</Label>
+            <Input value={cargo} onChange={(e) => setCargo(e.target.value)} placeholder={t("admin.cadastrarGestorGeral.cargoPlaceholder")} disabled={submitting} />
           </div>
           <div className="space-y-1.5">
-            <Label>Instituição (opcional)</Label>
+            <Label>{t("admin.cadastrarGestorGeral.instituicaoLabel")}</Label>
             <Input value={instituicao} onChange={(e) => setInstituicao(e.target.value)} disabled={submitting} />
           </div>
           <div className="space-y-1.5">
-            <Label>Contratantes vinculados (opcional)</Label>
+            <Label>{t("admin.cadastrarGestorGeral.contratantesLabel")}</Label>
             <MultiSelectContratantes
               contratantes={contratantes ?? []}
               selecionadas={contratanteIds}
@@ -112,7 +114,7 @@ export default function ModalCadastrarGestorGeral({ open, onOpenChange, onSucess
               disabled={submitting}
             />
             <p className="text-xs text-muted-foreground">
-              Você pode cadastrar o gestor sem vincular contratantes agora e fazer isso depois pelo botão Editar.
+              {t("admin.cadastrarGestorGeral.contratantesHint")}
             </p>
           </div>
 
@@ -123,10 +125,10 @@ export default function ModalCadastrarGestorGeral({ open, onOpenChange, onSucess
           )}
 
           <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>{t("common.cancel")}</Button>
             <Button type="submit" disabled={!valido || submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Cadastrar
+              {t("admin.cadastrarGestorGeral.submitButton")}
             </Button>
           </DialogFooter>
         </form>

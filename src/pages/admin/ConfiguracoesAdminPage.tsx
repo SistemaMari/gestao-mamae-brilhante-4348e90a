@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Loader2, UserCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ConfiguracoesAdminPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [nome, setNome] = useState('');
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export default function ConfiguracoesAdminPage() {
   async function salvar() {
     if (!user?.id) return;
     if (!nome.trim()) {
-      toast.error('Informe seu nome.');
+      toast.error(t('admin.configuracoes.nameRequired'));
       return;
     }
     setSaving(true);
@@ -46,18 +48,18 @@ export default function ConfiguracoesAdminPage() {
       .eq('user_id', user.id);
     setSaving(false);
     if (error) {
-      toast.error(`Erro ao salvar: ${error.message}`);
+      toast.error(t('admin.configuracoes.saveError', { error: error.message }));
     } else {
       window.dispatchEvent(new CustomEvent("admin:nome-atualizado"));
-      toast.success('Nome atualizado. Ele aparece na saudação e no menu.');
+      toast.success(t('admin.configuracoes.saveSuccess'));
     }
   }
 
   return (
     <div className="container max-w-2xl py-8">
       <header className="mb-6">
-        <h1 className="font-heading text-3xl font-bold text-foreground">Configurações</h1>
-        <p className="mt-1 text-muted-foreground">Ajuste os dados da sua conta de administrador.</p>
+        <h1 className="font-heading text-3xl font-bold text-foreground">{t('admin.configuracoes.title')}</h1>
+        <p className="mt-1 text-muted-foreground">{t('admin.configuracoes.subtitle')}</p>
       </header>
 
       <Card>
@@ -70,9 +72,9 @@ export default function ConfiguracoesAdminPage() {
               <UserCircle className="h-6 w-6" style={{ color: '#7C4DBA' }} />
             </div>
             <div>
-              <p className="font-heading font-semibold text-foreground">Sua identidade</p>
+              <p className="font-heading font-semibold text-foreground">{t('admin.configuracoes.identityTitle')}</p>
               <p className="text-sm text-muted-foreground">
-                O nome aparece na saudação e no rodapé do menu.
+                {t('admin.configuracoes.identityDesc')}
               </p>
             </div>
           </div>
@@ -81,21 +83,21 @@ export default function ConfiguracoesAdminPage() {
             <Skeleton className="h-10 w-full" />
           ) : (
             <div className="space-y-1.5">
-              <Label htmlFor="nome-admin">Nome</Label>
+              <Label htmlFor="nome-admin">{t('common.name')}</Label>
               <Input
                 id="nome-admin"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                placeholder="Ex.: Moara de Carvalho"
+                placeholder={t('admin.configuracoes.namePlaceholder')}
                 onKeyDown={(e) => e.key === 'Enter' && salvar()}
               />
             </div>
           )}
 
           <div className="space-y-1.5">
-            <Label>E-mail</Label>
+            <Label>{t('common.email')}</Label>
             <Input value={user?.email ?? ''} disabled readOnly />
-            <p className="text-xs text-muted-foreground">O e-mail de acesso não é editável por aqui.</p>
+            <p className="text-xs text-muted-foreground">{t('admin.configuracoes.emailNote')}</p>
           </div>
 
           <div className="flex justify-end">
@@ -106,7 +108,7 @@ export default function ConfiguracoesAdminPage() {
               disabled={saving || loading}
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {saving ? 'Salvando…' : 'Salvar'}
+              {saving ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         </CardContent>

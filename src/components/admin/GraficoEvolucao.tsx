@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 
 interface PontoGrafico {
   mes: string;
@@ -26,6 +27,7 @@ export function GraficoEvolucao({
   cor = "#7C4DBA",
   altura = 280,
 }: GraficoEvolucaoProps) {
+  const { t } = useTranslation();
   if (dados.length === 0) {
     return (
       <div
@@ -37,7 +39,7 @@ export function GraficoEvolucao({
           fontFamily: "Plus Jakarta Sans, sans-serif",
         }}
       >
-        Sem dados no período
+        {t("admin.grafico.noData")}
       </div>
     );
   }
@@ -81,7 +83,7 @@ export function GraficoEvolucao({
                 fontSize: 13,
               }}
               labelStyle={{ color: "#1E293B", fontWeight: 600 }}
-              formatter={(v: number) => [v, "Valor"]}
+              formatter={(v: number) => [v, t("admin.grafico.value")]}
             />
             <Line
               type="monotone"

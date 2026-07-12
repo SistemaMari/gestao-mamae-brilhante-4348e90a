@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
@@ -11,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminLayout() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -34,7 +36,7 @@ export default function AdminLayout() {
       return;
     }
 
-    setNomeAdmin(data.nome ?? "Administrador");
+    setNomeAdmin(data.nome ?? t("admin.overview.adminFallback"));
     setVerificando(false);
   };
 

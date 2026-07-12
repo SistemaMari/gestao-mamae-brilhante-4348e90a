@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function ModalReenviarConvite({ alvo, onClose }: Props) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
 
@@ -28,7 +30,7 @@ export default function ModalReenviarConvite({ alvo, onClose }: Props) {
     if (error) {
       const { codigo } = await extrairErroEdge(error);
       if (codigo === "usuario_ja_ativo") {
-        toast("O usuário já ativou a conta. Lista atualizada.");
+        toast(t("admin.reenviarConvite.userAlreadyActive"));
         qc.invalidateQueries({ queryKey: ["institucional"] });
       } else {
         toast.error(FALLBACK_GENERICO);
@@ -36,7 +38,11 @@ export default function ModalReenviarConvite({ alvo, onClose }: Props) {
       onClose();
       return;
     }
-    toast.success(`Convite reenviado${alvo.email ? ` para ${alvo.email}` : ""}.`);
+    toast.success(
+      alvo.email
+        ? t("admin.reenviarConvite.resentToEmail", { email: alvo.email })
+        : t("admin.reenviarConvite.resent")
+    );
     qc.invalidateQueries({ queryKey: ["institucional"] });
     onClose();
   }
@@ -45,20 +51,22 @@ export default function ModalReenviarConvite({ alvo, onClose }: Props) {
     <AlertDialog open={!!alvo} onOpenChange={(v) => !v && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="font-[Sora] text-[#5B3A8E]">Reenviar convite</AlertDialogTitle>
+          <AlertDialogTitle className="font-[Sora] text-[#5B3A8E]">{t("admin.reenviarConvite.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Um novo magic link será enviado{alvo?.email ? ` para ${alvo.email}` : ""}.
+            {alvo?.email
+              ? t("admin.reenviarConvite.descriptionToEmail", { email: alvo.email })
+              : t("admin.reenviarConvite.description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => { e.preventDefault(); handleConfirm(); }}
             disabled={submitting}
             className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
           >
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Reenviar
+            {t("admin.reenviarConvite.resendButton")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function AlertReativarGestorUnidade({ alvo, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
 
   async function confirmar() {
@@ -30,7 +32,7 @@ export default function AlertReativarGestorUnidade({ alvo, onClose, onSucesso }:
       toast.error(mensagem || FALLBACK_GENERICO);
       return;
     }
-    toast.success(`Acesso de ${alvo.nome} reativado.`);
+    toast.success(t("admin.reativarGestor.success", { nome: alvo.nome }));
     onSucesso();
     onClose();
   }
@@ -39,23 +41,23 @@ export default function AlertReativarGestorUnidade({ alvo, onClose, onSucesso }:
     <AlertDialog open={!!alvo} onOpenChange={(v) => !v && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Reativar acesso de {alvo?.nome}?</AlertDialogTitle>
+          <AlertDialogTitle>{t("admin.reativarGestor.title", { nome: alvo?.nome })}</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>→ O gestor poderá logar novamente com a senha atual</p>
-              <p>→ Ele <strong>não</strong> será automaticamente vinculado a nenhuma unidade</p>
-              <p>→ Para atribuí-lo a uma unidade, vá até a aba Unidades depois</p>
+              <p>{t("admin.reativarGestor.line1")}</p>
+              <p><span dangerouslySetInnerHTML={{ __html: t("admin.reativarGestor.line2") }} /></p>
+              <p>{t("admin.reativarGestor.line3")}</p>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => { e.preventDefault(); confirmar(); }}
             disabled={submitting}
             className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
           >
-            Confirmar reativação
+            {t("admin.reativarGestor.confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

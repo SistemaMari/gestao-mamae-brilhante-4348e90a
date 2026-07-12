@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { MENSAGENS_UNICIDADE, FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 
 export default function AlertRevogarAcessoConsultorio({
@@ -20,6 +21,7 @@ export default function AlertRevogarAcessoConsultorio({
   profissionalId: string;
   profissionalNome: string;
 }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [motivo, setMotivo] = useState("");
   const [ciente, setCiente] = useState(false);
@@ -50,7 +52,7 @@ export default function AlertRevogarAcessoConsultorio({
         toast.error(msg);
         return;
       }
-      toast.success(`Acesso de ${profissionalNome} revogado.`, {
+      toast.success(t("admin.revogarConsultorio.successToast", { nome: profissionalNome }), {
         description: data?.aviso_asaas,
         duration: 7000,
       });
@@ -65,20 +67,19 @@ export default function AlertRevogarAcessoConsultorio({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-[500px]">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-red-700">Revogar acesso de {profissionalNome}?</AlertDialogTitle>
+          <AlertDialogTitle className="text-red-700">{t("admin.revogarConsultorio.title", { nome: profissionalNome })}</AlertDialogTitle>
           <AlertDialogDescription>
-            O profissional perderá acesso imediato ao MARI. Os dados clínicos permanecem preservados.
-            Lembre-se de cancelar a assinatura no painel Asaas se ela existir.
+            {t("admin.revogarConsultorio.description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="space-y-3 py-2">
           <div>
-            <Label>Motivo da revogação *</Label>
+            <Label>{t("admin.revogarConsultorio.reasonLabel")}</Label>
             <Textarea
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              placeholder="Mínimo 20 caracteres"
+              placeholder={t("admin.revogarConsultorio.reasonPlaceholder")}
               rows={3}
             />
             <p className="text-xs text-muted-foreground mt-1">{motivo.trim().length}/20</p>
@@ -86,19 +87,19 @@ export default function AlertRevogarAcessoConsultorio({
           <div className="flex items-start gap-2">
             <Checkbox id="ciente-asaas" checked={ciente} onCheckedChange={(c) => setCiente(c === true)} />
             <Label htmlFor="ciente-asaas" className="text-sm font-normal leading-tight">
-              Estou ciente que precisarei cancelar a assinatura no Asaas manualmente, se aplicável.
+              {t("admin.revogarConsultorio.asaasAck")}
             </Label>
           </div>
         </div>
 
         <AlertDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
           <Button
             onClick={submit}
             disabled={submitting || !motivoOk || !ciente}
             className="bg-red-600 text-white hover:bg-red-700"
           >
-            {submitting ? "Revogando…" : "Revogar acesso"}
+            {submitting ? t("admin.revogarConsultorio.revoking") : t("admin.revogarConsultorio.revokeButton")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

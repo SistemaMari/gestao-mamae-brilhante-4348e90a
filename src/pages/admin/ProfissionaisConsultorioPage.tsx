@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -23,9 +24,9 @@ type AtivField = "ultimo_laudo" | "ultimo_login";
 type Periodo = "todos" | "hoje" | "7d" | "30d" | "mais30" | "nunca";
 type StatusPgto = "todos" | "ativo" | "atrasado" | "sem";
 
-function fmtData(d: string | null) {
+function fmtData(d: string | null, locale: string) {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+  return new Date(d).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "2-digit" });
 }
 
 function dentroPeriodo(d: string | null, periodo: Periodo): boolean {
@@ -46,6 +47,7 @@ function dentroPeriodo(d: string | null, periodo: Periodo): boolean {
 }
 
 export default function ProfissionaisConsultorioPage() {
+  const { t, i18n } = useTranslation();
   const [busca, setBusca] = useState("");
   const [filtroPlano, setFiltroPlano] = useState<string>("todos");
   const [filtroStatus, setFiltroStatus] = useState<StatusPgto>("todos");
@@ -124,29 +126,29 @@ export default function ProfissionaisConsultorioPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-[Sora] text-2xl font-semibold text-[#5B3A8E]">Contas Profissionais</h1>
+        <h1 className="font-[Sora] text-2xl font-semibold text-[#5B3A8E]">{t("admin.profissionaisConsultorio.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Profissionais que atendem em consultório com plano de assinatura.
+          {t("admin.profissionaisConsultorio.subtitle")}
         </p>
       </header>
 
       {/* Métricas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricCard icon={<Users className="h-5 w-5" />} label="Total de profissionais" value={metricas.total} color="bg-slate-100 text-slate-700" />
-        <MetricCard icon={<UserCheck className="h-5 w-5" />} label="Total ativos" value={metricas.ativos} color="bg-green-100 text-green-700" />
-        <MetricCard icon={<Clock className="h-5 w-5" />} label="Convites pendentes" value={metricas.pendentes} color="bg-amber-100 text-amber-800" />
-        <MetricCard icon={<DollarSign className="h-5 w-5" />} label="MRR estimado" value={`R$ ${metricas.mrr.toFixed(2)}`} color="bg-[#EFE7FB] text-[#5B3A8E]" />
+        <MetricCard icon={<Users className="h-5 w-5" />} label={t("admin.profissionaisConsultorio.totalProfessionals")} value={metricas.total} color="bg-slate-100 text-slate-700" />
+        <MetricCard icon={<UserCheck className="h-5 w-5" />} label={t("admin.profissionaisConsultorio.totalActive")} value={metricas.ativos} color="bg-green-100 text-green-700" />
+        <MetricCard icon={<Clock className="h-5 w-5" />} label={t("admin.profissionaisConsultorio.pendingInvites")} value={metricas.pendentes} color="bg-amber-100 text-amber-800" />
+        <MetricCard icon={<DollarSign className="h-5 w-5" />} label={t("admin.profissionaisConsultorio.estimatedMrr")} value={`R$ ${metricas.mrr.toFixed(2)}`} color="bg-[#EFE7FB] text-[#5B3A8E]" />
       </div>
 
       {/* Filtros + cadastrar */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Plano</label>
+            <label className="text-xs text-muted-foreground">{t("admin.profissionaisConsultorio.plan")}</label>
             <Select value={filtroPlano} onValueChange={setFiltroPlano}>
               <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos os planos</SelectItem>
+                <SelectItem value="todos">{t("admin.profissionaisConsultorio.allPlans")}</SelectItem>
                 {planosOpt.map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
                 ))}
@@ -154,58 +156,58 @@ export default function ProfissionaisConsultorioPage() {
             </Select>
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Status pagamento</label>
+            <label className="text-xs text-muted-foreground">{t("admin.profissionaisConsultorio.paymentStatus")}</label>
             <Select value={filtroStatus} onValueChange={(v) => setFiltroStatus(v as StatusPgto)}>
               <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="ativo">Ativo</SelectItem>
-                <SelectItem value="atrasado">Atrasado</SelectItem>
-                <SelectItem value="sem">Sem assinatura</SelectItem>
+                <SelectItem value="todos">{t("common.all")}</SelectItem>
+                <SelectItem value="ativo">{t("admin.profissionaisConsultorio.statusActive")}</SelectItem>
+                <SelectItem value="atrasado">{t("admin.profissionaisConsultorio.statusLate")}</SelectItem>
+                <SelectItem value="sem">{t("admin.profissionaisConsultorio.statusNone")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Atividade</label>
+            <label className="text-xs text-muted-foreground">{t("admin.profissionaisConsultorio.activity")}</label>
             <ToggleGroup type="single" value={ativField} onValueChange={(v) => v && setAtivField(v as AtivField)} className="border rounded-md">
-              <ToggleGroupItem value="ultimo_laudo" className="px-3">Último laudo</ToggleGroupItem>
-              <ToggleGroupItem value="ultimo_login" className="px-3">Último login</ToggleGroupItem>
+              <ToggleGroupItem value="ultimo_laudo" className="px-3">{t("admin.profissionaisConsultorio.lastReport")}</ToggleGroupItem>
+              <ToggleGroupItem value="ultimo_login" className="px-3">{t("admin.profissionaisConsultorio.lastLogin")}</ToggleGroupItem>
             </ToggleGroup>
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Período</label>
+            <label className="text-xs text-muted-foreground">{t("admin.profissionaisConsultorio.period")}</label>
             <Select value={periodo} onValueChange={(v) => setPeriodo(v as Periodo)}>
               <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="hoje">Hoje</SelectItem>
-                <SelectItem value="7d">Últimos 7 dias</SelectItem>
-                <SelectItem value="30d">Últimos 30 dias</SelectItem>
-                <SelectItem value="mais30">Mais de 30 dias</SelectItem>
-                <SelectItem value="nunca">Nunca</SelectItem>
+                <SelectItem value="todos">{t("common.all")}</SelectItem>
+                <SelectItem value="hoje">{t("admin.profissionaisConsultorio.periodToday")}</SelectItem>
+                <SelectItem value="7d">{t("admin.profissionaisConsultorio.period7d")}</SelectItem>
+                <SelectItem value="30d">{t("admin.profissionaisConsultorio.period30d")}</SelectItem>
+                <SelectItem value="mais30">{t("admin.profissionaisConsultorio.periodMore30")}</SelectItem>
+                <SelectItem value="nunca">{t("admin.profissionaisConsultorio.periodNever")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground">Buscar</label>
+            <label className="text-xs text-muted-foreground">{t("common.search")}</label>
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                placeholder="Nome, e-mail ou CRM…"
+                placeholder={t("admin.profissionaisConsultorio.searchPlaceholder")}
                 className="pl-8 w-[260px]"
               />
             </div>
           </div>
         </div>
         <Button onClick={() => setOpenCadastrar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
-          <Plus className="mr-2 h-4 w-4" /> Cadastrar profissional
+          <Plus className="mr-2 h-4 w-4" /> {t("admin.profissionaisConsultorio.register")}
         </Button>
       </div>
 
       <p className="text-sm text-muted-foreground">
-        {isLoading ? "Carregando…" : `${linhas.length} profissional${linhas.length === 1 ? "" : "is"}`}
+        {isLoading ? t("common.loading") : t("admin.profissionaisConsultorio.count", { count: linhas.length })}
       </p>
 
       {/* Tabela */}
@@ -213,8 +215,16 @@ export default function ProfissionaisConsultorioPage() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-[#5B3A8E]">
-              {["Nome", "E-mail", "Plano", "Status pagamento", "Último laudo", "Último login", "Ações"].map((h, i) => (
-                <TableHead key={h} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 6 ? "text-right" : ""}`}>
+              {[
+                t("common.name"),
+                t("common.email"),
+                t("admin.profissionaisConsultorio.plan"),
+                t("admin.profissionaisConsultorio.paymentStatus"),
+                t("admin.profissionaisConsultorio.lastReport"),
+                t("admin.profissionaisConsultorio.lastLogin"),
+                t("common.actions"),
+              ].map((h, i) => (
+                <TableHead key={i} className={`bg-[#5B3A8E] font-[Sora] text-white ${i === 6 ? "text-right" : ""}`}>
                   {h}
                 </TableHead>
               ))}
@@ -225,17 +235,17 @@ export default function ProfissionaisConsultorioPage() {
               <TableRow key={i}><TableCell colSpan={7}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
             ))}
             {!isLoading && isError && (
-              <TableRow><TableCell colSpan={7} className="text-center text-destructive">Erro ao carregar.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-destructive">{t("admin.profissionaisConsultorio.loadError")}</TableCell></TableRow>
             )}
             {!isLoading && !isError && linhas.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">Nenhum profissional encontrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">{t("admin.profissionaisConsultorio.noProfessionals")}</TableCell></TableRow>
             )}
             {linhas.map((p, idx) => {
               const statusPgto = p.plano_status === "inadimplente"
-                ? <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Atrasado</Badge>
+                ? <Badge className="bg-red-100 text-red-700 hover:bg-red-100">{t("admin.profissionaisConsultorio.statusLate")}</Badge>
                 : p.asaas_subscription_id
-                  ? <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Ativo</Badge>
-                  : <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">Sem assinatura</Badge>;
+                  ? <Badge className="bg-green-100 text-green-700 hover:bg-green-100">{t("admin.profissionaisConsultorio.statusActive")}</Badge>
+                  : <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t("admin.profissionaisConsultorio.statusNone")}</Badge>;
               return (
                 <TableRow
                   key={p.id}
@@ -244,16 +254,16 @@ export default function ProfissionaisConsultorioPage() {
                 >
                   <TableCell className="font-medium">
                     {p.nome}
-                    {p.acesso_revogado && <span className="ml-2 text-red-600" title="Acesso revogado">⊘</span>}
-                    {!p.acesso_revogado && p.convite_pendente && <span className="ml-2 text-amber-600" title="Convite pendente">⏳</span>}
+                    {p.acesso_revogado && <span className="ml-2 text-red-600" title={t("admin.profissionaisConsultorio.accessRevoked")}>⊘</span>}
+                    {!p.acesso_revogado && p.convite_pendente && <span className="ml-2 text-amber-600" title={t("admin.profissionaisConsultorio.invitePending")}>⏳</span>}
                   </TableCell>
                   <TableCell className="text-sm">{p.email ?? "—"}</TableCell>
                   <TableCell>{p.plano_nome ?? "—"}</TableCell>
                   <TableCell>{statusPgto}</TableCell>
-                  <TableCell>{fmtData(p.ultimo_laudo)}</TableCell>
-                  <TableCell>{fmtData(p.ultimo_login)}</TableCell>
+                  <TableCell>{fmtData(p.ultimo_laudo, i18n.language)}</TableCell>
+                  <TableCell>{fmtData(p.ultimo_login, i18n.language)}</TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="sm" onClick={() => setDrawer(p)}>Ver detalhes</Button>
+                    <Button variant="ghost" size="sm" onClick={() => setDrawer(p)}>{t("admin.profissionaisConsultorio.viewDetails")}</Button>
                   </TableCell>
                 </TableRow>
               );

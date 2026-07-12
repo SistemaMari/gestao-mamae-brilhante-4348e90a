@@ -1,4 +1,5 @@
 import { Construction } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface PlaceholderSecaoProps {
   titulo: string;
@@ -7,8 +8,10 @@ interface PlaceholderSecaoProps {
 
 export function PlaceholderSecao({
   titulo,
-  mensagem = "Esta seção será construída em breve.",
+  mensagem,
 }: PlaceholderSecaoProps) {
+  const { t } = useTranslation();
+  const msg = mensagem ?? t("admin.placeholder.defaultMessage");
   return (
     <div className="flex items-center justify-center py-16">
       <div
@@ -25,7 +28,7 @@ export function PlaceholderSecao({
           {titulo}
         </h2>
         <p className="text-sm" style={{ color: "#64748B" }}>
-          {mensagem}
+          {msg}
         </p>
       </div>
     </div>

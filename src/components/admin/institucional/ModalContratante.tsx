@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +51,7 @@ const VAZIO: ContratanteForm = {
 export default function ModalContratante({
   open, modo, inicial, onOpenChange, onSucesso,
 }: Props) {
+  const { t, i18n } = useTranslation();
   const [form, setForm] = useState<ContratanteForm>(VAZIO);
   const [erro, setErro] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -74,7 +76,7 @@ export default function ModalContratante({
     if (isCriar) {
       if (cnpjDigits.length !== 14 || !isValidCNPJ(cnpjDigits)) return MENSAGENS_UNICIDADE.cnpj_invalido;
     }
-    if (form.contato_nome.trim().length < 3) return "Nome do contato é obrigatório.";
+    if (form.contato_nome.trim().length < 3) return t("admin.contratante.contatoNomeRequired");
     if (!EMAIL_REGEX.test(form.contato_email.trim())) return MENSAGENS_UNICIDADE.contato_email_invalido;
     if (!form.data_inicio_contrato) return MENSAGENS_UNICIDADE.data_inicio_obrigatoria;
     if (form.data_termino_contrato && form.data_termino_contrato <= form.data_inicio_contrato) {
@@ -99,7 +101,7 @@ export default function ModalContratante({
 
     if (dataTerminoMaisDeUmAno()) {
       const ok = window.confirm(
-        "A data de término está a mais de 1 ano no futuro. Deseja confirmar?"
+        t("admin.contratante.dataTerminoConfirm")
       );
       if (!ok) return;
     }
@@ -128,7 +130,7 @@ export default function ModalContratante({
         toast.error(FALLBACK_GENERICO);
         return;
       }
-      toast.success("Contratante cadastrado.");
+      toast.success(t("admin.contratante.createdToast"));
       onOpenChange(false);
       onSucesso();
       return;
@@ -162,7 +164,7 @@ export default function ModalContratante({
       toast.error(FALLBACK_GENERICO);
       return;
     }
-    toast.success("Contratante atualizado.");
+    toast.success(t("admin.contratante.updatedToast"));
     onOpenChange(false);
     onSucesso();
   }
@@ -172,24 +174,24 @@ export default function ModalContratante({
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-[Sora] text-[#5B3A8E]">
-            {isCriar ? "Cadastrar contratante" : "Editar contratante"}
+            {isCriar ? t("admin.contratante.titleCreate") : t("admin.contratante.titleEdit")}
           </DialogTitle>
           <DialogDescription>
             {isCriar
-              ? "Cadastre uma entidade jurídica que contrata o MARI."
-              : "Atualize os dados do contratante. CNPJ não é editável."}
+              ? t("admin.contratante.descCreate")
+              : t("admin.contratante.descEdit")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1.5">
-              <Label>Nome *</Label>
+              <Label>{t("admin.contratante.labelNome")}</Label>
               <Input value={form.nome} onChange={(e) => set("nome", e.target.value)} disabled={submitting} maxLength={200} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>CNPJ *</Label>
+                <Label>{t("admin.contratante.labelCnpj")}</Label>
                 {isCriar ? (
                   <Input
                     value={form.cnpj}
@@ -201,27 +203,27 @@ export default function ModalContratante({
                   <Input
                     value={formatCNPJ(form.cnpj)}
                     disabled
-                    title="Não editável. Para corrigir CNPJ, cadastre novo contratante e transfira as unidades."
+                    title={t("admin.contratante.cnpjNotEditable")}
                   />
                 )}
               </div>
               <div className="space-y-1.5">
-                <Label>Razão social</Label>
+                <Label>{t("admin.contratante.labelRazaoSocial")}</Label>
                 <Input value={form.razao_social ?? ""} onChange={(e) => set("razao_social", e.target.value)} disabled={submitting} maxLength={300} />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Contato — Nome *</Label>
+              <Label>{t("admin.contratante.labelContatoNome")}</Label>
               <Input value={form.contato_nome} onChange={(e) => set("contato_nome", e.target.value)} disabled={submitting} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Contato — E-mail *</Label>
+                <Label>{t("admin.contratante.labelContatoEmail")}</Label>
                 <Input type="email" value={form.contato_email} onChange={(e) => set("contato_email", e.target.value)} disabled={submitting} />
               </div>
               <div className="space-y-1.5">
-                <Label>Contato — Telefone</Label>
+                <Label>{t("admin.contratante.labelContatoTelefone")}</Label>
                 <Input
                   value={form.contato_telefone ?? ""}
                   onChange={(e) => set("contato_telefone", maskTelBR(e.target.value))}
@@ -233,17 +235,17 @@ export default function ModalContratante({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Data de início *</Label>
+                <Label>{t("admin.contratante.labelDataInicio")}</Label>
                 <Input type="date" value={form.data_inicio_contrato} onChange={(e) => set("data_inicio_contrato", e.target.value)} disabled={submitting} />
               </div>
               <div className="space-y-1.5">
-                <Label>Data de término</Label>
+                <Label>{t("admin.contratante.labelDataTermino")}</Label>
                 <Input type="date" value={form.data_termino_contrato ?? ""} onChange={(e) => set("data_termino_contrato", e.target.value)} disabled={submitting} />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Observações</Label>
+              <Label>{t("admin.contratante.labelObservacoes")}</Label>
               <Textarea value={form.observacoes ?? ""} onChange={(e) => set("observacoes", e.target.value)} disabled={submitting} rows={3} />
             </div>
           </div>
@@ -256,17 +258,17 @@ export default function ModalContratante({
 
           {!isCriar && inicial?.created_at && (
             <p className="text-xs text-muted-foreground">
-              Cadastrado em {new Date(inicial.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}.
+              {t("admin.contratante.registeredOn", { date: new Date(inicial.created_at).toLocaleDateString(i18n.language, { day: "2-digit", month: "2-digit", year: "2-digit" }) })}
             </p>
           )}
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isCriar ? "Cadastrar" : "Salvar alterações"}
+              {isCriar ? t("admin.contratante.submitCreate") : t("common.save")}
             </Button>
           </DialogFooter>
         </form>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export default function AlertDesativarGestorGeral({ alvo, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
 
   async function handleConfirm() {
@@ -30,7 +32,7 @@ export default function AlertDesativarGestorGeral({ alvo, onClose, onSucesso }: 
       onClose();
       return;
     }
-    toast.success(`Gestor ${alvo.nome} desativado.`);
+    toast.success(t("admin.desativarGestorGeral.success", { nome: alvo.nome }));
     onSucesso(); onClose();
   }
 
@@ -38,20 +40,20 @@ export default function AlertDesativarGestorGeral({ alvo, onClose, onSucesso }: 
     <AlertDialog open={!!alvo} onOpenChange={(v) => !v && onClose()}>
       <AlertDialogContent className="border-l-4 border-l-[#DC2626]">
         <AlertDialogHeader>
-          <AlertDialogTitle className="font-[Sora] text-[#DC2626]">Desativar gestor geral</AlertDialogTitle>
+          <AlertDialogTitle className="font-[Sora] text-[#DC2626]">{t("admin.desativarGestorGeral.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja desativar <strong>{alvo?.nome}</strong>? O acesso ao Consolidador de Relatórios será removido imediatamente. Esta ação pode ser revertida recriando o gestor.
+            {t("admin.desativarGestorGeral.descBefore")} <strong>{alvo?.nome}</strong>{t("admin.desativarGestorGeral.descAfter")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => { e.preventDefault(); handleConfirm(); }}
             disabled={submitting}
             className="bg-[#DC2626] text-white hover:bg-[#B91C1C]"
           >
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Confirmar desativação
+            {t("admin.desativarGestorGeral.confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

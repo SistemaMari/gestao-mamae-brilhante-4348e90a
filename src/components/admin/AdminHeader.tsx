@@ -1,6 +1,8 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useTranslation } from "react-i18next";
 
 export function AdminHeader() {
+  const { t } = useTranslation();
   return (
     <header className="flex h-16 items-center gap-3 border-b border-[#E2E8F0] bg-white px-4 md:px-6">
       <SidebarTrigger className="text-[#64748B]" />
@@ -14,8 +16,8 @@ export function AdminHeader() {
           className="font-semibold text-[#1E293B] truncate"
           style={{ fontFamily: "Sora, sans-serif" }}
         >
-          <span className="hidden md:inline">Painel Administrativo — MARI</span>
-          <span className="md:hidden">Painel Admin</span>
+          <span className="hidden md:inline">{t("admin.header.titleFull")}</span>
+          <span className="md:hidden">{t("admin.header.titleShort")}</span>
         </h1>
       </div>
     </header>

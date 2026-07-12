@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function ModalTransferirProfissional({ profissional, unidades, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [destino, setDestino] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -67,7 +69,11 @@ export default function ModalTransferirProfissional({ profissional, unidades, on
     }
     const n = data?.pacientes_orfas_count ?? 0;
     toast.success(
-      `${profissional.nome} transferido para ${data?.unidade_destino_nome}. ${n} pacientes ficaram para reatribuição na origem.`,
+      t("admin.transferirProfissional.success", {
+        nome: profissional.nome,
+        destino: data?.unidade_destino_nome,
+        count: n,
+      }),
     );
     onSucesso();
     onClose();
@@ -77,17 +83,18 @@ export default function ModalTransferirProfissional({ profissional, unidades, on
     <Dialog open={!!profissional} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="font-[Sora] text-[#5B3A8E]">Transferir profissional</DialogTitle>
+          <DialogTitle className="font-[Sora] text-[#5B3A8E]">{t("admin.transferirProfissional.title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <p className="text-sm">
-            Você está movendo <strong>{profissional.nome}</strong> da{" "}
-            <strong>{profissional.unidade_nome}</strong> para outra unidade.
+            {t("admin.transferirProfissional.movingBefore")} <strong>{profissional.nome}</strong>{" "}
+            {t("admin.transferirProfissional.movingMid")} <strong>{profissional.unidade_nome}</strong>{" "}
+            {t("admin.transferirProfissional.movingAfter")}
           </p>
           <div className="space-y-1.5">
-            <Label>Unidade destino</Label>
+            <Label>{t("admin.transferirProfissional.destinationLabel")}</Label>
             <Select value={destino} onValueChange={setDestino} disabled={submitting}>
-              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("admin.transferirProfissional.selectPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {opcoes.map((u) => <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>)}
               </SelectContent>
@@ -98,18 +105,18 @@ export default function ModalTransferirProfissional({ profissional, unidades, on
             <div className="flex gap-2 rounded-md border-l-4 border-l-[#DC2626] bg-[#FEE2E2] p-3 text-sm text-[#7F1D1D]">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
-                {profissional.nome} tem <strong>{orfasCount}</strong> paciente(s) em acompanhamento ativo na{" "}
-                <strong>{profissional.unidade_nome}</strong>. Após a transferência, essas pacientes ficarão
-                órfãs de profissional responsável. O gestor da unidade origem precisará reatribuí-las.
+                {t("admin.transferirProfissional.warnBefore", { nome: profissional.nome })} <strong>{orfasCount}</strong>{" "}
+                {t("admin.transferirProfissional.warnMid")} <strong>{profissional.unidade_nome}</strong>
+                {t("admin.transferirProfissional.warnAfter")}
               </p>
             </div>
           )}
         </div>
         <DialogFooter className="gap-2">
-          <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>Cancelar</Button>
+          <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t("common.cancel")}</Button>
           <Button onClick={handleSubmit} disabled={!destino || submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Confirmar transferência
+            {t("admin.transferirProfissional.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Info, Loader2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -46,20 +47,15 @@ interface AdminRow {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const MENSAGENS_INLINE: Record<string, string> = {
-  email_existente: "Este e-mail já é administrador.",
-  email_em_uso_profissional:
-    "Este e-mail já está cadastrado como profissional. Cada e-mail só pode ter um perfil — use outro e-mail.",
-  email_em_uso_gestor_unidade:
-    "Este e-mail já está cadastrado como gestor de unidade. Cada e-mail só pode ter um perfil — use outro e-mail.",
-  email_em_uso_gestor_geral:
-    "Este e-mail já está cadastrado como gestor geral. Cada e-mail só pode ter um perfil — use outro e-mail.",
-  email_em_uso_outro:
-    "Este e-mail já está em uso no sistema. Use outro e-mail.",
+const MENSAGENS_INLINE_KEYS: Record<string, string> = {
+  email_existente: "admin.usuarios.errEmailExistente",
+  email_em_uso_profissional: "admin.usuarios.errEmailProfissional",
+  email_em_uso_gestor_unidade: "admin.usuarios.errEmailGestorUnidade",
+  email_em_uso_gestor_geral: "admin.usuarios.errEmailGestorGeral",
+  email_em_uso_outro: "admin.usuarios.errEmailOutro",
 };
 
-const FALLBACK_GENERICO =
-  "Não foi possível concluir a ação. Tente novamente em instantes.";
+const FALLBACK_GENERICO_KEY = "admin.usuarios.fallbackGenerico";
 
 async function extrairErroEdge(
   error: unknown,
@@ -74,16 +70,17 @@ async function extrairErroEdge(
   return { codigo: payload?.codigo, mensagem: payload?.mensagem };
 }
 
-function formatarData(iso: string): string {
+function formatarData(iso: string, locale: string): string {
   try {
     const d = new Date(iso);
-    return d.toLocaleDateString("pt-BR");
+    return d.toLocaleDateString(locale);
   } catch {
     return "—";
   }
 }
 
 export default function AdminsPage() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -99,7 +96,7 @@ export default function AdminsPage() {
       );
       if (error) {
         await extrairErroEdge(error);
-        throw new Error(FALLBACK_GENERICO);
+        throw new Error(t(FALLBACK_GENERICO_KEY));
       }
       return (data?.admins ?? []) as AdminRow[];
     },
@@ -117,10 +114,10 @@ export default function AdminsPage() {
       <header className="flex items-start justify-between gap-4">
         <div>
           <h1 className="font-[Sora] text-2xl font-semibold text-[#5B3A8E]">
-            Administradores
+            {t("nav.admins")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {isLoading ? "Carregando…" : `${total} administrador${total === 1 ? "" : "es"}`}
+            {isLoading ? t("common.loading") : t("admin.usuarios.adminCount", { count: total })}
           </p>
         </div>
         <Button
@@ -128,7 +125,7 @@ export default function AdminsPage() {
           className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
         >
           <UserPlus className="mr-2 h-4 w-4" />
-          Adicionar administrador
+          {t("admin.usuarios.addAdmin")}
         </Button>
       </header>
 
@@ -137,16 +134,16 @@ export default function AdminsPage() {
           <TableHeader>
             <TableRow className="hover:bg-[#5B3A8E]">
               <TableHead className="bg-[#5B3A8E] font-[Sora] text-white">
-                Nome
+                {t("common.name")}
               </TableHead>
               <TableHead className="bg-[#5B3A8E] font-[Sora] text-white">
-                E-mail
+                {t("common.email")}
               </TableHead>
               <TableHead className="bg-[#5B3A8E] font-[Sora] text-white">
-                Desde
+                {t("admin.usuarios.since")}
               </TableHead>
               <TableHead className="bg-[#5B3A8E] font-[Sora] text-right text-white">
-                Ações
+                {t("common.actions")}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -165,15 +162,14 @@ export default function AdminsPage() {
             {!isLoading && isError && (
               <TableRow>
                 <TableCell colSpan={4} className="text-center text-destructive">
-                  Erro ao carregar lista de administradores.
+                  {t("admin.usuarios.loadError")}
                 </TableCell>
               </TableRow>
             )}
             {!isLoading && !isError && admins.length === 0 && (
               <TableRow>
                 <TableCell colSpan={4} className="text-center text-muted-foreground">
-                  Nenhum administrador cadastrado. Isso não deveria acontecer —
-                  entre em contato com o suporte.
+                  {t("admin.usuarios.noAdmins")}
                 </TableCell>
               </TableRow>
             )}
@@ -187,7 +183,7 @@ export default function AdminsPage() {
                 >
                   <TableCell className="font-medium">{a.nome ?? "—"}</TableCell>
                   <TableCell>{a.email ?? "—"}</TableCell>
-                  <TableCell>{formatarData(a.created_at)}</TableCell>
+                  <TableCell>{formatarData(a.created_at, i18n.language)}</TableCell>
                   <TableCell className="text-right">
                     {mostrarRemover ? (
                       <Button
@@ -196,7 +192,7 @@ export default function AdminsPage() {
                         onClick={() => setRemoverAlvo(a)}
                         className="text-[#DC2626] hover:bg-[#FEE2E2] hover:text-[#DC2626]"
                       >
-                        Remover
+                        {t("common.remove")}
                       </Button>
                     ) : (
                       <span className="text-muted-foreground">—</span>
@@ -236,6 +232,7 @@ function ModalAdicionar({
   onOpenChange: (v: boolean) => void;
   onSucesso: () => void;
 }) {
+  const { t } = useTranslation();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [touchedNome, setTouchedNome] = useState(false);
@@ -276,18 +273,18 @@ function ModalAdicionar({
     if (error) {
       const { codigo } = await extrairErroEdge(error);
       setSubmitting(false);
-      if (codigo && MENSAGENS_INLINE[codigo]) {
-        setErroBackend(MENSAGENS_INLINE[codigo]);
+      if (codigo && MENSAGENS_INLINE_KEYS[codigo]) {
+        setErroBackend(t(MENSAGENS_INLINE_KEYS[codigo]));
         return;
       }
       // Fallback: fecha modal e exibe toast
       handleOpenChange(false);
-      toast.error(FALLBACK_GENERICO);
+      toast.error(t(FALLBACK_GENERICO_KEY));
       return;
     }
 
     setSubmitting(false);
-    toast.success(`Administrador adicionado! E-mail enviado para ${emailTrim}.`);
+    toast.success(t("admin.usuarios.adminAdded", { email: emailTrim }));
     handleOpenChange(false);
     onSucesso();
   }
@@ -297,16 +294,16 @@ function ModalAdicionar({
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle className="font-[Sora] text-[#5B3A8E]">
-            Adicionar administrador
+            {t("admin.usuarios.addAdmin")}
           </DialogTitle>
           <DialogDescription>
-            O novo admin receberá um e-mail para definir a senha.
+            {t("admin.usuarios.addAdminDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="admin-nome">Nome completo</Label>
+            <Label htmlFor="admin-nome">{t("admin.usuarios.fullName")}</Label>
             <Input
               id="admin-nome"
               value={nome}
@@ -316,12 +313,12 @@ function ModalAdicionar({
               autoComplete="name"
             />
             {touchedNome && !nomeValido && (
-              <p className="text-xs text-[#DC2626]">Nome obrigatório.</p>
+              <p className="text-xs text-[#DC2626]">{t("admin.usuarios.nameRequired")}</p>
             )}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="admin-email">E-mail</Label>
+            <Label htmlFor="admin-email">{t("common.email")}</Label>
             <Input
               id="admin-email"
               type="email"
@@ -332,20 +329,17 @@ function ModalAdicionar({
               autoComplete="email"
             />
             {touchedEmail && emailTrim.length === 0 && (
-              <p className="text-xs text-[#DC2626]">E-mail obrigatório.</p>
+              <p className="text-xs text-[#DC2626]">{t("admin.usuarios.emailRequired")}</p>
             )}
             {touchedEmail && emailTrim.length > 0 && !emailValido && (
-              <p className="text-xs text-[#DC2626]">E-mail inválido.</p>
+              <p className="text-xs text-[#DC2626]">{t("admin.usuarios.emailInvalid")}</p>
             )}
           </div>
 
           <div className="flex gap-2 rounded-md bg-[#F5F3FA] p-3 text-sm text-[#4B3F66]">
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
-              Cada e-mail só pode ter um perfil no sistema. Se esta pessoa já
-              usa a MARI como profissional, gestor de unidade ou gestor geral,
-              ela precisará usar um e-mail diferente para o acesso de
-              administrador.
+              {t("admin.usuarios.uniqueEmailInfo")}
             </p>
           </div>
 
@@ -362,7 +356,7 @@ function ModalAdicionar({
               onClick={() => handleOpenChange(false)}
               disabled={submitting}
             >
-              Cancelar
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
@@ -370,7 +364,7 @@ function ModalAdicionar({
               className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
             >
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Adicionar
+              {t("common.add")}
             </Button>
           </DialogFooter>
         </form>
@@ -392,6 +386,7 @@ function ModalConfirmarRemocao({
   onClose: () => void;
   onSucesso: () => void;
 }) {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
 
   async function handleConfirmar() {
@@ -407,17 +402,17 @@ function ModalConfirmarRemocao({
     if (error) {
       const { codigo } = await extrairErroEdge(error);
       if (codigo === "auto_remocao") {
-        toast.error("Você não pode remover a si mesmo.");
+        toast.error(t("admin.usuarios.cannotRemoveSelf"));
       } else if (codigo === "ultimo_admin") {
-        toast.error("Não é possível remover o último administrador.");
+        toast.error(t("admin.usuarios.cannotRemoveLast"));
       } else {
-        toast.error(FALLBACK_GENERICO);
+        toast.error(t(FALLBACK_GENERICO_KEY));
       }
       onClose();
       return;
     }
 
-    toast.success("Administrador removido.");
+    toast.success(t("admin.usuarios.adminRemoved"));
     onClose();
     onSucesso();
   }
@@ -427,16 +422,16 @@ function ModalConfirmarRemocao({
       <AlertDialogContent className="border-l-4 border-l-[#DC2626]">
         <AlertDialogHeader>
           <AlertDialogTitle className="font-[Sora] text-[#DC2626]">
-            Remover administrador
+            {t("admin.usuarios.removeAdmin")}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja remover{" "}
-            <strong>{alvo?.nome ?? "este admin"}</strong> como administrador?
-            Esta ação não pode ser desfeita.
+            {t("admin.usuarios.removeConfirmPrefix")}{" "}
+            <strong>{alvo?.nome ?? t("admin.usuarios.thisAdmin")}</strong>{" "}
+            {t("admin.usuarios.removeConfirmSuffix")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={submitting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -446,7 +441,7 @@ function ModalConfirmarRemocao({
             className="bg-[#DC2626] text-white hover:bg-[#B91C1C]"
           >
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Confirmar remoção
+            {t("admin.usuarios.confirmRemoval")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

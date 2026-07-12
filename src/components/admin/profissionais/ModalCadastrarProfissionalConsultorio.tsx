@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -27,6 +28,7 @@ export default function ModalCadastrarProfissionalConsultorio({
   open: boolean;
   onOpenChange: (b: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -55,7 +57,7 @@ export default function ModalCadastrarProfissionalConsultorio({
 
   const submit = async () => {
     if (!nome.trim() || !email.trim() || !planoId) {
-      toast.error("Preencha nome, e-mail e plano.");
+      toast.error(t("admin.cadastrarProfissionalConsultorio.fillRequired"));
       return;
     }
     setSubmitting(true);
@@ -80,7 +82,7 @@ export default function ModalCadastrarProfissionalConsultorio({
         toast.error(msg);
         return;
       }
-      toast.success(`Convite enviado para ${email}.`);
+      toast.success(t("admin.cadastrarProfissionalConsultorio.inviteSent", { email }));
       qc.invalidateQueries({ queryKey: ["profissionais-consultorio"] });
       reset();
       onOpenChange(false);
@@ -93,43 +95,43 @@ export default function ModalCadastrarProfissionalConsultorio({
     <Dialog open={open} onOpenChange={(b) => { if (!b) reset(); onOpenChange(b); }}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle className="font-[Sora] text-[#5B3A8E]">Cadastrar profissional</DialogTitle>
+          <DialogTitle className="font-[Sora] text-[#5B3A8E]">{t("admin.cadastrarProfissionalConsultorio.title")}</DialogTitle>
           <DialogDescription>
-            Um e-mail de convite será enviado para o profissional definir sua senha.
+            {t("admin.cadastrarProfissionalConsultorio.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-2">
           <div>
-            <Label>Nome completo *</Label>
-            <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Dra. Maria Silva" />
+            <Label>{t("admin.cadastrarProfissionalConsultorio.fullNameLabel")}</Label>
+            <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder={t("admin.cadastrarProfissionalConsultorio.fullNamePlaceholder")} />
           </div>
           <div>
-            <Label>E-mail *</Label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="medico@exemplo.com" />
+            <Label>{t("admin.cadastrarProfissionalConsultorio.emailLabel")}</Label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("admin.cadastrarProfissionalConsultorio.emailPlaceholder")} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>CRM</Label>
-              <Input value={crm} onChange={(e) => setCrm(e.target.value)} maxLength={20} placeholder="Opcional" />
+              <Label>{t("admin.cadastrarProfissionalConsultorio.crmLabel")}</Label>
+              <Input value={crm} onChange={(e) => setCrm(e.target.value)} maxLength={20} placeholder={t("admin.cadastrarProfissionalConsultorio.optionalPlaceholder")} />
             </div>
             <div>
-              <Label>Especialidade</Label>
-              <Input value={especialidade} onChange={(e) => setEspecialidade(e.target.value)} placeholder="Opcional" />
+              <Label>{t("admin.cadastrarProfissionalConsultorio.specialtyLabel")}</Label>
+              <Input value={especialidade} onChange={(e) => setEspecialidade(e.target.value)} placeholder={t("admin.cadastrarProfissionalConsultorio.optionalPlaceholder")} />
             </div>
           </div>
           <div>
-            <Label>Telefone</Label>
+            <Label>{t("admin.cadastrarProfissionalConsultorio.phoneLabel")}</Label>
             <Input value={telefone} onChange={(e) => setTelefone(maskTelBR(e.target.value))} placeholder="(11) 91234-5678" />
           </div>
           <div>
-            <Label>Plano *</Label>
+            <Label>{t("admin.cadastrarProfissionalConsultorio.planLabel")}</Label>
             <Select value={planoId} onValueChange={setPlanoId}>
-              <SelectTrigger><SelectValue placeholder="Selecione um plano" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("admin.cadastrarProfissionalConsultorio.planPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {planos.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.nome} — R$ {Number(p.preco_mensal).toFixed(2)} ({p.laudos_por_mes} laudos/mês)
+                    {p.nome} — R$ {Number(p.preco_mensal).toFixed(2)} ({t("admin.cadastrarProfissionalConsultorio.reportsPerMonth", { count: p.laudos_por_mes })})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -138,9 +140,9 @@ export default function ModalCadastrarProfissionalConsultorio({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
           <Button onClick={submit} disabled={submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
-            {submitting ? "Enviando…" : "Cadastrar e enviar convite"}
+            {submitting ? t("admin.cadastrarProfissionalConsultorio.sending") : t("admin.cadastrarProfissionalConsultorio.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { CalendarRange, Download, RotateCcw, Filter } from "lucide-react";
 import {
   Select,
@@ -29,10 +30,13 @@ const COR_PRIMARIA = "#7C4DBA";
 const BADGE_BG = "#EDE5F7";
 const BADGE_TXT = "#5A3690";
 
-const TOOLTIP_EXPORT =
-  "Aplicado apenas em arquivos exportados. Totais da tela refletem todos os períodos.";
-
-function LabelExportOnly({ children }: { children: React.ReactNode }) {
+function LabelExportOnly({
+  children,
+  tooltip,
+}: {
+  children: React.ReactNode;
+  tooltip: string;
+}) {
   return (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
@@ -43,7 +47,7 @@ function LabelExportOnly({ children }: { children: React.ReactNode }) {
           </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs">
-          <p className="text-xs">{TOOLTIP_EXPORT}</p>
+          <p className="text-xs">{tooltip}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -57,6 +61,7 @@ function LabelComum({ children }: { children: React.ReactNode }) {
 }
 
 export function BarraFiltrosGlobais() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const isPreview = pathname.startsWith("/vitrine");
   const isAdminRoute =
@@ -116,7 +121,7 @@ export function BarraFiltrosGlobais() {
   const periodoLabel =
     filtros.periodo_inicio && filtros.periodo_fim
       ? `${filtros.periodo_inicio} → ${filtros.periodo_fim}`
-      : "Selecionar período";
+      : t("admin.filtros.selectPeriod");
 
   return (
     <div
@@ -126,7 +131,9 @@ export function BarraFiltrosGlobais() {
       <div className="flex flex-wrap items-end gap-3">
         {/* Período */}
         <div className="flex flex-col gap-1">
-          <LabelExportOnly>Período</LabelExportOnly>
+          <LabelExportOnly tooltip={t("admin.filtros.exportOnlyTooltip")}>
+            {t("admin.filtros.period")}
+          </LabelExportOnly>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -141,7 +148,7 @@ export function BarraFiltrosGlobais() {
             <PopoverContent className="w-auto p-3" align="start">
               <div className="flex flex-col gap-2">
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-600">Início</span>
+                  <span className="text-xs text-slate-600">{t("admin.filtros.start")}</span>
                   <Input
                     type="date"
                     value={filtros.periodo_inicio ?? ""}
@@ -152,7 +159,7 @@ export function BarraFiltrosGlobais() {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-600">Fim</span>
+                  <span className="text-xs text-slate-600">{t("admin.filtros.end")}</span>
                   <Input
                     type="date"
                     value={filtros.periodo_fim ?? ""}
@@ -169,7 +176,7 @@ export function BarraFiltrosGlobais() {
 
         {/* País */}
         <div className="flex flex-col gap-1">
-          <LabelComum>País</LabelComum>
+          <LabelComum>{t("admin.filtros.country")}</LabelComum>
           <Select
             value={filtros.pais}
             onValueChange={(v) => setFiltro("pais", v)}
@@ -178,7 +185,7 @@ export function BarraFiltrosGlobais() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="todos">{t("admin.filtros.allMasc")}</SelectItem>
               {paises.map((p) => (
                 <SelectItem key={p} value={p}>
                   {p}
@@ -190,7 +197,7 @@ export function BarraFiltrosGlobais() {
 
         {/* Estado */}
         <div className="flex flex-col gap-1">
-          <LabelComum>Estado</LabelComum>
+          <LabelComum>{t("admin.filtros.state")}</LabelComum>
           <Select
             value={filtros.estado}
             onValueChange={(v) => setFiltro("estado", v)}
@@ -199,7 +206,7 @@ export function BarraFiltrosGlobais() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="todos">{t("admin.filtros.allMasc")}</SelectItem>
               {estados.map((e) => (
                 <SelectItem key={e} value={e}>
                   {e}
@@ -211,7 +218,7 @@ export function BarraFiltrosGlobais() {
 
         {/* Cidade */}
         <div className="flex flex-col gap-1">
-          <LabelComum>Cidade</LabelComum>
+          <LabelComum>{t("admin.filtros.city")}</LabelComum>
           <Select
             value={filtros.cidade}
             onValueChange={(v) => setFiltro("cidade", v)}
@@ -220,7 +227,7 @@ export function BarraFiltrosGlobais() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todas</SelectItem>
+              <SelectItem value="todos">{t("admin.filtros.allFem")}</SelectItem>
               {cidades.map((c) => (
                 <SelectItem key={c} value={c}>
                   {c}
@@ -232,7 +239,7 @@ export function BarraFiltrosGlobais() {
 
         {/* Tipo de conta */}
         <div className="flex flex-col gap-1">
-          <LabelComum>Tipo de conta</LabelComum>
+          <LabelComum>{t("admin.filtros.accountType")}</LabelComum>
           <Select
             value={filtros.tipo_conta}
             onValueChange={(v) => setFiltro("tipo_conta", v as never)}
@@ -241,9 +248,9 @@ export function BarraFiltrosGlobais() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todas</SelectItem>
-              <SelectItem value="consultorio">Consultório</SelectItem>
-              <SelectItem value="institucional">Institucional</SelectItem>
+              <SelectItem value="todos">{t("admin.filtros.allFem")}</SelectItem>
+              <SelectItem value="consultorio">{t("admin.filtros.consultorio")}</SelectItem>
+              <SelectItem value="institucional">{t("admin.filtros.institucional")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -251,7 +258,7 @@ export function BarraFiltrosGlobais() {
         {/* Unidade — só quando institucional */}
         {filtros.tipo_conta === "institucional" && (
           <div className="flex flex-col gap-1">
-            <LabelComum>Unidade</LabelComum>
+            <LabelComum>{t("admin.filtros.unit")}</LabelComum>
             <Select
               value={filtros.unidade_id}
               onValueChange={(v) => setFiltro("unidade_id", v)}
@@ -260,7 +267,7 @@ export function BarraFiltrosGlobais() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todas</SelectItem>
+                <SelectItem value="todos">{t("admin.filtros.allFem")}</SelectItem>
                 {unidadesLista.map((u) => (
                   <SelectItem key={u.id} value={u.id}>
                     {u.nome}
@@ -273,7 +280,9 @@ export function BarraFiltrosGlobais() {
 
         {/* Momento diagnóstico */}
         <div className="flex flex-col gap-1">
-          <LabelExportOnly>Momento diagnóstico</LabelExportOnly>
+          <LabelExportOnly tooltip={t("admin.filtros.exportOnlyTooltip")}>
+            {t("admin.filtros.diagnosticMoment")}
+          </LabelExportOnly>
           <Select
             value={filtros.momento_diagnostico}
             onValueChange={(v) => setFiltro("momento_diagnostico", v as never)}
@@ -282,11 +291,11 @@ export function BarraFiltrosGlobais() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="retorno_1">Retorno 1</SelectItem>
-              <SelectItem value="gtt">GTT 75g (24-28 sem)</SelectItem>
-              <SelectItem value="gtt_tardio">GTT 75g tardio</SelectItem>
-              <SelectItem value="overt">OVERT DM</SelectItem>
+              <SelectItem value="todos">{t("admin.filtros.allMasc")}</SelectItem>
+              <SelectItem value="retorno_1">{t("admin.filtros.momentoRetorno1")}</SelectItem>
+              <SelectItem value="gtt">{t("admin.filtros.momentoGtt")}</SelectItem>
+              <SelectItem value="gtt_tardio">{t("admin.filtros.momentoGttTardio")}</SelectItem>
+              <SelectItem value="overt">{t("admin.filtros.momentoOvert")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -298,7 +307,7 @@ export function BarraFiltrosGlobais() {
               style={{ background: BADGE_BG, color: BADGE_TXT }}
             >
               <Filter className="h-3 w-3" />
-              {filtrosAtivosCount} ativo{filtrosAtivosCount > 1 ? "s" : ""}
+              {t("admin.filtros.activeCount", { count: filtrosAtivosCount })}
             </span>
           )}
           <Button
@@ -308,7 +317,7 @@ export function BarraFiltrosGlobais() {
             className="h-9 gap-1 text-slate-600"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Limpar
+            {t("common.clear")}
           </Button>
         </div>
       </div>

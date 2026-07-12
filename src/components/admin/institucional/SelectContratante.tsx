@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -30,8 +31,10 @@ const MARI_SANDBOX_NOME = "MARI Sandbox";
 export default function SelectContratante({
   value, onChange, disabled,
   incluirEncerrados = false, excluirIds = [], onIrParaContratantes,
-  placeholder = "Selecione um contratante…",
+  placeholder,
 }: Props) {
+  const { t } = useTranslation();
+  const placeholderText = placeholder ?? t("admin.selectContratante.placeholder");
   const { data = [], isLoading } = useQuery({
     queryKey: ["institucional", "contratantes-select", incluirEncerrados],
     queryFn: async () => {
@@ -51,7 +54,7 @@ export default function SelectContratante({
   if (!isLoading && filtered.length === 0) {
     return (
       <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 space-y-2">
-        <p>Não há contratantes ativos cadastrados. Cadastre um contratante antes de criar a unidade.</p>
+        <p>{t("admin.selectContratante.empty")}</p>
         {onIrParaContratantes && (
           <Button
             type="button"
@@ -60,7 +63,7 @@ export default function SelectContratante({
             onClick={onIrParaContratantes}
             className="border-amber-400"
           >
-            Ir para aba Contratantes
+            {t("admin.selectContratante.goToContractors")}
           </Button>
         )}
       </div>
@@ -70,7 +73,7 @@ export default function SelectContratante({
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled || isLoading}>
       <SelectTrigger>
-        <SelectValue placeholder={isLoading ? "Carregando…" : placeholder} />
+        <SelectValue placeholder={isLoading ? t("common.loading") : placeholderText} />
       </SelectTrigger>
       <SelectContent>
         {filtered.map((c) => (

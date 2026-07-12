@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, Fragment } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import {
   ResponsiveContainer,
@@ -102,6 +103,7 @@ const FONT_CORPO = "Plus Jakarta Sans, sans-serif";
 // =============================================================================
 
 function NotaLgpd() {
+  const { t } = useTranslation();
   return (
     <div
       className="rounded-lg border p-4 text-sm"
@@ -112,11 +114,8 @@ function NotaLgpd() {
         fontFamily: FONT_CORPO,
       }}
     >
-      <strong style={{ color: "#7E69AB" }}>Nota LGPD.</strong>{" "}
-      Todas as métricas exibidas são agregadas e anonimizadas — não há nome, CPF,
-      prontuário, valores individuais de glicemia ou laudos. Dados estatísticos
-      agregados se enquadram no Art. 12 da LGPD (dados anonimizados não são
-      considerados dados pessoais para os fins desta lei).
+      <strong style={{ color: "#7E69AB" }}>{t("admin.diagnosticos.lgpdLabel")}</strong>{" "}
+      {t("admin.diagnosticos.lgpdText")}
     </div>
   );
 }
@@ -199,13 +198,14 @@ function BarrasMotivo({
   itens: Array<{ nome: string; valor: number; cor: string }>;
   total: number;
 }) {
+  const { t } = useTranslation();
   if (!total) {
     return (
       <div
         className="rounded-lg border border-dashed p-6 text-center text-sm"
         style={{ borderColor: "#E2E8F0", color: COR_CINZA, fontFamily: FONT_CORPO }}
       >
-        Nenhum acompanhamento encerrado ainda.
+        {t("admin.diagnosticos.noClosuresYet")}
       </div>
     );
   }
@@ -269,6 +269,7 @@ function Pizza({
   cores: string[];
   vazioMsg: string;
 }) {
+  const { t } = useTranslation();
   const total = data.reduce((s, d) => s + d.value, 0);
   if (total === 0) {
     return (
@@ -319,12 +320,12 @@ function Pizza({
               <Cell key={i} fill={cores[i % cores.length]} stroke="#FFFFFF" strokeWidth={2} />
             ))}
           </Pie>
-          <Tooltip formatter={(v: number) => [`${v} (${((v / total) * 100).toFixed(1)}%)`, "Pacientes"]} />
+          <Tooltip formatter={(v: number) => [`${v} (${((v / total) * 100).toFixed(1)}%)`, t("admin.diagnosticos.patients")]} />
         </PieChart>
       </ResponsiveContainer>
       <div className="flex flex-col items-center gap-2 pt-1">
         <p className="text-[11px] uppercase tracking-wide" style={{ color: "#94A3B8", fontFamily: FONT_CORPO }}>
-          Gestantes diagnosticadas por rota · {total} no total
+          {t("admin.diagnosticos.pizzaCaption", { total })}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2">
           {data.map((d, i) => {
@@ -335,7 +336,7 @@ function Pizza({
                 key={d.name}
                 className="flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1.5 shadow-sm backdrop-blur transition-all hover:shadow-md"
                 style={{ borderColor: `${cor}33`, fontFamily: FONT_CORPO }}
-                title={`${d.value} gestantes (${pct}%) diagnosticadas via ${d.name}`}
+                title={t("admin.diagnosticos.pizzaItemTitle", { count: d.value, pct, rota: d.name })}
               >
                 <span
                   className="inline-block h-2.5 w-2.5 rounded-full"
@@ -348,7 +349,7 @@ function Pizza({
                   className="rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums"
                   style={{ backgroundColor: `${cor}1A`, color: cor }}
                 >
-                  {d.value} gestantes · {pct}%
+                  {t("admin.diagnosticos.pizzaItemBadge", { count: d.value, pct })}
                 </span>
               </div>
             );
@@ -363,6 +364,7 @@ function Pizza({
 
 
 function FunilTratamento({ funil }: { funil: Metricas["funil"] }) {
+  const { t } = useTranslation();
   // Insulina não é mais manejada pela MARI (insulinização encerra o
   // acompanhamento → endócrino). Ocultamos as etapas de insulina do funil.
   const ETAPAS_OCULTAS = new Set(["Insulina iniciada", "Insulina suficiente"]);
@@ -375,6 +377,13 @@ function FunilTratamento({ funil }: { funil: Metricas["funil"] }) {
     "Só dieta": "#5EEAD4",
     "Associar endócrino": COR_LARANJA,
   };
+  // Rótulo traduzido por etapa (a chave crua vem do backend e é usada na lógica).
+  const LABEL_ETAPA: Record<string, string> = {
+    "Total gestantes": t("admin.diagnosticos.funilTotalGestantes"),
+    "DMG confirmado": t("admin.diagnosticos.funilDmgConfirmado"),
+    "Só dieta": t("admin.diagnosticos.funilSoDieta"),
+    "Associar endócrino": t("admin.diagnosticos.funilAssociarEndocrino"),
+  };
   const max = Math.max(...etapas.map((f) => f.valor), 1);
   return (
     <div className="space-y-3">
@@ -383,7 +392,7 @@ function FunilTratamento({ funil }: { funil: Metricas["funil"] }) {
         return (
           <div key={etapa.etapa}>
             <div className="mb-1 flex items-center justify-between text-sm" style={{ fontFamily: FONT_CORPO }}>
-              <span style={{ color: "#1E293B" }}>{etapa.etapa}</span>
+              <span style={{ color: "#1E293B" }}>{LABEL_ETAPA[etapa.etapa] ?? etapa.etapa}</span>
               <span style={{ color: "#64748B" }}>{etapa.valor}</span>
             </div>
             <div className="h-6 w-full rounded-md" style={{ background: "#F1F5F9" }}>
@@ -424,6 +433,7 @@ function TabelaOrdenavel({
   expandivel?: boolean;
   renderDetalhe?: (row: Record<string, unknown>) => React.ReactNode;
 }) {
+  const { i18n } = useTranslation();
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -439,10 +449,10 @@ function TabelaOrdenavel({
         return sortDir === "asc" ? va - vb : vb - va;
       }
       return sortDir === "asc"
-        ? String(va).localeCompare(String(vb), "pt-BR")
-        : String(vb).localeCompare(String(va), "pt-BR");
+        ? String(va).localeCompare(String(vb), i18n.language)
+        : String(vb).localeCompare(String(va), i18n.language);
     });
-  }, [linhas, sortKey, sortDir]);
+  }, [linhas, sortKey, sortDir, i18n.language]);
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -542,6 +552,7 @@ function TabelaOrdenavel({
 // =============================================================================
 
 export default function DiagnosticosPage() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const isPreview = pathname.startsWith("/vitrine");
 
@@ -568,7 +579,7 @@ export default function DiagnosticosPage() {
       ]);
       if (cancelado) return;
       if (diag.error) {
-        setErro(diag.error.message ?? "Falha ao carregar métricas.");
+        setErro(diag.error.message ?? t("admin.diagnosticos.loadFail"));
       } else {
         setDados(diag.data as unknown as Metricas);
       }
@@ -607,7 +618,7 @@ export default function DiagnosticosPage() {
     return (
       <div className="rounded-lg border p-6" style={{ borderColor: "#FEE2E2", background: "#FEF2F2" }}>
         <p style={{ color: "#DC2626", fontFamily: FONT_CORPO }}>
-          Não foi possível carregar as métricas: {erro ?? "resposta vazia"}.
+          {t("admin.diagnosticos.loadError", { erro: erro ?? t("admin.diagnosticos.emptyResponse") })}
         </p>
       </div>
     );
@@ -626,10 +637,10 @@ export default function DiagnosticosPage() {
           className="text-2xl font-semibold mb-1"
           style={{ color: "#1E293B", fontFamily: FONT_TITULO }}
         >
-          Diagnósticos
+          {t("admin.diagnosticos.title")}
         </h2>
         <p className="text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
-          Métricas epidemiológicas agregadas — DMG, OVERT DM, tratamento e desfechos.
+          {t("admin.diagnosticos.subtitle")}
         </p>
       </div>
 
@@ -640,47 +651,47 @@ export default function DiagnosticosPage() {
       {/* 1. Cards de resumo */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricaCard
-          label="Total de gestantes"
+          label={t("admin.diagnosticos.cardTotalGestantes")}
           valor={resumo.total_gestantes}
-          tooltip="Todas as gestantes cadastradas no sistema (com consulta 1 finalizada), respeitando os filtros regionais aplicados."
+          tooltip={t("admin.diagnosticos.cardTotalGestantesTip")}
         />
         <MetricaCard
-          label="DMG confirmado"
+          label={t("admin.diagnosticos.cardDmg")}
           valor={resumo.dmg}
-          sublabel={pctSobreTotal(resumo.dmg) + " do total"}
+          sublabel={t("admin.diagnosticos.ofTotal", { pct: pctSobreTotal(resumo.dmg) })}
           cor={COR_LARANJA}
-          tooltip="Gestantes com diagnóstico confirmado de Diabete Mellitus Gestacional (cenários 1, 6 e 6b) — critério Febrasgo."
+          tooltip={t("admin.diagnosticos.cardDmgTip")}
         />
         <MetricaCard
           label="OVERT DM"
           valor={resumo.overt}
-          sublabel={pctSobreTotal(resumo.overt) + " do total"}
+          sublabel={t("admin.diagnosticos.ofTotal", { pct: pctSobreTotal(resumo.overt) })}
           cor={COR_VERMELHO}
-          tooltip="Diabete Overt (pré-existente identificado na gestação, cenário 8): glicemia de jejum ≥ 126 mg/dL ou pós-carga ≥ 200 mg/dL."
+          tooltip={t("admin.diagnosticos.cardOvertTip")}
         />
         <MetricaCard
-          label="DMG + OVERT DM combinados"
+          label={t("admin.diagnosticos.cardDmgOvert")}
           valor={resumo.dmg_overt_total}
-          sublabel={pctSobreTotal(resumo.dmg_overt_total) + " do total"}
+          sublabel={t("admin.diagnosticos.ofTotal", { pct: pctSobreTotal(resumo.dmg_overt_total) })}
           cor={COR_ROXO}
           destaque
-          tooltip="Soma automática de pacientes com DMG ou OVERT DM — total de gestantes com diabete diagnosticado."
+          tooltip={t("admin.diagnosticos.cardDmgOvertTip")}
         />
         <MetricaCard
-          label="Taxa de controle adequado"
+          label={t("admin.diagnosticos.cardControlRate")}
           valor={`${resumo.taxa_controle_global}%`}
-          sublabel="Dieta + insulina suficiente / DMG"
+          sublabel={t("admin.diagnosticos.cardControlRateSub")}
           cor={COR_VERDE}
           destaque
-          tooltip="Percentual de pacientes com DMG que atingiram controle glicêmico adequado só com dieta e exercício, sem necessidade de encaminhamento ao endócrino."
+          tooltip={t("admin.diagnosticos.cardControlRateTip")}
         />
       </div>
 
       {/* 2. Evolução mensal */}
       <CardContainer>
-        <SecaoTitulo>Evolução mensal</SecaoTitulo>
+        <SecaoTitulo>{t("admin.diagnosticos.evolTitle")}</SecaoTitulo>
         <p className="mb-3 text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
-          Últimos 12 meses — gestantes cadastradas e diagnósticos confirmados.
+          {t("admin.diagnosticos.evolDesc")}
         </p>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={evolucao_mensal}>
@@ -689,8 +700,8 @@ export default function DiagnosticosPage() {
             <YAxis tick={{ fill: "#64748B", fontSize: 12 }} allowDecimals={false} />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="gestantes" name="Gestantes" stroke={COR_LILAS} strokeWidth={2} />
-            <Line type="monotone" dataKey="diagnosticos" name="Diagnósticos" stroke={COR_LARANJA} strokeWidth={2} />
+            <Line type="monotone" dataKey="gestantes" name={t("admin.diagnosticos.seriesGestantes")} stroke={COR_LILAS} strokeWidth={2} />
+            <Line type="monotone" dataKey="diagnosticos" name={t("admin.diagnosticos.seriesDiagnosticos")} stroke={COR_LARANJA} strokeWidth={2} />
           </LineChart>
         </ResponsiveContainer>
       </CardContainer>
@@ -698,28 +709,28 @@ export default function DiagnosticosPage() {
       {/* 3. Momento do diagnóstico (pizza) + 4. IG média (3 cards) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CardContainer>
-          <SecaoTitulo>Momento do diagnóstico</SecaoTitulo>
+          <SecaoTitulo>{t("admin.diagnosticos.momentoTitle")}</SecaoTitulo>
           <Pizza
             data={[
-              { name: "Retorno 1", value: momento_diagnostico.retorno1 },
-              { name: "GTT 75g 24-28 sem", value: momento_diagnostico.gtt_janela },
-              { name: "GTT 75g tardio", value: momento_diagnostico.gtt_tardio },
+              { name: t("admin.diagnosticos.retorno1"), value: momento_diagnostico.retorno1 },
+              { name: t("admin.diagnosticos.gttJanela"), value: momento_diagnostico.gtt_janela },
+              { name: t("admin.diagnosticos.gttTardio"), value: momento_diagnostico.gtt_tardio },
             ]}
             cores={[COR_LILAS, COR_LARANJA, COR_VERMELHO]}
-            vazioMsg="Sem diagnósticos confirmados ainda."
+            vazioMsg={t("admin.diagnosticos.noConfirmedYet")}
           />
         </CardContainer>
 
         <CardContainer>
-          <SecaoTitulo>IG média no diagnóstico</SecaoTitulo>
+          <SecaoTitulo>{t("admin.diagnosticos.igMediaTitle")}</SecaoTitulo>
           <p className="mb-4 text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
-            Idade gestacional média (semanas) em que o diagnóstico foi confirmado por rota.
+            {t("admin.diagnosticos.igMediaDesc")}
           </p>
           <div className="flex flex-col divide-y" style={{ borderColor: "#EEF2F7" }}>
             {[
-              { label: "Retorno 1", valor: momento_diagnostico.ig_retorno1, cor: COR_LILAS, hint: "Glicemia de jejum alterada" },
-              { label: "GTT 75g janela", valor: momento_diagnostico.ig_gtt_janela, cor: COR_LARANJA, hint: "24–28 semanas" },
-              { label: "GTT 75g tardio", valor: momento_diagnostico.ig_gtt_tardio, cor: COR_VERMELHO, hint: "Após 28 semanas" },
+              { label: t("admin.diagnosticos.retorno1"), valor: momento_diagnostico.ig_retorno1, cor: COR_LILAS, hint: t("admin.diagnosticos.hintJejumAlterada") },
+              { label: t("admin.diagnosticos.gttJanelaShort"), valor: momento_diagnostico.ig_gtt_janela, cor: COR_LARANJA, hint: t("admin.diagnosticos.hint2428") },
+              { label: t("admin.diagnosticos.gttTardio"), valor: momento_diagnostico.ig_gtt_tardio, cor: COR_VERMELHO, hint: t("admin.diagnosticos.hintApos28") },
             ].map((row) => (
               <div key={row.label} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-3 min-w-0">
@@ -750,7 +761,7 @@ export default function DiagnosticosPage() {
                   </span>
                   {row.valor != null && (
                     <span className="text-xs font-medium" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
-                      sem
+                      {t("admin.diagnosticos.weeksAbbr")}
                     </span>
                   )}
                 </div>
@@ -763,21 +774,21 @@ export default function DiagnosticosPage() {
 
       {/* 5. Histórico de DMG anterior */}
       <CardContainer>
-        <SecaoTitulo>Histórico de DMG em gestação anterior</SecaoTitulo>
+        <SecaoTitulo>{t("admin.diagnosticos.historicoTitle")}</SecaoTitulo>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <MetricaCard
-            label="Pacientes com histórico"
+            label={t("admin.diagnosticos.patientsWithHistory")}
             valor={historico_dmg.pacientes_com_historico}
-            sublabel={pctSobreTotal(historico_dmg.pacientes_com_historico) + " do total"}
-            tooltip="Gestantes que relataram diagnóstico de DMG em gestação anterior no cadastro inicial."
+            sublabel={t("admin.diagnosticos.ofTotal", { pct: pctSobreTotal(historico_dmg.pacientes_com_historico) })}
+            tooltip={t("admin.diagnosticos.patientsWithHistoryTip")}
           />
           <MetricaCard
-            label="Tiveram DMG novamente"
+            label={t("admin.diagnosticos.dmgAgain")}
             valor={historico_dmg.dmg_entre_com_historico}
-            tooltip="Dentre as pacientes com histórico prévio, quantas foram confirmadas com DMG nesta gestação."
+            tooltip={t("admin.diagnosticos.dmgAgainTip")}
           />
           <MetricaCard
-            label="Taxa de recorrência"
+            label={t("admin.diagnosticos.recurrenceRate")}
             valor={
               historico_dmg.pacientes_com_historico === 0
                 ? "—"
@@ -786,7 +797,7 @@ export default function DiagnosticosPage() {
                   )}%`
             }
             cor={COR_LARANJA}
-            tooltip="Das pacientes que tiveram DMG em gestação anterior, quantas foram confirmadas com DMG aqui. As demais não desenvolveram DMG desta vez, ainda não foram confirmadas, ou foram classificadas como OVERT DM. Recorrência esperada na literatura: ~40–70%."
+            tooltip={t("admin.diagnosticos.recurrenceRateTip")}
           />
         </div>
       </CardContainer>
@@ -794,56 +805,56 @@ export default function DiagnosticosPage() {
       {/* 5b. Encerramentos e adesão (novas métricas) */}
       {encerr && (
         <CardContainer>
-          <SecaoTitulo>Encerramentos e adesão</SecaoTitulo>
+          <SecaoTitulo>{t("admin.diagnosticos.encerramentosTitle")}</SecaoTitulo>
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <MetricaCard
-              label="Em acompanhamento"
+              label={t("admin.diagnosticos.emAcompanhamento")}
               valor={encerr.ativas}
-              sublabel="pacientes ativas na MARI"
+              sublabel={t("admin.diagnosticos.emAcompanhamentoSub")}
               cor={COR_VERDE}
-              tooltip="Pacientes com acompanhamento ativo na MARI (ainda não encerradas por parto, aborto, insulinização ou abandono)."
+              tooltip={t("admin.diagnosticos.emAcompanhamentoTip")}
             />
             <MetricaCard
-              label="Acompanhamentos encerrados"
+              label={t("admin.diagnosticos.encerrados")}
               valor={encerr.encerradas}
-              sublabel="parto, aborto, insulinização, não retornou…"
-              tooltip="Total de acompanhamentos encerrados por qualquer motivo. Detalhamento por motivo no gráfico abaixo."
+              sublabel={t("admin.diagnosticos.encerradosSub")}
+              tooltip={t("admin.diagnosticos.encerradosTip")}
             />
             <MetricaCard
-              label="Não retornaram"
+              label={t("admin.diagnosticos.naoRetornaram")}
               valor={`${encerr.taxa_nao_retornou}%`}
-              sublabel={`${encerr.por_motivo.nao_retornou} de ${encerr.encerradas} encerradas`}
+              sublabel={t("admin.diagnosticos.naoRetornaramSub", { count: encerr.por_motivo.nao_retornou, total: encerr.encerradas })}
               cor={COR_LARANJA}
-              tooltip="Pacientes cujo acompanhamento foi encerrado por não terem retornado — indicador de adesão/abandono."
+              tooltip={t("admin.diagnosticos.naoRetornaramTip")}
             />
           </div>
 
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <div className="flex items-baseline justify-between mb-4">
-                <SecaoTitulo>Encerramentos por motivo</SecaoTitulo>
+                <SecaoTitulo>{t("admin.diagnosticos.encerramentosPorMotivo")}</SecaoTitulo>
                 <span className="text-xs" style={{ color: COR_CINZA, fontFamily: FONT_CORPO }}>
-                  {encerr.encerradas} encerramento{encerr.encerradas === 1 ? "" : "s"} no total
+                  {t("admin.diagnosticos.encerramentosTotalCount", { count: encerr.encerradas })}
                 </span>
               </div>
               <BarrasMotivo
                 total={encerr.encerradas}
                 itens={[
-                  { nome: "Parto", valor: encerr.por_motivo.parto, cor: COR_VERDE },
-                  { nome: "Aborto", valor: encerr.por_motivo.aborto, cor: COR_VERMELHO },
-                  { nome: "Insulinização → endócrino", valor: encerr.por_motivo.insulinizacao, cor: COR_LARANJA },
-                  { nome: "Não retornou", valor: encerr.por_motivo.nao_retornou, cor: "#94A3B8" },
-                  { nome: "Outro", valor: encerr.por_motivo.outro, cor: COR_LILAS },
+                  { nome: t("admin.diagnosticos.motivoParto"), valor: encerr.por_motivo.parto, cor: COR_VERDE },
+                  { nome: t("admin.diagnosticos.motivoAborto"), valor: encerr.por_motivo.aborto, cor: COR_VERMELHO },
+                  { nome: t("admin.diagnosticos.motivoInsulinizacao"), valor: encerr.por_motivo.insulinizacao, cor: COR_LARANJA },
+                  { nome: t("admin.diagnosticos.motivoNaoRetornou"), valor: encerr.por_motivo.nao_retornou, cor: "#94A3B8" },
+                  { nome: t("admin.diagnosticos.motivoOutro"), valor: encerr.por_motivo.outro, cor: COR_LILAS },
                 ]}
               />
             </div>
             <div className="flex flex-col gap-4">
               <MetricaCard
-                label="IG média no encaminhamento ao endócrino"
-                valor={encerr.ig_ao_endocrino != null ? `${encerr.ig_ao_endocrino} sem` : "—"}
-                sublabel="quanto antes, melhor"
+                label={t("admin.diagnosticos.igEncaminhamento")}
+                valor={encerr.ig_ao_endocrino != null ? t("admin.diagnosticos.weeksValue", { count: encerr.ig_ao_endocrino }) : "—"}
+                sublabel={t("admin.diagnosticos.soonerBetter")}
                 cor={COR_LARANJA}
-                tooltip="Idade gestacional média em que as pacientes que precisaram de insulina foram encaminhadas ao endócrino. Referência: quanto mais cedo, melhor o prognóstico."
+                tooltip={t("admin.diagnosticos.igEncaminhamentoTip")}
               />
             </div>
 
@@ -853,9 +864,9 @@ export default function DiagnosticosPage() {
 
       {/* 6. Funil */}
       <CardContainer>
-        <SecaoTitulo>Funil de tratamento</SecaoTitulo>
+        <SecaoTitulo>{t("admin.diagnosticos.funilTitle")}</SecaoTitulo>
         <p className="mb-4 text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
-          Total → DMG → Só dieta → Insulina iniciada → Insulina suficiente → Associar endócrino.
+          {t("admin.diagnosticos.funilDesc")}
         </p>
         <FunilTratamento funil={funil} />
       </CardContainer>
@@ -864,22 +875,19 @@ export default function DiagnosticosPage() {
              (Insulina não é mais manejada pela MARI → cards de insulina removidos.) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <MetricaCard
-          label="Controle só com dieta + exercício"
+          label={t("admin.diagnosticos.controlOnlyDiet")}
           valor={tratamento.so_dieta}
-          sublabel={pct(tratamento.so_dieta) + " das pacientes com DMG"}
+          sublabel={t("admin.diagnosticos.ofDmgPatients", { pct: pct(tratamento.so_dieta) })}
           cor={COR_VERDE}
-          tooltip="Pacientes com DMG que atingiram controle glicêmico adequado sem necessidade de insulina — cenário ideal, manejo integral pela GO."
+          tooltip={t("admin.diagnosticos.controlOnlyDietTip")}
         />
         <MetricaCard
-          label="Necessidade de associar endócrino"
+          label={t("admin.diagnosticos.needEndocrino")}
           valor={tratamento.cenario7}
-          sublabel={
-            pct(tratamento.cenario7) +
-            " das pacientes com DMG · GO permanece protagonista do pré-natal."
-          }
+          sublabel={t("admin.diagnosticos.needEndocrinoSub", { pct: pct(tratamento.cenario7) })}
           cor={COR_LARANJA}
           destaque
-          tooltip="Pacientes que precisaram iniciar insulina (cenário 7) e foram encaminhadas ao endócrino. A GO segue protagonista do pré-natal; a MARI encerra o manejo da glicemia neste ponto."
+          tooltip={t("admin.diagnosticos.needEndocrinoTip")}
         />
       </div>
 
@@ -887,15 +895,13 @@ export default function DiagnosticosPage() {
       {encerr && (
         <CardContainer>
           <div className="flex items-baseline justify-between gap-3 flex-wrap">
-            <SecaoTitulo>Volume de laudos gerados por mês</SecaoTitulo>
+            <SecaoTitulo>{t("admin.diagnosticos.laudosVolumeTitle")}</SecaoTitulo>
             <span className="text-xs" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
-              últimos 12 meses · atualizado em tempo real
+              {t("admin.diagnosticos.laudosVolumeMeta")}
             </span>
           </div>
           <p className="mt-1 mb-4 text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
-            Cada laudo corresponde a uma consulta finalizada na MARI. A série pode aparecer zerada
-            enquanto o histórico de laudos não é populado (ex.: base recém-migrada ou período sem
-            atendimentos finalizados).
+            {t("admin.diagnosticos.laudosVolumeDesc")}
           </p>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={encerr.laudos_mensais} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
@@ -903,7 +909,7 @@ export default function DiagnosticosPage() {
               <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
               <Tooltip cursor={{ fill: "rgba(0,0,0,0.04)" }} />
-              <Bar dataKey="qtd" name="Laudos" fill={COR_LILAS} radius={[4, 4, 0, 0]} maxBarSize={48} />
+              <Bar dataKey="qtd" name={t("admin.diagnosticos.laudosBarName")} fill={COR_LILAS} radius={[4, 4, 0, 0]} maxBarSize={48} />
             </BarChart>
           </ResponsiveContainer>
         </CardContainer>
@@ -915,67 +921,67 @@ export default function DiagnosticosPage() {
 
       {/* 13–14. Quebras regionais — agrupadas por escopo (padrão Painel) */}
       <div className="space-y-8">
-        <SecaoTitulo>Quebra por região</SecaoTitulo>
+        <SecaoTitulo>{t("admin.diagnosticos.regionalTitle")}</SecaoTitulo>
 
         <GrupoEscopo
           escopo="consultorio"
-          titulo="Análises de Consultório"
-          descricao="Taxa de DMG entre gestantes atendidas por profissionais autônomos (sem vínculo institucional)."
+          titulo={t("admin.diagnosticos.consultorioGroupTitle")}
+          descricao={t("admin.diagnosticos.consultorioGroupDesc")}
         >
           <TabelaOrdenavel
-            titulo="Taxa de DMG por estado"
+            titulo={t("admin.diagnosticos.dmgByState")}
             colunas={[
-              { key: "estado", label: "Estado" },
-              { key: "gestantes", label: "Gestantes", numerica: true },
+              { key: "estado", label: t("patient.state") },
+              { key: "gestantes", label: t("admin.diagnosticos.colGestantes"), numerica: true },
               { key: "dmg", label: "DMG", numerica: true },
-              { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
+              { key: "taxa_dmg", label: t("admin.diagnosticos.colDmgRate"), numerica: true, format: (v) => `${v}%` },
             ]}
             linhas={regionalFiltrado.por_estado as unknown as Array<Record<string, unknown>>}
-            vazioMsg="Sem pacientes de consultório ainda."
+            vazioMsg={t("admin.diagnosticos.noConsultorioPatients")}
           />
           <TabelaOrdenavel
-            titulo="Taxa de DMG por cidade"
+            titulo={t("admin.diagnosticos.dmgByCity")}
             colunas={[
-              { key: "cidade", label: "Cidade" },
-              { key: "estado", label: "Estado" },
-              { key: "gestantes", label: "Gestantes", numerica: true },
+              { key: "cidade", label: t("patient.city") },
+              { key: "estado", label: t("patient.state") },
+              { key: "gestantes", label: t("admin.diagnosticos.colGestantes"), numerica: true },
               { key: "dmg", label: "DMG", numerica: true },
-              { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
+              { key: "taxa_dmg", label: t("admin.diagnosticos.colDmgRate"), numerica: true, format: (v) => `${v}%` },
             ]}
             linhas={
               regionalFiltrado.por_cidade
                 .slice(0, 20) as unknown as Array<Record<string, unknown>>
             }
-            vazioMsg="Sem pacientes de consultório ainda."
+            vazioMsg={t("admin.diagnosticos.noConsultorioPatients")}
           />
         </GrupoEscopo>
 
         <GrupoEscopo
           escopo="institucional"
-          titulo="Análises Institucionais"
-          descricao="Taxa de DMG por unidade — UBS, hospitais e clínicas conveniadas."
+          titulo={t("admin.diagnosticos.institucionalGroupTitle")}
+          descricao={t("admin.diagnosticos.institucionalGroupDesc")}
         >
           <TabelaOrdenavel
-            titulo="Métricas por unidade"
+            titulo={t("admin.diagnosticos.metricsByUnit")}
             colunas={[
-              { key: "unidade", label: "Unidade" },
-              { key: "cidade", label: "Cidade" },
-              { key: "estado", label: "Estado" },
-              { key: "gestantes", label: "Gestantes", numerica: true },
+              { key: "unidade", label: t("admin.diagnosticos.colUnit") },
+              { key: "cidade", label: t("patient.city") },
+              { key: "estado", label: t("patient.state") },
+              { key: "gestantes", label: t("admin.diagnosticos.colGestantes"), numerica: true },
               { key: "dmg", label: "DMG", numerica: true },
-              { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
+              { key: "taxa_dmg", label: t("admin.diagnosticos.colDmgRate"), numerica: true, format: (v) => `${v}%` },
             ]}
             linhas={regionalFiltrado.por_unidade as unknown as Array<Record<string, unknown>>}
-            vazioMsg="Nenhuma unidade com pacientes vinculadas."
+            vazioMsg={t("admin.diagnosticos.noUnitPatients")}
             expandivel
             renderDetalhe={(row) => {
               const r = row as { unidade: string; cidade: string; estado: string; gestantes: number; dmg: number; taxa_dmg: number };
               return (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm" style={{ fontFamily: FONT_CORPO, color: "#475569" }}>
-                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Localização</span>{r.cidade} / {r.estado}</div>
-                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Gestantes</span>{r.gestantes}</div>
+                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">{t("admin.diagnosticos.detailLocation")}</span>{r.cidade} / {r.estado}</div>
+                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">{t("admin.diagnosticos.colGestantes")}</span>{r.gestantes}</div>
                   <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">DMG</span>{r.dmg} ({r.taxa_dmg}%)</div>
-                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">Sem DMG</span>{Math.max(0, r.gestantes - r.dmg)}</div>
+                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">{t("admin.diagnosticos.detailNoDmg")}</span>{Math.max(0, r.gestantes - r.dmg)}</div>
                 </div>
             );
           }}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ interface Depoimento {
 type Filtro = 'pendentes' | 'aprovados' | 'reprovados' | 'todos';
 
 export default function DepoimentosAdminPage() {
+  const { t } = useTranslation();
   const [lista, setLista] = useState<Depoimento[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState<Filtro>('pendentes');
@@ -35,7 +37,7 @@ export default function DepoimentosAdminPage() {
       .from('depoimentos_usuario')
       .select('id, user_id, rating, texto, aprovado, created_at')
       .order('created_at', { ascending: false });
-    if (error) { toast.error('Erro ao carregar.'); setLoading(false); return; }
+    if (error) { toast.error(t('admin.depoimentos.loadError')); setLoading(false); return; }
     const rows = (data as Depoimento[]) || [];
     const ids = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
     if (ids.length > 0) {
@@ -66,18 +68,18 @@ export default function DepoimentosAdminPage() {
     setUpdating(id);
     const { error } = await supabase.from('depoimentos_usuario').update({ aprovado }).eq('id', id);
     setUpdating(null);
-    if (error) { toast.error('Erro ao atualizar.'); return; }
+    if (error) { toast.error(t('admin.depoimentos.updateError')); return; }
     setLista((prev) => prev.map((d) => (d.id === id ? { ...d, aprovado } : d)));
-    toast.success(aprovado ? 'Depoimento aprovado.' : 'Depoimento reprovado.');
+    toast.success(aprovado ? t('admin.depoimentos.approved') : t('admin.depoimentos.rejected'));
   };
 
   const confirmarExcluir = async () => {
     if (!aExcluir) return;
     const { error } = await supabase.from('depoimentos_usuario').delete().eq('id', aExcluir.id);
-    if (error) { toast.error('Erro ao excluir.'); return; }
+    if (error) { toast.error(t('admin.depoimentos.deleteError')); return; }
     setLista((prev) => prev.filter((d) => d.id !== aExcluir.id));
     setAExcluir(null);
-    toast.success('Depoimento excluído.');
+    toast.success(t('admin.depoimentos.deleted'));
   };
 
   if (loading) {
@@ -107,25 +109,25 @@ export default function DepoimentosAdminPage() {
           </div>
           <div>
             <h1 className="text-3xl font-semibold text-foreground" style={{ fontFamily: 'Sora, sans-serif' }}>
-              Depoimentos
+              {t('admin.depoimentos.title')}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Aprove ou reprove depoimentos enviados pelos usuários.
+              {t('admin.depoimentos.subtitle')}
             </p>
           </div>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <FiltroChip value="pendentes" label="Pendentes" count={contadores.pendentes} />
-        <FiltroChip value="aprovados" label="Aprovados" count={contadores.aprovados} />
-        <FiltroChip value="reprovados" label="Reprovados" count={contadores.reprovados} />
-        <FiltroChip value="todos" label="Todos" />
+        <FiltroChip value="pendentes" label={t('admin.depoimentos.tabPendentes')} count={contadores.pendentes} />
+        <FiltroChip value="aprovados" label={t('admin.depoimentos.tabAprovados')} count={contadores.aprovados} />
+        <FiltroChip value="reprovados" label={t('admin.depoimentos.tabReprovados')} count={contadores.reprovados} />
+        <FiltroChip value="todos" label={t('common.all')} />
       </div>
 
       {filtrada.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center text-muted-foreground">
-          Nenhum depoimento nesta categoria.
+          {t('admin.depoimentos.emptyCategory')}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -140,31 +142,31 @@ export default function DepoimentosAdminPage() {
                     />
                   ))}
                 </div>
-                {d.aprovado === true && <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Aprovado</Badge>}
-                {d.aprovado === false && <Badge variant="destructive">Reprovado</Badge>}
-                {(d.aprovado === null || d.aprovado === undefined) && <Badge variant="outline">Pendente</Badge>}
+                {d.aprovado === true && <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">{t('admin.depoimentos.badgeAprovado')}</Badge>}
+                {d.aprovado === false && <Badge variant="destructive">{t('admin.depoimentos.badgeReprovado')}</Badge>}
+                {(d.aprovado === null || d.aprovado === undefined) && <Badge variant="outline">{t('admin.depoimentos.badgePendente')}</Badge>}
               </div>
               <p className="mb-3 whitespace-pre-wrap text-sm text-foreground min-h-[3rem]">
-                {d.texto || <em className="text-muted-foreground">Sem texto</em>}
+                {d.texto || <em className="text-muted-foreground">{t('admin.depoimentos.noText')}</em>}
               </p>
               <div className="mb-4 text-xs text-muted-foreground">
-                {d.autor || 'Usuário'} · {formatDateBR(d.created_at)}
+                {d.autor || t('admin.depoimentos.userFallback')} · {formatDateBR(d.created_at)}
               </div>
               <div className="flex flex-wrap gap-2">
                 {d.aprovado !== true && (
                   <Button size="sm" onClick={() => moderar(d.id, true)} disabled={updating === d.id}
                     className="bg-emerald-600 hover:bg-emerald-700">
-                    <Check className="mr-1 h-4 w-4" /> Aprovar
+                    <Check className="mr-1 h-4 w-4" /> {t('admin.depoimentos.approve')}
                   </Button>
                 )}
                 {d.aprovado !== false && (
                   <Button size="sm" variant="outline" onClick={() => moderar(d.id, false)} disabled={updating === d.id}>
-                    <X className="mr-1 h-4 w-4" /> Reprovar
+                    <X className="mr-1 h-4 w-4" /> {t('admin.depoimentos.reject')}
                   </Button>
                 )}
                 <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive"
                   onClick={() => setAExcluir(d)}>
-                  <Trash2 className="mr-1 h-4 w-4" /> Excluir
+                  <Trash2 className="mr-1 h-4 w-4" /> {t('common.delete')}
                 </Button>
               </div>
             </div>
@@ -175,13 +177,13 @@ export default function DepoimentosAdminPage() {
       <AlertDialog open={!!aExcluir} onOpenChange={(o) => !o && setAExcluir(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir depoimento?</AlertDialogTitle>
-            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+            <AlertDialogTitle>{t('admin.depoimentos.deleteConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('admin.depoimentos.irreversible')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmarExcluir} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

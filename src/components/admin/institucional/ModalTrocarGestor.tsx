@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function ModalTrocarGestor({ unidade, onClose, onSucesso }: Props) {
+  const { t } = useTranslation();
   const [destino, setDestino] = useState("remover");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -53,7 +55,7 @@ export default function ModalTrocarGestor({ unidade, onClose, onSucesso }: Props
       onClose(); toast.error(FALLBACK_GENERICO); return;
     }
     setSubmitting(false);
-    toast.success(`Gestor trocado. E-mail enviado para ${email.trim()}.`);
+    toast.success(t("admin.trocarGestor.success", { email: email.trim() }));
     onSucesso(); onClose();
   }
 
@@ -62,37 +64,37 @@ export default function ModalTrocarGestor({ unidade, onClose, onSucesso }: Props
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle className="font-[Sora] text-[#5B3A8E]">
-            Trocar gestor da unidade {unidade?.nome ?? ""}
+            {t("admin.trocarGestor.title", { unidade: unidade?.nome ?? "" })}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Escolha o que fazer com o gestor atual antes de cadastrar o novo gestor.
+            {t("admin.trocarGestor.intro")}
           </p>
           <RadioGroup value={destino} onValueChange={setDestino}>
             <div className="flex items-start gap-2">
               <RadioGroupItem value="remover" id="d-rem" className="mt-1" />
-              <Label htmlFor="d-rem" className="font-normal">Remover acesso do gestor atual</Label>
+              <Label htmlFor="d-rem" className="font-normal">{t("admin.trocarGestor.optRemove")}</Label>
             </div>
             <div className="flex items-start gap-2">
               <RadioGroupItem value="manter_como_profissional" id="d-man" className="mt-1" />
-              <Label htmlFor="d-man" className="font-normal">Manter como profissional da unidade</Label>
+              <Label htmlFor="d-man" className="font-normal">{t("admin.trocarGestor.optKeep")}</Label>
             </div>
           </RadioGroup>
 
           <div className="flex gap-2 rounded-md border-l-4 border-l-[#F59E0B] bg-[#FEF3C7] p-3 text-sm text-[#7C2D12]">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <p>O gestor anterior perde acesso ao painel de gestão. Esta ação não pode ser desfeita automaticamente.</p>
+            <p>{t("admin.trocarGestor.warning")}</p>
           </div>
 
           <div className="space-y-3 border-t pt-4">
-            <h3 className="text-sm font-semibold text-[#5B3A8E]">Novo gestor</h3>
+            <h3 className="text-sm font-semibold text-[#5B3A8E]">{t("admin.trocarGestor.newManager")}</h3>
             <div className="space-y-1.5">
-              <Label>Nome</Label>
+              <Label>{t("common.name")}</Label>
               <Input value={nome} onChange={(e) => setNome(e.target.value)} disabled={submitting} />
             </div>
             <div className="space-y-1.5">
-              <Label>E-mail</Label>
+              <Label>{t("common.email")}</Label>
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={submitting} />
             </div>
           </div>
@@ -104,10 +106,10 @@ export default function ModalTrocarGestor({ unidade, onClose, onSucesso }: Props
           )}
 
           <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t("common.cancel")}</Button>
             <Button type="submit" disabled={!valido || submitting} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Trocar gestor
+              {t("admin.trocarGestor.submit")}
             </Button>
           </DialogFooter>
         </form>
