@@ -979,6 +979,7 @@ export default function DiagnosticosPage() {
             );
           }}
         />
+        </GrupoEscopo>
       </div>
     </div>
   );
