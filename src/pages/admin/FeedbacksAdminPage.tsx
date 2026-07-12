@@ -246,6 +246,15 @@ export default function FeedbacksAdminPage() {
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLE[f.status]}`}>
                     {f.status === 'novo' ? 'Novo' : f.status === 'lido' ? 'Lido' : 'Resolvido'}
                   </span>
+                  {f.tipo_perfil === 'institucional' ? (
+                    <Badge variant="outline" className="border-teal-500/40 bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
+                      Institucional{f.unidade_nome ? ` · ${f.unidade_nome}` : ''}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-primary/30 bg-primary/5 text-primary">
+                      Consultório
+                    </Badge>
+                  )}
                   <span className="text-sm font-medium text-foreground">{f.autor || 'Usuário'}</span>
                   <span className="text-xs text-muted-foreground">{formatDateBR(f.created_at)}</span>
                 </div>
