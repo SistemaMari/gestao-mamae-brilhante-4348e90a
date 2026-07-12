@@ -196,10 +196,9 @@ function Pizza({
       </div>
     );
   }
-  const renderPctLabel = (props: {
-    cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; value: number;
-  }) => {
+  const renderPctLabel = (props: any) => {
     const { cx, cy, midAngle, innerRadius, outerRadius, value } = props;
+
     const pct = (value / total) * 100;
     if (pct < 4) return null;
     const RADIAN = Math.PI / 180;
