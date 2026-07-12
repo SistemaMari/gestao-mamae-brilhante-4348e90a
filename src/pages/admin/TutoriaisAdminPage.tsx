@@ -296,13 +296,13 @@ export default function TutoriaisAdminPage() {
     }
   }
 
-  async function alternarAtivo(t: TutorialRow) {
-    setTogglingId(t.id);
+  async function alternarAtivo(tut: TutorialRow) {
+    setTogglingId(tut.id);
     try {
       const { error } = await supabase
         .from('tutoriais')
-        .update({ ativo: !t.ativo })
-        .eq('id', t.id);
+        .update({ ativo: !tut.ativo })
+        .eq('id', tut.id);
       if (error) throw error;
       invalidar();
     } catch (e) {
@@ -311,6 +311,7 @@ export default function TutoriaisAdminPage() {
       setTogglingId(null);
     }
   }
+
 
   function editar(t: TutorialRow) {
     setForm({
