@@ -819,6 +819,8 @@
     "laudoTextos": {
       "title": "Report Texts",
       "subtitleBase": "Edit the texts shown in the reports.",
+      "idiomaLabel": "Report language",
+      "idiomaAjuda": "Each language is edited separately. A change made in Portuguese must be replicated here manually.",
       "rascunhosPendentes": "{{count}} draft(s) awaiting publication.",
       "nenhumRascunho": "No pending drafts.",
       "variaveisSummary": "Available variables (write in brackets, e.g.: [patient name])",

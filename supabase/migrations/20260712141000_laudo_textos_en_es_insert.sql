@@ -1,24 +1,10 @@
 -- ============================================================
--- Fase 2 — laudo multilíngue: adiciona coluna idioma à laudo_textos
--- e faz os índices considerarem o idioma. Linhas existentes viram 'pt-BR'.
--- RODAR ANTES do INSERT das linhas EN/ES (senão o índice único bloqueia).
--- ⚠️ Aplicar à mão no Supabase (não roda no Publish).
+-- Fase 2 — laudo multilíngue (2/2): textos EN/ES (128 INSERTs).
+-- 🚨 RODAR SÓ DEPOIS de: (1) rodar a migration ..._idioma_coluna.sql
+--    e (2) publicar o código que filtra por idioma. Se rodar antes do código,
+--    as queries sem filtro de idioma devolvem pt+en+es juntos → laudo triplicado.
+-- status='publicado' (usável já; especialistas refinam pelo editor /admin/laudos).
 -- ============================================================
-
-ALTER TABLE public.laudo_textos
-  ADD COLUMN IF NOT EXISTS idioma text NOT NULL DEFAULT 'pt-BR';
-
--- 1 texto PUBLICADO por (tipo, desfecho, bloco, IDIOMA)
-DROP INDEX IF EXISTS idx_laudo_textos_unico_publicado;
-CREATE UNIQUE INDEX idx_laudo_textos_unico_publicado
-  ON public.laudo_textos (tipo_consulta, desfecho_clinico, bloco, idioma)
-  WHERE status = 'publicado';
-
--- índice de leitura passa a incluir idioma
-DROP INDEX IF EXISTS idx_laudo_textos_chave;
-CREATE INDEX idx_laudo_textos_chave
-  ON public.laudo_textos (tipo_consulta, desfecho_clinico, status, idioma);
-
 
 -- Linhas EN/ES de laudo_textos (geradas). Rodar DEPOIS da migration de idioma.
 -- status='publicado' (usável já; especialistas refinam pelo editor).

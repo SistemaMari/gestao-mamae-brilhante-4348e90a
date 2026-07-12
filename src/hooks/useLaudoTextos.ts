@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import i18n, { normalizeLang } from '@/i18n';
 
 /**
  * Estados possíveis da seção de textos do laudo (34D-B).
@@ -109,8 +110,11 @@ export function useLaudoTextos({ isPreview }: UseLaudoTextosOptions) {
       }));
 
       try {
+        // Fase 2 — o preview segue o idioma atual do app (mesmo LanguageSwitcher
+        // do topo). A Edge Function default 'pt-BR' se o idioma não vier.
+        const idioma = normalizeLang(i18n.language);
         const { data, error } = await supabase.functions.invoke('obter-textos-laudo', {
-          body: { tipo_consulta: tipoConsulta, desfecho_clinico: desfechoClinico },
+          body: { tipo_consulta: tipoConsulta, desfecho_clinico: desfechoClinico, idioma },
         });
 
         if (error) {
@@ -205,8 +209,11 @@ export function useLaudoTextos({ isPreview }: UseLaudoTextosOptions) {
       tipoConsulta: string | null | undefined,
       desfechoClinico: string | null | undefined,
     ) => {
-      if (tentadosRef.current.has(consultaId)) return;
-      tentadosRef.current.add(consultaId);
+      // Dedupe por consulta + idioma: trocar o idioma do app deve refazer a
+      // busca (o texto pt em cache não serve pro preview em en/es).
+      const chave = `${consultaId}::${normalizeLang(i18n.language)}`;
+      if (tentadosRef.current.has(chave)) return;
+      tentadosRef.current.add(chave);
       void carregar(consultaId, tipoConsulta, desfechoClinico);
     },
     [carregar],
@@ -232,7 +239,7 @@ export function useLaudoTextos({ isPreview }: UseLaudoTextosOptions) {
       tipoConsulta: string | null | undefined,
       desfechoClinico: string | null | undefined,
     ) => {
-      tentadosRef.current.delete(consultaId);
+      tentadosRef.current.delete(`${consultaId}::${normalizeLang(i18n.language)}`);
       void carregar(consultaId, tipoConsulta, desfechoClinico);
     },
     [carregar],

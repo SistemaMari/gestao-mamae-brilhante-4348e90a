@@ -21,6 +21,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SUPPORTED_LANGUAGES, LANGUAGE_META, type SupportedLanguage } from '@/i18n';
 import {
   VARIAVEIS_LAUDO, labelBloco, variaveisDesconhecidas, ajudaCenario,
   cenarioTecnicoOculto, familiaTipo, tipoRepresentante, notaFamilia,
@@ -45,6 +47,9 @@ export default function LaudoTextosPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Fase 2 — idioma ativo do editor (PT/EN/ES). Cada idioma é uma coleção
+  // independente de textos; edita-se um por vez pela aba selecionada.
+  const [idioma, setIdioma] = useState<SupportedLanguage>('pt-BR');
   const [editando, setEditando] = useState<{ cenario: CenarioAgrupado; bloco: BlocoAgrupado } | null>(null);
   const [formTexto, setFormTexto] = useState('');
   const [formTitulo, setFormTitulo] = useState('');
@@ -53,12 +58,13 @@ export default function LaudoTextosPage() {
   const [descartarAlvo, setDescartarAlvo] = useState<BlocoAgrupado | null>(null);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['admin-laudo-textos'],
+    queryKey: ['admin-laudo-textos', idioma],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('laudo_textos')
-        .select('id, tipo_consulta, desfecho_clinico, bloco, ordem_bloco, titulo_bloco, texto, versao, status, observacoes')
+        .select('id, tipo_consulta, desfecho_clinico, bloco, ordem_bloco, titulo_bloco, texto, versao, status, observacoes, idioma')
         .in('status', ['publicado', 'rascunho'])
+        .eq('idioma', idioma)
         .order('ordem_bloco', { ascending: true });
       if (error) throw error;
       return (data ?? []) as LaudoTextoRow[];
@@ -138,6 +144,7 @@ export default function LaudoTextosPage() {
             status: 'rascunho',
             versao: (pub.versao ?? 1) + 1,
             criado_por: user?.id ?? null,
+            idioma: pub.idioma,
           });
           if (error) throw error;
         }
@@ -218,6 +225,26 @@ export default function LaudoTextosPage() {
             : `${t('admin.laudoTextos.subtitleBase')} ${totalRascunhos > 0 ? t('admin.laudoTextos.rascunhosPendentes', { count: totalRascunhos }) : t('admin.laudoTextos.nenhumRascunho')}`}
         </p>
       </header>
+
+      {/* Fase 2 — seletor de idioma. Cada idioma é uma coleção independente. */}
+      <div className="space-y-2">
+        <span className="text-xs font-medium text-[#5B3A8E]">{t('admin.laudoTextos.idiomaLabel')}</span>
+        <Tabs value={idioma} onValueChange={(v) => setIdioma(v as SupportedLanguage)}>
+          <TabsList>
+            {SUPPORTED_LANGUAGES.map((lng) => (
+              <TabsTrigger key={lng} value={lng}>
+                {LANGUAGE_META[lng].flag} {LANGUAGE_META[lng].short}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+        {idioma !== 'pt-BR' && (
+          <div className="flex items-start gap-2 rounded-md bg-[#F1F0FB] px-3 py-2 text-xs text-[#5B21B6]">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{t('admin.laudoTextos.idiomaAjuda')}</span>
+          </div>
+        )}
+      </div>
 
       <details className="rounded-lg border border-[#E2E8F0] bg-white p-4">
         <summary className="cursor-pointer text-sm font-medium text-[#5B3A8E]">

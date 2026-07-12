@@ -819,6 +819,8 @@
     "laudoTextos": {
       "title": "Textos de Informe",
       "subtitleBase": "Edita los textos que se muestran en los informes.",
+      "idiomaLabel": "Idioma del informe",
+      "idiomaAjuda": "Cada idioma se edita por separado. Un ajuste hecho en portugués debe replicarse aquí manualmente.",
       "rascunhosPendentes": "{{count}} borrador(es) esperando publicación.",
       "nenhumRascunho": "Ningún borrador pendiente.",
       "variaveisSummary": "Variables disponibles (escribe entre corchetes, ej.: [nombre de la paciente])",

@@ -32,6 +32,15 @@ function jsonResp(body: unknown, status = 200) {
   });
 }
 
+// Fase 2 — normaliza o idioma para um dos valores de laudo_textos.idioma.
+// Espelha `normalizeLang` do front (src/i18n/index.ts). Default 'pt-BR'.
+function normalizarIdioma(value: unknown): "pt-BR" | "en-US" | "es" {
+  const v = typeof value === "string" ? value.toLowerCase() : "";
+  if (v.startsWith("en")) return "en-US";
+  if (v.startsWith("es")) return "es";
+  return "pt-BR";
+}
+
 // 34C-A: IG é derivada AO VIVO pela função SQL `calcular_ig`, que é a fonte
 // única (lê pacientes.referencia_ig + referencia_usg_id|dum). Nenhum cálculo
 // local de IG deve coexistir aqui — qualquer divergência seria bug.
@@ -93,6 +102,7 @@ async function obterTextosLaudo(
   supabaseAdmin: any,
   tipo_consulta: string,
   desfecho_clinico: string,
+  idioma: string,
 ): Promise<
   | { completo: true; textos: Array<{ bloco: string; ordem_bloco: number; titulo_bloco: string | null; texto: string; versao: number }> }
   | { completo: false; blocos_faltantes: string[]; mensagem: string }
@@ -103,6 +113,7 @@ async function obterTextosLaudo(
     .eq("tipo_consulta", tipo_consulta)
     .eq("desfecho_clinico", desfecho_clinico)
     .eq("status", "publicado")
+    .eq("idioma", idioma)
     .order("ordem_bloco", { ascending: true });
 
   if (error) throw new Error(`Erro ao ler laudo_textos: ${error.message}`);
@@ -139,10 +150,13 @@ Deno.serve(async (req) => {
     const userId = userData.user.id;
 
     // Body
-    const { paciente_id, consulta_id, cenario_clinico: cenarioBody } = await req.json();
+    const { paciente_id, consulta_id, cenario_clinico: cenarioBody, idioma: idiomaBody } = await req.json();
     if (!paciente_id || !consulta_id) {
       return jsonResp({ error: "paciente_id e consulta_id obrigatórios" }, 400);
     }
+    // Fase 2 — idioma do laudo (default 'pt-BR'). Determina qual versão dos
+    // textos fixos (laudo_textos) é gravada no conteúdo persistido.
+    const idioma = normalizarIdioma(idiomaBody);
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -282,7 +296,7 @@ Deno.serve(async (req) => {
     const tipoConsulta = String(consultaAtual.tipo);
     const desfechoClinico = cenarioId; // cenario_clinico funciona como desfecho consolidado
 
-    const resultado = await obterTextosLaudo(supabaseAdmin, tipoConsulta, desfechoClinico);
+    const resultado = await obterTextosLaudo(supabaseAdmin, tipoConsulta, desfechoClinico, idioma);
 
     if (!resultado.completo) {
       return jsonResp({
@@ -290,6 +304,7 @@ Deno.serve(async (req) => {
         mensagem: "Texto pendente — solicitar ao time clínico",
         tipo_consulta: tipoConsulta,
         desfecho_clinico: desfechoClinico,
+        idioma,
         blocos_faltantes: resultado.blocos_faltantes,
       }, 422);
     }
@@ -329,6 +344,7 @@ Deno.serve(async (req) => {
           origem_texto: "laudo_textos",
           tipo_consulta: tipoConsulta,
           desfecho_clinico: desfechoClinico,
+          idioma,
           // 35A — Pactuação pós-prandial: nos cenários que usam perfil glicêmico
           // (2, 3, 4 e 7), expor a janela pactuada e a meta aplicada para que o
           // Bloco 2 do laudo cite a meta correta (<140 mg/dL para 1h; <120 para 2h).
