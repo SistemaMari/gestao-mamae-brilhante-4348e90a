@@ -25,6 +25,7 @@ import LaudoTextosPage from "./pages/admin/LaudoTextosPage";
 import TutoriaisAdminPage from "./pages/admin/TutoriaisAdminPage";
 import ConfiguracoesAdminPage from "./pages/admin/ConfiguracoesAdminPage";
 import PlanosAdminPage from "./pages/admin/PlanosAdminPage";
+import DicasAdminPage from "./pages/admin/DicasAdminPage";
 import ConsolidarLayout from "./pages/consolidar/ConsolidarLayout";
 import VisaoGeralRedePage from "./pages/consolidar/VisaoGeralRedePage";
 import ConsolidadorPage from "./pages/consolidar/ConsolidadorPage";
