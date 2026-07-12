@@ -368,10 +368,13 @@ export default function DashboardPage() {
               </button>
             )}
           </div>
-          <Button onClick={handleNovaPaciente} className="shrink-0">
-            <Plus className="h-4 w-4" />
-            Nova Paciente
-          </Button>
+          {!ehInstitucional && (
+            <Button onClick={handleNovaPaciente} className="shrink-0">
+              <Plus className="h-4 w-4" />
+              Nova Paciente
+            </Button>
+          )}
+
         </div>
 
         {/* Toggle: mostrar fichas encerradas */}
