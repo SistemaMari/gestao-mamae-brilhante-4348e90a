@@ -351,18 +351,18 @@ export default function DashboardPage() {
 
         {/* Search + New Patient */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary/70 transition-colors group-focus-within:text-primary" />
             <Input
               placeholder="Buscar paciente por nome..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="pl-10 pr-10"
+              className="h-14 pl-12 pr-12 text-base bg-card border-2 border-border rounded-xl shadow-sm transition-all placeholder:text-muted-foreground/70 hover:border-primary/40 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:shadow-md"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
