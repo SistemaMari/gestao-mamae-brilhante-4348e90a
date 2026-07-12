@@ -71,6 +71,21 @@ interface Metricas {
 // Paleta semântica conforme Prompt 24, Seção 3.8.
 // (Cores fixas em hex porque são parte do espec clínico, não do tema do app.)
 // =============================================================================
+interface Encerramentos {
+  ativas: number;
+  encerradas: number;
+  por_motivo: {
+    parto: number;
+    aborto: number;
+    insulinizacao: number;
+    nao_retornou: number;
+    outro: number;
+  };
+  taxa_nao_retornou: number;
+  ig_ao_endocrino: number | null;
+  laudos_mensais: Array<{ mes: string; qtd: number }>;
+}
+
 const COR_VERDE = "#22C55E";
 const COR_LARANJA = "#F59E0B";
 const COR_VERMELHO = "#EF4444";
@@ -395,6 +410,7 @@ export default function DiagnosticosPage() {
   const isPreview = pathname.startsWith("/vitrine");
 
   const [dados, setDados] = useState<Metricas | null>(null);
+  const [encerr, setEncerr] = useState<Encerramentos | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { filtros } = useAdminFiltros();
@@ -410,13 +426,18 @@ export default function DiagnosticosPage() {
     }
 
     (async () => {
-      const { data, error } = await supabase.rpc("metricas_diagnosticos_admin");
+      const [diag, enc] = await Promise.all([
+        supabase.rpc("metricas_diagnosticos_admin"),
+        supabase.rpc("metricas_encerramentos_admin"),
+      ]);
       if (cancelado) return;
-      if (error) {
-        setErro(error.message ?? "Falha ao carregar métricas.");
+      if (diag.error) {
+        setErro(diag.error.message ?? "Falha ao carregar métricas.");
       } else {
-        setDados(data as unknown as Metricas);
+        setDados(diag.data as unknown as Metricas);
       }
+      // Encerramentos: não bloqueia a tela se falhar (seção some).
+      if (!enc.error) setEncerr(enc.data as unknown as Encerramentos);
       setLoading(false);
     })();
     return () => { cancelado = true; };
@@ -585,9 +606,74 @@ export default function DiagnosticosPage() {
                   )}%`
             }
             cor={COR_LARANJA}
+            tooltip="Das pacientes que tiveram DMG em gestação anterior, quantas foram confirmadas com DMG aqui. As demais não desenvolveram DMG desta vez, ainda não foram confirmadas, ou foram classificadas como OVERT DM. Recorrência esperada na literatura: ~40–70%."
           />
         </div>
       </CardContainer>
+
+      {/* 5b. Encerramentos e adesão (novas métricas) */}
+      {encerr && (
+        <CardContainer>
+          <SecaoTitulo>Encerramentos e adesão</SecaoTitulo>
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <MetricaCard
+              label="Em acompanhamento"
+              valor={encerr.ativas}
+              sublabel="pacientes ativas na MARI"
+              cor={COR_VERDE}
+            />
+            <MetricaCard
+              label="Acompanhamentos encerrados"
+              valor={encerr.encerradas}
+              sublabel="parto, aborto, insulinização, não retornou…"
+            />
+            <MetricaCard
+              label="Não retornaram"
+              valor={`${encerr.taxa_nao_retornou}%`}
+              sublabel={`${encerr.por_motivo.nao_retornou} de ${encerr.encerradas} encerradas`}
+              cor={COR_LARANJA}
+              tooltip="Pacientes cujo acompanhamento foi encerrado por não terem retornado — indicador de adesão/abandono."
+            />
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <SecaoTitulo>Encerramentos por motivo</SecaoTitulo>
+              <Pizza
+                data={[
+                  { name: "Parto", value: encerr.por_motivo.parto },
+                  { name: "Aborto", value: encerr.por_motivo.aborto },
+                  { name: "Insulinização → endócrino", value: encerr.por_motivo.insulinizacao },
+                  { name: "Não retornou", value: encerr.por_motivo.nao_retornou },
+                  { name: "Outro", value: encerr.por_motivo.outro },
+                ]}
+                cores={[COR_VERDE, COR_VERMELHO, COR_LARANJA, "#94A3B8", COR_LILAS]}
+                vazioMsg="Nenhum acompanhamento encerrado ainda."
+              />
+            </div>
+            <div className="flex flex-col gap-4">
+              <MetricaCard
+                label="IG média no encaminhamento ao endócrino"
+                valor={encerr.ig_ao_endocrino != null ? `${encerr.ig_ao_endocrino} sem` : "—"}
+                sublabel="cenário 7 — quanto antes, melhor"
+                cor={COR_LARANJA}
+              />
+              <div>
+                <SecaoTitulo>Laudos gerados por mês</SecaoTitulo>
+                <ResponsiveContainer width="100%" height={160}>
+                  <LineChart data={encerr.laudos_mensais}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="qtd" name="Laudos" stroke={COR_LILAS} strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </CardContainer>
+      )}
 
       {/* 6. Funil */}
       <CardContainer>
