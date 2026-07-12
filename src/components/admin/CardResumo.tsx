@@ -1,12 +1,14 @@
 import { Loader2 } from "lucide-react";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface CardResumoProps {
   label: string;
   valor: number | null;
   loading?: boolean;
+  tooltip?: string;
 }
 
-export function CardResumo({ label, valor, loading }: CardResumoProps) {
+export function CardResumo({ label, valor, loading, tooltip }: CardResumoProps) {
   return (
     <div
       className="rounded-xl border bg-white p-5 shadow-sm"
@@ -18,7 +20,6 @@ export function CardResumo({ label, valor, loading }: CardResumoProps) {
         ) : (
           <span
             className="text-[32px] leading-none font-bold"
-            // CORREÇÃO 2 — número grande em #1E293B
             style={{ color: "#1E293B", fontFamily: "Sora, sans-serif" }}
           >
             {valor ?? 0}
@@ -26,10 +27,11 @@ export function CardResumo({ label, valor, loading }: CardResumoProps) {
         )}
       </div>
       <div
-        className="mt-2 text-sm"
+        className="mt-2 flex items-center gap-1.5 text-sm"
         style={{ color: "#64748B", fontFamily: "Plus Jakarta Sans, sans-serif" }}
       >
-        {label}
+        <span>{label}</span>
+        {tooltip && <InfoTooltip text={tooltip} />}
       </div>
     </div>
   );
