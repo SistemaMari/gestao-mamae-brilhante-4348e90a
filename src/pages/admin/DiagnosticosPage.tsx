@@ -760,19 +760,8 @@ export default function DiagnosticosPage() {
                 sublabel="cenário 7 — quanto antes, melhor"
                 cor={COR_LARANJA}
               />
-              <div>
-                <SecaoTitulo>Laudos gerados por mês</SecaoTitulo>
-                <ResponsiveContainer width="100%" height={160}>
-                  <LineChart data={encerr.laudos_mensais}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                    <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="qtd" name="Laudos" stroke={COR_LILAS} strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
             </div>
+
           </div>
         </CardContainer>
       )}
