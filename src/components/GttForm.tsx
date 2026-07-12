@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,6 +43,9 @@ type GttDiagResult = {
   tipo: 'negativo' | 'positivo' | 'overt';
   label: string;
   texto: string;
+  // Chaves i18n para exibição (label/texto acima ficam em pt para gravação em observacoes no banco).
+  labelKey: string;
+  textoKey: string;
   cor: string;
   bgColor: string;
   borderColor: string;
@@ -63,6 +67,8 @@ function calcularGttDiagnostico(
       tipo: 'overt',
       label: 'OVERT DM — Diabete pré-existente diagnosticado na gestação',
       texto: `Diagnóstico de Diabete pré-existente diagnosticado durante a gestação.`,
+      labelKey: 'gtt.diag.overtLabel',
+      textoKey: 'gtt.diag.overtTexto',
       cor: 'text-red-800',
       bgColor: 'bg-[#FEE2E2]',
       borderColor: 'border-red-200',
@@ -84,6 +90,8 @@ function calcularGttDiagnostico(
       texto: recursoLimitado
         ? `Diagnóstico realizado em cenário de recurso limitado (sem GTT 75g completo). Este método alcança aproximadamente 66% dos diagnósticos — cerca de 34% dos casos podem não ser detectados.`
         : `Qualquer valor alterado no GTT 75g já confirma o diagnóstico de Diabete Mellitus Gestacional.`,
+      labelKey: 'gtt.diag.positivoLabel',
+      textoKey: recursoLimitado ? 'gtt.diag.positivoTextoRecursoLimitado' : 'gtt.diag.positivoTexto',
       cor: 'text-orange-800',
       bgColor: 'bg-[#FEF3C7]',
       borderColor: 'border-orange-200',
@@ -99,6 +107,8 @@ function calcularGttDiagnostico(
     texto: recursoLimitado
       ? 'Glicemia de jejum dentro dos parâmetros normais. O diagnóstico de DMG está afastado neste exame. Nota: sem o GTT 75g completo, cerca de 34% dos casos podem não ser detectados.'
       : 'Todos os valores do GTT 75g estão dentro dos parâmetros normais. O diagnóstico de Diabete Mellitus Gestacional está AFASTADO. Seguir pré-natal normal.',
+    labelKey: 'gtt.diag.negativoLabel',
+    textoKey: recursoLimitado ? 'gtt.diag.negativoTextoRecursoLimitado' : 'gtt.diag.negativoTexto',
     cor: 'text-emerald-800',
     bgColor: 'bg-[#DCFCE7]',
     borderColor: 'border-emerald-200',
@@ -125,6 +135,7 @@ export default function GttForm({
   onCancel,
   editingConsulta,
 }: GttFormProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { profissionalData } = useProfissionalData();
 
@@ -183,15 +194,15 @@ export default function GttForm({
   const fichaPersistida = !!editingConsulta;
   const camposPendentes = useMemo<string[]>(() => {
     const f: string[] = [];
-    if (!jejumValido) f.push('Glicemia em jejum');
+    if (!jejumValido) f.push(t('gtt.pendentes.glicemiaJejum'));
     if (!recursoLimitado) {
-      if (!h1Valido) f.push('Glicemia 1h');
-      if (!h2Valido) f.push('Glicemia 2h');
+      if (!h1Valido) f.push(t('gtt.pendentes.glicemia1h'));
+      if (!h2Valido) f.push(t('gtt.pendentes.glicemia2h'));
     }
-    if (!dataExame) f.push('Data do exame');
-    if (!dataConsulta) f.push('Data da consulta');
+    if (!dataExame) f.push(t('gtt.pendentes.dataExame'));
+    if (!dataConsulta) f.push(t('gtt.pendentes.dataConsulta'));
     return f;
-  }, [jejumValido, h1Valido, h2Valido, recursoLimitado, dataExame, dataConsulta]);
+  }, [jejumValido, h1Valido, h2Valido, recursoLimitado, dataExame, dataConsulta, t]);
 
   // 34B.3 seção 3.10 — bloqueia submit se data inválida.
   const [dataExameValida, setDataExameValida] = useState(true);
@@ -212,7 +223,7 @@ export default function GttForm({
     e.preventDefault();
     setTouched(true);
     if (!isValid) {
-      toast.error('Preencha todos os campos obrigatórios.');
+      toast.error(t('gtt.toast.fillRequired'));
       return;
     }
 
@@ -300,7 +311,7 @@ export default function GttForm({
 
     // Real mode
     if (!profissionalData || !user) {
-      toast.error('Você precisa estar logado.');
+      toast.error(t('gtt.toast.mustBeLoggedIn'));
       setSaving(false);
       return;
     }
@@ -335,7 +346,7 @@ export default function GttForm({
     }
 
     if (consErr) {
-      toast.error('Erro ao registrar consulta.');
+      toast.error(t('gtt.toast.consultaError'));
       console.error(consErr);
       setSaving(false);
       return;
@@ -430,17 +441,17 @@ export default function GttForm({
 
   const errorMsg = (valid: boolean) =>
     touched && !valid ? (
-      <span className="text-xs text-destructive">Campo obrigatório</span>
+      <span className="text-xs text-destructive">{t('gtt.requiredField')}</span>
     ) : null;
 
   // Build values table for result
   const buildValoresTable = () => {
     const valores: { label: string; valor: number; meta: string; alterado: boolean }[] = [
-      { label: 'Glicemia de jejum', valor: jejumNum, meta: '< 92 mg/dL', alterado: jejumNum >= 92 },
+      { label: t('gtt.valores.jejum'), valor: jejumNum, meta: '< 92 mg/dL', alterado: jejumNum >= 92 },
     ];
     if (!recursoLimitado) {
-      valores.push({ label: '1h pós-sobrecarga', valor: h1Num, meta: '< 180 mg/dL', alterado: h1Num >= 180 });
-      valores.push({ label: '2h pós-sobrecarga', valor: h2Num, meta: '< 153 mg/dL', alterado: h2Num >= 153 });
+      valores.push({ label: t('gtt.valores.pos1h'), valor: h1Num, meta: '< 180 mg/dL', alterado: h1Num >= 180 });
+      valores.push({ label: t('gtt.valores.pos2h'), valor: h2Num, meta: '< 153 mg/dL', alterado: h2Num >= 153 });
     }
     return valores;
   };
@@ -457,10 +468,10 @@ export default function GttForm({
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-muted/50">
-                <th className="text-left px-3 py-2 font-medium text-foreground">Dosagem</th>
-                <th className="text-center px-3 py-2 font-medium text-foreground">Resultado</th>
-                <th className="text-center px-3 py-2 font-medium text-foreground">Meta</th>
-                <th className="text-center px-3 py-2 font-medium text-foreground">Status</th>
+                <th className="text-left px-3 py-2 font-medium text-foreground">{t('gtt.tabela.dosagem')}</th>
+                <th className="text-center px-3 py-2 font-medium text-foreground">{t('gtt.tabela.resultado')}</th>
+                <th className="text-center px-3 py-2 font-medium text-foreground">{t('gtt.tabela.meta')}</th>
+                <th className="text-center px-3 py-2 font-medium text-foreground">{t('gtt.tabela.status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -473,7 +484,7 @@ export default function GttForm({
                   <td className="px-3 py-2 text-center text-muted-foreground">{v.meta}</td>
                   <td className="px-3 py-2 text-center">
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${v.alterado ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                      {v.alterado ? 'ALTERADO' : 'NORMAL'}
+                      {v.alterado ? t('gtt.status.alterado') : t('gtt.status.normal')}
                     </span>
                   </td>
                 </tr>
@@ -485,7 +496,7 @@ export default function GttForm({
         {recursoLimitado && (
           <div className="rounded-lg border border-amber-200 bg-[#FEF3C7] p-3">
             <p className="text-xs text-amber-800">
-              <strong>Recurso limitado:</strong> diagnóstico baseado apenas na glicemia de jejum (~66% detecção). ~34% dos casos podem não ser detectados.
+              <strong>{t('gtt.recursoLimitado.resultTitle')}</strong> {t('gtt.recursoLimitado.resultText')}
             </p>
           </div>
         )}
@@ -499,58 +510,58 @@ export default function GttForm({
               <AlertTriangle className={`h-6 w-6 shrink-0 ${resultado.iconColor}`} />
             )}
             <div>
-              <h2 className={`text-base font-bold ${resultado.cor}`}>{resultado.label}</h2>
-              <p className={`mt-1 text-sm ${resultado.cor}`}>{resultado.texto}</p>
+              <h2 className={`text-base font-bold ${resultado.cor}`}>{t(resultado.labelKey)}</h2>
+              <p className={`mt-1 text-sm ${resultado.cor}`}>{t(resultado.textoKey)}</p>
             </div>
           </div>
 
           {isTardio && (
             <div className="rounded-lg bg-red-100/80 border border-red-200 p-3">
               <p className="text-xs font-semibold text-red-800">
-                Diagnóstico tardio (IG &gt; 28 semanas) — início imediato do tratamento é crítico.
+                {t('gtt.diagnosticoTardio')}
               </p>
             </div>
           )}
 
           <div className="rounded-lg bg-white/70 p-4 space-y-2">
-            <p className={`text-sm font-semibold ${resultado.cor}`}>Conduta</p>
+            <p className={`text-sm font-semibold ${resultado.cor}`}>{t('gtt.conduta.title')}</p>
             {resultado.tipo === 'negativo' ? (
               <ul className={`list-disc pl-4 text-xs ${resultado.cor} space-y-1.5`}>
-                <li>DMG afastado. Seguir pré-natal normal.</li>
-                <li>Não há necessidade de repetir o exame.</li>
+                <li>{t('gtt.conduta.negativo1')}</li>
+                <li>{t('gtt.conduta.negativo2')}</li>
               </ul>
             ) : (
               <ul className={`list-disc pl-4 text-xs ${resultado.cor} space-y-1.5`}>
-                <li>Iniciar tratamento imediato — dieta + atividade física.</li>
-                <li>Solicitar perfil glicêmico de 4 pontos diários por 7 a 10 dias.</li>
-                <li>Retorno em 7 a 10 dias com o perfil glicêmico preenchido.</li>
-                <li>Solicitar ultrassom obstétrico{igHoje && igHoje.semanas < 20 ? ' para datar a gestação.' : ' para referência de crescimento fetal.'}</li>
+                <li>{t('gtt.conduta.positivo1')}</li>
+                <li>{t('gtt.conduta.positivo2')}</li>
+                <li>{t('gtt.conduta.positivo3')}</li>
+                <li>{t('gtt.conduta.positivoUsg')}{igHoje && igHoje.semanas < 20 ? t('gtt.conduta.usgDatar') : t('gtt.conduta.usgCrescimento')}</li>
               </ul>
             )}
           </div>
 
           {/* Placeholder Blocos 2 e 3 */}
           <div className="rounded-lg border border-dashed border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-2">
-            <p className="text-sm font-bold text-foreground">Laudo Completo</p>
-            <p className="text-xs italic text-[#94A3B8]">Bloco 2 — Justificativa Científica: será gerada em breve.</p>
-            <p className="text-xs italic text-[#94A3B8]">Bloco 3 — Conduta Orientativa Personalizada: será gerada em breve.</p>
+            <p className="text-sm font-bold text-foreground">{t('gtt.laudoCompleto.title')}</p>
+            <p className="text-xs italic text-[#94A3B8]">{t('gtt.laudoCompleto.bloco2')}</p>
+            <p className="text-xs italic text-[#94A3B8]">{t('gtt.laudoCompleto.bloco3')}</p>
           </div>
         </div>
 
         {/* Notas técnicas */}
         <div className="rounded-xl border border-border bg-[#F1F5F9] p-5">
-          <p className="text-sm font-semibold text-foreground mb-2">Notas técnicas</p>
+          <p className="text-sm font-semibold text-foreground mb-2">{t('gtt.notasTecnicas.title')}</p>
           <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1.5">
-            <li>Não repetir glicemia de jejum para fins diagnósticos.</li>
-            <li>Glicemia plasmática é OBRIGATÓRIA para diagnóstico.</li>
-            <li>Glicemia capilar é utilizada apenas para acompanhamento — nunca para diagnóstico.</li>
-            <li>Diagnóstico confirmado: iniciar tratamento imediato.</li>
+            <li>{t('gtt.notasTecnicas.nota1')}</li>
+            <li>{t('gtt.notasTecnicas.nota2')}</li>
+            <li>{t('gtt.notasTecnicas.nota3')}</li>
+            <li>{t('gtt.notasTecnicas.nota4')}</li>
           </ul>
         </div>
 
         <div className="flex items-center gap-2 text-xs text-[#94A3B8]">
           <Printer className="h-3.5 w-3.5" />
-          <span>Para salvar ou imprimir: Ctrl+P (Windows) ou Cmd+P (Mac) → "Salvar como PDF".</span>
+          <span>{t('gtt.printHint')}</span>
         </div>
 
         {/* Impact popup — only for positive/overt */}
@@ -561,12 +572,12 @@ export default function GttForm({
                 <span className={`flex items-center justify-center gap-2 ${resultado.tipo === 'positivo' ? 'text-orange-600' : 'text-red-600'}`}>
                   <XCircle className="h-5 w-5" />
                   {resultado.tipo === 'positivo'
-                    ? 'POSITIVO — Diabete Mellitus Gestacional confirmado pelo GTT 75g.'
-                    : 'POSITIVO — OVERT DM (diabete prévio) confirmado.'}
+                    ? t('gtt.popup.positivo')
+                    : t('gtt.popup.overt')}
                 </span>
               </AlertDialogTitle>
               <AlertDialogDescription className="text-center text-base font-medium text-foreground">
-                Não repetir o exame. É hora de tratar. Comece agora.
+                {t('gtt.popup.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="sm:justify-center">
@@ -574,7 +585,7 @@ export default function GttForm({
                 onClick={handlePopupClose}
                 className={resultado.tipo === 'positivo' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}
               >
-                Entendi, ver laudo completo
+                {t('gtt.popup.action')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -589,7 +600,7 @@ export default function GttForm({
       <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-5">
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-base font-bold text-foreground">
-            GTT 75g — Teste de Tolerância à Glicose
+            {t('gtt.formTitle')}
           </h2>
           {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
@@ -615,12 +626,12 @@ export default function GttForm({
             />
             <div className="space-y-1">
               <Label htmlFor="recurso-limitado" className="text-sm font-medium text-foreground cursor-pointer">
-                Paciente sem condição financeira/técnica para GTT 75g completo
+                {t('gtt.recursoLimitado.checkboxLabel')}
               </Label>
               {recursoLimitado && (
                 <div className="rounded-lg border border-amber-200 bg-[#FEF3C7] p-3 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
                   <p className="text-xs text-amber-800">
-                    <strong>Atenção:</strong> sem o GTT 75g completo, o diagnóstico é baseado apenas na glicemia de jejum, que alcança aproximadamente 66% dos diagnósticos. Cerca de 34% dos casos de DMG podem não ser detectados com este método isolado.
+                    <strong>{t('gtt.recursoLimitado.warningTitle')}</strong> {t('gtt.recursoLimitado.warningText')}
                   </p>
                 </div>
               )}
@@ -631,13 +642,13 @@ export default function GttForm({
         {/* IG na data do GTT 75g */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-foreground">IG na data do GTT 75g</Label>
+            <Label className="text-sm font-medium text-foreground">{t('gtt.ig.label')}</Label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Idade gestacional em semanas + dias na data do exame. {descreverReferenciaIg(igCalculada)} O GTT 75g deve ser realizado o mais próximo possível de 24 semanas, impreterivelmente antes de 28 semanas. Caso não seja realizado nesse período, deve ser feito o mais breve possível — nunca abandonado.
+                {t('gtt.ig.tooltipPre')} {descreverReferenciaIg(igCalculada)} {t('gtt.ig.tooltipPost')}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -648,33 +659,33 @@ export default function GttForm({
               max={45}
               value={igSemanas}
               onChange={(e) => setIgSemanas(e.target.value)}
-              placeholder="Sem"
+              placeholder={t('gtt.ig.weeksPlaceholder')}
               className="w-20"
             />
-            <span className="text-sm text-muted-foreground">semanas</span>
+            <span className="text-sm text-muted-foreground">{t('gtt.ig.weeks')}</span>
             <Input
               type="number"
               min={0}
               max={6}
               value={igDias}
               onChange={(e) => setIgDias(e.target.value)}
-              placeholder="Dias"
+              placeholder={t('gtt.ig.daysPlaceholder')}
               className="w-20"
             />
-            <span className="text-sm text-muted-foreground">dias</span>
+            <span className="text-sm text-muted-foreground">{t('gtt.ig.days')}</span>
           </div>
         </div>
 
         {/* Glicemia de jejum */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-foreground">Glicemia de jejum no GTT 75g (mg/dL) *</Label>
+            <Label className="text-sm font-medium text-foreground">{t('gtt.jejum.label')}</Label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Primeira coleta do GTT 75g — antes de ingerir a solução de glicose. Meta normal: &lt; 92 mg/dL.
+                {t('gtt.jejum.tooltip')}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -684,7 +695,7 @@ export default function GttForm({
             max={400}
             value={valorJejum}
             onChange={(e) => setValorJejum(e.target.value)}
-            placeholder="Ex: 85"
+            placeholder={t('gtt.jejum.placeholder')}
             className={fieldError(jejumValido)}
           />
           {errorMsg(jejumValido)}
@@ -694,13 +705,13 @@ export default function GttForm({
         {!recursoLimitado && (
           <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
             <div className="flex items-center gap-1.5">
-              <Label className="text-sm font-medium text-foreground">Glicemia 1h pós-sobrecarga (mg/dL) *</Label>
+              <Label className="text-sm font-medium text-foreground">{t('gtt.pos1h.label')}</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs text-xs">
-                  Coleta exatamente 1 hora após ingestão de 75g de glicose. Meta normal: &lt; 180 mg/dL.
+                  {t('gtt.pos1h.tooltip')}
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -710,7 +721,7 @@ export default function GttForm({
               max={400}
               value={valor1h}
               onChange={(e) => setValor1h(e.target.value)}
-              placeholder="Ex: 155"
+              placeholder={t('gtt.pos1h.placeholder')}
               className={fieldError(h1Valido)}
             />
             {errorMsg(h1Valido)}
@@ -721,13 +732,13 @@ export default function GttForm({
         {!recursoLimitado && (
           <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
             <div className="flex items-center gap-1.5">
-              <Label className="text-sm font-medium text-foreground">Glicemia 2h pós-sobrecarga (mg/dL) *</Label>
+              <Label className="text-sm font-medium text-foreground">{t('gtt.pos2h.label')}</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs text-xs">
-                  Coleta exatamente 2 horas após ingestão de 75g de glicose. Meta normal: &lt; 153 mg/dL.
+                  {t('gtt.pos2h.tooltip')}
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -737,7 +748,7 @@ export default function GttForm({
               max={400}
               value={valor2h}
               onChange={(e) => setValor2h(e.target.value)}
-              placeholder="Ex: 140"
+              placeholder={t('gtt.pos2h.placeholder')}
               className={fieldError(h2Valido)}
             />
             {errorMsg(h2Valido)}
@@ -747,13 +758,13 @@ export default function GttForm({
         {/* Data do exame */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-foreground">Data do exame *</Label>
+            <Label className="text-sm font-medium text-foreground">{t('gtt.dataExame.label')}</Label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Data em que o GTT 75g foi realizado.
+                {t('gtt.dataExame.tooltip')}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -768,13 +779,13 @@ export default function GttForm({
         {/* Data da consulta de retorno */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-foreground">Data da consulta de retorno *</Label>
+            <Label className="text-sm font-medium text-foreground">{t('gtt.dataConsulta.label')}</Label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Data do retorno. Default: hoje.
+                {t('gtt.dataConsulta.tooltip')}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -789,52 +800,52 @@ export default function GttForm({
         {/* Observações */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-foreground">Observações</Label>
+            <Label className="text-sm font-medium text-foreground">{t('gtt.observacoes.label')}</Label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-xs">
-                Anotações adicionais.
+                {t('gtt.observacoes.tooltip')}
               </TooltipContent>
             </Tooltip>
           </div>
           <Textarea
             value={observacoes}
             onChange={(e) => setObservacoes(e.target.value)}
-            placeholder="Opcional"
+            placeholder={t('gtt.observacoes.placeholder')}
             rows={3}
           />
         </div>
 
         {/* Reference table — diagnostic criteria */}
         <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-2">
-          <p className="text-sm font-semibold text-foreground">Critérios diagnósticos — referência</p>
+          <p className="text-sm font-semibold text-foreground">{t('gtt.ref.title')}</p>
           <div className="rounded-lg border border-border overflow-hidden">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-muted/50">
-                  <th className="text-left px-3 py-2 font-medium text-foreground">Dosagem</th>
-                  <th className="text-center px-3 py-2 font-medium text-foreground">Normal</th>
-                  <th className="text-center px-3 py-2 font-medium text-foreground">DMG</th>
-                  <th className="text-center px-3 py-2 font-medium text-foreground">OVERT DM</th>
+                  <th className="text-left px-3 py-2 font-medium text-foreground">{t('gtt.ref.dosagem')}</th>
+                  <th className="text-center px-3 py-2 font-medium text-foreground">{t('gtt.ref.normal')}</th>
+                  <th className="text-center px-3 py-2 font-medium text-foreground">{t('gtt.ref.dmg')}</th>
+                  <th className="text-center px-3 py-2 font-medium text-foreground">{t('gtt.ref.overt')}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-t border-border">
-                  <td className="px-3 py-2 text-foreground">Jejum</td>
+                  <td className="px-3 py-2 text-foreground">{t('gtt.ref.jejum')}</td>
                   <td className="px-3 py-2 text-center text-emerald-600">&lt; 92</td>
                   <td className="px-3 py-2 text-center text-orange-600">92–125</td>
                   <td className="px-3 py-2 text-center text-red-600">≥ 126</td>
                 </tr>
                 <tr className="border-t border-border">
-                  <td className="px-3 py-2 text-foreground">1h pós</td>
+                  <td className="px-3 py-2 text-foreground">{t('gtt.ref.pos1h')}</td>
                   <td className="px-3 py-2 text-center text-emerald-600">&lt; 180</td>
                   <td className="px-3 py-2 text-center text-orange-600">≥ 180</td>
                   <td className="px-3 py-2 text-center text-muted-foreground">—</td>
                 </tr>
                 <tr className="border-t border-border">
-                  <td className="px-3 py-2 text-foreground">2h pós</td>
+                  <td className="px-3 py-2 text-foreground">{t('gtt.ref.pos2h')}</td>
                   <td className="px-3 py-2 text-center text-emerald-600">&lt; 153</td>
                   <td className="px-3 py-2 text-center text-orange-600">153–199</td>
                   <td className="px-3 py-2 text-center text-red-600">≥ 200</td>
@@ -843,7 +854,7 @@ export default function GttForm({
             </table>
           </div>
           <p className="text-[10px] text-muted-foreground italic">
-            Qualquer UMA das 3 amostras alterada já fecha diagnóstico de DMG.
+            {t('gtt.ref.footnote')}
           </p>
         </div>
       </div>
@@ -857,7 +868,7 @@ export default function GttForm({
           className="flex-1"
           disabled={saving}
         >
-          Cancelar
+          {t('common.cancel')}
         </Button>
         <Button
           type="submit"
@@ -865,7 +876,7 @@ export default function GttForm({
           className="flex-1 bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
         >
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Salvar GTT 75g
+          {t('gtt.saveButton')}
         </Button>
       </div>
     </form>

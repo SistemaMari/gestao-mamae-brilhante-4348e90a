@@ -1,4 +1,5 @@
 import { Check, Loader2, AlertCircle, Cloud } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { AutosaveStatus } from '@/hooks/useAutosave';
 import { cn } from '@/lib/utils';
 
@@ -7,15 +8,17 @@ interface Props {
   className?: string;
 }
 
-const labels: Record<AutosaveStatus, string> = {
-  idle: '',
-  dirty: 'Alterações não salvas',
-  saving: 'Salvando...',
-  saved: 'Salvo',
-  error: 'Erro ao salvar',
-};
-
 export default function AutosaveIndicator({ status, className }: Props) {
+  const { t } = useTranslation();
+
+  const labels: Record<AutosaveStatus, string> = {
+    idle: '',
+    dirty: t('autosaveIndicator.dirty'),
+    saving: t('autosaveIndicator.saving'),
+    saved: t('autosaveIndicator.saved'),
+    error: t('autosaveIndicator.error'),
+  };
+
   if (status === 'idle') return null;
 
   const Icon =

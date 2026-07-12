@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import { Lock, ArrowUpRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,10 +19,11 @@ interface UpgradeRequiredProps {
  */
 export default function UpgradeRequired({
   planoNecessario,
-  titulo = 'Recurso exclusivo',
+  titulo,
   descricao,
 }: UpgradeRequiredProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="container max-w-2xl py-16">
@@ -36,10 +38,12 @@ export default function UpgradeRequired({
 
           <div className="space-y-2">
             <h1 className="font-heading text-2xl font-bold text-foreground">
-              {titulo}
+              {titulo ?? t('upgradeRequired.title')}
             </h1>
             <p className="text-base text-muted-foreground">
-              Disponível no plano <strong>{planoNecessario}</strong>.
+              <Trans i18nKey="upgradeRequired.availableInPlan" values={{ plano: planoNecessario }}>
+                Disponível no plano <strong>{{ plano: planoNecessario } as any}</strong>.
+              </Trans>
             </p>
             {descricao && (
               <p className="mx-auto max-w-md pt-2 text-sm text-muted-foreground">
@@ -54,7 +58,7 @@ export default function UpgradeRequired({
             style={{ backgroundColor: '#7C4DBA' }}
             onClick={() => navigate('/planos')}
           >
-            Fazer upgrade
+            {t('upgradeRequired.upgradeButton')}
             <ArrowUpRight className="h-4 w-4" />
           </Button>
         </CardContent>

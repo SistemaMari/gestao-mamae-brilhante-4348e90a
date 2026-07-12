@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Clock, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
@@ -15,6 +16,7 @@ import { avaliarPlanoStatus } from '@/lib/planoStatus';
  * Este banner fica visível apenas no modo "expirando" (aviso não-bloqueante).
  */
 export default function BannerStatusPlano() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { profissionalData, loading } = useProfissionalData();
 
@@ -43,7 +45,7 @@ export default function BannerStatusPlano() {
           <p className="text-xs text-amber-800/80">{info.descricao}</p>
         </div>
         <Button size="sm" onClick={() => navigate('/planos')}>
-          Ver planos
+          {t('bannerStatusPlano.viewPlans')}
         </Button>
       </div>
     </div>

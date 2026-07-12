@@ -1,4 +1,5 @@
 import { ShieldAlert, LogOut, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { PlanoStatusInfo } from '@/lib/planoStatus';
@@ -16,6 +17,7 @@ const PLANOS_CHECKOUT: Record<string, string> = {
 };
 
 export default function TelaInadimplente({ info, planoSlug }: TelaInadimplenteProps) {
+  const { t } = useTranslation();
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -38,17 +40,19 @@ export default function TelaInadimplente({ info, planoSlug }: TelaInadimplentePr
 
         {/* O que acontece depois */}
         <div className="rounded-lg bg-muted/50 p-4 text-left space-y-2 text-xs text-muted-foreground">
-          <p className="font-semibold text-foreground text-sm">Como regularizar?</p>
+          <p className="font-semibold text-foreground text-sm">{t('telaInadimplente.howToRegularize')}</p>
           {checkoutPath ? (
             <ul className="space-y-1 list-disc list-inside">
-              <li>Clique em <strong>"Renovar assinatura"</strong> abaixo</li>
-              <li>Escolha Pix, Boleto ou Cartão de crédito</li>
-              <li>Após o pagamento, seu acesso é reativado automaticamente</li>
+              <li>
+                <span dangerouslySetInnerHTML={{ __html: t('telaInadimplente.stepRenew') }} />
+              </li>
+              <li>{t('telaInadimplente.stepPaymentMethod')}</li>
+              <li>{t('telaInadimplente.stepReactivated')}</li>
             </ul>
           ) : (
             <ul className="space-y-1 list-disc list-inside">
-              <li>Acesse a página de planos e renove sua assinatura</li>
-              <li>Após o pagamento, seu acesso é reativado automaticamente</li>
+              <li>{t('telaInadimplente.stepGoToPlans')}</li>
+              <li>{t('telaInadimplente.stepReactivated')}</li>
             </ul>
           )}
         </div>
@@ -61,7 +65,7 @@ export default function TelaInadimplente({ info, planoSlug }: TelaInadimplentePr
               onClick={() => navigate(checkoutPath)}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
-              Renovar assinatura
+              {t('telaInadimplente.renewSubscription')}
             </Button>
           ) : (
             <Button
@@ -69,7 +73,7 @@ export default function TelaInadimplente({ info, planoSlug }: TelaInadimplentePr
               onClick={() => navigate('/planos')}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
-              Ver planos
+              {t('telaInadimplente.viewPlans')}
             </Button>
           )}
 
@@ -79,7 +83,7 @@ export default function TelaInadimplente({ info, planoSlug }: TelaInadimplentePr
             onClick={() => signOut()}
           >
             <LogOut className="mr-2 h-4 w-4" />
-            Sair da conta
+            {t('telaInadimplente.signOut')}
           </Button>
         </div>
       </div>

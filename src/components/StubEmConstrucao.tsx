@@ -1,10 +1,12 @@
 import { Construction } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   titulo: string;
 }
 
 export default function StubEmConstrucao({ titulo }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-8">
       <div className="max-w-md text-center">
@@ -14,7 +16,7 @@ export default function StubEmConstrucao({ titulo }: Props) {
         <h1 className="text-xl font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
           {titulo}
         </h1>
-        <p className="mt-2 text-sm text-[#64748B]">Em construção. Esta tela estará disponível em breve.</p>
+        <p className="mt-2 text-sm text-[#64748B]">{t("stubEmConstrucao.message")}</p>
       </div>
     </div>
   );

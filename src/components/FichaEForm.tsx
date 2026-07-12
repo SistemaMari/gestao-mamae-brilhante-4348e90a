@@ -10,6 +10,7 @@
  *   - Status da paciente permanece SEMPRE 'dmg_confirmado' (acompanhamento ativo).
  */
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
@@ -43,22 +44,22 @@ import {
 const POINTS_6 = ['jejum', 'pos_cafe', 'pre_almoco', 'pos_almoco', 'pre_jantar', 'pos_jantar'] as const;
 type Point6 = typeof POINTS_6[number];
 
-const POINT_LABELS_6: Record<Point6, string> = {
-  jejum: 'Jejum',
-  pos_cafe: '1h pós café',
-  pre_almoco: 'Pré-almoço',
-  pos_almoco: '1h pós almoço',
-  pre_jantar: 'Pré-jantar',
-  pos_jantar: '1h pós jantar',
+const POINT_LABEL_KEYS: Record<Point6, string> = {
+  jejum: 'fichaE.point.jejum',
+  pos_cafe: 'fichaE.point.posCafe',
+  pre_almoco: 'fichaE.point.preAlmoco',
+  pos_almoco: 'fichaE.point.posAlmoco',
+  pre_jantar: 'fichaE.point.preJantar',
+  pos_jantar: 'fichaE.point.posJantar',
 };
 
-const POINT_TOOLTIPS_6: Record<Point6, string> = {
-  jejum: 'Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente.',
-  pos_cafe: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente.',
-  pre_almoco: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia.',
-  pos_almoco: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia.',
-  pre_jantar: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia.',
-  pos_jantar: 'Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia.',
+const POINT_TOOLTIP_KEYS: Record<Point6, string> = {
+  jejum: 'fichaE.tooltip.jejum',
+  pos_cafe: 'fichaE.tooltip.posCafe',
+  pre_almoco: 'fichaE.tooltip.preAlmoco',
+  pos_almoco: 'fichaE.tooltip.posAlmoco',
+  pre_jantar: 'fichaE.tooltip.preJantar',
+  pos_jantar: 'fichaE.tooltip.posJantar',
 };
 
 const POINT_META_LABELS: Record<Point6, string> = {
@@ -102,6 +103,7 @@ interface FichaEFormProps {
 export default function FichaEForm({
   paciente, consultas, isPreview, onSaved, onCancel, editingConsulta,
 }: FichaEFormProps) {
+  const { t } = useTranslation();
   const { profissionalData } = useProfissionalData();
 
   const [grid, setGrid] = useState<Record<string, string>[]>(() => {
@@ -176,12 +178,12 @@ export default function FichaEForm({
       for (const p of POINTS_6) {
         const val = parseInt(row[p]);
         if (!isNaN(val) && val > 0 && isHypoglycemia(p, val)) {
-          alerts.push({ day: dayIdx + 1, point: POINT_LABELS_6[p], value: val });
+          alerts.push({ day: dayIdx + 1, point: t(POINT_LABEL_KEYS[p]), value: val });
         }
       }
     });
     return alerts;
-  }, [grid]);
+  }, [grid, t]);
 
   const dataConsultaLocal = parseDateLocal(dataConsulta);
   const dataProximoRetorno = dataConsultaLocal
@@ -250,14 +252,14 @@ export default function FichaEForm({
   const fichaPersistida = !!editingConsulta;
   const camposPendentes = useMemo<string[]>(() => {
     const f: string[] = [];
-    if (!dataInicio) f.push('Data de início do perfil');
-    if (!dataFim) f.push('Data de fim do perfil');
-    if (!dataConsulta) f.push('Data da consulta');
-    if (!igSemanas) f.push('Idade gestacional (semanas)');
-    if (totalPreenchidos === 0) f.push('Pelo menos 1 valor de glicemia preenchido');
-    if (hasNegativeValues) f.push('Corrigir valores negativos na grade');
+    if (!dataInicio) f.push(t('fichaE.pending.dataInicio'));
+    if (!dataFim) f.push(t('fichaE.pending.dataFim'));
+    if (!dataConsulta) f.push(t('fichaE.pending.dataConsulta'));
+    if (!igSemanas) f.push(t('fichaE.pending.igSemanas'));
+    if (totalPreenchidos === 0) f.push(t('fichaE.pending.atLeastOneValue'));
+    if (hasNegativeValues) f.push(t('fichaE.pending.fixNegative'));
     return f;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, t]);
 
   const [dataInicioValida, setDataInicioValida] = useState(true);
   const [dataFimValida, setDataFimValida] = useState(true);
@@ -341,7 +343,7 @@ export default function FichaEForm({
 
     try {
       const profId = profissionalData?.id;
-      if (!profId) throw new Error('Profissional não encontrado');
+      if (!profId) throw new Error(t('fichaE.errors.professionalNotFound'));
 
       const nextSeq = (consultas.length || 0) + 1;
       const cenario = isAdequado ? '4' : '7';
@@ -368,7 +370,7 @@ export default function FichaEForm({
       } else {
         const { data: newConsulta, error: consErr } = await supabase
           .from('consultas').insert(consultaPayload as any).select('id').single();
-        if (consErr || !newConsulta) throw consErr || new Error('Falha ao criar consulta');
+        if (consErr || !newConsulta) throw consErr || new Error(t('fichaE.errors.createConsulta'));
         consultaId = newConsulta.id;
       }
 
@@ -398,7 +400,7 @@ export default function FichaEForm({
       } else {
         const { data: newPerfil, error: perfErr } = await supabase
           .from('perfis_glicemicos' as any).insert(perfilPayload as any).select('id').single();
-        if (perfErr || !newPerfil) throw perfErr || new Error('Falha ao criar perfil');
+        if (perfErr || !newPerfil) throw perfErr || new Error(t('fichaE.errors.createPerfil'));
         perfilId = (newPerfil as any).id;
       }
 
@@ -451,7 +453,7 @@ export default function FichaEForm({
       setShowImpact(true);
     } catch (err: any) {
       console.error(err);
-      toast.error('Erro ao salvar: ' + (err?.message || 'Erro desconhecido'));
+      toast.error(t('fichaE.errors.saveGeneric', { message: err?.message || t('common.unknownError') }));
       setSaving(false);
     }
   };
@@ -467,16 +469,15 @@ export default function FichaEForm({
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Retorno — Perfil de 6 pontos × 7 a 10 dias (sem insulina)
+            {t('fichaE.headerTitle')}
           </h2>
           {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
         <p className="text-xs text-[#6D28D9]">
-          Reavaliação ampliada (memória do glicosímetro confirma o controle).
-          Preencha a grade com as glicemias capilares registradas pela paciente.
+          {t('fichaE.headerSubtitle')}
         </p>
         <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">
-          Perfil de 6 pontos — sem insulina — IG {igSemNum} sem
+          {t('fichaE.headerBadge', { ig: igSemNum })}
         </div>
       </div>
 
@@ -485,18 +486,18 @@ export default function FichaEForm({
 
       <div className="rounded-lg border border-[#D6BCFA] bg-[#E8E0FF] p-3 flex items-center gap-2">
         <Info className="h-4 w-4 shrink-0 text-[#7E69AB]" />
-        <p className="text-xs font-medium text-[#5B21B6]">Preencha de 7 a 10 dias de medições.</p>
+        <p className="text-xs font-medium text-[#5B21B6]">{t('fichaE.fillDaysHint')}</p>
       </div>
 
       {hypoAlerts.length > 0 && (
         <div className="rounded-xl border-2 border-[#EF4444] bg-[#FEE2E2] p-4 space-y-1">
           <p className="text-sm font-bold text-red-800 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-[#EF4444]" />
-            ALERTA DE HIPOGLICEMIA
+            {t('fichaE.hypoAlertTitle')}
           </p>
           {hypoAlerts.map((a, i) => (
             <p key={i} className="text-xs text-red-700">
-              Valor de {a.value} mg/dL no Dia {a.day} ({a.point}). Avaliar imediatamente.
+              {t('fichaE.hypoAlertItem', { value: a.value, day: a.day, point: a.point })}
             </p>
           ))}
         </div>
@@ -505,35 +506,35 @@ export default function FichaEForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data de início do perfil</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Primeiro dia em que a paciente começou a medir as glicemias.</p></TooltipContent></Tooltip></TooltipProvider>
+            <label className="text-xs font-medium text-foreground">{t('fichaE.dataInicioLabel')}</label>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaE.dataInicioTooltip')}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <DateInput value={dataInicio} onChange={setDataInicio} onValidityChange={setDataInicioValida} />
         </div>
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data de encerramento</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Último dia de medição do perfil.</p></TooltipContent></Tooltip></TooltipProvider>
+            <label className="text-xs font-medium text-foreground">{t('fichaE.dataFimLabel')}</label>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaE.dataFimTooltip')}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <DateInput value={dataFim} onChange={setDataFim} onValidityChange={setDataFimValida} />
         </div>
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data da consulta</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Data do retorno. Default: hoje.</p></TooltipContent></Tooltip></TooltipProvider>
+            <label className="text-xs font-medium text-foreground">{t('fichaE.dataConsultaLabel')}</label>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaE.dataConsultaTooltip')}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <DateInput value={dataConsulta} onChange={setDataConsulta} onValidityChange={setDataConsultaValida} />
         </div>
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Idade gestacional atual</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">IG atual em semanas + dias. Define o roteamento (Ficha B ou D) quando houver migração para insulina. {descreverReferenciaIg(igAtual)}</p></TooltipContent></Tooltip></TooltipProvider>
+            <label className="text-xs font-medium text-foreground">{t('fichaE.igLabel')}</label>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaE.igTooltip')} {descreverReferenciaIg(igAtual)}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <div className="flex items-center gap-2">
-            <Input type="number" min={0} max={45} value={igSemanas} onChange={e => setIgSemanas(e.target.value)} placeholder="sem" className="w-20" />
-            <span className="text-xs text-muted-foreground">sem +</span>
-            <Input type="number" min={0} max={6} value={igDias} onChange={e => setIgDias(e.target.value)} placeholder="dias" className="w-20" />
-            <span className="text-xs text-muted-foreground">dias</span>
+            <Input type="number" min={0} max={45} value={igSemanas} onChange={e => setIgSemanas(e.target.value)} placeholder={t('fichaE.weeksPlaceholder')} className="w-20" />
+            <span className="text-xs text-muted-foreground">{t('fichaE.weeksSuffix')}</span>
+            <Input type="number" min={0} max={6} value={igDias} onChange={e => setIgDias(e.target.value)} placeholder={t('fichaE.daysPlaceholder')} className="w-20" />
+            <span className="text-xs text-muted-foreground">{t('fichaE.daysSuffix')}</span>
           </div>
         </div>
       </div>
@@ -545,16 +546,16 @@ export default function FichaEForm({
               {percentual.toFixed(1)}%
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Controle: {percentual.toFixed(1)}% das glicemias dentro da meta ({dentroMeta} de {totalPreenchidos} valores)
+              {t('fichaE.controlSummary', { percent: percentual.toFixed(1), inMeta: dentroMeta, total: totalPreenchidos })}
             </p>
             <p className={`text-xs mt-1 italic ${percentual >= 70 ? 'text-[#16A34A]' : 'text-[#64748B]'}`}>
-              Meta: ≥ 70% das glicemias dentro do alvo
+              {t('fichaE.metaGoal')}
             </p>
           </>
         ) : (
           <>
             <p className="text-2xl font-bold text-muted-foreground">—</p>
-            <p className="text-xs mt-1 italic text-[#64748B]">Meta: ≥ 70% das glicemias dentro do alvo</p>
+            <p className="text-xs mt-1 italic text-[#64748B]">{t('fichaE.metaGoal')}</p>
           </>
         )}
       </div>
@@ -563,18 +564,18 @@ export default function FichaEForm({
         <table className="w-full min-w-[680px]">
           <thead>
             <tr className="bg-muted/50">
-              <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">Dia</th>
+              <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">{t('fichaE.colDay')}</th>
               {POINTS_6.map(p => (
                 <th key={p} className={`px-2 py-2 text-center ${IS_PRE_PRANDIAL[p] ? 'bg-[#E8E0FF]' : ''}`}>
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-xs font-medium text-foreground">{POINT_LABELS_6[p]}</span>
+                    <span className="text-xs font-medium text-foreground">{t(POINT_LABEL_KEYS[p])}</span>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p className="text-xs">{POINT_TOOLTIPS_6[p]}</p>
+                          <p className="text-xs">{t(POINT_TOOLTIP_KEYS[p])}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -587,7 +588,7 @@ export default function FichaEForm({
           <tbody>
             {DAYS.map((day, dayIdx) => (
               <tr key={day} className="border-t border-border">
-                <td className="px-2 py-1 text-xs font-medium text-foreground">Dia {day}</td>
+                <td className="px-2 py-1 text-xs font-medium text-foreground">{t('fichaE.dayLabel', { day })}</td>
                 {POINTS_6.map((p, colIdx) => {
                   const val = grid[dayIdx][p];
                   const numVal = parseInt(val);
@@ -612,11 +613,11 @@ export default function FichaEForm({
                           ${!val ? 'border-border' : ''}
                         `}
                         placeholder="—"
-                        aria-label={`Dia ${day} ${POINT_LABELS_6[p]}`}
+                        aria-label={t('fichaE.cellAria', { day, point: t(POINT_LABEL_KEYS[p]) })}
                       />
-                      {isNeg && <span className="text-[9px] text-red-600 block text-center">Valor inválido</span>}
-                      {isHigh && <span className="text-[9px] text-amber-600 block text-center">Verificar</span>}
-                      {isHypo && <span className="text-[9px] text-red-600 block text-center">Hipoglicemia</span>}
+                      {isNeg && <span className="text-[9px] text-red-600 block text-center">{t('fichaE.cellInvalid')}</span>}
+                      {isHigh && <span className="text-[9px] text-amber-600 block text-center">{t('fichaE.cellCheck')}</span>}
+                      {isHypo && <span className="text-[9px] text-red-600 block text-center">{t('fichaE.cellHypo')}</span>}
                     </td>
                   );
                 })}
@@ -628,17 +629,17 @@ export default function FichaEForm({
 
       <div className="space-y-1">
         <div className="flex items-center gap-1">
-          <label className="text-xs font-medium text-foreground">Observações</label>
-          <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Anotações adicionais sobre este retorno.</p></TooltipContent></Tooltip></TooltipProvider>
+          <label className="text-xs font-medium text-foreground">{t('fichaE.obsLabel')}</label>
+          <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaE.obsTooltip')}</p></TooltipContent></Tooltip></TooltipProvider>
         </div>
-        <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder="Opcional" rows={3} />
+        <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder={t('fichaE.obsPlaceholder')} rows={3} />
       </div>
 
       <div className="flex justify-end gap-3 print:hidden">
-        <Button variant="outline" onClick={onCancel} disabled={saving}>Cancelar</Button>
+        <Button variant="outline" onClick={onCancel} disabled={saving}>{t('common.cancel')}</Button>
         <Button onClick={handleSave} disabled={!canSave || saving || !todasDatasValidas} className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white">
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Salvar retorno
+          {t('fichaE.saveReturn')}
         </Button>
       </div>
 
@@ -647,16 +648,16 @@ export default function FichaEForm({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Valores fora da faixa esperada
+              {t('fichaE.highValueTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Existem valores acima de 400 mg/dL na grade. Verifique se os dados estão corretos antes de continuar.
+              {t('fichaE.highValueDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setShowHighValueConfirm(false)}>Revisar</Button>
+            <Button variant="outline" onClick={() => setShowHighValueConfirm(false)}>{t('fichaE.review')}</Button>
             <AlertDialogAction onClick={() => { setShowHighValueConfirm(false); handleSave(); }} className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white">
-              Confirmar e salvar
+              {t('fichaE.confirmAndSave')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -667,25 +668,25 @@ export default function FichaEForm({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-center text-lg">
               {savedResult?.adequado ? (
-                <span className="text-[#16A34A]">CONTROLE ADEQUADO — sem insulina</span>
+                <span className="text-[#16A34A]">{t('fichaE.impactAdequate')}</span>
               ) : (
-                <span className="text-[#D97706]">INICIAR INSULINA</span>
+                <span className="text-[#D97706]">{t('fichaE.impactInsulin')}</span>
               )}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3">
               <p className="text-base font-semibold">
-                {savedResult?.percentual?.toFixed(1)}% das glicemias dentro da meta
+                {t('fichaE.impactPercent', { percent: savedResult?.percentual?.toFixed(1) })}
               </p>
               {/* 38B-B (#25): pop-up só com veredito + % + remissão ao laudo.
                   Conduta e próximos passos vão no laudo; sem expor "Ficha E/B/D". */}
               <p className="text-sm">
-                Conduta e próximos passos no laudo completo abaixo.
+                {t('fichaE.impactNextSteps')}
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="justify-center">
             <AlertDialogAction onClick={handleCloseImpact} className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white">
-              Fechar e ver laudo completo
+              {t('fichaE.impactClose')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

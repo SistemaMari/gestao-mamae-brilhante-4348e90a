@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Users, UserPlus, CreditCard, UserCog, LogOut, Menu, X,
@@ -13,16 +14,15 @@ const DUMMY = {
   firstName: 'Mari',
   fullName: 'Dra. Mari Demo',
   email: 'demo@mari.health',
-  planoLabel: 'Plano Inicial',
   planoUsados: 3,
   planoLimite: 10,
 };
 
 const navItemsClinical = [
-  { label: 'Pacientes', icon: Users, path: '/vitrine/dashboard' },
-  { label: 'Nova Paciente', icon: UserPlus, path: '/vitrine/paciente/nova' },
-  { label: 'Tutorial', icon: PlayCircle, path: '/vitrine/tutorial' },
-  { label: 'Meu Dashboard', icon: BarChart3, path: '/vitrine/dashboard/metricas' },
+  { labelKey: 'appShell.navPatients', icon: Users, path: '/vitrine/dashboard' },
+  { labelKey: 'appShell.navNewPatient', icon: UserPlus, path: '/vitrine/paciente/nova' },
+  { labelKey: 'appShell.navTutorial', icon: PlayCircle, path: '/vitrine/tutorial' },
+  { labelKey: 'appShell.navMyDashboard', icon: BarChart3, path: '/vitrine/dashboard/metricas' },
 ];
 
 function iniciaisNome(nome: string) {
@@ -32,15 +32,16 @@ function iniciaisNome(nome: string) {
 function usePreviewBreadcrumb() {
   const path = useLocation().pathname;
   if (path === '/vitrine/dashboard') return null;
-  if (path === '/vitrine/paciente/nova') return { parent: { label: 'Pacientes', path: '/vitrine/dashboard' }, current: 'Nova paciente' };
-  if (path.startsWith('/vitrine/paciente/')) return { parent: { label: 'Pacientes', path: '/vitrine/dashboard' }, current: 'Ficha da paciente' };
-  if (path === '/vitrine/planos') return { parent: null, current: 'Meu Plano' };
-  if (path === '/vitrine/perfil') return { parent: null, current: 'Meu Perfil' };
-  if (path === '/vitrine/dashboard/metricas') return { parent: null, current: 'Meu Dashboard' };
+  if (path === '/vitrine/paciente/nova') return { parent: { labelKey: 'appShell.navPatients', path: '/vitrine/dashboard' }, currentKey: 'appShell.breadcrumbNewPatient' };
+  if (path.startsWith('/vitrine/paciente/')) return { parent: { labelKey: 'appShell.navPatients', path: '/vitrine/dashboard' }, currentKey: 'appShell.breadcrumbPatientFile' };
+  if (path === '/vitrine/planos') return { parent: null, currentKey: 'appShell.breadcrumbMyPlan' };
+  if (path === '/vitrine/perfil') return { parent: null, currentKey: 'appShell.breadcrumbMyProfile' };
+  if (path === '/vitrine/dashboard/metricas') return { parent: null, currentKey: 'appShell.breadcrumbMyDashboard' };
   return null;
 }
 
 export default function PreviewAppShell() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const breadcrumb = usePreviewBreadcrumb();
@@ -60,7 +61,7 @@ export default function PreviewAppShell() {
 
   const renderNavButton = (item: typeof navItemsClinical[0]) => (
     <button
-      key={item.label}
+      key={item.labelKey}
       onClick={() => navigate(item.path)}
       className={cn(
         'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
@@ -70,14 +71,14 @@ export default function PreviewAppShell() {
       )}
     >
       <item.icon className="h-5 w-5 shrink-0" />
-      <span>{item.label}</span>
+      <span>{t(item.labelKey)}</span>
     </button>
   );
 
   const SidebarContent = () => (
     <>
       <div className="shrink-0 border-b border-[#E2E8F0] p-3 bg-white">
-        <img src={mariLogo} alt="MARI — Maternal ARtificial Intelligence" className="w-full rounded-lg" />
+        <img src={mariLogo} alt={t('appShell.logoAlt')} className="w-full rounded-lg" />
       </div>
 
       <nav className="flex-1 min-h-0 overflow-y-auto space-y-1 px-3 py-4">
@@ -109,7 +110,7 @@ export default function PreviewAppShell() {
           )}
         >
           <UserCog className="h-4 w-4 shrink-0" />
-          Meu perfil
+          {t('appShell.myProfile')}
         </button>
         <button
           onClick={() => navigate('/vitrine/planos')}
@@ -121,7 +122,7 @@ export default function PreviewAppShell() {
           )}
         >
           <CreditCard className="h-4 w-4 shrink-0" />
-          Meu plano
+          {t('appShell.myPlan')}
         </button>
         <Button
           variant="outline"
@@ -130,7 +131,7 @@ export default function PreviewAppShell() {
           className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Sair
+          {t('common.logout')}
         </Button>
       </div>
     </>
@@ -145,7 +146,7 @@ export default function PreviewAppShell() {
           className="pointer-events-auto hidden lg:flex items-center gap-3 rounded-full pl-3 pr-4 py-1.5 text-xs font-medium hover:opacity-90 transition shadow-sm"
           style={{ backgroundColor: '#F1F0FB', color: '#7E69AB' }}
         >
-          <span className="font-semibold">{DUMMY.planoLabel}</span>
+          <span className="font-semibold">{t('appShell.planLabel')}</span>
           <span className="flex items-center gap-2">
             <span className="relative block h-1.5 w-24 rounded-full overflow-hidden" style={{ backgroundColor: '#E2DEF5' }}>
               <span className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${consumoPct}%`, backgroundColor: '#7E69AB' }} />
@@ -164,7 +165,7 @@ export default function PreviewAppShell() {
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="pointer-events-auto fixed top-3 left-3 z-50 md:hidden rounded-md bg-card/80 backdrop-blur p-2 text-muted-foreground hover:text-foreground shadow-sm print:hidden"
-        aria-label="Menu"
+        aria-label={t('appShell.menu')}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
@@ -193,13 +194,13 @@ export default function PreviewAppShell() {
                 {breadcrumb.parent && (
                   <>
                     <Link to={breadcrumb.parent.path} className="hover:underline" style={{ color: '#94A3B8' }}>
-                      {breadcrumb.parent.label}
+                      {t(breadcrumb.parent.labelKey)}
                     </Link>
                     <ChevronRight className="h-3 w-3" style={{ color: '#94A3B8' }} />
                   </>
                 )}
                 <span className="font-medium" style={{ color: '#2D2B55' }}>
-                  {breadcrumb.current}
+                  {t(breadcrumb.currentKey)}
                 </span>
               </nav>
             </div>

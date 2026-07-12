@@ -42,7 +42,8 @@
     "of": "of",
     "loadingData": "Loading data...",
     "pageNotFound": "Oops! Page not found",
-    "returnToHome": "Return to Home"
+    "returnToHome": "Return to Home",
+    "unknownError": "unknown error"
   },
   "languages": {
     "pt-BR": "Portuguese (Brazil)",
@@ -2842,5 +2843,967 @@
     "mostPopular": "Most popular",
     "upToReportsPerMonth": "Up to {{count}} reports per month",
     "launchPricingNote": "Launch pricing. Values may be adjusted after the promotional period."
+  },
+  "retorno1": {
+    "diag": {
+      "negativoLabel": "Result: NEGATIVE — Normoglycemia",
+      "negativoTexto": "Fasting glucose: {{valor}} mg/dL. There is NO diagnosis of Gestational Diabetes Mellitus at this time.",
+      "positivoLabel": "Result: POSITIVE — Gestational Diabetes Mellitus",
+      "positivoTexto": "Fasting glucose: {{valor}} mg/dL. GDM diagnosis CONFIRMED.",
+      "overtLabel": "Result: OVERT DM — Pre-existing diabetes",
+      "overtTexto": "Fasting glucose: {{valor}} mg/dL. Diagnosis of pre-existing diabetes detected during pregnancy."
+    },
+    "pendentes": {
+      "resultadoGj": "Fasting glucose result",
+      "tipoExame": "Test type (plasma/capillary)",
+      "dataExame": "Test date",
+      "dataConsulta": "Follow-up visit date",
+      "usgRef": "Ultrasound or GA reference"
+    },
+    "toasts": {
+      "rascunhoLocalSalvo": "Local draft saved at {{hora}}",
+      "precisaLogar": "You must be logged in.",
+      "rascunhoServidorSalvo": "Draft saved on the server at {{hora}}",
+      "rascunhoErro": "Error saving draft. Local changes preserved.",
+      "preenchaObrigatorios": "Fill in all required fields.",
+      "retornoRegistradoAguardando": "Follow-up recorded. Awaiting plasma glucose for diagnosis.",
+      "retornoRegistradoAguardandoCurto": "Follow-up recorded. Awaiting plasma glucose.",
+      "erroRegistrarConsulta": "Error recording the visit."
+    },
+    "obs": {
+      "gjPrefix": "FG: {{valor}} mg/dL ({{tipo}}).",
+      "gjPlasmatica": "FG: {{valor}} mg/dL (plasma).",
+      "gjCapilarInvalido": "FG: {{valor}} mg/dL (capillary). Method not valid for diagnosis.",
+      "metodoInvalido": "Method not valid for diagnosis.",
+      "metodoInvalidoCurto": "Method not valid."
+    },
+    "campoObrigatorio": "Required field",
+    "conduta": {
+      "title": "Management",
+      "negNaoRepetir": "Do not repeat fasting glucose.",
+      "negPreNatal": "Continue routine prenatal care.",
+      "negGtt": "Perform the 75g OGTT as close as possible to 24 weeks — strictly before 28 weeks.",
+      "negGttJanelaPrefix": "The 75g OGTT should be performed as close as possible to the 24th week (between",
+      "negGttJanelaE": "and",
+      "negGttJanelaSuffix": ").",
+      "negGttNaJanela": "The 75g OGTT is already within the window — order it as soon as possible.",
+      "posTratamento": "Start immediate treatment — diet + physical activity.",
+      "posPerfil": "Order a 4-point daily glycemic profile for 7 to 10 days (fasting + 1h post-breakfast + 1h post-lunch + 1h post-dinner).",
+      "posRetorno": "Follow-up in 7 to 10 days with the glycemic profile filled in.",
+      "posUsgDatar": "Order an obstetric ultrasound to date the pregnancy.",
+      "posUsgCrescimento": "Order an obstetric ultrasound for fetal growth reference."
+    },
+    "laudoCompleto": {
+      "title": "Full Report",
+      "bloco2": "Block 2 — Scientific Rationale: will be generated soon.",
+      "bloco3": "Block 3 — Personalized Guidance: will be generated soon."
+    },
+    "notasTecnicas": {
+      "title": "Technical notes",
+      "nota1": "Do not repeat fasting glucose for diagnostic purposes — under no scenario, whether the result is positive or negative.",
+      "nota2": "Plasma glucose is MANDATORY for diagnosis — fingerstick capillary glucose is not valid for this purpose.",
+      "nota3": "Fasting and postprandial capillary glucose are used exclusively to monitor the glycemic profile — never for diagnosis.",
+      "nota4": "If diagnosis is confirmed: start immediate treatment. Timely and correct diagnosis saves lives. Do not wait, do not repeat — treat."
+    },
+    "ctrlP": "To save or print this report as PDF: press Ctrl+P (Windows) or Cmd+P (Mac) and choose \"Save as PDF\".",
+    "popup": {
+      "negativoTitle": "GDM negative — next step: 75g OGTT",
+      "positivoTitle": "POSITIVE — Gestational Diabetes Mellitus confirmed.",
+      "overtTitle": "POSITIVE — OVERT DM (pre-existing diabetes) confirmed.",
+      "negResultado": "Result: GDM NEGATIVE at this stage of pregnancy.",
+      "negProximoPonto": "The next checkpoint is the 75g OGTT.",
+      "negJanela": "Window for the 75g OGTT: {{inicio}} to {{fim}}.",
+      "negAgende": "Order/schedule the test immediately — waiting lists at health facilities tend to be long.",
+      "negNaJanela": "The 75g OGTT is already within the window — order it immediately",
+      "negLimite": "(deadline: {{fim}})",
+      "negJanelaPerdida": "If the window is missed, schedule it as close as possible to the 28th week — never leave the patient without the 75g OGTT.",
+      "negNaoRepita": "Do not repeat fasting glucose, regardless of the result.",
+      "posTratar": "Do not repeat the test. It is time to treat. Start now.",
+      "btnEntendi": "Got it",
+      "btnVerLaudo": "Got it, view full report"
+    },
+    "editDialog": {
+      "title": "Edit result",
+      "desc": "Are you sure you want to change the result? The diagnosis will be recalculated."
+    },
+    "header": {
+      "title": "FOLLOW-UP 1 — Fasting Glucose Result",
+      "subtitle": "Enter the fasting glucose result for automatic diagnosis."
+    },
+    "capilarAlert": "WARNING: Capillary glucose is not valid for GDM diagnosis. The protocol requires plasma glucose. Advise the patient to redo the test with the correct method.",
+    "usgRefIntro": "This patient does not yet have a defined GA reference. Use this follow-up to record the 1st ultrasound.",
+    "usgRefIncompleta": "Complete the GA reference before saving.",
+    "gj": {
+      "label": "Fasting glucose result (mg/dL)",
+      "tooltip": "Enter the exact numeric value from the laboratory test result. E.g.: 94. Do not round.",
+      "placeholder": "E.g.: 94",
+      "rangeError": "Value must be between 1 and 400 mg/dL"
+    },
+    "tipoExame": {
+      "label": "Type of test performed",
+      "tooltip": "PLASMA glucose is the only valid method for GDM diagnosis per the Febrasgo/MoH/WHO protocol. Capillary glucose (fingerstick) and CGM are not accepted for diagnosis.",
+      "placeholder": "Select the type",
+      "plasmatica": "Plasma (laboratory)",
+      "capilar": "Capillary (fingerstick)"
+    },
+    "dataExame": {
+      "label": "Test date",
+      "tooltip": "Date the sample was collected at the laboratory."
+    },
+    "igExame": {
+      "label": "GA on the test date",
+      "tooltipPrefix": "Gestational age on the date the sample was collected.",
+      "tooltipSuffix": "Filled in automatically; edit if needed.",
+      "weeks": "Weeks",
+      "days": "Days"
+    },
+    "dataConsulta": {
+      "label": "Follow-up visit date",
+      "tooltip": "Date of the patient's follow-up. Filled in automatically with today's date. Edit if needed."
+    },
+    "observacoes": {
+      "label": "Notes",
+      "tooltip": "Additional notes about this follow-up.",
+      "placeholder": "Optional notes about this follow-up"
+    },
+    "btnSalvarRascunho": "Save draft",
+    "btnSalvarFinalizar": "Save and finish",
+    "btnFinalizarTitle": "Fill in all required fields to finish"
+  },
+  "fichaAC": {
+    "pontos": {
+      "jejum": "Fasting",
+      "jejumTooltip": "Collected before any meal, after at least 8 hours without eating. Target: < 95 mg/dL. Use a capillary glucometer for follow-up — unlike diagnosis, which requires venous plasma. ATTENTION: values < 70 mg/dL indicate hypoglycemia — assess immediately and inform the specialist."
+    },
+    "dayMessage": {
+      "first": "Fill in 7 to 10 days of measurements.",
+      "upTo7": "Fill in up to 7 days of measurements.",
+      "upTo15": "Fill in up to 15 days of measurements."
+    },
+    "errors": {
+      "noProfessional": "Professional not found",
+      "createConsulta": "Failed to create consultation",
+      "createPerfil": "Failed to create profile",
+      "saveError": "Error saving: {{error}}",
+      "unknown": "Unknown error"
+    },
+    "pendentes": {
+      "dataInicio": "Profile start date",
+      "dataFim": "Profile end date",
+      "dataConsulta": "Consultation date",
+      "igSemanas": "Gestational age (weeks)",
+      "aoMenosUmValor": "At least 1 glucose value filled in",
+      "valoresNegativos": "Correct negative values in the grid",
+      "checklist": "Return 2 clinical checklist (6 items)",
+      "pactuacao": "Agreement with the patient",
+      "memoria": "Glucometer memory assessment"
+    },
+    "header": {
+      "titleRetorno2": "RETURN 2 — Time to review the initial treatment result (4-point Glucose Profile) and define the next step",
+      "titleFichaC": "FORM C — Follow-up without insulin, after the 30th week (4-point Glucose Profile × 7 days)",
+      "titleFichaA": "FORM A — Follow-up without insulin, up to the 30th week (4-point Glucose Profile × 15 days)",
+      "subtitle": "Fill in the grid with the capillary glucose readings recorded by the patient.",
+      "posPrandialBadge": "Postprandial: {{janela}}"
+    },
+    "hypo": {
+      "alertTitle": "HYPOGLYCEMIA ALERT",
+      "alertLine": "Value of {{value}} mg/dL on Day {{day}} ({{point}}). Assess immediately and inform the specialist."
+    },
+    "fields": {
+      "dataInicioLabel": "Profile start date",
+      "dataInicioTooltip": "First day the patient began measuring her glucose levels.",
+      "dataFimLabel": "End date",
+      "dataFimTooltip": "Last day of profile measurement.",
+      "dataConsultaLabel": "Consultation date",
+      "dataConsultaTooltip": "Return date. Default: today. Editable.",
+      "igLabel": "Current gestational age",
+      "igTooltipBefore": "Current GA in weeks + days. Used to set the interval for the next return and to identify whether the patient has passed the 30th week.",
+      "igTooltipAfter": "Automatically pre-filled; editable.",
+      "weeksPlaceholder": "wk",
+      "weeksPlus": "wk +",
+      "daysPlaceholder": "days",
+      "days": "days"
+    },
+    "control": {
+      "detail": "Control: {{percentual}}% of glucose values within target ({{dentroMeta}} of {{total}} values)",
+      "target": "Target: ≥ 70% of glucose values within range"
+    },
+    "grid": {
+      "day": "Day",
+      "dayN": "Day {{day}}",
+      "metaValue": "< {{value}} mg/dL",
+      "cellAria": "Day {{day}} {{point}}",
+      "invalid": "Invalid value",
+      "verify": "Check",
+      "hypo": "Hypoglycemia"
+    },
+    "observations": {
+      "label": "Notes",
+      "tooltip": "Additional notes about this return visit.",
+      "placeholder": "Optional"
+    },
+    "actions": {
+      "save": "Save return"
+    },
+    "highValue": {
+      "title": "Values outside the expected range",
+      "description": "There are values above 400 mg/dL in the grid. Check that the data is correct before continuing.",
+      "review": "Review",
+      "confirmSave": "Confirm and save"
+    },
+    "impact": {
+      "adequado": "ADEQUATE CONTROL",
+      "inadequado": "INADEQUATE CONTROL",
+      "percentual": "{{percentual}}% of glucose values within target",
+      "adequadoFichaE": "Adequate control — follow-up expanded to a 6-point profile, still without insulin.",
+      "adequadoDefault": "Guidance in the full report below.",
+      "inadequadoConduta": "Management: start insulin. Dose and guidance in the full report below.",
+      "close": "Close and view full report"
+    }
+  },
+  "gtt": {
+    "formTitle": "75g OGTT — Oral Glucose Tolerance Test",
+    "saveButton": "Save 75g OGTT",
+    "requiredField": "Required field",
+    "diagnosticoTardio": "Late diagnosis (GA > 28 weeks) — immediate start of treatment is critical.",
+    "printHint": "To save or print: Ctrl+P (Windows) or Cmd+P (Mac) → \"Save as PDF\".",
+    "diag": {
+      "overtLabel": "OVERT DM — Pre-existing diabetes diagnosed during pregnancy",
+      "overtTexto": "Diagnosis of pre-existing diabetes identified during pregnancy.",
+      "positivoLabel": "75g OGTT ABNORMAL — GDM diagnosis confirmed",
+      "positivoTexto": "Any abnormal value on the 75g OGTT already confirms the diagnosis of Gestational Diabetes Mellitus.",
+      "positivoTextoRecursoLimitado": "Diagnosis made in a limited-resource setting (without a complete 75g OGTT). This method reaches approximately 66% of diagnoses — about 34% of cases may go undetected.",
+      "negativoLabel": "75g OGTT NORMAL — GDM ruled out",
+      "negativoTexto": "All 75g OGTT values are within normal parameters. The diagnosis of Gestational Diabetes Mellitus is RULED OUT. Continue routine prenatal care.",
+      "negativoTextoRecursoLimitado": "Fasting glucose within normal parameters. GDM is ruled out on this test. Note: without a complete 75g OGTT, about 34% of cases may go undetected."
+    },
+    "pendentes": {
+      "glicemiaJejum": "Fasting glucose",
+      "glicemia1h": "1h glucose",
+      "glicemia2h": "2h glucose",
+      "dataExame": "Test date",
+      "dataConsulta": "Consultation date"
+    },
+    "toast": {
+      "fillRequired": "Fill in all required fields.",
+      "mustBeLoggedIn": "You need to be logged in.",
+      "consultaError": "Error saving the consultation."
+    },
+    "valores": {
+      "jejum": "Fasting glucose",
+      "pos1h": "1h post-load",
+      "pos2h": "2h post-load"
+    },
+    "tabela": {
+      "dosagem": "Measurement",
+      "resultado": "Result",
+      "meta": "Target",
+      "status": "Status"
+    },
+    "status": {
+      "alterado": "ABNORMAL",
+      "normal": "NORMAL"
+    },
+    "recursoLimitado": {
+      "checkboxLabel": "Patient without financial/technical means for a complete 75g OGTT",
+      "warningTitle": "Warning:",
+      "warningText": "without a complete 75g OGTT, the diagnosis relies solely on fasting glucose, which reaches approximately 66% of diagnoses. About 34% of GDM cases may go undetected with this method alone.",
+      "resultTitle": "Limited resource:",
+      "resultText": "diagnosis based solely on fasting glucose (~66% detection). ~34% of cases may go undetected."
+    },
+    "ig": {
+      "label": "GA on the date of the 75g OGTT",
+      "tooltipPre": "Gestational age in weeks + days on the test date.",
+      "tooltipPost": "The 75g OGTT should be performed as close as possible to 24 weeks, strictly before 28 weeks. If not performed within this window, it should be done as soon as possible — never abandoned.",
+      "weeks": "weeks",
+      "days": "days",
+      "weeksPlaceholder": "Wk",
+      "daysPlaceholder": "Days"
+    },
+    "jejum": {
+      "label": "Fasting glucose on the 75g OGTT (mg/dL) *",
+      "tooltip": "First 75g OGTT sample — before ingesting the glucose solution. Normal target: < 92 mg/dL.",
+      "placeholder": "e.g. 85"
+    },
+    "pos1h": {
+      "label": "1h post-load glucose (mg/dL) *",
+      "tooltip": "Sample taken exactly 1 hour after ingesting 75g of glucose. Normal target: < 180 mg/dL.",
+      "placeholder": "e.g. 155"
+    },
+    "pos2h": {
+      "label": "2h post-load glucose (mg/dL) *",
+      "tooltip": "Sample taken exactly 2 hours after ingesting 75g of glucose. Normal target: < 153 mg/dL.",
+      "placeholder": "e.g. 140"
+    },
+    "dataExame": {
+      "label": "Test date *",
+      "tooltip": "Date the 75g OGTT was performed."
+    },
+    "dataConsulta": {
+      "label": "Return visit date *",
+      "tooltip": "Return visit date. Default: today."
+    },
+    "observacoes": {
+      "label": "Notes",
+      "tooltip": "Additional notes.",
+      "placeholder": "Optional"
+    },
+    "conduta": {
+      "title": "Management",
+      "negativo1": "GDM ruled out. Continue routine prenatal care.",
+      "negativo2": "There is no need to repeat the test.",
+      "positivo1": "Start immediate treatment — diet + physical activity.",
+      "positivo2": "Request a 4-point daily glucose profile for 7 to 10 days.",
+      "positivo3": "Return in 7 to 10 days with the completed glucose profile.",
+      "positivoUsg": "Request an obstetric ultrasound",
+      "usgDatar": " to date the pregnancy.",
+      "usgCrescimento": " as a reference for fetal growth."
+    },
+    "laudoCompleto": {
+      "title": "Full Report",
+      "bloco2": "Block 2 — Scientific Rationale: will be generated soon.",
+      "bloco3": "Block 3 — Personalized Guidance: will be generated soon."
+    },
+    "notasTecnicas": {
+      "title": "Technical notes",
+      "nota1": "Do not repeat fasting glucose for diagnostic purposes.",
+      "nota2": "Plasma glucose is MANDATORY for diagnosis.",
+      "nota3": "Capillary glucose is used only for monitoring — never for diagnosis.",
+      "nota4": "Diagnosis confirmed: start immediate treatment."
+    },
+    "popup": {
+      "positivo": "POSITIVE — Gestational Diabetes Mellitus confirmed by the 75g OGTT.",
+      "overt": "POSITIVE — OVERT DM (pre-existing diabetes) confirmed.",
+      "description": "Do not repeat the test. It is time to treat. Start now.",
+      "action": "Got it, view full report"
+    },
+    "ref": {
+      "title": "Diagnostic criteria — reference",
+      "dosagem": "Measurement",
+      "normal": "Normal",
+      "dmg": "GDM",
+      "overt": "OVERT DM",
+      "jejum": "Fasting",
+      "pos1h": "1h post",
+      "pos2h": "2h post",
+      "footnote": "Any ONE of the 3 abnormal samples is enough to establish a GDM diagnosis."
+    }
+  },
+  "fichaBD": {
+    "adequadoTitulo": "ADEQUATE CONTROL WITH INSULIN — {{pct}} of glucose readings within target",
+    "resultado": "Result",
+    "valoresDentroMeta": "{{dentro}} of {{total}} values within target ({{pct}}).",
+    "manterDose": "Maintain current dose. Details in the full report below.",
+    "hipoglicemia": "Warning: {{count}} recorded hypoglycemia episode(s).",
+    "encerramentoTitulo": "END OF MARI — {{veredito}}",
+    "inadequadoConduta": "ASSESS your confidence to continue managing the case OR PARTNER with an endocrinologist OR CONSIDER specialist referral (in the public system). Details in the full report below.",
+    "dia": "Day",
+    "diaN": "Day {{dia}}",
+    "pontos": {
+      "jejum": "Fasting",
+      "preAlmoco": "Pre-lunch",
+      "preJantar": "Pre-dinner"
+    },
+    "tooltips": {
+      "jejum": "Collected before any meal, after at least 8 hours of fasting. Target: < 95 mg/dL. WARNING: values < 70 mg/dL indicate hypoglycemia — assess immediately and notify the specialist.",
+      "prePrandial": "Blood glucose collected immediately before the meal (without prolonged fasting). Target: between 70 and 100 mg/dL. WARNING: values < 70 mg/dL indicate hypoglycemia — assess immediately and notify the specialist."
+    },
+    "headerRetorno3": "FOLLOW-UP 3 — Time to review the insulin outcome (6-point glucose profile) and define the next step",
+    "headerFichaD": "FORM D — Insulin follow-up, after the 30th week (6-point glucose profile × 7 days)",
+    "headerFichaB": "FORM B — Insulin follow-up, up to the 30th week (6-point glucose profile × 15 days)",
+    "dayMessage7": "Fill in up to 7 days of measurements.",
+    "dayMessage15": "Fill in up to 15 days of measurements.",
+    "fillGridHint": "Fill in the grid with the capillary blood glucose values recorded by the patient.",
+    "badgeFicha": "Form {{ficha}} — with insulin — GA {{ig}} wks",
+    "badgePosPrandial": "Postprandial: {{janela}}",
+    "hipoAlertTitle": "HYPOGLYCEMIA ALERT",
+    "hipoAlertItem": "Value of {{valor}} mg/dL on Day {{dia}} ({{ponto}}). Assess immediately and notify the specialist.",
+    "labelDataInicio": "Profile start date",
+    "tooltipDataInicio": "First day the patient started measuring blood glucose.",
+    "labelDataFim": "End date",
+    "tooltipDataFim": "Last day of the profile's measurements.",
+    "labelDataConsulta": "Appointment date",
+    "tooltipDataConsulta": "Follow-up date. Default: today.",
+    "labelIg": "Current gestational age",
+    "tooltipIg": "Current GA in weeks + days. Used to define the interval until the next follow-up.",
+    "igSemPlaceholder": "wks",
+    "igSemSuffix": "wks +",
+    "igDiasPlaceholder": "days",
+    "igDiasSuffix": "days",
+    "controleResumo": "Control: {{percentual}}% of blood glucose values within target ({{dentro}} of {{total}} values)",
+    "metaAlvo": "Target: ≥ 70% of blood glucose values within range",
+    "cellAria": "Day {{dia}} {{ponto}}",
+    "cellInvalido": "Invalid value",
+    "cellVerificar": "Check",
+    "cellHipo": "Hypoglycemia",
+    "labelObservacoes": "Notes",
+    "tooltipObservacoes": "Additional notes about this follow-up.",
+    "observacoesPlaceholder": "Optional",
+    "salvarRetorno": "Save follow-up",
+    "highValueTitle": "Values outside the expected range",
+    "highValueDesc": "There are values above 400 mg/dL in the grid. Check that the data is correct before continuing.",
+    "revisar": "Review",
+    "confirmarSalvar": "Confirm and save",
+    "impactAdequadoTitle": "ADEQUATE CONTROL WITH INSULIN",
+    "impactEncerramentoTitle": "MARI CLOSURE",
+    "impactAdequadoDesc": "Maintain the current dose. Details in the full report below.",
+    "impactEncerramentoDesc": "ASSESS whether you are comfortable continuing with the case OR PARTNER with an endocrinologist OR CONSIDER specialized referral (in the case of the public health system).",
+    "fecharVerLaudo": "Close and view full report",
+    "errors": {
+      "profNotFound": "Professional not found",
+      "createConsulta": "Failed to create appointment",
+      "createPerfil": "Failed to create profile",
+      "saveError": "Error saving: {{message}}",
+      "unknown": "Unknown error"
+    },
+    "pendentes": {
+      "dataInicio": "Profile start date",
+      "dataFim": "Profile end date",
+      "dataConsulta": "Appointment date",
+      "igSemanas": "Gestational age (weeks)",
+      "umValor": "At least 1 blood glucose value filled in",
+      "valoresNegativos": "Correct negative values in the grid"
+    }
+  },
+  "autosaveIndicator": {
+    "dirty": "Unsaved changes",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "error": "Error saving"
+  },
+  "bannerUsoLaudos": {
+    "limitReached": "You have reached your plan's report limit.",
+    "remaining_one": "{{count}} report remaining in your current plan.",
+    "remaining_other": "{{count}} reports remaining in your current plan.",
+    "usedOfLimit": "{{usados}} of {{limite}} reports used in this period.",
+    "upgradePlan": "Upgrade plan",
+    "viewPlans": "View plans"
+  },
+  "consulta1Result": {
+    "title": "Test request — New Case",
+    "orientationTitle": "Test instructions",
+    "orientationBody": "New Case successfully registered. Request fasting plasma glucose. Fasting of 8 to 12 hours. Venous sample processed in a laboratory — capillary fingerstick glucose is not valid for diagnostic purposes."
+  },
+  "usageWarning": {
+    "limitReached": "Your plan has reached its report limit.",
+    "remaining_one": "{{count}} report remaining in this period.",
+    "remaining_other": "{{count}} reports remaining in this period.",
+    "upgradePlan": "Upgrade plan",
+    "viewPlans": "View plans"
+  },
+  "registroPartoReadOnly": {
+    "title": "Delivery data",
+    "noStructuredData": "Delivery data recorded, but without structured details.",
+    "classificationLabel": "Classification",
+    "apgarMinutes": "(1st / 5th minute)"
+  },
+  "registroParto": {
+    "header": "DELIVERY RECORD",
+    "subtitle": "Record the perinatal outcome to close the follow-up.",
+    "subtitle2": "Fill in the delivery data. After saving, this record will be closed.",
+    "currentIg": "Current GA",
+    "aboutTitle": "About the record",
+    "aboutBody": "Recording the delivery is optional but recommended. It contributes to the patient's longitudinal history and to the platform's clinical indicators. After saving, this record will be closed.",
+    "moreInfo": "More information",
+    "selectPlaceholder": "Select",
+    "viaLabel": "Delivery route",
+    "viaHelp": "Select the delivery route.",
+    "vaginal": "Vaginal",
+    "cesarean": "Cesarean",
+    "motivoCesareaLabel": "Reason for cesarean",
+    "motivoCesareaHelp": "State the main reason for the cesarean (e.g., cephalopelvic disproportion, fetal distress, maternal request, repeat cesarean).",
+    "motivoCesareaPlaceholder": "E.g., fetal distress",
+    "dataPartoLabel": "Delivery date",
+    "dataPartoHelp": "Date the delivery occurred. Default: today. Editable.",
+    "igLabel": "GA at delivery",
+    "igHelp": "Gestational age in weeks + days at the time of delivery.",
+    "igHelpAuto": "Calculated automatically; editable.",
+    "weeksShort": "Wks",
+    "weeksUnit": "wks",
+    "daysShort": "Days",
+    "daysUnit": "days",
+    "igAutoNote": "GA calculated automatically from the LMP and the delivery date. Edit if needed.",
+    "igManualNote": "GA manually adjusted.",
+    "pesoRnFieldLabel": "Newborn weight (g)",
+    "pesoRnLabel": "Newborn weight",
+    "pesoRnHelp": "Newborn weight in grams. E.g., 3,450 g. Range: 300 to 6,000 g.",
+    "pesoRnPlaceholder": "E.g., 3450",
+    "sexoRnLabel": "Newborn sex",
+    "sexoRnHelp": "Newborn sex. Required for automatic classification (SGA/AGA/LGA).",
+    "male": "Male",
+    "female": "Female",
+    "classRnLabel": "Newborn classification",
+    "classRnHelp": "Classification per the Intergrowth-21st chart (reference adopted by the Ministry of Health). Calculated automatically from the newborn's weight, GA, and sex. Editable.",
+    "aigOption": "AGA — appropriate",
+    "gigOption": "LGA — large",
+    "pigOption": "SGA — small",
+    "classAutoNote": "Calculated automatically (Intergrowth-21st / Ministry of Health). Edit if needed.",
+    "classManualNote": "Classification manually adjusted.",
+    "classOutOfRangeNote": "GA outside the Intergrowth-21st chart coverage. Fill in manually.",
+    "apgar1Label": "Apgar 1st minute",
+    "apgar1Help": "Apgar score at the first minute of life. Scale of 0 to 10.",
+    "apgar5Label": "Apgar 5th minute",
+    "apgar5Help": "Apgar score at the fifth minute of life. Scale of 0 to 10.",
+    "apgarLabel": "Apgar",
+    "intercorrMatLabel": "Maternal complications",
+    "intercorrMatHelp": "Were there any maternal complications during delivery? E.g., postpartum hemorrhage, infection, hysterectomy.",
+    "intercorrNeoLabel": "Neonatal complications",
+    "intercorrNeoHelp": "Were there any neonatal complications? E.g., need for resuscitation, hypoglycemia, NICU admission.",
+    "descIntercorrNeoLabel": "Description of neonatal complications",
+    "descIntercorrNeoPlaceholder": "Describe the neonatal complications",
+    "aleitamentoFieldLabel": "Breastfeeding in the delivery room",
+    "aleitamentoLabel": "Breastfeeding in the delivery room",
+    "aleitamentoHelp": "Skin-to-skin contact and first breastfeeding within the first hour of life.",
+    "observacoesLabel": "Notes",
+    "observacoesHelp": "Space for additional notes about the delivery or the immediate postpartum period.",
+    "observacoesPlaceholder": "Optional",
+    "saveButton": "Save delivery record",
+    "confirmTitle": "Confirm closing the record",
+    "confirmDescription": "When you save the delivery record, this record will be closed. You will still be able to view the full history, but you will not be able to add new visits. Do you want to continue?",
+    "confirmAction": "Yes, record delivery",
+    "toast": {
+      "fillRequired": "Fill in all required fields.",
+      "patientNotFound": "Patient not found.",
+      "saved": "Delivery record saved. Record closed.",
+      "profileNotFound": "Professional profile not found.",
+      "saveError": "Error saving delivery record.",
+      "updateStatusError": "Error updating patient status."
+    },
+    "err": {
+      "viaParto": "Select the delivery route.",
+      "motivoCesarea": "State the reason for the cesarean.",
+      "igSemanas": "Weeks: 20 to 42.",
+      "igDias": "Days: 0 to 6.",
+      "dataParto": "Enter the delivery date.",
+      "pesoRn": "Weight: 300 to 6,000 g.",
+      "sexoRn": "Select the newborn's sex.",
+      "classRn": "Select the classification.",
+      "apgar": "Apgar: 0 to 10.",
+      "simNao": "Answer yes or no.",
+      "descIntercorrMat": "Describe the maternal complications.",
+      "descIntercorrNeo": "Describe the neonatal complications."
+    },
+    "rotulo": {
+      "viaParto": "Delivery route",
+      "motivoCesarea": "Reason for cesarean",
+      "igSemanas": "Gestational age (weeks)",
+      "igDias": "Gestational age (days)",
+      "dataParto": "Delivery date",
+      "pesoRn": "Newborn weight",
+      "sexoRn": "Newborn sex",
+      "classRn": "Newborn classification",
+      "apgar1": "Apgar 1st minute",
+      "apgar5": "Apgar 5th minute",
+      "intercorrMat": "Maternal complications (yes/no)",
+      "descIntercorrMat": "Description of maternal complications",
+      "intercorrNeo": "Neonatal complications (yes/no)",
+      "descIntercorrNeo": "Description of neonatal complications",
+      "aleitamento": "Breastfeeding in the delivery room (yes/no)"
+    }
+  },
+  "encerramentoParto": {
+    "title": "MARI follow-up closed",
+    "body": "This patient's follow-up in MARI was completed with the delivery record. The full clinical history, reports and glucose profiles remain available for review in this chart.",
+    "reteste": "<strong>Postpartum retest:</strong> perform a 75g OGTT (fasting + 2h) between 6 and 8 weeks after delivery."
+  },
+  "blockingModal": {
+    "title": "Plan limit reached",
+    "message": "You have reached the limit of your {{plano}} plan. To continue, upgrade your plan.",
+    "currentPlanFallback": "current",
+    "viewPlans": "View plans"
+  },
+  "fichaACReadOnlyGrid": {
+    "day": "Day",
+    "dayNum": "Day {{num}}",
+    "fasting": "Fasting"
+  },
+  "encerramentoInsulinizacao": {
+    "titleInsulinizacao": "MARI follow-up closed due to insulin therapy",
+    "titleMotivo": "MARI follow-up closed — {{motivo}}",
+    "insulinizacaoBody": "Insulin therapy was indicated and the corresponding report was issued with the management plan and the three continuity arrangements (obstetrician-led, joint care with an endocrinologist, or referral to a specialized service). Active follow-up within MARI ends at this point — the full clinical history, reports and glucose profiles remain available for review in this chart.",
+    "historicoDisponivel": "The full clinical history, reports and glucose profiles remain available for review in this chart.",
+    "continuidadeClinica": "<strong>Clinical continuity:</strong> follow the arrangements described in the insulin therapy report. MARI will not issue new automatic follow-ups for this patient.",
+    "retestePuerperal": "<strong>Postpartum retest:</strong> perform a 75g OGTT (fasting + 2h) between <strong>{{inicio}}</strong> and <strong>{{fim}}</strong> ({{origem}}).",
+    "corpo": {
+      "parto": "Follow-up closed — delivery on {{data}}.",
+      "aborto": "Follow-up closed — miscarriage recorded on {{data}}.",
+      "naoRetornou": "Follow-up closed — patient did not return.",
+      "outroComObs": "Follow-up closed. {{obs}}",
+      "outro": "Follow-up closed.",
+      "default": "Follow-up closed."
+    }
+  },
+  "usg": {
+    "cardTitle": "Ultrasounds and GA reference",
+    "addUsg": "Add ultrasound",
+    "firstUsg": "1st ultrasound",
+    "usgOrdem": "Ultrasound #{{ordem}}",
+    "dum": "LMP",
+    "notDefined": "not set",
+    "refLabel": "GA reference:",
+    "changeRef": "Change reference",
+    "changeRefAria": "Change GA reference",
+    "igToday": "GA today:",
+    "igFormat": "{{semanas}}w {{dias}}d",
+    "loading": "loading…",
+    "emptyNoUsgNoDum": "No ultrasound recorded and LMP not provided.",
+    "editAria": "Edit {{label}}",
+    "editTitle": "Edit ultrasound",
+    "deleteAria": "Delete {{label}}",
+    "deleteTitle": "Delete ultrasound",
+    "addModalTitle": "Add ultrasound",
+    "addModalDesc": "Enter the report data. The 1st ultrasound is the preferred reference.",
+    "alreadyRegistered": "Ultrasounds already recorded",
+    "noPreviousUsg": "No previous ultrasound recorded.",
+    "preferredReference": "preferred reference",
+    "saveUsg": "Save ultrasound",
+    "refModalTitle": "GA reference",
+    "refModalDesc": "Choose which source to use to calculate this patient's gestational age.",
+    "dumOption": "LMP — {{data}} - {{ig}}",
+    "dumNotInformed": "LMP (not provided)",
+    "noUsgYetHint": "No ultrasound recorded yet. Add an ultrasound to enable this option.",
+    "saveRef": "Save reference",
+    "editModalTitle": "Edit {{label}}",
+    "editModalDesc": "Adjust the report date and GA. The ultrasound order is kept.",
+    "saveChanges": "Save changes",
+    "deleteConfirmTitle": "Delete {{label}}?",
+    "deleteConfirmDesc": "This action cannot be undone. The ultrasound from {{data}} will be permanently removed.",
+    "deleteConfirmActiveRefWarning": "This is the ultrasound currently active as the GA reference. After deletion, the reference will be automatically reassigned to the remaining lowest-order ultrasound (or to the LMP, if no ultrasounds remain).",
+    "toasts": {
+      "registered": "Ultrasound recorded.",
+      "updated": "Ultrasound updated.",
+      "deleted": "Ultrasound deleted.",
+      "refUpdated": "GA reference updated."
+    },
+    "errors": {
+      "fillDateAndIg": "Fill in the ultrasound date and GA.",
+      "duplicateDateHistory": "An ultrasound is already recorded on this date for this patient. Check the history or edit the existing ultrasound.",
+      "duplicateDate": "An ultrasound already exists on this date for this patient. Edit the existing one or use another date.",
+      "duplicateDateShort": "An ultrasound already exists on this date for this patient.",
+      "duplicateDateOther": "Another ultrasound is already recorded on this date for this patient. Use another date or edit the existing one.",
+      "futureDate": "The exam date cannot be in the future.",
+      "saveWithMessage": "Error saving ultrasound: {{message}}",
+      "saveGeneric": "Error saving ultrasound. Check the data and try again.",
+      "editWithMessage": "Error: {{message}}",
+      "editGeneric": "Error saving ultrasound changes.",
+      "delete": "Error deleting ultrasound.",
+      "updateRef": "Error updating reference."
+    }
+  },
+  "realtimeIndicator": {
+    "idle": "No connection",
+    "connecting": "Connecting...",
+    "live": "Live update",
+    "error": "No real-time"
+  },
+  "telaInadimplente": {
+    "howToRegularize": "How to regularize?",
+    "stepRenew": "Click <strong>\"Renew subscription\"</strong> below",
+    "stepPaymentMethod": "Choose Pix, bank slip or credit card",
+    "stepReactivated": "After payment, your access is reactivated automatically",
+    "stepGoToPlans": "Go to the plans page and renew your subscription",
+    "renewSubscription": "Renew subscription",
+    "viewPlans": "View plans",
+    "signOut": "Sign out"
+  },
+  "encerrarAcompanhamento": {
+    "title": "End follow-up",
+    "intro": "Choose the reason for ending. The active MARI follow-up will be closed — the record remains available for reference.",
+    "dateLabelParto": "Delivery date",
+    "dateLabelAborto": "Miscarriage date",
+    "invalidDate": "Enter a valid date that is not in the future.",
+    "obsLabel": "Note",
+    "obsPlaceholder": "Describe the reason for ending.",
+    "confirm": "End follow-up"
+  },
+  "fichaE": {
+    "point": {
+      "jejum": "Fasting",
+      "posCafe": "1h post-breakfast",
+      "preAlmoco": "Pre-lunch",
+      "posAlmoco": "1h post-lunch",
+      "preJantar": "Pre-dinner",
+      "posJantar": "1h post-dinner"
+    },
+    "tooltip": {
+      "jejum": "Sample taken before any meal, after at least 8 hours without eating. Target: < 95 mg/dL. WARNING: values < 70 mg/dL indicate hypoglycemia — evaluate immediately.",
+      "posCafe": "Sample taken exactly 1 hour after the start of the meal. Target: < 140 mg/dL. WARNING: values < 70 mg/dL indicate hypoglycemia — evaluate immediately.",
+      "preAlmoco": "Blood glucose taken immediately before the meal (without prolonged fasting). Target: between 70 and 100 mg/dL. WARNING: values < 70 mg/dL indicate hypoglycemia.",
+      "posAlmoco": "Sample taken exactly 1 hour after the start of the meal. Target: < 140 mg/dL. WARNING: values < 70 mg/dL indicate hypoglycemia.",
+      "preJantar": "Blood glucose taken immediately before the meal (without prolonged fasting). Target: between 70 and 100 mg/dL. WARNING: values < 70 mg/dL indicate hypoglycemia.",
+      "posJantar": "Sample taken exactly 1 hour after the start of the meal. Target: < 140 mg/dL. WARNING: values < 70 mg/dL indicate hypoglycemia."
+    },
+    "pending": {
+      "dataInicio": "Profile start date",
+      "dataFim": "Profile end date",
+      "dataConsulta": "Visit date",
+      "igSemanas": "Gestational age (weeks)",
+      "atLeastOneValue": "At least 1 blood glucose value entered",
+      "fixNegative": "Fix negative values in the grid"
+    },
+    "errors": {
+      "professionalNotFound": "Professional not found",
+      "createConsulta": "Failed to create visit",
+      "createPerfil": "Failed to create profile",
+      "saveGeneric": "Error saving: {{message}}"
+    },
+    "headerTitle": "Follow-up — 6-point profile × 7 to 10 days (without insulin)",
+    "headerSubtitle": "Extended reassessment (glucometer memory confirms control). Fill in the grid with the capillary blood glucose values recorded by the patient.",
+    "headerBadge": "6-point profile — without insulin — GA {{ig}} wks",
+    "fillDaysHint": "Fill in 7 to 10 days of measurements.",
+    "hypoAlertTitle": "HYPOGLYCEMIA ALERT",
+    "hypoAlertItem": "Value of {{value}} mg/dL on Day {{day}} ({{point}}). Evaluate immediately.",
+    "dataInicioLabel": "Profile start date",
+    "dataInicioTooltip": "First day the patient started measuring blood glucose.",
+    "dataFimLabel": "End date",
+    "dataFimTooltip": "Last measurement day of the profile.",
+    "dataConsultaLabel": "Visit date",
+    "dataConsultaTooltip": "Follow-up date. Default: today.",
+    "igLabel": "Current gestational age",
+    "igTooltip": "Current GA in weeks + days. Determines routing (Form B or D) when migrating to insulin.",
+    "weeksPlaceholder": "wks",
+    "weeksSuffix": "wks +",
+    "daysPlaceholder": "days",
+    "daysSuffix": "days",
+    "controlSummary": "Control: {{percent}}% of blood glucose readings within target ({{inMeta}} of {{total}} values)",
+    "metaGoal": "Target: ≥ 70% of blood glucose readings within range",
+    "colDay": "Day",
+    "dayLabel": "Day {{day}}",
+    "cellAria": "Day {{day}} {{point}}",
+    "cellInvalid": "Invalid value",
+    "cellCheck": "Check",
+    "cellHypo": "Hypoglycemia",
+    "obsLabel": "Notes",
+    "obsTooltip": "Additional notes about this follow-up.",
+    "obsPlaceholder": "Optional",
+    "saveReturn": "Save follow-up",
+    "highValueTitle": "Values outside the expected range",
+    "highValueDesc": "There are values above 400 mg/dL in the grid. Check that the data is correct before continuing.",
+    "review": "Review",
+    "confirmAndSave": "Confirm and save",
+    "impactAdequate": "ADEQUATE CONTROL — without insulin",
+    "impactInsulin": "START INSULIN",
+    "impactPercent": "{{percent}}% of blood glucose readings within target",
+    "impactNextSteps": "Management and next steps in the full report below.",
+    "impactClose": "Close and view full report"
+  },
+  "consulta1": {
+    "fillAllRequired": "Fill in all required fields.",
+    "newCaseRegistered": "New Case registered successfully!",
+    "mustBeLoggedIn": "You need to be logged in.",
+    "fileLimitReached": "File limit reached for the current plan.",
+    "errorCreatingPatient": "Error creating patient.",
+    "errorSavingPatient": "Error saving patient.",
+    "patientCreatedButConsultationError": "Patient created, but error registering consultation.",
+    "requiredField": "Required field",
+    "headerTitle": "NEW CASE — Patient Data",
+    "headerSubtitle": "Fill in the initial data and open the clinical record with a lab test order.",
+    "nameTooltip": "Full name for identification in the record and report.",
+    "fullNameLabel": "Full name",
+    "namePlaceholder": "Patient's name",
+    "birthdateTooltip": "Used to calculate age automatically.",
+    "birthdateLabel": "Date of birth",
+    "yearsOld_one": "{{count}} year old",
+    "yearsOld_other": "{{count}} years old",
+    "identificationTooltip": "Select the document type and enter the patient's identification number.",
+    "identificationLabel": "Identification",
+    "idTypeCpf": "CPF",
+    "idTypeMedicalRecord": "Medical record",
+    "idTypeCns": "CNS",
+    "idNumberPlaceholder": "Number (optional)",
+    "whatsappTooltip": "Optional. Area code + number, 10 or 11 digits. Brazilian country code (+55) is fixed.",
+    "whatsappLabel": "WhatsApp",
+    "locationTooltip": "Patient's place of residence. The list of states and cities changes according to the country.",
+    "locationLabel": "Location",
+    "selectCity": "Select the city...",
+    "selectStateFirst": "Select the state first",
+    "lastPeriodTooltip": "Last menstrual period date. Used to calculate gestational age automatically.",
+    "lastPeriodLabel": "LMP (Last menstrual period)",
+    "unknownLastPeriod": "I don't know the last menstrual period date",
+    "consultationDateTooltip": "Date on which this consultation is taking place. Default: today.",
+    "consultationDateLabel": "Consultation date",
+    "clinicalNotesTooltip": "Additional notes about the patient: history, comorbidities, current medications, etc.",
+    "clinicalNotesLabel": "Clinical notes",
+    "optionalPlaceholder": "Optional",
+    "previousDmgTooltip": "Check if the patient was previously diagnosed with Gestational Diabetes Mellitus in a prior pregnancy.",
+    "previousDmgLabel": "GDM in previous pregnancy",
+    "saveConsultation": "Save consultation"
+  },
+  "appShell": {
+    "navPatients": "Patients",
+    "navNewPatient": "New Patient",
+    "navTutorial": "Tutorial",
+    "navMyDashboard": "My Dashboard",
+    "breadcrumbNewPatient": "New patient",
+    "breadcrumbPatientFile": "Patient record",
+    "breadcrumbMyPlan": "My Plan",
+    "breadcrumbMyProfile": "My Profile",
+    "breadcrumbMyDashboard": "My Dashboard",
+    "logoAlt": "MARI — Maternal ARtificial Intelligence",
+    "myProfile": "My profile",
+    "myPlan": "My plan",
+    "planLabel": "Starter Plan",
+    "menu": "Menu",
+    "myCourses": "My Courses",
+    "tutorial": "Tutorial",
+    "metricsLockedTooltip": "Available on the Professional plan",
+    "userFallback": "User",
+    "reportsUsageTooltip": "{{used}} of {{limit}} reports this month",
+    "menuAria": "Menu"
+  },
+  "cidadeCombobox": {
+    "selectCity": "Select the city...",
+    "noCityFound": "No city found.",
+    "searchPlaceholder": "Type to search..."
+  },
+  "bannerStatusPlano": {
+    "viewPlans": "View plans"
+  },
+  "usgFlow": {
+    "jaFezPergunta": "Has the patient already had her 1st ultrasound?",
+    "jaFezTooltip": "If yes, record the exam date and the gestational age stated in the report. The 1st ultrasound is the most reliable reference.",
+    "aindaNao": "Not yet",
+    "dadosTitulo": "{{ordinal}}Ultrasound data",
+    "badgeReferencia": "1st ultrasound — preferred reference",
+    "dataExame": "Exam date",
+    "semanas": "Weeks",
+    "dias": "Days",
+    "qualReferencia": "Which reference should be used to calculate gestational age from now on?",
+    "dumOption": "LMP — {{data}} - {{ig}}",
+    "dumNaoInformada": "LMP (not provided)",
+    "primeiraUsg": "1st ultrasound",
+    "usgOrdem": "Ultrasound #{{ordem}}",
+    "usgGenerica": "Ultrasound",
+    "semReferenciaAviso": "No gestational age reference defined. The 75g OGTT window calculation will be unavailable until the 1st ultrasound is recorded."
+  },
+  "gttResultCard": {
+    "semDados": "No 75g OGTT data.",
+    "overtLabel": "OVERT DM — Pre-existing diabetes diagnosed during pregnancy",
+    "overtTexto": "Diagnosis of pre-existing diabetes identified during pregnancy.",
+    "positivoLabel": "75g OGTT ABNORMAL — GDM diagnosis confirmed",
+    "positivoTextoRecurso": "Diagnosis made in a limited-resource setting (without a complete 75g OGTT).",
+    "positivoTexto": "Any abnormal value on the 75g OGTT already confirms the diagnosis of Gestational Diabetes Mellitus.",
+    "negativoLabel": "75g OGTT NORMAL — GDM ruled out",
+    "negativoTextoRecurso": "Fasting glucose within normal parameters. GDM is ruled out on this test.",
+    "negativoTexto": "All 75g OGTT values are within normal parameters. The diagnosis of Gestational Diabetes Mellitus is RULED OUT.",
+    "glicemiaJejum": "Fasting glucose",
+    "h1PosSobrecarga": "1h post-load",
+    "h2PosSobrecarga": "2h post-load",
+    "colDosagem": "Measurement",
+    "colResultado": "Result",
+    "colMeta": "Target",
+    "statusAlterado": "ABNORMAL",
+    "statusNormal": "NORMAL",
+    "recursoLimitadoLabel": "Limited resource:",
+    "recursoLimitadoText": "diagnosis based on fasting glucose only.",
+    "negativoHeading": "Diagnostic workup completed — GDM ruled out",
+    "diagnosticoTardio": "Late diagnosis (gestational age > 28 weeks) — immediate start of treatment is critical."
+  },
+  "fichaEResultCard": {
+    "openNextFicha": "After confirming weight and dose, open <strong>Form {{ficha}}</strong> via the \"+ New consultation\" button.",
+    "controleAdequadoTitle": "ADEQUATE CONTROL — {{percentual}}% of glucose readings within target",
+    "condutaLabel": "Management",
+    "condutaText": "Maintain diet and exercise, 6-point profile, reassess in 7-10 days. No insulin. Stays on Form E.",
+    "dentroMetaSummary": "{{dentroMeta}} of {{totalPreenchidos}} values within target ({{percentual}}%)."
+  },
+  "localizacaoErrorBoundary": {
+    "title": "Location crashed (temporary instrumentation)",
+    "hint": "You can keep filling out the rest of the form normally. The full error was sent to the console — say \"it broke again\" in the chat and I'll read it and fix it."
+  },
+  "stubEmConstrucao": {
+    "message": "Under construction. This screen will be available soon."
+  },
+  "profileForm": {
+    "requiredField": "Required field",
+    "fullName": "Full name",
+    "fullNameTooltip": "Your full name as it will appear on reports.",
+    "fullNamePlaceholder": "Your full name",
+    "crmCoren": "CRM / COREN",
+    "crmTooltip": "Professional registration number. E.g.: CRM/SP 123456",
+    "crmPlaceholder": "E.g.: CRM/SP 123456",
+    "specialty": "Specialty",
+    "specialtyTooltip": "Select your main area of practice.",
+    "selectPlaceholder": "Select...",
+    "country": "Country",
+    "state": "State",
+    "statePlaceholder": "Enter the state",
+    "city": "City",
+    "cityPlaceholder": "Enter the city",
+    "citySelectPlaceholder": "Select the city...",
+    "citySelectStateFirst": "Select the state first",
+    "preferredLanguage": "Preferred language",
+    "languageTooltip": "Sets the language of the interface and generated reports.",
+    "defaultIdentifier": "Default identifier",
+    "identifierTooltip": "Sets which identifier you use for your patients.",
+    "phone": "Phone",
+    "phoneTooltip": "Optional. Professional contact number.",
+    "phonePlaceholder": "(00) 00000-0000",
+    "saveAndContinue": "Save and continue"
+  },
+  "appSidebar": {
+    "patients": "Patients",
+    "newPatient": "New patient",
+    "myCourses": "My courses",
+    "metrics": "Metrics",
+    "plans": "Plans",
+    "profile": "Profile",
+    "tutorial": "Tutorial",
+    "dashboard": "Dashboard",
+    "team": "Team",
+    "reports": "Reports",
+    "settings": "Settings",
+    "consolidation": "Consolidation",
+    "units": "Units",
+    "panel": "Panel",
+    "diagnostics": "Diagnoses",
+    "filtersExport": "Filters and Export",
+    "admins": "Administrators",
+    "institutionalAccounts": "Institutional Accounts",
+    "professionalAccounts": "Professional Accounts",
+    "profileConsultorio": "Private practice",
+    "profileInstitucional": "Institutional",
+    "profileGestor": "Manager",
+    "profileGestorGeral": "General Manager",
+    "profileAdmin": "Administrator",
+    "userFallback": "User",
+    "logoAltFull": "MARI — Maternal ARtificial Intelligence",
+    "collapse": "Collapse",
+    "expand": "Expand"
+  },
+  "fichaACResult": {
+    "patientNotFound": "Patient not found.",
+    "weightConfirmed": "Weight confirmed. Dose calculated.",
+    "weightSaveError": "Error saving weight: {{error}}",
+    "unknownError": "Unknown error",
+    "controlAdequate": "ADEQUATE CONTROL — {{percent}}% of blood glucose readings within target",
+    "controlInadequate": "INADEQUATE CONTROL — {{percent}}% of blood glucose readings within target",
+    "result": "Result",
+    "valuesInTarget": "{{within}} of {{total}} values within target ({{percent}}%).",
+    "guidanceAdequate": "Guidance in the full report below.",
+    "guidanceInsulin": "Management: start insulin. Dose and guidance in the full report below.",
+    "guidanceMev": "Management: reinforce diet and exercise (lifestyle changes). Reassess maintaining the 4-point profile.",
+    "weightPromptTitle": "Glycemic control below target — enter the weight to calculate the dose",
+    "weightPromptDesc": "The protocol-indicated management is to add subcutaneous NPH insulin. Enter the patient's current weight so the system can calculate the initial dose and unlock Blocks 2 and 3 of the report.",
+    "currentWeightKg": "Current weight (kg)",
+    "weightTooltip": "Weight is required to calculate the standard initial insulin dose: 0.5 IU/kg/day. This dose is standardized worldwide for starting insulin therapy in GDM. E.g.: 70 kg patient → 35 IU/day in 2-3 doses.",
+    "weightPlaceholder": "E.g.: 70",
+    "initialNphDose": "Initial NPH insulin dose",
+    "uiPerDay": "IU/day",
+    "doseSplit": "{{morning}} IU morning (on waking) + {{night}} IU at 10 p.m.",
+    "weightFormula": "Weight: {{weight}} kg • formula: 0.5 IU/kg/day"
+  },
+  "retorno1Result": {
+    "negativeLabel": "Result: NEGATIVE — Normoglycemia",
+    "negativeText": "Fasting glucose: {{valor}} mg/dL. There is NO diagnosis of Gestational Diabetes Mellitus at this time.",
+    "positiveLabel": "Result: POSITIVE — Gestational Diabetes Mellitus",
+    "positiveText": "Fasting glucose: {{valor}} mg/dL. CONFIRMED diagnosis of GDM.",
+    "overtLabel": "Result: OVERT DM — Pre-existing diabetes",
+    "overtText": "Fasting glucose: {{valor}} mg/dL. Diagnosis of pre-existing diabetes identified during pregnancy.",
+    "noResultData": "No result data."
+  },
+  "upgradeRequired": {
+    "title": "Exclusive feature",
+    "availableInPlan": "Available on the <1>{{plano}}</1> plan.",
+    "upgradeButton": "Upgrade"
   }
 }

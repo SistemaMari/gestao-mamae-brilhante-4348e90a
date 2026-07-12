@@ -1,4 +1,5 @@
 import { Baby } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { PreviewConsulta } from '@/lib/previewPatients';
 
 type DadosParto = {
@@ -43,13 +44,14 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 export default function RegistroPartoReadOnlyCard({
   consulta,
 }: { consulta: PreviewConsulta }) {
+  const { t, i18n } = useTranslation();
   const dados = parseDados(consulta.observacoes);
 
   if (!dados) {
     return (
       <div className="rounded-lg border border-[#D6BCFA] bg-[#F1F0FB] p-3">
         <p className="text-xs text-[#6D28D9]">
-          Dados do parto registrados, mas sem detalhes estruturados.
+          {t('registroPartoReadOnly.noStructuredData')}
         </p>
       </div>
     );
@@ -57,9 +59,9 @@ export default function RegistroPartoReadOnlyCard({
 
   const via =
     dados.via_parto === 'cesarea'
-      ? `Cesárea${dados.motivo_cesarea ? ` (${dados.motivo_cesarea})` : ''}`
+      ? `${t('registroParto.cesarean')}${dados.motivo_cesarea ? ` (${dados.motivo_cesarea})` : ''}`
       : dados.via_parto === 'vaginal'
-      ? 'Vaginal'
+      ? t('registroParto.vaginal')
       : '—';
 
   const ig =
@@ -69,59 +71,59 @@ export default function RegistroPartoReadOnlyCard({
 
   const peso =
     dados.peso_rn_g != null
-      ? `${dados.peso_rn_g.toLocaleString('pt-BR')} g${
-          dados.classificacao_rn ? ` — Classificação: ${dados.classificacao_rn}` : ''
+      ? `${dados.peso_rn_g.toLocaleString(i18n.language)} g${
+          dados.classificacao_rn ? ` — ${t('registroPartoReadOnly.classificationLabel')}: ${dados.classificacao_rn}` : ''
         }`
       : '—';
 
   const apgar =
     dados.apgar_1min != null && dados.apgar_5min != null
-      ? `${dados.apgar_1min} / ${dados.apgar_5min} (1º / 5º minuto)`
+      ? `${dados.apgar_1min} / ${dados.apgar_5min} ${t('registroPartoReadOnly.apgarMinutes')}`
       : '—';
 
   return (
     <div className="rounded-xl border border-[#D6BCFA] bg-[#F1F0FB] p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Baby className="h-4 w-4 text-[#7E69AB]" />
-        <h3 className="text-sm font-bold text-[#5B21B6]">Dados do parto</h3>
+        <h3 className="text-sm font-bold text-[#5B21B6]">{t('registroPartoReadOnly.title')}</h3>
       </div>
 
       <div className="rounded-lg bg-white/70 p-3 space-y-1">
-        <Row label="Via de parto" value={via} />
-        <Row label="IG no parto" value={ig} />
-        <Row label="Peso do RN" value={peso} />
+        <Row label={t('registroParto.viaLabel')} value={via} />
+        <Row label={t('registroParto.igLabel')} value={ig} />
+        <Row label={t('registroParto.pesoRnLabel')} value={peso} />
         <Row
-          label="Sexo do RN"
+          label={t('registroParto.sexoRnLabel')}
           value={
             dados.sexo_rn === 'M'
-              ? 'Masculino'
+              ? t('registroParto.male')
               : dados.sexo_rn === 'F'
-              ? 'Feminino'
+              ? t('registroParto.female')
               : '—'
           }
         />
-        <Row label="Apgar" value={apgar} />
+        <Row label={t('registroParto.apgarLabel')} value={apgar} />
         <Row
-          label="Intercorrências maternas"
+          label={t('registroParto.intercorrMatLabel')}
           value={
             dados.intercorrencias_maternas
-              ? `Sim${dados.desc_intercorrencias_maternas ? ` — ${dados.desc_intercorrencias_maternas}` : ''}`
-              : 'Não'
+              ? `${t('common.yes')}${dados.desc_intercorrencias_maternas ? ` — ${dados.desc_intercorrencias_maternas}` : ''}`
+              : t('common.no')
           }
         />
         <Row
-          label="Intercorrências neonatais"
+          label={t('registroParto.intercorrNeoLabel')}
           value={
             dados.intercorrencias_neonatais
-              ? `Sim${dados.desc_intercorrencias_neonatais ? ` — ${dados.desc_intercorrencias_neonatais}` : ''}`
-              : 'Não'
+              ? `${t('common.yes')}${dados.desc_intercorrencias_neonatais ? ` — ${dados.desc_intercorrencias_neonatais}` : ''}`
+              : t('common.no')
           }
         />
         <Row
-          label="Aleitamento na sala de parto"
-          value={dados.aleitamento_sala_parto ? 'Sim' : 'Não'}
+          label={t('registroParto.aleitamentoLabel')}
+          value={dados.aleitamento_sala_parto ? t('common.yes') : t('common.no')}
         />
-        {dados.observacoes && <Row label="Observações" value={dados.observacoes} />}
+        {dados.observacoes && <Row label={t('registroParto.observacoesLabel')} value={dados.observacoes} />}
       </div>
     </div>
   );

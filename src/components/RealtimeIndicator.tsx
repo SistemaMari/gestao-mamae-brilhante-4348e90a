@@ -1,4 +1,5 @@
 import { Radio } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -6,11 +7,11 @@ interface Props {
   className?: string;
 }
 
-const LABEL: Record<Props['status'], string> = {
-  idle: 'Sem conexão',
-  connecting: 'Conectando...',
-  live: 'Atualização ao vivo',
-  error: 'Sem tempo real',
+const LABEL_KEY: Record<Props['status'], string> = {
+  idle: 'realtimeIndicator.idle',
+  connecting: 'realtimeIndicator.connecting',
+  live: 'realtimeIndicator.live',
+  error: 'realtimeIndicator.error',
 };
 
 const COLOR: Record<Props['status'], string> = {
@@ -21,10 +22,12 @@ const COLOR: Record<Props['status'], string> = {
 };
 
 export default function RealtimeIndicator({ status, className }: Props) {
+  const { t } = useTranslation();
+  const label = t(LABEL_KEY[status]);
   return (
     <span
       className={cn('inline-flex items-center gap-1.5 text-xs font-medium', COLOR[status], className)}
-      title={LABEL[status]}
+      title={label}
     >
       <span className="relative flex h-2 w-2">
         {status === 'live' && (
@@ -41,7 +44,7 @@ export default function RealtimeIndicator({ status, className }: Props) {
         />
       </span>
       <Radio className="h-3 w-3" />
-      <span className="hidden sm:inline">{LABEL[status]}</span>
+      <span className="hidden sm:inline">{label}</span>
     </span>
   );
 }

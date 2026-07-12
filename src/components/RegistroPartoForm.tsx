@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { todayLocalISO } from '@/lib/dateUtils';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { FileText, Info, Loader2, Baby } from 'lucide-react';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
@@ -46,11 +47,12 @@ type IgOrigem = 'auto' | 'manual';
 
 /** Tooltip helper — ícone ⓘ ao lado do label */
 function HelpIcon({ text }: { text: string }) {
+  const { t } = useTranslation();
   return (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <button type="button" tabIndex={-1} aria-label="Mais informações">
+          <button type="button" tabIndex={-1} aria-label={t('registroParto.moreInfo')}>
             <Info className="h-3.5 w-3.5 text-[#7C4DBA]" />
           </button>
         </TooltipTrigger>
@@ -65,6 +67,7 @@ function HelpIcon({ text }: { text: string }) {
 export default function RegistroPartoForm({
   paciente, consultas, isPreview, onSaved, onCancel,
 }: Props) {
+  const { t } = useTranslation();
   // 34C-B2: IG atual (badge no cabeçalho) via fonte única — IG na data
   // de hoje, calculada pela RPC `calcular_ig` que respeita a âncora vigente.
   const hojeISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -171,49 +174,49 @@ export default function RegistroPartoForm({
   // ── Validação ──
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
-    if (!viaParto) e.viaParto = 'Selecione a via de parto.';
+    if (!viaParto) e.viaParto = t('registroParto.err.viaParto');
     if (viaParto === 'cesarea' && !motivoCesarea.trim())
-      e.motivoCesarea = 'Informe o motivo da cesárea.';
+      e.motivoCesarea = t('registroParto.err.motivoCesarea');
 
     const sem = Number(igPartoSemanas);
     if (!igPartoSemanas || Number.isNaN(sem) || sem < 20 || sem > 42)
-      e.igSemanas = 'Semanas: 20 a 42.';
+      e.igSemanas = t('registroParto.err.igSemanas');
     const dd = Number(igPartoDias);
     if (igPartoDias === '' || Number.isNaN(dd) || dd < 0 || dd > 6)
-      e.igDias = 'Dias: 0 a 6.';
+      e.igDias = t('registroParto.err.igDias');
 
-    if (!dataParto) e.dataParto = 'Informe a data do parto.';
+    if (!dataParto) e.dataParto = t('registroParto.err.dataParto');
 
     const peso = Number(pesoRn);
     if (!pesoRn || Number.isNaN(peso) || peso < 300 || peso > 6000)
-      e.pesoRn = 'Peso: 300 a 6.000 g.';
+      e.pesoRn = t('registroParto.err.pesoRn');
 
-    if (!sexoRn) e.sexoRn = 'Selecione o sexo do RN.';
+    if (!sexoRn) e.sexoRn = t('registroParto.err.sexoRn');
 
-    if (!classRn) e.classRn = 'Selecione a classificação.';
+    if (!classRn) e.classRn = t('registroParto.err.classRn');
 
     const a1 = Number(apgar1);
     if (apgar1 === '' || Number.isNaN(a1) || a1 < 0 || a1 > 10)
-      e.apgar1 = 'Apgar: 0 a 10.';
+      e.apgar1 = t('registroParto.err.apgar');
     const a5 = Number(apgar5);
     if (apgar5 === '' || Number.isNaN(a5) || a5 < 0 || a5 > 10)
-      e.apgar5 = 'Apgar: 0 a 10.';
+      e.apgar5 = t('registroParto.err.apgar');
 
-    if (!intercorrMat) e.intercorrMat = 'Responda sim ou não.';
+    if (!intercorrMat) e.intercorrMat = t('registroParto.err.simNao');
     if (intercorrMat === 'sim' && !descIntercorrMat.trim())
-      e.descIntercorrMat = 'Descreva as intercorrências maternas.';
+      e.descIntercorrMat = t('registroParto.err.descIntercorrMat');
 
-    if (!intercorrNeo) e.intercorrNeo = 'Responda sim ou não.';
+    if (!intercorrNeo) e.intercorrNeo = t('registroParto.err.simNao');
     if (intercorrNeo === 'sim' && !descIntercorrNeo.trim())
-      e.descIntercorrNeo = 'Descreva as intercorrências neonatais.';
+      e.descIntercorrNeo = t('registroParto.err.descIntercorrNeo');
 
-    if (!aleitamento) e.aleitamento = 'Responda sim ou não.';
+    if (!aleitamento) e.aleitamento = t('registroParto.err.simNao');
 
     return e;
   }, [
     viaParto, motivoCesarea, igPartoSemanas, igPartoDias, dataParto,
     pesoRn, sexoRn, classRn, apgar1, apgar5, intercorrMat, descIntercorrMat,
-    intercorrNeo, descIntercorrNeo, aleitamento,
+    intercorrNeo, descIntercorrNeo, aleitamento, t,
   ]);
 
   const isValid = Object.keys(errors).length === 0;
@@ -224,21 +227,21 @@ export default function RegistroPartoForm({
   // 34B.3 seção 3.10 — bloqueia submit se data do parto inválida.
   const [dataPartoValida, setDataPartoValida] = useState(true);
   const ROTULOS_REGISTRO_PARTO: Record<string, string> = {
-    viaParto: 'Via do parto',
-    motivoCesarea: 'Motivo da cesárea',
-    igSemanas: 'Idade gestacional (semanas)',
-    igDias: 'Idade gestacional (dias)',
-    dataParto: 'Data do parto',
-    pesoRn: 'Peso do recém-nascido',
-    sexoRn: 'Sexo do recém-nascido',
-    classRn: 'Classificação do recém-nascido',
-    apgar1: 'Apgar 1º minuto',
-    apgar5: 'Apgar 5º minuto',
-    intercorrMat: 'Intercorrências maternas (sim/não)',
-    descIntercorrMat: 'Descrição das intercorrências maternas',
-    intercorrNeo: 'Intercorrências neonatais (sim/não)',
-    descIntercorrNeo: 'Descrição das intercorrências neonatais',
-    aleitamento: 'Aleitamento na sala de parto (sim/não)',
+    viaParto: t('registroParto.rotulo.viaParto'),
+    motivoCesarea: t('registroParto.rotulo.motivoCesarea'),
+    igSemanas: t('registroParto.rotulo.igSemanas'),
+    igDias: t('registroParto.rotulo.igDias'),
+    dataParto: t('registroParto.rotulo.dataParto'),
+    pesoRn: t('registroParto.rotulo.pesoRn'),
+    sexoRn: t('registroParto.rotulo.sexoRn'),
+    classRn: t('registroParto.rotulo.classRn'),
+    apgar1: t('registroParto.rotulo.apgar1'),
+    apgar5: t('registroParto.rotulo.apgar5'),
+    intercorrMat: t('registroParto.rotulo.intercorrMat'),
+    descIntercorrMat: t('registroParto.rotulo.descIntercorrMat'),
+    intercorrNeo: t('registroParto.rotulo.intercorrNeo'),
+    descIntercorrNeo: t('registroParto.rotulo.descIntercorrNeo'),
+    aleitamento: t('registroParto.rotulo.aleitamento'),
   };
   const camposPendentes = Object.keys(errors).map(
     (k) => ROTULOS_REGISTRO_PARTO[k] ?? k,
@@ -247,7 +250,7 @@ export default function RegistroPartoForm({
   // ── Salvar ──
   async function handleSave() {
     if (!isValid) {
-      toast.error('Preencha todos os campos obrigatórios.');
+      toast.error(t('registroParto.toast.fillRequired'));
       return;
     }
     setSaving(true);
@@ -277,7 +280,7 @@ export default function RegistroPartoForm({
       const p = getPreviewPacienteById(paciente.id);
       if (!p) {
         setSaving(false);
-        toast.error('Paciente não encontrada.');
+        toast.error(t('registroParto.toast.patientNotFound'));
         return;
       }
       const novaConsulta: PreviewConsulta = {
@@ -299,7 +302,7 @@ export default function RegistroPartoForm({
         consultas: [...(p.consultas || []), novaConsulta],
       });
       window.dispatchEvent(new Event('preview-pacientes-updated'));
-      toast.success('Registro do parto salvo. Ficha encerrada.');
+      toast.success(t('registroParto.toast.saved'));
       setSaving(false);
       onSaved();
       return;
@@ -314,7 +317,7 @@ export default function RegistroPartoForm({
 
     if (!prof) {
       setSaving(false);
-      toast.error('Perfil profissional não encontrado.');
+      toast.error(t('registroParto.toast.profileNotFound'));
       return;
     }
 
@@ -351,7 +354,7 @@ export default function RegistroPartoForm({
     if (cErr) {
       console.error(cErr);
       setSaving(false);
-      toast.error('Erro ao salvar registro do parto.');
+      toast.error(t('registroParto.toast.saveError'));
       return;
     }
 
@@ -368,7 +371,7 @@ export default function RegistroPartoForm({
     if (pErr) {
       console.error(pErr);
       setSaving(false);
-      toast.error('Erro ao atualizar status da paciente.');
+      toast.error(t('registroParto.toast.updateStatusError'));
       return;
     }
 
@@ -385,7 +388,7 @@ export default function RegistroPartoForm({
     });
 
     setSaving(false);
-    toast.success('Registro do parto salvo. Ficha encerrada.');
+    toast.success(t('registroParto.toast.saved'));
     onSaved();
   }
 
@@ -397,20 +400,20 @@ export default function RegistroPartoForm({
           <div className="space-y-1">
             <h2 className="font-heading text-base font-bold text-[#7E69AB] flex items-center gap-2">
               <Baby className="h-5 w-5" />
-              REGISTRO DO PARTO
+              {t('registroParto.header')}
             </h2>
             <p className="text-xs text-[#7E69AB]">
-              Registre o desfecho perinatal para encerrar o acompanhamento.
+              {t('registroParto.subtitle')}
             </p>
             <p className="text-xs text-[#64748B]">
-              Preencha os dados do parto. Após salvar, esta ficha será encerrada.
+              {t('registroParto.subtitle2')}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <StatusFichaBadge status={statusFichaLocal} />
             {igAtual && (
               <span className="inline-flex rounded-md bg-[#E8E0FF] px-2 py-1 text-[11px] font-medium text-[#7E69AB]">
-                IG atual — {igAtual.semanas}s {igAtual.dias}d
+                {t('registroParto.currentIg')} — {igAtual.semanas}s {igAtual.dias}d
               </span>
             )}
           </div>
@@ -418,11 +421,9 @@ export default function RegistroPartoForm({
 
         {/* Nota dentro do card */}
         <div className="rounded-lg bg-[#E8E0FF] p-3">
-          <p className="text-xs font-bold text-[#5B21B6] mb-1">Sobre o registro</p>
+          <p className="text-xs font-bold text-[#5B21B6] mb-1">{t('registroParto.aboutTitle')}</p>
           <p className="text-xs text-[#6D28D9]">
-            O registro do parto é opcional, mas recomendado. Ele contribui para o histórico
-            longitudinal da paciente e para os indicadores clínicos da plataforma. Após
-            salvar, esta ficha será encerrada.
+            {t('registroParto.aboutBody')}
           </p>
         </div>
       </div>
@@ -438,7 +439,7 @@ export default function RegistroPartoForm({
         onSubmit={(e) => {
           e.preventDefault();
           if (!isValid) {
-            toast.error('Preencha todos os campos obrigatórios.');
+            toast.error(t('registroParto.toast.fillRequired'));
             return;
           }
           setConfirmOpen(true);
@@ -447,14 +448,14 @@ export default function RegistroPartoForm({
         {/* Via de parto */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-            Via de parto <span className="text-destructive">*</span>
-            <HelpIcon text="Selecione a via de parto." />
+            {t('registroParto.viaLabel')} <span className="text-destructive">*</span>
+            <HelpIcon text={t('registroParto.viaHelp')} />
           </label>
           <Select value={viaParto} onValueChange={(v) => setViaParto(v as ViaParto)}>
-            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('registroParto.selectPlaceholder')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="vaginal">Vaginal</SelectItem>
-              <SelectItem value="cesarea">Cesárea</SelectItem>
+              <SelectItem value="vaginal">{t('registroParto.vaginal')}</SelectItem>
+              <SelectItem value="cesarea">{t('registroParto.cesarean')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -463,13 +464,13 @@ export default function RegistroPartoForm({
         {viaParto === 'cesarea' && (
           <div className="space-y-1 animate-fade-in">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Motivo da cesárea <span className="text-destructive">*</span>
-              <HelpIcon text="Informe o motivo principal da cesárea (ex: desproporção cefalopélvica, sofrimento fetal, solicitação materna, iteratividade)." />
+              {t('registroParto.motivoCesareaLabel')} <span className="text-destructive">*</span>
+              <HelpIcon text={t('registroParto.motivoCesareaHelp')} />
             </label>
             <Input
               value={motivoCesarea}
               onChange={(e) => setMotivoCesarea(e.target.value)}
-              placeholder="Ex: sofrimento fetal"
+              placeholder={t('registroParto.motivoCesareaPlaceholder')}
             />
           </div>
         )}
@@ -478,8 +479,8 @@ export default function RegistroPartoForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Data do parto <span className="text-destructive">*</span>
-              <HelpIcon text="Data em que o parto ocorreu. Default: hoje. Editável." />
+              {t('registroParto.dataPartoLabel')} <span className="text-destructive">*</span>
+              <HelpIcon text={t('registroParto.dataPartoHelp')} />
             </label>
             <DateInput
               value={dataParto}
@@ -490,31 +491,31 @@ export default function RegistroPartoForm({
 
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              IG no parto <span className="text-destructive">*</span>
-              <HelpIcon text={`Idade gestacional em semanas + dias no momento do parto. ${descreverReferenciaIg(igPartoQuery.data)} Calculada automaticamente; editável.`} />
+              {t('registroParto.igLabel')} <span className="text-destructive">*</span>
+              <HelpIcon text={`${t('registroParto.igHelp')} ${descreverReferenciaIg(igPartoQuery.data)} ${t('registroParto.igHelpAuto')}`} />
             </label>
             <div className="flex items-center gap-2">
               <Input
                 type="number" min={20} max={42}
                 value={igPartoSemanas}
                 onChange={(e) => { setIgPartoSemanas(e.target.value); setIgOrigem('manual'); }}
-                placeholder="Sem"
+                placeholder={t('registroParto.weeksShort')}
                 className="w-20"
               />
-              <span className="text-xs text-muted-foreground">sem</span>
+              <span className="text-xs text-muted-foreground">{t('registroParto.weeksUnit')}</span>
               <Input
                 type="number" min={0} max={6}
                 value={igPartoDias}
                 onChange={(e) => { setIgPartoDias(e.target.value); setIgOrigem('manual'); }}
-                placeholder="Dias"
+                placeholder={t('registroParto.daysShort')}
                 className="w-20"
               />
-              <span className="text-xs text-muted-foreground">dias</span>
+              <span className="text-xs text-muted-foreground">{t('registroParto.daysUnit')}</span>
             </div>
             <p className="text-[11px] text-muted-foreground">
               {igOrigem === 'auto'
-                ? 'IG calculada automaticamente a partir da DUM e da data do parto. Edite se necessário.'
-                : 'IG ajustada manualmente.'}
+                ? t('registroParto.igAutoNote')
+                : t('registroParto.igManualNote')}
             </p>
           </div>
         </div>
@@ -523,26 +524,26 @@ export default function RegistroPartoForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Peso do RN (g) <span className="text-destructive">*</span>
-              <HelpIcon text="Peso do recém-nascido em gramas. Ex: 3.450 g. Faixa: 300 a 6.000 g." />
+              {t('registroParto.pesoRnFieldLabel')} <span className="text-destructive">*</span>
+              <HelpIcon text={t('registroParto.pesoRnHelp')} />
             </label>
             <Input
               type="number" min={300} max={6000}
               value={pesoRn}
               onChange={(e) => setPesoRn(e.target.value)}
-              placeholder="Ex: 3450"
+              placeholder={t('registroParto.pesoRnPlaceholder')}
             />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Sexo do RN <span className="text-destructive">*</span>
-              <HelpIcon text="Sexo do recém-nascido. Necessário para o cálculo automático da classificação (PIG/AIG/GIG)." />
+              {t('registroParto.sexoRnLabel')} <span className="text-destructive">*</span>
+              <HelpIcon text={t('registroParto.sexoRnHelp')} />
             </label>
             <Select value={sexoRn} onValueChange={(v) => setSexoRn(v as SexoRNState)}>
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('registroParto.selectPlaceholder')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="M">Masculino</SelectItem>
-                <SelectItem value="F">Feminino</SelectItem>
+                <SelectItem value="M">{t('registroParto.male')}</SelectItem>
+                <SelectItem value="F">{t('registroParto.female')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -552,8 +553,8 @@ export default function RegistroPartoForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Classificação do RN <span className="text-destructive">*</span>
-              <HelpIcon text="Classificação conforme curva Intergrowth-21st (referência adotada pelo Ministério da Saúde). Calculada automaticamente a partir de peso, IG e sexo do RN. Editável." />
+              {t('registroParto.classRnLabel')} <span className="text-destructive">*</span>
+              <HelpIcon text={t('registroParto.classRnHelp')} />
             </label>
             <Select
               value={classRn}
@@ -562,26 +563,26 @@ export default function RegistroPartoForm({
                 setClassOrigem('manual');
               }}
             >
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('registroParto.selectPlaceholder')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="AIG">AIG — adequado</SelectItem>
-                <SelectItem value="GIG">GIG — grande</SelectItem>
-                <SelectItem value="PIG">PIG — pequeno</SelectItem>
+                <SelectItem value="AIG">{t('registroParto.aigOption')}</SelectItem>
+                <SelectItem value="GIG">{t('registroParto.gigOption')}</SelectItem>
+                <SelectItem value="PIG">{t('registroParto.pigOption')}</SelectItem>
               </SelectContent>
             </Select>
             {classOrigem === 'auto' && (
               <p className="text-[12px] text-[#94A3B8]">
-                Calculado automaticamente (Intergrowth-21st / Ministério da Saúde). Edite se necessário.
+                {t('registroParto.classAutoNote')}
               </p>
             )}
             {classOrigem === 'manual' && (
               <p className="text-[12px] text-[#94A3B8]">
-                Classificação ajustada manualmente.
+                {t('registroParto.classManualNote')}
               </p>
             )}
             {classOrigem === 'fora-cobertura' && (
               <p className="text-[12px] text-[#94A3B8]">
-                IG fora da cobertura da curva Intergrowth-21st. Preencha manualmente.
+                {t('registroParto.classOutOfRangeNote')}
               </p>
             )}
           </div>
@@ -592,8 +593,8 @@ export default function RegistroPartoForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Apgar 1º minuto <span className="text-destructive">*</span>
-              <HelpIcon text="Índice de Apgar no primeiro minuto de vida. Escala de 0 a 10." />
+              {t('registroParto.apgar1Label')} <span className="text-destructive">*</span>
+              <HelpIcon text={t('registroParto.apgar1Help')} />
             </label>
             <Input
               type="number" min={0} max={10}
@@ -604,8 +605,8 @@ export default function RegistroPartoForm({
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Apgar 5º minuto <span className="text-destructive">*</span>
-              <HelpIcon text="Índice de Apgar no quinto minuto de vida. Escala de 0 a 10." />
+              {t('registroParto.apgar5Label')} <span className="text-destructive">*</span>
+              <HelpIcon text={t('registroParto.apgar5Help')} />
             </label>
             <Input
               type="number" min={0} max={10}
@@ -619,14 +620,14 @@ export default function RegistroPartoForm({
         {/* Intercorrências maternas */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-            Intercorrências maternas <span className="text-destructive">*</span>
-            <HelpIcon text="Houve intercorrências maternas durante o parto? Ex: hemorragia pós-parto, infecção, histerectomia." />
+            {t('registroParto.intercorrMatLabel')} <span className="text-destructive">*</span>
+            <HelpIcon text={t('registroParto.intercorrMatHelp')} />
           </label>
           <Select value={intercorrMat} onValueChange={(v) => setIntercorrMat(v as SimNao)}>
-            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('registroParto.selectPlaceholder')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="sim">Sim</SelectItem>
-              <SelectItem value="nao">Não</SelectItem>
+              <SelectItem value="sim">{t('common.yes')}</SelectItem>
+              <SelectItem value="nao">{t('common.no')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -634,27 +635,27 @@ export default function RegistroPartoForm({
         {/* Intercorrências neonatais */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-            Intercorrências neonatais <span className="text-destructive">*</span>
-            <HelpIcon text="Houve intercorrências neonatais? Ex: necessidade de reanimação, hipoglicemia, internação em UTI." />
+            {t('registroParto.intercorrNeoLabel')} <span className="text-destructive">*</span>
+            <HelpIcon text={t('registroParto.intercorrNeoHelp')} />
           </label>
           <Select value={intercorrNeo} onValueChange={(v) => setIntercorrNeo(v as SimNao)}>
-            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('registroParto.selectPlaceholder')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="sim">Sim</SelectItem>
-              <SelectItem value="nao">Não</SelectItem>
+              <SelectItem value="sim">{t('common.yes')}</SelectItem>
+              <SelectItem value="nao">{t('common.no')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         {intercorrNeo === 'sim' && (
           <div className="space-y-1 animate-fade-in">
             <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-              Descrição das intercorrências neonatais <span className="text-destructive">*</span>
+              {t('registroParto.descIntercorrNeoLabel')} <span className="text-destructive">*</span>
             </label>
             <Textarea
               rows={3}
               value={descIntercorrNeo}
               onChange={(e) => setDescIntercorrNeo(e.target.value)}
-              placeholder="Descreva as intercorrências neonatais"
+              placeholder={t('registroParto.descIntercorrNeoPlaceholder')}
             />
           </div>
         )}
@@ -662,14 +663,14 @@ export default function RegistroPartoForm({
         {/* Aleitamento */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-            Aleitamento materno na sala de parto <span className="text-destructive">*</span>
-            <HelpIcon text="Contato pele a pele e primeira mamada na primeira hora de vida." />
+            {t('registroParto.aleitamentoFieldLabel')} <span className="text-destructive">*</span>
+            <HelpIcon text={t('registroParto.aleitamentoHelp')} />
           </label>
           <Select value={aleitamento} onValueChange={(v) => setAleitamento(v as SimNao)}>
-            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('registroParto.selectPlaceholder')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="sim">Sim</SelectItem>
-              <SelectItem value="nao">Não</SelectItem>
+              <SelectItem value="sim">{t('common.yes')}</SelectItem>
+              <SelectItem value="nao">{t('common.no')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -677,14 +678,14 @@ export default function RegistroPartoForm({
         {/* Observações livres */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
-            Observações
-            <HelpIcon text="Espaço para anotações adicionais sobre o parto ou o puerpério imediato." />
+            {t('registroParto.observacoesLabel')}
+            <HelpIcon text={t('registroParto.observacoesHelp')} />
           </label>
           <Textarea
             rows={3}
             value={observacoes}
             onChange={(e) => setObservacoes(e.target.value)}
-            placeholder="Opcional"
+            placeholder={t('registroParto.observacoesPlaceholder')}
           />
         </div>
 
@@ -696,7 +697,7 @@ export default function RegistroPartoForm({
             onClick={onCancel}
             disabled={saving}
           >
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             type="submit"
@@ -705,7 +706,7 @@ export default function RegistroPartoForm({
           >
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             <FileText className="mr-2 h-4 w-4" />
-            Salvar registro do parto
+            {t('registroParto.saveButton')}
           </Button>
         </div>
       </form>
@@ -714,15 +715,13 @@ export default function RegistroPartoForm({
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar encerramento da ficha</AlertDialogTitle>
+            <AlertDialogTitle>{t('registroParto.confirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Ao salvar o registro do parto, esta ficha será encerrada. Você poderá
-              consultar todo o histórico, mas não poderá adicionar novas consultas.
-              Deseja continuar?
+              {t('registroParto.confirmDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={saving}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={saving}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
               disabled={saving}
@@ -732,7 +731,7 @@ export default function RegistroPartoForm({
               }}
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sim, registrar parto
+              {t('registroParto.confirmAction')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

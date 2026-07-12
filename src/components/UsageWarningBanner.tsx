@@ -1,5 +1,6 @@
 import { Sparkles, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
 interface UsageWarningBannerProps {
@@ -9,6 +10,7 @@ interface UsageWarningBannerProps {
 
 export default function UsageWarningBanner({ laudosUsados, laudosLimite }: UsageWarningBannerProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const percentual = laudosLimite > 0 ? (laudosUsados / laudosLimite) * 100 : 0;
 
   if (percentual < 90) return null;
@@ -39,8 +41,8 @@ export default function UsageWarningBanner({ laudosUsados, laudosLimite }: Usage
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold" style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}>
             {atingiu
-              ? 'Seu plano atingiu o limite de laudos.'
-              : `Restam ${restantes} ${restantes === 1 ? 'laudo' : 'laudos'} neste período.`}
+              ? t('usageWarning.limitReached')
+              : t('usageWarning.remaining', { count: restantes })}
           </p>
           <div className="mt-1.5 flex items-center gap-2">
             <span
@@ -64,7 +66,7 @@ export default function UsageWarningBanner({ laudosUsados, laudosLimite }: Usage
           className="shrink-0"
           style={{ background: cor, color: 'white' }}
         >
-          {atingiu ? 'Atualizar plano' : 'Ver planos'}
+          {atingiu ? t('usageWarning.upgradePlan') : t('usageWarning.viewPlans')}
           <ArrowRight className="ml-1 h-3.5 w-3.5" />
         </Button>
       </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileText, AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -41,6 +42,7 @@ export default function FichaACResultCard({
   peso, doseTotal, doseManha, doseNoite,
   pacienteId, consultaId, isPreview, isReadOnly, onWeightSaved,
 }: FichaACResultCardProps) {
+  const { t } = useTranslation();
   const bgColor = adequado ? '#DCFCE7' : '#FEF3C7';
   const borderColor = adequado ? '#86EFAC' : '#FCD34D';
   const titleColor = adequado ? '#166534' : '#92400E';
@@ -66,7 +68,7 @@ export default function FichaACResultCard({
     if (isPreview) {
       const p = getPreviewPacienteById(pacienteId);
       if (!p) {
-        toast.error('Paciente não encontrada.');
+        toast.error(t('fichaACResult.patientNotFound'));
         setSaving(false);
         return;
       }
@@ -83,7 +85,7 @@ export default function FichaACResultCard({
       );
       updatePreviewPaciente(pacienteId, { consultas: updatedConsultas });
       window.dispatchEvent(new Event('preview-pacientes-updated'));
-      toast.success('Peso confirmado. Dose calculada.');
+      toast.success(t('fichaACResult.weightConfirmed'));
       setSaving(false);
       onWeightSaved?.();
       return;
@@ -99,12 +101,12 @@ export default function FichaACResultCard({
         })
         .eq('consulta_id', consultaId);
       if (perfErr) throw perfErr;
-      toast.success('Peso confirmado. Dose calculada.');
+      toast.success(t('fichaACResult.weightConfirmed'));
       setSaving(false);
       onWeightSaved?.();
     } catch (err: any) {
       console.error(err);
-      toast.error('Erro ao salvar peso: ' + (err?.message || 'Erro desconhecido'));
+      toast.error(t('fichaACResult.weightSaveError', { error: err?.message || t('fichaACResult.unknownError') }));
       setSaving(false);
     }
   };
@@ -118,23 +120,23 @@ export default function FichaACResultCard({
         <h2 className="text-sm font-bold flex items-center gap-2" style={{ color: titleColor }}>
           <FileText className="h-4 w-4" />
           {adequado
-            ? `CONTROLE ADEQUADO — ${percentual.toFixed(1)}% das glicemias dentro da meta`
-            : `CONTROLE INADEQUADO — ${percentual.toFixed(1)}% das glicemias dentro da meta`}
+            ? t('fichaACResult.controlAdequate', { percent: percentual.toFixed(1) })
+            : t('fichaACResult.controlInadequate', { percent: percentual.toFixed(1) })}
         </h2>
 
         <div className="rounded-lg bg-white/70 p-3">
           <p className="text-sm font-semibold" style={{ color: titleColor }}>
-            Resultado
+            {t('fichaACResult.result')}
           </p>
           <p className="mt-1 text-xs" style={{ color: textColor }}>
-            {dentroMeta} de {totalPreenchidos} valores dentro da meta ({percentual.toFixed(1)}%).
+            {t('fichaACResult.valuesInTarget', { within: dentroMeta, total: totalPreenchidos, percent: percentual.toFixed(1) })}
           </p>
           <p className="mt-2 text-xs italic" style={{ color: textColor }}>
             {adequado
-              ? 'Orientações no laudo completo abaixo.'
+              ? t('fichaACResult.guidanceAdequate')
               : condutaInsulina
-                ? 'Conduta: iniciar insulina. Dose e orientações no laudo completo abaixo.'
-                : 'Conduta: reforçar dieta e exercício (MEV). Reavaliar mantendo o perfil de 4 pontos.'}
+                ? t('fichaACResult.guidanceInsulin')
+                : t('fichaACResult.guidanceMev')}
           </p>
         </div>
       </div>
@@ -146,10 +148,10 @@ export default function FichaACResultCard({
             <AlertTriangle className="h-5 w-5 shrink-0 text-[#F59E0B]" />
             <div className="space-y-1">
               <p className="text-sm font-bold text-amber-800">
-                Controle glicêmico abaixo da meta — informe o peso para calcular a dose
+                {t('fichaACResult.weightPromptTitle')}
               </p>
               <p className="text-xs text-amber-700">
-                A conduta indicada pelo protocolo é associar insulina NPH subcutânea. Informe o peso atual da paciente para que o sistema calcule a dose inicial e libere os Blocos 2 e 3 do laudo.
+                {t('fichaACResult.weightPromptDesc')}
               </p>
             </div>
           </div>
@@ -158,7 +160,7 @@ export default function FichaACResultCard({
             <div className="space-y-1">
               <div className="flex items-center gap-1">
                 <label className="text-xs font-medium text-amber-900">
-                  Peso atual (kg) <span className="text-red-600">*</span>
+                  {t('fichaACResult.currentWeightKg')} <span className="text-red-600">*</span>
                 </label>
                 <TooltipProvider>
                   <Tooltip>
@@ -166,7 +168,7 @@ export default function FichaACResultCard({
                       <Info className="h-3.5 w-3.5 text-amber-700 cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <p className="text-xs">O peso é necessário para calcular a dose inicial padrão de insulina: 0,5 UI/kg/dia. Essa dose é padronizada mundialmente para início de insulinoterapia em DMG. Ex: paciente de 70 kg → 35 UI/dia em 2-3 tomadas.</p>
+                      <p className="text-xs">{t('fichaACResult.weightTooltip')}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -179,12 +181,12 @@ export default function FichaACResultCard({
                 value={pesoInput}
                 onChange={e => setPesoInput(e.target.value)}
                 onBlur={() => { if (pesoNum > 0 && !saving) handleConfirmWeight(); }}
-                placeholder="Ex: 70"
+                placeholder={t('fichaACResult.weightPlaceholder')}
                 className="w-32 bg-white"
               />
               {saving && (
                 <p className="flex items-center gap-1 text-xs text-amber-700">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Salvando…
+                  <Loader2 className="h-3 w-3 animate-spin" /> {t('common.saving')}
                 </p>
               )}
             </div>
@@ -207,19 +209,19 @@ export default function FichaACResultCard({
         return (
           <div className="rounded-xl border-2 border-primary/30 bg-primary/10 p-5 space-y-2">
             <p className="text-sm font-semibold text-[#7E69AB] uppercase tracking-wide">
-              Dose inicial de insulina NPH
+              {t('fichaACResult.initialNphDose')}
             </p>
             <p className="font-heading text-4xl font-bold leading-none text-[#7E69AB]">
               {dTotal}
-              <span className="ml-1 text-base font-medium opacity-80">UI/dia</span>
+              <span className="ml-1 text-base font-medium opacity-80">{t('fichaACResult.uiPerDay')}</span>
             </p>
             {dManha != null && dNoite != null && (
               <p className="text-sm text-[#7E69AB]">
-                {dManha} UI manhã (ao acordar) + {dNoite} UI às 22h
+                {t('fichaACResult.doseSplit', { morning: dManha, night: dNoite })}
               </p>
             )}
             <p className="text-xs text-[#7E69AB]/80">
-              Peso: {pesoShow} kg • fórmula: 0,5 UI/kg/dia
+              {t('fichaACResult.weightFormula', { weight: pesoShow })}
             </p>
           </div>
         );

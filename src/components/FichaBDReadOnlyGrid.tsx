@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { type JanelaPosPrandial, metaPosPrandial, rotuloPosPrandial } from '@/lib/posPrandial';
 
 const POINTS_6 = ['jejum', 'pos_cafe', 'pre_almoco', 'pos_almoco', 'pre_jantar', 'pos_jantar'] as const;
@@ -18,6 +19,13 @@ function label6(point: Point6, janela: JanelaPosPrandial): string {
   if (isPosPrandial(point)) return rotuloPosPrandial(REFEICAO_POS_6[point], janela);
   if (point === 'jejum') return 'Jejum';
   return point === 'pre_almoco' ? 'Pré-almoço' : 'Pré-jantar';
+}
+
+function labelFixo(point: Point6, t: (k: string) => string): string | null {
+  if (point === 'jejum') return t('fichaBD.pontos.jejum');
+  if (point === 'pre_almoco') return t('fichaBD.pontos.preAlmoco');
+  if (point === 'pre_jantar') return t('fichaBD.pontos.preJantar');
+  return null; // pós-prandiais dependem da janela (rótulo vem de rotuloPosPrandial)
 }
 
 function metaLabel6(point: Point6, janela: JanelaPosPrandial): string {
@@ -54,6 +62,7 @@ interface FichaBDReadOnlyGridProps {
 }
 
 export default function FichaBDReadOnlyGrid({ gridValores, tipoPosPrandial = '1h' }: FichaBDReadOnlyGridProps) {
+  const { t } = useTranslation();
   const daysWithData = gridValores
     .map((row, idx) => ({ row, dayNum: idx + 1 }))
     .filter(({ row }) => POINTS_6.some(p => {
@@ -76,10 +85,10 @@ export default function FichaBDReadOnlyGrid({ gridValores, tipoPosPrandial = '1h
       <table className="w-full min-w-[600px]">
         <thead>
           <tr className="bg-muted/50">
-            <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">Dia</th>
+            <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">{t('fichaBD.dia')}</th>
             {POINTS_6.map(p => (
               <th key={p} className={`px-2 py-2 text-center ${IS_PRE_PRANDIAL[p] ? 'bg-[#E8E0FF]' : ''}`}>
-                <span className="text-xs font-medium text-foreground">{label6(p, tipoPosPrandial)}</span>
+                <span className="text-xs font-medium text-foreground">{labelFixo(p, t) ?? label6(p, tipoPosPrandial)}</span>
                 <br />
                 <span className="text-[10px] text-muted-foreground">{metaLabel6(p, tipoPosPrandial)} mg/dL</span>
               </th>
@@ -89,7 +98,7 @@ export default function FichaBDReadOnlyGrid({ gridValores, tipoPosPrandial = '1h
         <tbody>
           {daysWithData.map(({ row, dayNum }) => (
             <tr key={dayNum} className="border-t border-border">
-              <td className="px-2 py-1.5 text-xs font-medium text-foreground">Dia {dayNum}</td>
+              <td className="px-2 py-1.5 text-xs font-medium text-foreground">{t('fichaBD.diaN', { dia: dayNum })}</td>
               {POINTS_6.map(p => {
                 const val = row[p];
                 const num = parseInt(val);

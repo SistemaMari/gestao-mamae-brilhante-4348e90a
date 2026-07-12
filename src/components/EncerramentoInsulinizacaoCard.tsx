@@ -1,4 +1,6 @@
 import { CheckCircle2, Info, AlertTriangle } from 'lucide-react';
+import { useTranslation, Trans } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { formatDateBR } from '@/lib/dateUtils';
 import { MOTIVO_ENCERRAMENTO_LABEL, type MotivoEncerramento } from '@/lib/motivoEncerramento';
 
@@ -42,23 +44,31 @@ interface Props {
 }
 
 /** Corpo específico por motivo (insulinização tem card próprio, ver abaixo). */
-function corpoPorMotivo(motivo: MotivoEncerramento, data?: string | null, obs?: string | null): string {
+function corpoPorMotivo(
+  t: TFunction,
+  motivo: MotivoEncerramento,
+  data?: string | null,
+  obs?: string | null,
+): string {
   const dataBR = formatDateBR(data);
   switch (motivo) {
     case 'parto':
-      return `Acompanhamento encerrado — parto em ${dataBR}.`;
+      return t('encerramentoInsulinizacao.corpo.parto', { data: dataBR });
     case 'aborto':
-      return `Acompanhamento encerrado — registro de aborto em ${dataBR}.`;
+      return t('encerramentoInsulinizacao.corpo.aborto', { data: dataBR });
     case 'nao_retornou':
-      return 'Acompanhamento encerrado — paciente não retornou.';
+      return t('encerramentoInsulinizacao.corpo.naoRetornou');
     case 'outro':
-      return `Acompanhamento encerrado.${obs ? ` ${obs}` : ''}`;
+      return obs
+        ? t('encerramentoInsulinizacao.corpo.outroComObs', { obs })
+        : t('encerramentoInsulinizacao.corpo.outro');
     default:
-      return 'Acompanhamento encerrado.';
+      return t('encerramentoInsulinizacao.corpo.default');
   }
 }
 
 export default function EncerramentoInsulinizacaoCard({ motivo, data, obs, reteste, conclusaoTexto }: Props) {
+  const { t } = useTranslation();
   const isInsulinizacao = motivo === 'insulinizacao';
 
   return (
@@ -71,26 +81,20 @@ export default function EncerramentoInsulinizacaoCard({ motivo, data, obs, retes
         <div>
           <h2 className="text-base font-bold" style={{ color: '#5B21B6' }}>
             {isInsulinizacao
-              ? 'Acompanhamento da MARI encerrado por insulinização'
-              : `Acompanhamento da MARI encerrado — ${MOTIVO_ENCERRAMENTO_LABEL[motivo]}`}
+              ? t('encerramentoInsulinizacao.titleInsulinizacao')
+              : t('encerramentoInsulinizacao.titleMotivo', { motivo: MOTIVO_ENCERRAMENTO_LABEL[motivo] })}
           </h2>
           {isInsulinizacao ? (
             <p className="mt-2 text-sm" style={{ color: '#6D28D9' }}>
-              A introdução de insulina foi indicada e o laudo correspondente foi
-              emitido com a conduta e os três arranjos de continuidade (obstetra
-              conduzindo, associação com endocrinologista ou referência para
-              serviço especializado). O acompanhamento ativo dentro da MARI se
-              encerra neste ponto — toda a história clínica, laudos e perfis
-              glicêmicos permanecem disponíveis para consulta nesta ficha.
+              {t('encerramentoInsulinizacao.insulinizacaoBody')}
             </p>
           ) : (
             <>
               <p className="mt-2 whitespace-pre-wrap text-sm" style={{ color: '#6D28D9' }}>
-                {conclusaoTexto ?? corpoPorMotivo(motivo, data, obs)}
+                {conclusaoTexto ?? corpoPorMotivo(t, motivo, data, obs)}
               </p>
               <p className="mt-2 text-xs" style={{ color: '#6D28D9' }}>
-                Toda a história clínica, laudos e perfis glicêmicos permanecem
-                disponíveis para consulta nesta ficha.
+                {t('encerramentoInsulinizacao.historicoDisponivel')}
               </p>
             </>
           )}
@@ -104,9 +108,7 @@ export default function EncerramentoInsulinizacaoCard({ motivo, data, obs, retes
         >
           <Info className="mt-0.5 h-5 w-5 shrink-0" style={{ color: '#4338CA' }} />
           <p className="text-sm" style={{ color: '#3730A3' }}>
-            <strong>Continuidade clínica:</strong> siga os arranjos descritos no
-            laudo de insulinização. A MARI não emitirá novos retornos automáticos
-            para esta paciente.
+            <Trans i18nKey="encerramentoInsulinizacao.continuidadeClinica" components={{ strong: <strong /> }} />
           </p>
         </div>
       )}
@@ -119,9 +121,11 @@ export default function EncerramentoInsulinizacaoCard({ motivo, data, obs, retes
         >
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: '#B45309' }} />
           <p className="text-sm" style={{ color: '#92400E' }}>
-            <strong>Reteste puerperal:</strong> realizar GTT 75g (jejum + 2h) entre{' '}
-            <strong>{reteste.inicioBR}</strong> e <strong>{reteste.fimBR}</strong>{' '}
-            ({reteste.origemLabel}).
+            <Trans
+              i18nKey="encerramentoInsulinizacao.retestePuerperal"
+              components={{ strong: <strong /> }}
+              values={{ inicio: reteste.inicioBR, fim: reteste.fimBR, origem: reteste.origemLabel }}
+            />
           </p>
         </div>
       )}

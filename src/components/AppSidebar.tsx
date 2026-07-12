@@ -6,6 +6,7 @@ import {
   UserPlus, History, CreditCard, UserCircle, PlayCircle
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -20,36 +21,36 @@ interface NavItem {
 
 const navByProfile: Record<string, NavItem[]> = {
   consultorio: [
-    { label: 'Pacientes', icon: Users, path: '/dashboard' },
-    { label: 'Nova paciente', icon: UserPlus, path: '/paciente/nova' },
-    { label: 'Meus cursos', icon: GraduationCap, path: '/meus-cursos' },
-    { label: 'Métricas', icon: BarChart3, path: '/dashboard/metricas' },
-    { label: 'Planos', icon: CreditCard, path: '/planos' },
-    { label: 'Perfil', icon: UserCircle, path: '/perfil' },
+    { label: 'appSidebar.patients', icon: Users, path: '/dashboard' },
+    { label: 'appSidebar.newPatient', icon: UserPlus, path: '/paciente/nova' },
+    { label: 'appSidebar.myCourses', icon: GraduationCap, path: '/meus-cursos' },
+    { label: 'appSidebar.metrics', icon: BarChart3, path: '/dashboard/metricas' },
+    { label: 'appSidebar.plans', icon: CreditCard, path: '/planos' },
+    { label: 'appSidebar.profile', icon: UserCircle, path: '/perfil' },
   ],
   institucional: [
-    { label: 'Pacientes', icon: Users, path: '/dashboard' },
-    { label: 'Nova paciente', icon: UserPlus, path: '/paciente/nova' },
-    { label: 'Tutorial', icon: PlayCircle, path: '/tutorial', dividerBefore: true },
+    { label: 'appSidebar.patients', icon: Users, path: '/dashboard' },
+    { label: 'appSidebar.newPatient', icon: UserPlus, path: '/paciente/nova' },
+    { label: 'appSidebar.tutorial', icon: PlayCircle, path: '/tutorial', dividerBefore: true },
   ],
   gestor: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/gestao' },
-    { label: 'Equipe', icon: Users, path: '/gestao/equipe' },
-    { label: 'Relatórios', icon: BarChart3, path: '/gestao' },
-    { label: 'Configurações', icon: Settings, path: '/gestao' },
+    { label: 'appSidebar.dashboard', icon: LayoutDashboard, path: '/gestao' },
+    { label: 'appSidebar.team', icon: Users, path: '/gestao/equipe' },
+    { label: 'appSidebar.reports', icon: BarChart3, path: '/gestao' },
+    { label: 'appSidebar.settings', icon: Settings, path: '/gestao' },
   ],
   gestor_geral: [
-    { label: 'Consolidação', icon: BarChart3, path: '/consolidar' },
-    { label: 'Unidades', icon: Building2, path: '/consolidar' },
-    { label: 'Relatórios', icon: FileText, path: '/consolidar' },
+    { label: 'appSidebar.consolidation', icon: BarChart3, path: '/consolidar' },
+    { label: 'appSidebar.units', icon: Building2, path: '/consolidar' },
+    { label: 'appSidebar.reports', icon: FileText, path: '/consolidar' },
   ],
   admin: [
-    { label: 'Painel', icon: ShieldCheck, path: '/admin' },
-    { label: 'Diagnósticos', icon: Map, path: '/admin/diagnosticos' },
-    { label: 'Filtros e Exportação', icon: Download, path: '/admin/exportar' },
-    { label: 'Administradores', icon: Users, path: '/admin/admins' },
-    { label: 'Contas Institucionais', icon: Building2, path: '/admin/institucionais' },
-    { label: 'Contas Profissionais', icon: Stethoscope, path: '/admin/profissionais' },
+    { label: 'appSidebar.panel', icon: ShieldCheck, path: '/admin' },
+    { label: 'appSidebar.diagnostics', icon: Map, path: '/admin/diagnosticos' },
+    { label: 'appSidebar.filtersExport', icon: Download, path: '/admin/exportar' },
+    { label: 'appSidebar.admins', icon: Users, path: '/admin/admins' },
+    { label: 'appSidebar.institutionalAccounts', icon: Building2, path: '/admin/institucionais' },
+    { label: 'appSidebar.professionalAccounts', icon: Stethoscope, path: '/admin/profissionais' },
   ],
 };
 
@@ -64,6 +65,7 @@ function iniciais(nome?: string | null) {
 }
 
 export default function AppSidebar() {
+  const { t } = useTranslation();
   const { profile, signOut, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -88,18 +90,18 @@ export default function AppSidebar() {
   }, [isInstitucional, user?.id]);
 
   const profileLabels: Record<string, string> = {
-    consultorio: 'Consultório',
-    institucional: 'Institucional',
-    gestor: 'Gestor',
-    gestor_geral: 'Gestor Geral',
-    admin: 'Administrador',
+    consultorio: t('appSidebar.profileConsultorio'),
+    institucional: t('appSidebar.profileInstitucional'),
+    gestor: t('appSidebar.profileGestor'),
+    gestor_geral: t('appSidebar.profileGestorGeral'),
+    admin: t('appSidebar.profileAdmin'),
   };
 
   const isActive = (path: string) => location.pathname === path;
 
   // ============ Layout específico Institucional (espelha Admin) ============
   if (isInstitucional) {
-    const nomeFinal = nomeProfissional || user?.email?.split('@')[0] || 'Usuário';
+    const nomeFinal = nomeProfissional || user?.email?.split('@')[0] || t('appSidebar.userFallback');
     const perfilAtivo = isActive('/perfil');
 
     return (
@@ -114,7 +116,7 @@ export default function AppSidebar() {
           {collapsed ? (
             <img src={mariLogo} alt="MARI" className="h-9 w-9 rounded-md object-cover mx-auto" />
           ) : (
-            <img src={mariLogo} alt="MARI — Maternal ARtificial Intelligence" className="w-full rounded-lg" />
+            <img src={mariLogo} alt={t('appSidebar.logoAltFull')} className="w-full rounded-lg" />
           )}
         </div>
 
@@ -135,7 +137,7 @@ export default function AppSidebar() {
                   )}
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
-                  {!collapsed && <span>{item.label}</span>}
+                  {!collapsed && <span>{t(item.label)}</span>}
                 </button>
               </div>
             );
@@ -172,7 +174,7 @@ export default function AppSidebar() {
                 )}
               >
                 <UserCircle className="h-4 w-4 shrink-0" />
-                Perfil
+                {t('appSidebar.profile')}
               </button>
               <Button
                 variant="outline"
@@ -181,14 +183,14 @@ export default function AppSidebar() {
                 className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                Sair
+                {t('common.logout')}
               </Button>
               <button
                 onClick={() => setCollapsed(true)}
                 className="flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 text-xs text-[#94A3B8] hover:text-[#64748B] transition-colors"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
-                Recolher
+                {t('appSidebar.collapse')}
               </button>
             </div>
           ) : (
@@ -199,7 +201,7 @@ export default function AppSidebar() {
                   'flex h-9 w-9 items-center justify-center rounded-md',
                   perfilAtivo ? 'bg-[#E8E0FF] text-[#7E69AB]' : 'text-[#64748B] hover:bg-[#F1F5F9]'
                 )}
-                aria-label="Perfil"
+                aria-label={t('appSidebar.profile')}
               >
                 <UserCircle className="h-4 w-4" />
               </button>
@@ -208,14 +210,14 @@ export default function AppSidebar() {
                 size="icon"
                 onClick={signOut}
                 className="text-[#64748B] hover:bg-[#F1F5F9]"
-                aria-label="Sair"
+                aria-label={t('common.logout')}
               >
                 <LogOut className="h-4 w-4" />
               </Button>
               <button
                 onClick={() => setCollapsed(false)}
                 className="text-[#94A3B8] hover:text-[#64748B]"
-                aria-label="Expandir"
+                aria-label={t('appSidebar.expand')}
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -263,7 +265,7 @@ export default function AppSidebar() {
               )}
             >
               <item.icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && <span>{t(item.label)}</span>}
             </button>
           );
         })}
@@ -279,14 +281,14 @@ export default function AppSidebar() {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>Sair</span>}
+          {!collapsed && <span>{t('common.logout')}</span>}
         </button>
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          {!collapsed && <span>Recolher</span>}
+          {!collapsed && <span>{t('appSidebar.collapse')}</span>}
         </button>
       </div>
     </aside>
