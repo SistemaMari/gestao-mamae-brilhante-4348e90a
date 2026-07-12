@@ -14,6 +14,7 @@ interface TabelaOrdenavelProps {
   dados: any[];
   paginacao?: boolean;
   itensPorPagina?: number;
+  denso?: boolean;
 }
 
 type Dir = "asc" | "desc";
@@ -23,6 +24,7 @@ export function TabelaOrdenavel({
   dados,
   paginacao = true,
   itensPorPagina = 20,
+  denso = false,
 }: TabelaOrdenavelProps) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<Dir>("asc");
