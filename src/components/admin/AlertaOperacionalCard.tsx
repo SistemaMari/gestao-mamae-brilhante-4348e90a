@@ -8,12 +8,15 @@ import {
 } from "lucide-react";
 import type { TipoAlerta } from "@/lib/adminMetrics";
 
+export type EscopoAlerta = "consultorio" | "institucional" | "ambos";
+
 export interface AlertaConfig {
   tipo: TipoAlerta;
   titulo: string;
   descricao: string;
   cor: string;
   icone: LucideIcon;
+  escopo: EscopoAlerta;
 }
 
 // Mapa fixo dos 5 alertas v3 (sem teste_expirando), na ordem de exibição.
@@ -24,6 +27,7 @@ export const ALERTAS_CONFIG: AlertaConfig[] = [
     descricao: "Profissionais do plano Profissional inativos no último mês",
     cor: "#F59E0B",
     icone: AlertTriangle,
+    escopo: "consultorio",
   },
   {
     tipo: "intermediaria_inativo_30d",
@@ -31,6 +35,7 @@ export const ALERTAS_CONFIG: AlertaConfig[] = [
     descricao: "Profissionais do plano Intermediária inativos no último mês",
     cor: "#F59E0B",
     icone: AlertTriangle,
+    escopo: "consultorio",
   },
   {
     tipo: "inicial_inativo_30d",
@@ -38,6 +43,7 @@ export const ALERTAS_CONFIG: AlertaConfig[] = [
     descricao: "Profissionais do plano Inicial inativos no último mês",
     cor: "#F59E0B",
     icone: AlertTriangle,
+    escopo: "consultorio",
   },
   {
     tipo: "unidade_dormente",
@@ -45,6 +51,7 @@ export const ALERTAS_CONFIG: AlertaConfig[] = [
     descricao: "Unidades sem nenhum profissional com atividade nos últimos 30 dias",
     cor: "#94A3B8",
     icone: Moon,
+    escopo: "institucional",
   },
   {
     tipo: "onboarding_travado",
@@ -52,8 +59,15 @@ export const ALERTAS_CONFIG: AlertaConfig[] = [
     descricao: "Profissionais cadastrados há mais de 7 dias com perfil incompleto",
     cor: "#EF4444",
     icone: Hourglass,
+    escopo: "ambos",
   },
 ];
+
+const ESCOPO_STYLES: Record<EscopoAlerta, { label: string; bg: string; fg: string; border: string }> = {
+  consultorio: { label: "Consultório", bg: "#EDE9FE", fg: "#6D28D9", border: "#DDD6FE" },
+  institucional: { label: "Institucional", bg: "#CCFBF1", fg: "#0F766E", border: "#99F6E4" },
+  ambos: { label: "Consultório + Institucional", bg: "#F1F5F9", fg: "#334155", border: "#E2E8F0" },
+};
 
 interface AlertaOperacionalCardProps {
   config: AlertaConfig;
