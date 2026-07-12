@@ -344,17 +344,8 @@ export default function AppShellClinico() {
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
 
-        {/* Logo */}
-        <Link to="/dashboard" className="flex items-center gap-2 shrink-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-            <span className="font-heading text-xs font-bold text-primary">DM</span>
-          </div>
-          <span className="hidden sm:inline font-heading text-base font-semibold" style={{ color: '#2D2B55' }}>
-            MARI
-          </span>
-        </Link>
-
         <div className="flex-1" />
+
 
         {/* Plan badge with consumption bar */}
         {profissionalData && ehConsultorio && (
