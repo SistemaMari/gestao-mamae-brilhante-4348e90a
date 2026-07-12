@@ -219,27 +219,56 @@ function Pizza({
     );
   };
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <PieChart>
-        <Pie
-          data={data}
-          dataKey="value"
-          nameKey="name"
-          outerRadius={100}
-          labelLine={false}
-          label={renderPctLabel}
-          isAnimationActive={false}
-        >
-          {data.map((_, i) => (
-            <Cell key={i} fill={cores[i % cores.length]} stroke="#FFFFFF" strokeWidth={2} />
-          ))}
-        </Pie>
-        <Tooltip formatter={(v: number) => [`${v} (${((v / total) * 100).toFixed(1)}%)`, "Pacientes"]} />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
+    <div className="flex flex-col gap-3">
+      <ResponsiveContainer width="100%" height={220}>
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            outerRadius={95}
+            labelLine={false}
+            label={renderPctLabel}
+            isAnimationActive={false}
+          >
+            {data.map((_, i) => (
+              <Cell key={i} fill={cores[i % cores.length]} stroke="#FFFFFF" strokeWidth={2} />
+            ))}
+          </Pie>
+          <Tooltip formatter={(v: number) => [`${v} (${((v / total) * 100).toFixed(1)}%)`, "Pacientes"]} />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+        {data.map((d, i) => {
+          const pct = ((d.value / total) * 100).toFixed(0);
+          const cor = cores[i % cores.length];
+          return (
+            <div
+              key={d.name}
+              className="flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1.5 shadow-sm backdrop-blur transition-all hover:shadow-md"
+              style={{ borderColor: `${cor}33`, fontFamily: FONT_CORPO }}
+            >
+              <span
+                className="inline-block h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: cor, boxShadow: `0 0 0 3px ${cor}22` }}
+              />
+              <span className="text-[13px] font-medium" style={{ color: "#1F1B2E" }}>
+                {d.name}
+              </span>
+              <span
+                className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                style={{ backgroundColor: `${cor}1A`, color: cor }}
+              >
+                {d.value} · {pct}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
+
 
 
 function FunilTratamento({ funil }: { funil: Metricas["funil"] }) {
