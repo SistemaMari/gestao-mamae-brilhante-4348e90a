@@ -436,13 +436,13 @@ export default function DashboardPage() {
             <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden shadow-sm">
               <table className="w-full table-fixed text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="w-8 px-2 py-3" aria-label="Atenção"></th>
-                    <th className="w-auto px-4 py-3 text-left font-medium text-muted-foreground">Paciente</th>
-                    <th className="w-[88px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">IG hoje</th>
-                    <th className="w-[120px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Última consulta</th>
-                    <th className="w-[160px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Status</th>
-                    <th className="w-[220px] px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap">Retorno</th>
+                  <tr className="border-b-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+                    <th className="w-8 px-2 py-4" aria-label="Atenção"></th>
+                    <th className="w-auto px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">Paciente</th>
+                    <th className="w-[88px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">IG hoje</th>
+                    <th className="w-[120px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">Última consulta</th>
+                    <th className="w-[160px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">Status</th>
+                    <th className="w-[220px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">Retorno</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
