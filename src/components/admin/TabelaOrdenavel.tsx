@@ -129,9 +129,10 @@ export function TabelaOrdenavel({
                     <td
                       key={col.chave}
                       style={{
-                        padding: "10px 12px",
+                        padding: padCell,
                         textAlign: col.alinhamento ?? "left",
                         color: "#1E293B",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {exibido}
