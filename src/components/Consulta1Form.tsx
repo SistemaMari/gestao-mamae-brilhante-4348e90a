@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
@@ -37,6 +38,7 @@ function todayISO() {
 }
 
 export default function Consulta1Form() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const isPreview = location.pathname.startsWith('/vitrine');
@@ -101,7 +103,7 @@ export default function Consulta1Form() {
     setTouched(true);
 
     if (!isValid) {
-      toast.error('Preencha todos os campos obrigatórios.');
+      toast.error(t('consulta1.fillAllRequired'));
       return;
     }
 
@@ -135,14 +137,14 @@ export default function Consulta1Form() {
         ],
       });
       window.dispatchEvent(new Event('preview-pacientes-updated'));
-      toast.success('Caso Novo registrada com sucesso!');
+      toast.success(t('consulta1.newCaseRegistered'));
       navigate(`/vitrine/paciente/${newPaciente.id}`);
       return;
     }
 
     // Real mode
     if (!profissionalData || !user) {
-      toast.error('Você precisa estar logado.');
+      toast.error(t('consulta1.mustBeLoggedIn'));
       return;
     }
 
@@ -181,7 +183,7 @@ export default function Consulta1Form() {
         p_profissional_id: profissionalData.id,
       });
       if (!podeCriar) {
-        toast.error('Limite de fichas atingido para o plano atual.');
+        toast.error(t('consulta1.fileLimitReached'));
         setSaving(false);
         return;
       }
@@ -193,7 +195,7 @@ export default function Consulta1Form() {
         .single();
 
       if (pacErr || !pacienteData) {
-        toast.error('Erro ao criar paciente.');
+        toast.error(t('consulta1.errorCreatingPatient'));
         console.error(pacErr);
         setSaving(false);
         return;
@@ -205,7 +207,7 @@ export default function Consulta1Form() {
         .update(pacientePayload as any)
         .eq('id', pacienteId);
       if (pacErr) {
-        toast.error('Erro ao salvar paciente.');
+        toast.error(t('consulta1.errorSavingPatient'));
         console.error(pacErr);
         setSaving(false);
         return;
@@ -277,10 +279,10 @@ export default function Consulta1Form() {
     setSaving(false);
 
     if (consErr) {
-      toast.error('Paciente criada, mas erro ao registrar consulta.');
+      toast.error(t('consulta1.patientCreatedButConsultationError'));
       console.error(consErr);
     } else {
-      toast.success('Caso Novo registrada com sucesso!');
+      toast.success(t('consulta1.newCaseRegistered'));
       const { carimbarAtendimento } = await import('@/lib/carimbar');
       await carimbarAtendimento({
         pacienteId: pacienteId!,
@@ -298,7 +300,7 @@ export default function Consulta1Form() {
 
   const errorMsg = (valid: boolean) =>
     touched && !valid ? (
-      <span className="text-xs text-destructive">Campo obrigatório</span>
+      <span className="text-xs text-destructive">{t('consulta1.requiredField')}</span>
     ) : null;
 
   return (
@@ -306,10 +308,10 @@ export default function Consulta1Form() {
       <div className="rounded-xl border border-[#7C4DBA] bg-[#F1F0FB] p-4 space-y-1">
         <h1 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          CASO NOVO — Dados da Paciente
+          {t('consulta1.headerTitle')}
         </h1>
         <p className="text-xs text-[#6D28D9]">
-          Preencha os dados iniciais e abra a ficha clínica com pedido de exame.
+          {t('consulta1.headerSubtitle')}
         </p>
       </div>
 
@@ -318,14 +320,14 @@ export default function Consulta1Form() {
       <form onSubmit={handleSubmit} className="space-y-5">
           {/* Nome completo */}
           <div className="space-y-2">
-            <FieldLabel htmlFor="nome" required tooltip="Nome completo para identificação na ficha e no laudo.">
-              Nome completo
+            <FieldLabel htmlFor="nome" required tooltip={t('consulta1.nameTooltip')}>
+              {t('consulta1.fullNameLabel')}
             </FieldLabel>
             <Input
               id="nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              placeholder="Nome da paciente"
+              placeholder={t('consulta1.namePlaceholder')}
               className={fieldError(!!nome.trim())}
             />
             {errorMsg(!!nome.trim())}
@@ -333,8 +335,8 @@ export default function Consulta1Form() {
 
           {/* Data de nascimento */}
           <div className="space-y-2">
-            <FieldLabel htmlFor="data-nasc" required tooltip="Usada para calcular a idade automaticamente.">
-              Data de nascimento
+            <FieldLabel htmlFor="data-nasc" required tooltip={t('consulta1.birthdateTooltip')}>
+              {t('consulta1.birthdateLabel')}
             </FieldLabel>
             <div className="flex items-center gap-3">
               <DateInput
@@ -347,7 +349,7 @@ export default function Consulta1Form() {
               />
               {idade !== null && (
                 <span className="whitespace-nowrap rounded-md bg-muted px-2.5 py-1 text-sm font-medium text-foreground">
-                  {idade} anos
+                  {t('consulta1.yearsOld', { count: idade })}
                 </span>
               )}
             </div>
@@ -356,8 +358,8 @@ export default function Consulta1Form() {
 
           {/* Tipo de identificação + Número */}
           <div className="space-y-2">
-            <FieldLabel tooltip="Selecione o tipo de documento e informe o número de identificação da paciente.">
-              Identificação
+            <FieldLabel tooltip={t('consulta1.identificationTooltip')}>
+              {t('consulta1.identificationLabel')}
             </FieldLabel>
             <div className="grid grid-cols-[140px_1fr] gap-3">
               <Select value={tipoIdentificacao} onValueChange={setTipoIdentificacao}>
@@ -365,15 +367,15 @@ export default function Consulta1Form() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cpf">CPF</SelectItem>
-                  <SelectItem value="prontuario">Prontuário</SelectItem>
-                  <SelectItem value="cns">CNS</SelectItem>
+                  <SelectItem value="cpf">{t('consulta1.idTypeCpf')}</SelectItem>
+                  <SelectItem value="prontuario">{t('consulta1.idTypeMedicalRecord')}</SelectItem>
+                  <SelectItem value="cns">{t('consulta1.idTypeCns')}</SelectItem>
                 </SelectContent>
               </Select>
               <Input
                 value={numeroId}
                 onChange={(e) => setNumeroId(e.target.value)}
-                placeholder="Número (opcional)"
+                placeholder={t('consulta1.idNumberPlaceholder')}
               />
             </div>
           </div>
@@ -382,9 +384,9 @@ export default function Consulta1Form() {
           <div className="space-y-2">
             <FieldLabel
               htmlFor="whatsapp"
-              tooltip="Opcional. DDD + número, 10 ou 11 dígitos. DDI brasileiro (+55) é fixo."
+              tooltip={t('consulta1.whatsappTooltip')}
             >
-              WhatsApp
+              {t('consulta1.whatsappLabel')}
             </FieldLabel>
             <div className="flex items-stretch gap-2">
               <span className="flex shrink-0 items-center rounded-md border border-input bg-muted px-3 text-sm font-medium text-muted-foreground">
@@ -411,8 +413,8 @@ export default function Consulta1Form() {
 
           <LocalizacaoErrorBoundary>
           <div className="space-y-2">
-            <FieldLabel tooltip="Local de residência da paciente. A lista de estados e cidades muda conforme o país.">
-              Localização
+            <FieldLabel tooltip={t('consulta1.locationTooltip')}>
+              {t('consulta1.locationLabel')}
             </FieldLabel>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Select value={pais} onValueChange={(v) => {
@@ -421,7 +423,7 @@ export default function Consulta1Form() {
                 setPais(v); setEstado(''); setCidade('');
               }}>
                 <SelectTrigger>
-                  <SelectValue placeholder="País" />
+                  <SelectValue placeholder={t('patient.country')} />
                 </SelectTrigger>
                 <SelectContent>
                   {countries.map((c) => (
@@ -434,7 +436,7 @@ export default function Consulta1Form() {
                 <Input
                   value={estado}
                   onChange={(e) => { setEstado(e.target.value); setCidade(''); }}
-                  placeholder="Estado"
+                  placeholder={t('patient.state')}
                 />
               ) : (
                 <Select value={estado} onValueChange={(v) => {
@@ -452,7 +454,7 @@ export default function Consulta1Form() {
                   }
                 }}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Estado" />
+                    <SelectValue placeholder={t('patient.state')} />
                   </SelectTrigger>
                   <SelectContent>
                     {stateList.map((s) => (
@@ -466,7 +468,7 @@ export default function Consulta1Form() {
                 <Input
                   value={cidade}
                   onChange={(e) => setCidade(e.target.value)}
-                  placeholder="Cidade"
+                  placeholder={t('patient.city')}
                 />
               ) : (
                 <CidadeCombobox
@@ -474,7 +476,7 @@ export default function Consulta1Form() {
                   onChange={setCidade}
                   cidades={cityList}
                   disabled={!estado}
-                  placeholder={estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'}
+                  placeholder={estado ? t('consulta1.selectCity') : t('consulta1.selectStateFirst')}
                 />
               )}
             </div>
@@ -484,8 +486,8 @@ export default function Consulta1Form() {
 
           {/* DUM */}
           <div className="space-y-2">
-            <FieldLabel htmlFor="dum" required tooltip="Data da última menstruação. Usada para calcular a idade gestacional automaticamente.">
-              DUM (Data da última menstruação)
+            <FieldLabel htmlFor="dum" required tooltip={t('consulta1.lastPeriodTooltip')}>
+              {t('consulta1.lastPeriodLabel')}
             </FieldLabel>
             <DateInput
               id="dum"
@@ -510,7 +512,7 @@ export default function Consulta1Form() {
                   }
                 }}
               />
-              Não sei a data da última menstruação
+              {t('consulta1.unknownLastPeriod')}
             </label>
             {errorMsg(dumValido)}
           </div>
@@ -526,8 +528,8 @@ export default function Consulta1Form() {
 
           {/* Data da consulta */}
           <div className="space-y-2">
-            <FieldLabel htmlFor="data-consulta" required tooltip="Data em que esta consulta está sendo realizada. Padrão: hoje.">
-              Data da consulta
+            <FieldLabel htmlFor="data-consulta" required tooltip={t('consulta1.consultationDateTooltip')}>
+              {t('consulta1.consultationDateLabel')}
             </FieldLabel>
             <DateInput
               id="data-consulta"
@@ -541,22 +543,22 @@ export default function Consulta1Form() {
 
           {/* Observações */}
           <div className="space-y-2">
-            <FieldLabel htmlFor="obs" tooltip="Anotações adicionais sobre a paciente: histórico, comorbidades, medicamentos em uso, etc.">
-              Observações clínicas
+            <FieldLabel htmlFor="obs" tooltip={t('consulta1.clinicalNotesTooltip')}>
+              {t('consulta1.clinicalNotesLabel')}
             </FieldLabel>
             <Textarea
               id="obs"
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
-              placeholder="Opcional"
+              placeholder={t('consulta1.optionalPlaceholder')}
               rows={3}
             />
           </div>
 
           {/* DMG anterior */}
           <div className="space-y-2">
-            <FieldLabel required tooltip="Marque se a paciente já teve diagnóstico de Diabete Mellitus Gestacional em gestação prévia.">
-              DMG em gestação anterior
+            <FieldLabel required tooltip={t('consulta1.previousDmgTooltip')}>
+              {t('consulta1.previousDmgLabel')}
             </FieldLabel>
             <div className="flex gap-3">
               <button
@@ -568,7 +570,7 @@ export default function Consulta1Form() {
                     : 'border-[#7C4DBA]/30 bg-card text-muted-foreground hover:border-[#7C4DBA]/60'
                 } ${touched && dmgAnterior === null ? 'border-destructive' : ''}`}
               >
-                Sim
+                {t('common.yes')}
               </button>
               <button
                 type="button"
@@ -579,7 +581,7 @@ export default function Consulta1Form() {
                     : 'border-[#7C4DBA]/30 bg-card text-muted-foreground hover:border-[#7C4DBA]/60'
                 } ${touched && dmgAnterior === null ? 'border-destructive' : ''}`}
               >
-                Não
+                {t('common.no')}
               </button>
             </div>
             {errorMsg(dmgAnterior !== null)}
@@ -592,7 +594,7 @@ export default function Consulta1Form() {
               variant="outline"
               onClick={() => navigate(isPreview ? '/vitrine/dashboard' : '/dashboard')}
             >
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -600,7 +602,7 @@ export default function Consulta1Form() {
               className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar consulta
+              {t('consulta1.saveConsultation')}
             </Button>
           </div>
       </form>

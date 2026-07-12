@@ -1,4 +1,6 @@
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { PreviewConsulta } from '@/lib/previewPatients';
 
 type DiagnosticoResult = {
@@ -11,12 +13,12 @@ type DiagnosticoResult = {
   iconColor: string;
 };
 
-function calcularDiagnostico(valor: number): DiagnosticoResult {
+function calcularDiagnostico(valor: number, t: TFunction): DiagnosticoResult {
   if (valor < 92) {
     return {
       tipo: 'negativo',
-      label: 'Resultado: NEGATIVO — Normoglicemia',
-      texto: `Glicemia de jejum: ${valor} mg/dL. NÃO há diagnóstico de Diabete Mellitus Gestacional neste momento.`,
+      label: t('retorno1Result.negativeLabel'),
+      texto: t('retorno1Result.negativeText', { valor }),
       cor: 'text-emerald-800',
       bgColor: 'bg-[#DCFCE7]',
       borderColor: 'border-emerald-200',
@@ -26,8 +28,8 @@ function calcularDiagnostico(valor: number): DiagnosticoResult {
   if (valor < 126) {
     return {
       tipo: 'positivo',
-      label: 'Resultado: POSITIVO — Diabete Mellitus Gestacional',
-      texto: `Glicemia de jejum: ${valor} mg/dL. Diagnóstico CONFIRMADO de DMG.`,
+      label: t('retorno1Result.positiveLabel'),
+      texto: t('retorno1Result.positiveText', { valor }),
       cor: 'text-orange-800',
       bgColor: 'bg-[#FEF3C7]',
       borderColor: 'border-orange-200',
@@ -36,8 +38,8 @@ function calcularDiagnostico(valor: number): DiagnosticoResult {
   }
   return {
     tipo: 'overt',
-    label: 'Resultado: OVERT DM — Diabete pré-existente',
-    texto: `Glicemia de jejum: ${valor} mg/dL. Diagnóstico de Diabete pré-existente diagnosticado durante a gestação.`,
+    label: t('retorno1Result.overtLabel'),
+    texto: t('retorno1Result.overtText', { valor }),
     cor: 'text-red-800',
     bgColor: 'bg-[#FEE2E2]',
     borderColor: 'border-red-200',
@@ -62,16 +64,17 @@ interface Retorno1ResultCardProps {
 export default function Retorno1ResultCard({
   consulta,
 }: Retorno1ResultCardProps) {
+  const { t } = useTranslation();
   const valor = getValor(consulta);
   if (valor === 0) {
     return (
       <p className="text-xs text-muted-foreground italic">
-        {consulta.observacoes || 'Sem dados de resultado.'}
+        {consulta.observacoes || t('retorno1Result.noResultData')}
       </p>
     );
   }
 
-  const resultado = calcularDiagnostico(valor);
+  const resultado = calcularDiagnostico(valor, t);
 
   return (
     <div className={`rounded-xl border ${resultado.borderColor} ${resultado.bgColor} p-5`}>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,11 +32,14 @@ export default function CidadeCombobox({
   onChange,
   cidades,
   disabled,
-  placeholder = 'Selecione a cidade...',
-  emptyMessage = 'Nenhuma cidade encontrada.',
+  placeholder,
+  emptyMessage,
   className,
 }: CidadeComboboxProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const placeholderText = placeholder ?? t('cidadeCombobox.selectCity');
+  const emptyMessageText = emptyMessage ?? t('cidadeCombobox.noCityFound');
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -52,7 +56,7 @@ export default function CidadeCombobox({
             className,
           )}
         >
-          <span className="truncate">{value || placeholder}</span>
+          <span className="truncate">{value || placeholderText}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -61,9 +65,9 @@ export default function CidadeCombobox({
         align="start"
       >
         <Command>
-          <CommandInput placeholder="Digite para buscar..." />
+          <CommandInput placeholder={t('cidadeCombobox.searchPlaceholder')} />
           <CommandList className="max-h-[280px]">
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandEmpty>{emptyMessageText}</CommandEmpty>
             <CommandGroup>
               {cidades.map((c) => (
                 <CommandItem

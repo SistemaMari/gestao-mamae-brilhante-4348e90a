@@ -1,4 +1,5 @@
 import { Component, ReactNode } from 'react';
+import { withTranslation, WithTranslation } from 'react-i18next';
 
 /**
  * INSTRUMENTAÇÃO TEMPORÁRIA — não permanente.
@@ -8,10 +9,10 @@ import { Component, ReactNode } from 'react';
  * E cospe no console.error o stack completo (que entra no meu contexto no
  * próximo turno). Depois de identificar a causa, este arquivo deve ser removido.
  */
-interface Props { children: ReactNode }
+interface Props extends WithTranslation { children: ReactNode }
 interface State { error: Error | null }
 
-export default class LocalizacaoErrorBoundary extends Component<Props, State> {
+class LocalizacaoErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
@@ -28,15 +29,14 @@ export default class LocalizacaoErrorBoundary extends Component<Props, State> {
   }
 
   render() {
+    const { t } = this.props;
     if (this.state.error) {
       return (
         <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
-          <p className="font-semibold">Localização caiu (instrumentação temporária)</p>
+          <p className="font-semibold">{t('localizacaoErrorBoundary.title')}</p>
           <p className="mt-1 font-mono text-xs break-all">{this.state.error.message}</p>
           <p className="mt-2 text-xs">
-            Você pode seguir preenchendo o resto da ficha normalmente. O erro
-            completo foi enviado ao console — mande "deu ruim de novo" no chat
-            que eu leio e conserto.
+            {t('localizacaoErrorBoundary.hint')}
           </p>
         </div>
       );
@@ -44,3 +44,5 @@ export default class LocalizacaoErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export default withTranslation()(LocalizacaoErrorBoundary);

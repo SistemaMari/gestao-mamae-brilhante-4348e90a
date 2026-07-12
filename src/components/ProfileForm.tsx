@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,7 +42,8 @@ function FieldTooltip({ text }: { text: string }) {
   );
 }
 
-export default function ProfileForm({ initialData, onSubmit, isLoading, submitLabel = 'Salvar e continuar' }: ProfileFormProps) {
+export default function ProfileForm({ initialData, onSubmit, isLoading, submitLabel }: ProfileFormProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<ProfileFormData>({
     nome: initialData.nome || '',
     crm: initialData.crm || '',
@@ -71,7 +73,7 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
   const errors = useMemo(() => {
     const e: Partial<Record<keyof ProfileFormData, string>> = {};
     required.forEach(field => {
-      if (!form[field]?.trim()) e[field] = 'Campo obrigatório';
+      if (!form[field]?.trim()) e[field] = t('profileForm.requiredField');
     });
     return e;
   }, [form]);
@@ -111,7 +113,7 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       {initialData.email && (
         <div className="space-y-1.5">
           <Label className="text-sm font-medium text-foreground">
-            E-mail
+            {t('common.email')}
           </Label>
           <Input value={initialData.email} disabled className="bg-muted" />
         </div>
@@ -120,15 +122,15 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       {/* Nome */}
       <div className="space-y-1.5">
         <Label htmlFor="nome" className="text-sm font-medium text-foreground">
-          Nome completo <span className="text-destructive">*</span>
-          <FieldTooltip text="Seu nome completo como aparecerá nos laudos." />
+          {t('profileForm.fullName')} <span className="text-destructive">*</span>
+          <FieldTooltip text={t('profileForm.fullNameTooltip')} />
         </Label>
         <Input
           id="nome"
           value={form.nome}
           onChange={e => handleChange('nome', e.target.value)}
           onBlur={() => setTouched(p => ({ ...p, nome: true }))}
-          placeholder="Seu nome completo"
+          placeholder={t('profileForm.fullNamePlaceholder')}
         />
         {showError('nome') && <p className="text-xs text-destructive">{errors.nome}</p>}
       </div>
@@ -136,15 +138,15 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       {/* CRM / COREN */}
       <div className="space-y-1.5">
         <Label htmlFor="crm" className="text-sm font-medium text-foreground">
-          CRM / COREN <span className="text-destructive">*</span>
-          <FieldTooltip text="Número do registro profissional. Ex: CRM/SP 123456" />
+          {t('profileForm.crmCoren')} <span className="text-destructive">*</span>
+          <FieldTooltip text={t('profileForm.crmTooltip')} />
         </Label>
         <Input
           id="crm"
           value={form.crm}
           onChange={e => handleChange('crm', e.target.value)}
           onBlur={() => setTouched(p => ({ ...p, crm: true }))}
-          placeholder="Ex: CRM/SP 123456"
+          placeholder={t('profileForm.crmPlaceholder')}
         />
         {showError('crm') && <p className="text-xs text-destructive">{errors.crm}</p>}
       </div>
@@ -152,12 +154,12 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       {/* Especialidade */}
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Especialidade <span className="text-destructive">*</span>
-          <FieldTooltip text="Selecione sua área de atuação principal." />
+          {t('profileForm.specialty')} <span className="text-destructive">*</span>
+          <FieldTooltip text={t('profileForm.specialtyTooltip')} />
         </Label>
         <Select value={form.especialidade} onValueChange={v => handleChange('especialidade', v)}>
           <SelectTrigger>
-            <SelectValue placeholder="Selecione..." />
+            <SelectValue placeholder={t('profileForm.selectPlaceholder')} />
           </SelectTrigger>
           <SelectContent>
             {especialidades.map(e => (
@@ -172,11 +174,11 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label className="text-sm font-medium text-foreground">
-            País <span className="text-destructive">*</span>
+            {t('profileForm.country')} <span className="text-destructive">*</span>
           </Label>
           <Select value={form.pais} onValueChange={v => handleChange('pais', v)}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione..." />
+              <SelectValue placeholder={t('profileForm.selectPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
               {countries.map(c => (
@@ -189,19 +191,19 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
 
         <div className="space-y-1.5">
           <Label className="text-sm font-medium text-foreground">
-            Estado <span className="text-destructive">*</span>
+            {t('profileForm.state')} <span className="text-destructive">*</span>
           </Label>
           {isOutro ? (
             <Input
               value={form.estado}
               onChange={e => handleChange('estado', e.target.value)}
               onBlur={() => setTouched(p => ({ ...p, estado: true }))}
-              placeholder="Digite o estado"
+              placeholder={t('profileForm.statePlaceholder')}
             />
           ) : (
             <Select value={form.estado} onValueChange={v => handleChange('estado', v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione..." />
+                <SelectValue placeholder={t('profileForm.selectPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {countryData?.states.map(s => (
@@ -217,14 +219,14 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       {/* Cidade */}
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Cidade <span className="text-destructive">*</span>
+          {t('profileForm.city')} <span className="text-destructive">*</span>
         </Label>
         {isOutro ? (
           <Input
             value={form.cidade}
             onChange={e => handleChange('cidade', e.target.value)}
             onBlur={() => setTouched(p => ({ ...p, cidade: true }))}
-            placeholder="Digite a cidade"
+            placeholder={t('profileForm.cityPlaceholder')}
           />
         ) : (
           <CidadeCombobox
@@ -235,7 +237,7 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
             }}
             cidades={filteredCities}
             disabled={!form.estado}
-            placeholder={form.estado ? 'Selecione a cidade...' : 'Selecione o estado primeiro'}
+            placeholder={form.estado ? t('profileForm.citySelectPlaceholder') : t('profileForm.citySelectStateFirst')}
           />
         )}
         {showError('cidade') && <p className="text-xs text-destructive">{errors.cidade}</p>}
@@ -244,8 +246,8 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       {/* Idioma */}
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Idioma preferido <span className="text-destructive">*</span>
-          <FieldTooltip text="Define o idioma da interface e dos laudos gerados." />
+          {t('profileForm.preferredLanguage')} <span className="text-destructive">*</span>
+          <FieldTooltip text={t('profileForm.languageTooltip')} />
         </Label>
         <Select value={form.idioma} onValueChange={v => handleChange('idioma', v)}>
           <SelectTrigger>
@@ -263,8 +265,8 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       {/* Identificador padrão */}
       <div className="space-y-1.5">
         <Label className="text-sm font-medium text-foreground">
-          Identificador padrão
-          <FieldTooltip text="Define qual identificador você usa para suas pacientes." />
+          {t('profileForm.defaultIdentifier')}
+          <FieldTooltip text={t('profileForm.identifierTooltip')} />
         </Label>
         <Select value={form.identificador_padrao} onValueChange={v => handleChange('identificador_padrao', v)}>
           <SelectTrigger>
@@ -281,14 +283,14 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       {/* Telefone */}
       <div className="space-y-1.5">
         <Label htmlFor="telefone" className="text-sm font-medium text-foreground">
-          Telefone
-          <FieldTooltip text="Opcional. Número de contato profissional." />
+          {t('profileForm.phone')}
+          <FieldTooltip text={t('profileForm.phoneTooltip')} />
         </Label>
         <Input
           id="telefone"
           value={form.telefone}
           onChange={e => handleChange('telefone', e.target.value)}
-          placeholder="(00) 00000-0000"
+          placeholder={t('profileForm.phonePlaceholder')}
         />
       </div>
 
@@ -297,10 +299,10 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
         {isLoading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Salvando...
+            {t('common.saving')}
           </>
         ) : (
-          submitLabel
+          submitLabel ?? t('profileForm.saveAndContinue')
         )}
       </Button>
     </form>

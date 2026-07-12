@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -64,6 +65,7 @@ export default function UsgFlowSection({
   ehPrimeiraUsg = true,
   numeroOrdem,
 }: Props) {
+  const { t } = useTranslation();
   // Se numeroOrdem foi passado, ele sobrescreve ehPrimeiraUsg.
   const ordemEfetiva = numeroOrdem;
   const ehPrimeira = ordemEfetiva != null ? ordemEfetiva === 1 : ehPrimeiraUsg;
@@ -94,13 +96,13 @@ export default function UsgFlowSection({
       {!jaPossuiUsg && (
         <div className="space-y-2">
           <div className="flex items-center gap-1.5">
-            <Label>A paciente já fez a 1ª ultrassonografia? <span className="text-destructive">*</span></Label>
+            <Label>{t('usgFlow.jaFezPergunta')} <span className="text-destructive">*</span></Label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                Se sim, registre data do exame e a IG informada no laudo. A 1ª USG é a referência mais confiável.
+                {t('usgFlow.jaFezTooltip')}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -116,7 +118,7 @@ export default function UsgFlowSection({
                     : 'border-[#7C4DBA]/30 bg-card text-muted-foreground hover:border-[#7C4DBA]/60'
                 }`}
               >
-                {opt === 'sim' ? 'Sim' : 'Ainda não'}
+                {opt === 'sim' ? t('common.yes') : t('usgFlow.aindaNao')}
               </button>
             ))}
           </div>
@@ -128,18 +130,18 @@ export default function UsgFlowSection({
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-[#7C4DBA]" />
             <h3 className="text-sm font-semibold text-[#5B21B6]">
-              Dados da {tituloOrdinal}Ultrassonografia
+              {t('usgFlow.dadosTitulo', { ordinal: tituloOrdinal })}
             </h3>
             {ehPrimeira && (
               <span className="ml-auto text-[10px] font-medium bg-[#7C4DBA] text-white px-2 py-0.5 rounded-full">
-                1ª USG — referência preferencial
+                {t('usgFlow.badgeReferencia')}
               </span>
             )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1.5 sm:col-span-1">
-              <Label htmlFor="usg-data" className="text-xs">Data do exame *</Label>
+              <Label htmlFor="usg-data" className="text-xs">{t('usgFlow.dataExame')} *</Label>
               <Input
                 id="usg-data"
                 type="date"
@@ -148,7 +150,7 @@ export default function UsgFlowSection({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="usg-sem" className="text-xs">Semanas *</Label>
+              <Label htmlFor="usg-sem" className="text-xs">{t('usgFlow.semanas')} *</Label>
               <Input
                 id="usg-sem"
                 type="number"
@@ -159,7 +161,7 @@ export default function UsgFlowSection({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="usg-dias" className="text-xs">Dias *</Label>
+              <Label htmlFor="usg-dias" className="text-xs">{t('usgFlow.dias')} *</Label>
               <Input
                 id="usg-dias"
                 type="number"
@@ -174,7 +176,7 @@ export default function UsgFlowSection({
           {igPreenchida && (
             <div className="space-y-2 border-t border-[#7C4DBA]/20 pt-3">
               <Label className="text-xs font-medium text-[#5B21B6]">
-                Qual referência usar para calcular IG a partir de agora?
+                {t('usgFlow.qualReferencia')}
               </Label>
               <div className="space-y-2">
                 <label className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer transition ${
@@ -189,8 +191,8 @@ export default function UsgFlowSection({
                   />
                   <span>
                     {dum
-                      ? `DUM — ${formatDateBR(dum)} - ${formatIgCurto(calcIgHojeFromDum(dum))}`
-                      : 'DUM (não informada)'}
+                      ? t('usgFlow.dumOption', { data: formatDateBR(dum), ig: formatIgCurto(calcIgHojeFromDum(dum)) })
+                      : t('usgFlow.dumNaoInformada')}
                   </span>
                 </label>
                 <label className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer transition ${
@@ -205,8 +207,8 @@ export default function UsgFlowSection({
                   <span>
                     {(() => {
                       const nomeUsg = ordemEfetiva != null
-                        ? (ordemEfetiva === 1 ? '1ª USG' : `USG #${ordemEfetiva}`)
-                        : (ehPrimeiraUsg ? '1ª USG' : 'USG');
+                        ? (ordemEfetiva === 1 ? t('usgFlow.primeiraUsg') : t('usgFlow.usgOrdem', { ordem: ordemEfetiva }))
+                        : (ehPrimeiraUsg ? t('usgFlow.primeiraUsg') : t('usgFlow.usgGenerica'));
                       // Calcula a IG hoje a partir da USG sendo digitada agora,
                       // se data + IG do laudo estão preenchidas.
                       const semNum = parseInt(value.igSemanas, 10);
@@ -234,7 +236,7 @@ export default function UsgFlowSection({
         <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           <span>
-            Sem referência de IG definida. O cálculo da janela GTT 75g ficará indisponível até o registro da 1ª USG.
+            {t('usgFlow.semReferenciaAviso')}
           </span>
         </div>
       )}

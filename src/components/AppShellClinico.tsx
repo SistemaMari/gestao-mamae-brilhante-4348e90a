@@ -57,7 +57,7 @@ function useBreadcrumb() {
   if (path === '/completar-perfil') return { parent: null, current: t('profile.title') };
   if (path === '/dashboard/metricas') return { parent: null, current: t('nav.metrics') };
   if (path === '/laudos') return { parent: null, current: t('nav.history') };
-  if (path === '/meus-cursos') return { parent: null, current: 'Meus Cursos' };
+  if (path === '/meus-cursos') return { parent: null, current: t('appShell.myCourses') };
   return null;
 }
 
@@ -73,14 +73,14 @@ interface NavItem {
 const navClinicoConsultorio: NavItem[] = [
   { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
-  { labelKey: 'Tutorial', icon: PlayCircle, path: '/tutorial' },
+  { labelKey: 'appShell.tutorial', icon: PlayCircle, path: '/tutorial' },
   { labelKey: 'nav.metrics', icon: BarChart3, path: '/dashboard/metricas' },
 ];
 
 const navClinicoInstitucional: NavItem[] = [
   { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
-  { labelKey: 'Tutorial', icon: PlayCircle, path: '/tutorial' },
+  { labelKey: 'appShell.tutorial', icon: PlayCircle, path: '/tutorial' },
 ];
 
 // Gestor / gestor_geral normalmente não passam por AppShellClinico, mas se
@@ -199,7 +199,7 @@ export default function AppShellClinico() {
       <button
         key={item.path}
         onClick={() => handleNavClick(item)}
-        title={bloqueado ? 'Disponível no plano Profissional' : undefined}
+        title={bloqueado ? t('appShell.metricsLockedTooltip') : undefined}
         className={cn(
           'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
           isActive(item.path)
@@ -285,7 +285,7 @@ export default function AppShellClinico() {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>
-                {profissionalData?.nome || firstName || 'Usuário'}
+                {profissionalData?.nome || firstName || t('appShell.userFallback')}
               </p>
               {user?.email && (
                 <p className="truncate text-xs text-[#94A3B8]">{user.email}</p>
@@ -352,7 +352,7 @@ export default function AppShellClinico() {
             onClick={() => navigate('/planos')}
             className="pointer-events-auto hidden lg:flex items-center gap-3 rounded-full pl-3 pr-4 py-1.5 text-xs font-medium hover:opacity-90 transition shadow-sm"
             style={{ backgroundColor: '#F1F0FB', color: '#7E69AB' }}
-            title={`${laudosUsados} de ${planoLimite} ${t('nav.reports').toLowerCase()} este mês`}
+            title={t('appShell.reportsUsageTooltip', { used: laudosUsados, limit: planoLimite })}
           >
             <span className="font-semibold">{t('nav.plans')} {planoNome}</span>
             <span className="flex items-center gap-2">
@@ -380,7 +380,7 @@ export default function AppShellClinico() {
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="pointer-events-auto fixed top-3 left-3 z-50 md:hidden rounded-md bg-card/80 backdrop-blur p-2 text-muted-foreground hover:text-foreground shadow-sm print:hidden"
-        aria-label="Menu"
+        aria-label={t('appShell.menuAria')}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +55,7 @@ import {
 } from '@/components/ui/dialog';
 import { Info, Loader2, AlertTriangle, CheckCircle2, XCircle, Printer, Pencil, FileText } from 'lucide-react';
 import { addDays, format } from 'date-fns';
+import { ptBR, enUS, es } from 'date-fns/locale';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { useIg, getIg, descreverReferenciaIg } from '@/lib/getIg';
 import UsgFlowSection, { emptyUsgFlow, UsgFlowValue } from '@/components/UsgFlowSection';
@@ -74,12 +76,14 @@ type DiagnosticoResult = {
   statusFicha: string;
 };
 
-function calcularDiagnostico(valor: number): DiagnosticoResult {
+type TFn = (key: string, opts?: Record<string, unknown>) => string;
+
+function calcularDiagnostico(valor: number, t: TFn): DiagnosticoResult {
   if (valor < 92) {
     return {
       tipo: 'negativo',
-      label: 'Resultado: NEGATIVO — Normoglicemia',
-      texto: `Glicemia de jejum: ${valor} mg/dL. NÃO há diagnóstico de Diabete Mellitus Gestacional neste momento.`,
+      label: t('retorno1.diag.negativoLabel'),
+      texto: t('retorno1.diag.negativoTexto', { valor }),
       cor: 'text-emerald-800',
       bgColor: 'bg-[#DCFCE7]',
       borderColor: 'border-emerald-200',
@@ -91,8 +95,8 @@ function calcularDiagnostico(valor: number): DiagnosticoResult {
   if (valor < 126) {
     return {
       tipo: 'positivo',
-      label: 'Resultado: POSITIVO — Diabete Mellitus Gestacional',
-      texto: `Glicemia de jejum: ${valor} mg/dL. Diagnóstico CONFIRMADO de DMG.`,
+      label: t('retorno1.diag.positivoLabel'),
+      texto: t('retorno1.diag.positivoTexto', { valor }),
       cor: 'text-orange-800',
       bgColor: 'bg-[#FEF3C7]',
       borderColor: 'border-orange-200',
@@ -103,8 +107,8 @@ function calcularDiagnostico(valor: number): DiagnosticoResult {
   }
   return {
     tipo: 'overt',
-    label: 'Resultado: OVERT DM — Diabete pré-existente',
-    texto: `Glicemia de jejum: ${valor} mg/dL. Diagnóstico de Diabete pré-existente diagnosticado durante a gestação.`,
+    label: t('retorno1.diag.overtLabel'),
+    texto: t('retorno1.diag.overtTexto', { valor }),
     cor: 'text-red-800',
     bgColor: 'bg-[#FEE2E2]',
     borderColor: 'border-red-200',
@@ -132,6 +136,7 @@ export default function Retorno1Form({
   isLastConsulta = true,
   editingConsulta,
 }: Retorno1FormProps) {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { profissionalData } = useProfissionalData();
 
@@ -171,6 +176,14 @@ export default function Retorno1Form({
   const [showEditConfirm, setShowEditConfirm] = useState(false);
 
   const isCapilar = tipoExame === 'capilar';
+
+  const dateFnsLocale = i18n.language.startsWith('en')
+    ? enUS
+    : i18n.language.startsWith('es')
+      ? es
+      : ptBR;
+  const dateFmtPattern = i18n.language.startsWith('en') ? 'MM/dd/yyyy' : 'dd/MM/yyyy';
+  const fmtDate = (d: Date) => format(d, dateFmtPattern, { locale: dateFnsLocale });
 
   // 34C-B2: IG na data do exame vem da fonte única (RPC calcular_ig).
   // Respeita a âncora vigente da paciente — não calcula via DUM-diff.
@@ -287,13 +300,13 @@ export default function Retorno1Form({
   // Mesma fonte de verdade usada pelo isValid acima — sem duplicar validação.
   const camposPendentes = useMemo<string[]>(() => {
     const faltam: string[] = [];
-    if (!valorValido) faltam.push('Resultado da glicemia de jejum');
-    if (!tipoExame) faltam.push('Tipo de exame (plasmática/capilar)');
-    if (!dataExame) faltam.push('Data do exame');
-    if (!dataConsultaRetorno) faltam.push('Data da consulta de retorno');
-    if (!usgValida) faltam.push('USG ou referência de IG');
+    if (!valorValido) faltam.push(t('retorno1.pendentes.resultadoGj'));
+    if (!tipoExame) faltam.push(t('retorno1.pendentes.tipoExame'));
+    if (!dataExame) faltam.push(t('retorno1.pendentes.dataExame'));
+    if (!dataConsultaRetorno) faltam.push(t('retorno1.pendentes.dataConsulta'));
+    if (!usgValida) faltam.push(t('retorno1.pendentes.usgRef'));
     return faltam;
-  }, [valorValido, tipoExame, dataExame, dataConsultaRetorno, usgValida]);
+  }, [valorValido, tipoExame, dataExame, dataConsultaRetorno, usgValida, t]);
 
   // 34B.3 seção 3.10 — bloqueia submit quando alguma data clínica é inválida.
   // Cada DateInput reporta sua validade via onValidityChange.
@@ -450,11 +463,11 @@ export default function Retorno1Form({
       const ts = saveLocalDraft();
       setServerDraftState('idle');
       setServerDraftSavedAt(null);
-      toast.success(`Rascunho local salvo às ${ts.slice(11, 16)}`);
+      toast.success(t('retorno1.toasts.rascunhoLocalSalvo', { hora: ts.slice(11, 16) }));
       return;
     }
     if (!profissionalData || !user) {
-      toast.error('Você precisa estar logado.');
+      toast.error(t('retorno1.toasts.precisaLogar'));
       return;
     }
 
@@ -507,42 +520,42 @@ export default function Retorno1Form({
       setServerDraftSavedAt(savedAt);
       // Seção 3.3.4: após save no servidor com sucesso, limpa o backup local.
       clearLocalDraft();
-      toast.success(`Rascunho salvo no servidor às ${savedAt.slice(11, 16)}`);
+      toast.success(t('retorno1.toasts.rascunhoServidorSalvo', { hora: savedAt.slice(11, 16) }));
     } catch (err) {
       console.error('[salvar-ficha-retorno rascunho] erro', err);
       setServerDraftState('erro');
-      toast.error('Erro ao salvar rascunho. Mudanças locais preservadas.');
+      toast.error(t('retorno1.toasts.rascunhoErro'));
     } finally {
       setSaving(false);
     }
   }, [
     isPreview, profissionalData, user, paciente.id, editingConsulta,
     valorGJ, dataConsultaRetorno, igFinal, observacoes, tipoExame, dataExame,
-    saveLocalDraft, clearLocalDraft,
+    saveLocalDraft, clearLocalDraft, t,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched(true);
     if (!isValid) {
-      toast.error('Preencha todos os campos obrigatórios.');
+      toast.error(t('retorno1.toasts.preenchaObrigatorios'));
       return;
     }
 
     setSaving(true);
 
     const isDiagApplicable = tipoExame === 'plasmatica';
-    const diag = isDiagApplicable ? calcularDiagnostico(valorNum) : null;
+    const diag = isDiagApplicable ? calcularDiagnostico(valorNum, t) : null;
     const newStatus = isDiagApplicable && diag ? diag.statusFicha : paciente.status_ficha;
 
     if (isPreview) {
       const current = getPreviewPacienteById(paciente.id);
       if (current) {
         const buildObs = () => observacoes.trim()
-          ? `GJ: ${valorNum} mg/dL (${tipoExame}). ${isDiagApplicable && diag ? diag.label : 'Método não válido para diagnóstico.'}${observacoes.trim() ? ' | ' + observacoes.trim() : ''}`
+          ? `${t('retorno1.obs.gjPrefix', { valor: valorNum, tipo: tipoExame })} ${isDiagApplicable && diag ? diag.label : t('retorno1.obs.metodoInvalido')}${observacoes.trim() ? ' | ' + observacoes.trim() : ''}`
           : isDiagApplicable && diag
-            ? `GJ: ${valorNum} mg/dL (plasmática). ${diag.label}.`
-            : `GJ: ${valorNum} mg/dL (capilar). Método não válido para diagnóstico.`;
+            ? `${t('retorno1.obs.gjPlasmatica', { valor: valorNum })} ${diag.label}.`
+            : t('retorno1.obs.gjCapilarInvalido', { valor: valorNum });
 
         if (editingConsulta) {
           // Update existing consultation
@@ -597,7 +610,7 @@ export default function Retorno1Form({
         setResultado(diag);
         setShowPopup(true);
       } else {
-        toast.success('Retorno registrado. Aguardando glicemia plasmática para diagnóstico.');
+        toast.success(t('retorno1.toasts.retornoRegistradoAguardando'));
         onSaved();
       }
       return;
@@ -605,7 +618,7 @@ export default function Retorno1Form({
 
     // Real mode
     if (!profissionalData || !user) {
-      toast.error('Você precisa estar logado.');
+      toast.error(t('retorno1.toasts.precisaLogar'));
       setSaving(false);
       return;
     }
@@ -619,10 +632,10 @@ export default function Retorno1Form({
       ig_semanas: igFinal?.semanas ?? null,
       ig_dias: igFinal?.dias ?? null,
       observacoes: observacoes.trim()
-        ? `GJ: ${valorNum} mg/dL (${tipoExame}). ${isDiagApplicable && diag ? diag.label : 'Método não válido.'}${observacoes.trim() ? ' | ' + observacoes.trim() : ''}`
+        ? `${t('retorno1.obs.gjPrefix', { valor: valorNum, tipo: tipoExame })} ${isDiagApplicable && diag ? diag.label : t('retorno1.obs.metodoInvalidoCurto')}${observacoes.trim() ? ' | ' + observacoes.trim() : ''}`
         : isDiagApplicable && diag
-          ? `GJ: ${valorNum} mg/dL (plasmática). ${diag.label}.`
-          : `GJ: ${valorNum} mg/dL (capilar). Método não válido para diagnóstico.`,
+          ? `${t('retorno1.obs.gjPlasmatica', { valor: valorNum })} ${diag.label}.`
+          : t('retorno1.obs.gjCapilarInvalido', { valor: valorNum }),
       status_gerado: newStatus,
       cenario_clinico: isDiagApplicable && diag?.cenario ? String(diag.cenario) : null,
       is_rascunho: false,
@@ -635,7 +648,7 @@ export default function Retorno1Form({
       const { error } = await supabase
         .from('consultas').update(consultaPayload as any).eq('id', consultaId);
       if (error) {
-        toast.error('Erro ao registrar consulta.');
+        toast.error(t('retorno1.toasts.erroRegistrarConsulta'));
         console.error(error);
         setSaving(false);
         return;
@@ -644,7 +657,7 @@ export default function Retorno1Form({
       const { data: consultaData, error: consErr } = await supabase
         .from('consultas').insert(consultaPayload as any).select('id').single();
       if (consErr || !consultaData) {
-        toast.error('Erro ao registrar consulta.');
+        toast.error(t('retorno1.toasts.erroRegistrarConsulta'));
         console.error(consErr);
         setSaving(false);
         return;
@@ -721,7 +734,7 @@ export default function Retorno1Form({
       setResultado(diag);
       setShowPopup(true);
     } else {
-      toast.success('Retorno registrado. Aguardando glicemia plasmática.');
+      toast.success(t('retorno1.toasts.retornoRegistradoAguardandoCurto'));
       onSaved();
     }
   };
@@ -750,7 +763,7 @@ export default function Retorno1Form({
 
   const errorMsg = (valid: boolean) =>
     touched && !valid ? (
-      <span className="text-xs text-destructive">Campo obrigatório</span>
+      <span className="text-xs text-destructive">{t('retorno1.campoObrigatorio')}</span>
     ) : null;
 
   // If we have a result, show the result card
@@ -781,66 +794,66 @@ export default function Retorno1Form({
                 className="shrink-0 text-muted-foreground hover:text-foreground gap-1"
               >
                 <Pencil className="h-3.5 w-3.5" />
-                <span className="text-xs">Editar</span>
+                <span className="text-xs">{t('common.edit')}</span>
               </Button>
             )}
           </div>
 
           {/* Conduta */}
           <div className="rounded-lg bg-white/70 p-4 space-y-2">
-            <p className={`text-sm font-semibold ${resultado.cor}`}>Conduta</p>
+            <p className={`text-sm font-semibold ${resultado.cor}`}>{t('retorno1.conduta.title')}</p>
 
             {resultado.tipo === 'negativo' ? (
               <ul className={`list-disc pl-4 text-xs ${resultado.cor} space-y-1.5`}>
-                <li>Não repetir glicemia de jejum.</li>
-                <li>Seguir pré-natal normal.</li>
+                <li>{t('retorno1.conduta.negNaoRepetir')}</li>
+                <li>{t('retorno1.conduta.negPreNatal')}</li>
                 <li>
-                  Realizar GTT 75g o mais próximo possível de 24 semanas — impreterivelmente antes de 28 semanas.
+                  {t('retorno1.conduta.negGtt')}
                   {janelaGTT && !igMaior24 && (
-                    <> O GTT 75g deverá ser realizado o mais próximo possível da 24ª semana (entre{' '}
-                      <strong>{format(janelaGTT.inicio, 'dd/MM/yyyy')}</strong> e{' '}
-                      <strong>{format(janelaGTT.fim, 'dd/MM/yyyy')}</strong>).</>
+                    <> {t('retorno1.conduta.negGttJanelaPrefix')}{' '}
+                      <strong>{fmtDate(janelaGTT.inicio)}</strong> {t('retorno1.conduta.negGttJanelaE')}{' '}
+                      <strong>{fmtDate(janelaGTT.fim)}</strong>{t('retorno1.conduta.negGttJanelaSuffix')}</>
                   )}
-                  {igMaior24 && ' O GTT 75g já está na janela — solicitar o mais breve possível.'}
+                  {igMaior24 && ` ${t('retorno1.conduta.negGttNaJanela')}`}
                 </li>
               </ul>
             ) : (
               <ul className={`list-disc pl-4 text-xs ${resultado.cor} space-y-1.5`}>
-                <li>Iniciar tratamento imediato — dieta + atividade física.</li>
-                <li>Solicitar perfil glicêmico de 4 pontos diários por 7 a 10 dias (jejum + 1h pós café + 1h pós almoço + 1h pós jantar).</li>
-                <li>Retorno em 7 a 10 dias com o perfil glicêmico preenchido.</li>
-                <li>Solicitar ultrassom obstétrico{igHoje && igHoje.semanas < 20 ? ' para datar a gestação.' : ' para referência de crescimento fetal.'}</li>
+                <li>{t('retorno1.conduta.posTratamento')}</li>
+                <li>{t('retorno1.conduta.posPerfil')}</li>
+                <li>{t('retorno1.conduta.posRetorno')}</li>
+                <li>{igHoje && igHoje.semanas < 20 ? t('retorno1.conduta.posUsgDatar') : t('retorno1.conduta.posUsgCrescimento')}</li>
               </ul>
             )}
           </div>
 
           {/* P4: Placeholder Blocos 2 e 3 — Laudo Completo */}
           <div className="rounded-lg border border-dashed border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-2">
-            <p className="text-sm font-bold text-foreground">Laudo Completo</p>
+            <p className="text-sm font-bold text-foreground">{t('retorno1.laudoCompleto.title')}</p>
             <p className="text-xs italic text-[#94A3B8]">
-              Bloco 2 — Justificativa Científica: será gerada em breve.
+              {t('retorno1.laudoCompleto.bloco2')}
             </p>
             <p className="text-xs italic text-[#94A3B8]">
-              Bloco 3 — Conduta Orientativa Personalizada: será gerada em breve.
+              {t('retorno1.laudoCompleto.bloco3')}
             </p>
           </div>
         </div>
 
         {/* C3: Notas técnicas */}
         <div className="rounded-xl border border-border bg-[#F1F5F9] p-5">
-          <p className="text-sm font-semibold text-foreground mb-2">Notas técnicas</p>
+          <p className="text-sm font-semibold text-foreground mb-2">{t('retorno1.notasTecnicas.title')}</p>
           <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1.5">
-            <li>Não repetir glicemia de jejum para fins diagnósticos — em nenhum cenário, seja resultado positivo ou negativo.</li>
-            <li>Glicemia plasmática é OBRIGATÓRIA para diagnóstico — glicemia capilar em ponta de dedo não é válida para este fim.</li>
-            <li>Glicemia capilar de jejum e pós-prandiais são utilizadas exclusivamente para acompanhamento do perfil glicêmico — nunca para diagnóstico.</li>
-            <li>Se diagnóstico confirmado: iniciar tratamento imediato. O diagnóstico oportuno e correto salva vidas. Não espere, não repita — trate.</li>
+            <li>{t('retorno1.notasTecnicas.nota1')}</li>
+            <li>{t('retorno1.notasTecnicas.nota2')}</li>
+            <li>{t('retorno1.notasTecnicas.nota3')}</li>
+            <li>{t('retorno1.notasTecnicas.nota4')}</li>
           </ul>
         </div>
 
         {/* C3: Ctrl+P instruction */}
         <div className="flex items-center gap-2 text-xs text-[#94A3B8]">
           <Printer className="h-3.5 w-3.5" />
-          <span>Para salvar ou imprimir este laudo em PDF: pressione Ctrl+P (Windows) ou Cmd+P (Mac) e escolha "Salvar como PDF".</span>
+          <span>{t('retorno1.ctrlP')}</span>
         </div>
 
         {/* C4: Impact pop-up */}
@@ -851,14 +864,14 @@ export default function Retorno1Form({
                 {resultado.tipo === 'negativo' ? (
                   <span className="flex items-center justify-center gap-2 text-[#7C4DBA]">
                     <AlertTriangle className="h-5 w-5" />
-                    DMG negativo — próximo passo: GTT 75g
+                    {t('retorno1.popup.negativoTitle')}
                   </span>
                 ) : (
                   <span className={`flex items-center justify-center gap-2 ${resultado.tipo === 'positivo' ? 'text-orange-600' : 'text-red-600'}`}>
                     <XCircle className="h-5 w-5" />
                     {resultado.tipo === 'positivo'
-                      ? 'POSITIVO — Diabete Mellitus Gestacional confirmado.'
-                      : 'POSITIVO — OVERT DM (diabete prévio) confirmado.'}
+                      ? t('retorno1.popup.positivoTitle')
+                      : t('retorno1.popup.overtTitle')}
                   </span>
                 )}
               </AlertDialogTitle>
@@ -867,29 +880,29 @@ export default function Retorno1Form({
                   {resultado.tipo === 'negativo' ? (
                     <>
                       <p>
-                        <strong>Resultado: DMG NEGATIVO nesta etapa da gestação.</strong> O próximo ponto de controle é o GTT 75g.
+                        <strong>{t('retorno1.popup.negResultado')}</strong> {t('retorno1.popup.negProximoPonto')}
                       </p>
                       {janelaGTT && !igMaior24 ? (
                         <p>
-                          <strong>Janela para o GTT 75g: {format(janelaGTT.inicio, 'dd/MM/yyyy')} a {format(janelaGTT.fim, 'dd/MM/yyyy')}.</strong>{' '}
-                          Solicite/agende o exame imediatamente — a fila nas unidades costuma ser longa.
+                          <strong>{t('retorno1.popup.negJanela', { inicio: fmtDate(janelaGTT.inicio), fim: fmtDate(janelaGTT.fim) })}</strong>{' '}
+                          {t('retorno1.popup.negAgende')}
                         </p>
                       ) : (
                         <p>
-                          <strong>O GTT 75g já está na janela — solicite imediatamente</strong>
-                          {janelaGTT ? <> (limite: {format(janelaGTT.fim, 'dd/MM/yyyy')})</> : null}.
+                          <strong>{t('retorno1.popup.negNaJanela')}</strong>
+                          {janelaGTT ? <> {t('retorno1.popup.negLimite', { fim: fmtDate(janelaGTT.fim) })}</> : null}.
                         </p>
                       )}
                       <p>
-                        Se a janela for perdida, agende o mais próximo possível da 28ª semana — nunca deixe a paciente sem GTT 75g.
+                        {t('retorno1.popup.negJanelaPerdida')}
                       </p>
                       <p className="font-medium">
-                        Não repita a glicemia de jejum, independentemente do resultado.
+                        {t('retorno1.popup.negNaoRepita')}
                       </p>
                     </>
                   ) : (
                     <p className="text-center font-medium">
-                      Não repetir o exame. É hora de tratar. Comece agora.
+                      {t('retorno1.popup.posTratar')}
                     </p>
                   )}
                 </div>
@@ -900,7 +913,7 @@ export default function Retorno1Form({
                 onClick={handlePopupClose}
                 className={resultado.tipo === 'negativo' ? 'bg-[#7C4DBA] hover:bg-[#7E69AB] text-white' : resultado.tipo === 'positivo' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}
               >
-                {resultado.tipo === 'negativo' ? 'Entendi' : 'Entendi, ver laudo completo'}
+                {resultado.tipo === 'negativo' ? t('retorno1.popup.btnEntendi') : t('retorno1.popup.btnVerLaudo')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -910,20 +923,20 @@ export default function Retorno1Form({
         <Dialog open={showEditConfirm} onOpenChange={setShowEditConfirm}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Editar resultado</DialogTitle>
+              <DialogTitle>{t('retorno1.editDialog.title')}</DialogTitle>
               <DialogDescription>
-                Tem certeza que deseja alterar o resultado? O diagnóstico será recalculado.
+                {t('retorno1.editDialog.desc')}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => setShowEditConfirm(false)}>
-                Cancelar
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleConfirmEdit}
                 className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
               >
-                Confirmar
+                {t('common.confirm')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -938,7 +951,7 @@ export default function Retorno1Form({
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            RETORNO 1 — Resultado da Glicemia de Jejum
+            {t('retorno1.header.title')}
           </h2>
           <div className="flex items-center gap-2">
             {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
@@ -950,7 +963,7 @@ export default function Retorno1Form({
           </div>
         </div>
         <p className="text-xs text-[#6D28D9]">
-          Insira o resultado da glicemia de jejum para diagnóstico automático.
+          {t('retorno1.header.subtitle')}
         </p>
       </div>
 
@@ -968,7 +981,7 @@ export default function Retorno1Form({
         <div className="mt-4 rounded-lg border border-red-300 bg-[#FEE2E2] p-4 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
           <p className="text-sm font-medium text-red-800">
-            ATENÇÃO: Glicemia capilar não é válida para diagnóstico de DMG. O protocolo exige glicemia plasmática. Oriente a paciente a refazer o exame com a metodologia correta.
+            {t('retorno1.capilarAlert')}
           </p>
         </div>
       )}
@@ -978,7 +991,7 @@ export default function Retorno1Form({
         {precisaUsgRef && (
           <div className="rounded-xl border border-[#7C4DBA]/30 bg-card p-4">
             <p className="text-xs text-muted-foreground mb-3">
-              Esta paciente ainda não tem uma referência de IG definida. Aproveite o retorno para registrar a 1ª ultrassonografia.
+              {t('retorno1.usgRefIntro')}
             </p>
             <UsgFlowSection
               value={usgFlow}
@@ -989,7 +1002,7 @@ export default function Retorno1Form({
               ehPrimeiraUsg={true}
             />
             {touched && !usgValida && (
-              <p className="mt-2 text-xs text-destructive">Complete a referência de IG antes de salvar.</p>
+              <p className="mt-2 text-xs text-destructive">{t('retorno1.usgRefIncompleta')}</p>
             )}
           </div>
         )}
@@ -997,8 +1010,8 @@ export default function Retorno1Form({
 
         {/* Resultado GJ */}
         <div className="space-y-2">
-          <FieldLabel htmlFor="valor-gj" required tooltip="Insira o valor numérico exato do resultado do exame laboratorial. Ex: 94. Não arredonde.">
-            Resultado da glicemia de jejum (mg/dL)
+          <FieldLabel htmlFor="valor-gj" required tooltip={t('retorno1.gj.tooltip')}>
+            {t('retorno1.gj.label')}
           </FieldLabel>
           <Input
             id="valor-gj"
@@ -1007,27 +1020,27 @@ export default function Retorno1Form({
             max="400"
             value={valorGJ}
             onChange={(e) => setValorGJ(e.target.value)}
-            placeholder="Ex: 94"
+            placeholder={t('retorno1.gj.placeholder')}
             className={fieldError(valorValido || !valorGJ)}
           />
           {touched && valorGJ && !valorValido && (
-            <span className="text-xs text-destructive">Valor deve ser entre 1 e 400 mg/dL</span>
+            <span className="text-xs text-destructive">{t('retorno1.gj.rangeError')}</span>
           )}
           {errorMsg(!valorGJ && !valorValido)}
         </div>
 
         {/* Tipo de exame */}
         <div className="space-y-2">
-          <FieldLabel required tooltip="Glicemia PLASMÁTICA é o único método válido para diagnóstico de DMG pelo protocolo Febrasgo/MS/OMS. Glicemia capilar (ponta de dedo) e CGM não são aceitos para diagnóstico.">
-            Tipo de exame realizado
+          <FieldLabel required tooltip={t('retorno1.tipoExame.tooltip')}>
+            {t('retorno1.tipoExame.label')}
           </FieldLabel>
           <Select value={tipoExame} onValueChange={setTipoExame}>
             <SelectTrigger className={fieldError(!!tipoExame)}>
-              <SelectValue placeholder="Selecione o tipo" />
+              <SelectValue placeholder={t('retorno1.tipoExame.placeholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="plasmatica">Plasmática (laboratório)</SelectItem>
-              <SelectItem value="capilar">Capilar (ponta de dedo)</SelectItem>
+              <SelectItem value="plasmatica">{t('retorno1.tipoExame.plasmatica')}</SelectItem>
+              <SelectItem value="capilar">{t('retorno1.tipoExame.capilar')}</SelectItem>
             </SelectContent>
           </Select>
           {errorMsg(!!tipoExame)}
@@ -1035,8 +1048,8 @@ export default function Retorno1Form({
 
         {/* Data do exame */}
         <div className="space-y-2">
-          <FieldLabel htmlFor="data-exame" required tooltip="Data em que o exame foi coletado no laboratório.">
-            Data do exame
+          <FieldLabel htmlFor="data-exame" required tooltip={t('retorno1.dataExame.tooltip')}>
+            {t('retorno1.dataExame.label')}
           </FieldLabel>
           <DateInput
             id="data-exame"
@@ -1050,12 +1063,12 @@ export default function Retorno1Form({
 
         {/* P1: IG na data do exame — auto-filled */}
         <div className="space-y-2">
-          <FieldLabel tooltip={`Idade gestacional na data em que o exame foi coletado. ${descreverReferenciaIg(igCalculada)} Preenchida automaticamente; edite se necessário.`}>
-            IG na data do exame
+          <FieldLabel tooltip={`${t('retorno1.igExame.tooltipPrefix')} ${descreverReferenciaIg(igCalculada)} ${t('retorno1.igExame.tooltipSuffix')}`}>
+            {t('retorno1.igExame.label')}
           </FieldLabel>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Semanas</Label>
+              <Label className="text-xs text-muted-foreground">{t('retorno1.igExame.weeks')}</Label>
               <Input
                 type="number"
                 min="0"
@@ -1066,7 +1079,7 @@ export default function Retorno1Form({
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Dias</Label>
+              <Label className="text-xs text-muted-foreground">{t('retorno1.igExame.days')}</Label>
               <Input
                 type="number"
                 min="0"
@@ -1081,8 +1094,8 @@ export default function Retorno1Form({
 
         {/* C1: Data da consulta de retorno */}
         <div className="space-y-2">
-          <FieldLabel htmlFor="data-consulta-retorno" required tooltip="Data do retorno da paciente. Preenchida automaticamente com a data de hoje. Edite se necessário.">
-            Data da consulta de retorno
+          <FieldLabel htmlFor="data-consulta-retorno" required tooltip={t('retorno1.dataConsulta.tooltip')}>
+            {t('retorno1.dataConsulta.label')}
           </FieldLabel>
           <DateInput
             id="data-consulta-retorno"
@@ -1096,13 +1109,13 @@ export default function Retorno1Form({
 
         {/* C2: Observações */}
         <div className="space-y-2">
-          <FieldLabel tooltip="Anotações adicionais sobre este retorno.">
-            Observações
+          <FieldLabel tooltip={t('retorno1.observacoes.tooltip')}>
+            {t('retorno1.observacoes.label')}
           </FieldLabel>
           <Textarea
             value={observacoes}
             onChange={(e) => setObservacoes(e.target.value)}
-            placeholder="Anotações opcionais sobre este retorno"
+            placeholder={t('retorno1.observacoes.placeholder')}
             rows={3}
           />
         </div>
@@ -1110,7 +1123,7 @@ export default function Retorno1Form({
         {/* Buttons — 34B.1 seções 3.2.2 e 3.2.3 */}
         <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           {/* 3.2.2 — Salvar rascunho: sempre habilitado quando não está em flight.
               Aceita campos parciais; backend protege com COALESCE. */}
@@ -1124,18 +1137,18 @@ export default function Retorno1Form({
             {saving && serverDraftState === 'salvando' && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            Salvar rascunho
+            {t('retorno1.btnSalvarRascunho')}
           </Button>
           <Button
             type="submit"
             disabled={saving || !isValid || !todasDatasValidas}
             className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
-            title={!isValid ? 'Preencha todos os campos obrigatórios para finalizar' : undefined}
+            title={!isValid ? t('retorno1.btnFinalizarTitle') : undefined}
           >
             {saving && serverDraftState !== 'salvando' && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            Salvar e finalizar
+            {t('retorno1.btnSalvarFinalizar')}
           </Button>
         </div>
       </form>

@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip';
@@ -14,8 +15,8 @@ const REFEICAO_POS: Record<Exclude<Point, 'jejum'>, 'café' | 'almoço' | 'janta
   pos_jantar: 'jantar',
 };
 
-function labelFor(point: Point, janela: JanelaPosPrandial): string {
-  return point === 'jejum' ? 'Jejum' : rotuloPosPrandial(REFEICAO_POS[point], janela);
+function labelFor(point: Point, janela: JanelaPosPrandial, jejumLabel: string): string {
+  return point === 'jejum' ? jejumLabel : rotuloPosPrandial(REFEICAO_POS[point], janela);
 }
 
 function metaFor(point: Point, janela: JanelaPosPrandial): number {
@@ -32,6 +33,7 @@ interface FichaACReadOnlyGridProps {
 }
 
 export default function FichaACReadOnlyGrid({ gridValores, tipoPosPrandial = '1h' }: FichaACReadOnlyGridProps) {
+  const { t } = useTranslation();
   // Filter to only show days that have at least one value
   const daysWithData = gridValores
     .map((row, idx) => ({ row, dayNum: idx + 1 }))
@@ -55,10 +57,10 @@ export default function FichaACReadOnlyGrid({ gridValores, tipoPosPrandial = '1h
       <table className="w-full min-w-[420px]">
         <thead>
           <tr className="bg-muted/50">
-            <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">Dia</th>
+            <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">{t('fichaACReadOnlyGrid.day')}</th>
             {POINTS.map(p => (
               <th key={p} className="px-2 py-2 text-center">
-                <span className="text-xs font-medium text-foreground">{labelFor(p, tipoPosPrandial)}</span>
+                <span className="text-xs font-medium text-foreground">{labelFor(p, tipoPosPrandial, t('fichaACReadOnlyGrid.fasting'))}</span>
                 <br />
                 <span className="text-[10px] text-muted-foreground">{'< '}{metaFor(p, tipoPosPrandial)} mg/dL</span>
               </th>
@@ -68,7 +70,7 @@ export default function FichaACReadOnlyGrid({ gridValores, tipoPosPrandial = '1h
         <tbody>
           {daysWithData.map(({ row, dayNum }) => (
             <tr key={dayNum} className="border-t border-border">
-              <td className="px-2 py-1.5 text-xs font-medium text-foreground">Dia {dayNum}</td>
+              <td className="px-2 py-1.5 text-xs font-medium text-foreground">{t('fichaACReadOnlyGrid.dayNum', { num: dayNum })}</td>
               {POINTS.map(p => {
                 const val = row[p];
                 const num = parseInt(val);

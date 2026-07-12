@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
@@ -51,16 +53,15 @@ function isPosPrandial(point: Point6): point is 'pos_cafe' | 'pos_almoco' | 'pos
   return point === 'pos_cafe' || point === 'pos_almoco' || point === 'pos_jantar';
 }
 
-const TOOLTIP_6_FIXO: Record<'jejum' | 'pre_almoco' | 'pre_jantar', string> = {
-  jejum: 'Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-  pre_almoco: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-  pre_jantar: 'Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.',
-};
+function tooltipFixo6(point: 'jejum' | 'pre_almoco' | 'pre_jantar', t: TFunction): string {
+  if (point === 'jejum') return t('fichaBD.tooltips.jejum');
+  return t('fichaBD.tooltips.prePrandial');
+}
 
-function label6(point: Point6, janela: JanelaPosPrandial): string {
+function label6(point: Point6, janela: JanelaPosPrandial, t: TFunction): string {
   if (isPosPrandial(point)) return rotuloPosPrandial(REFEICAO_POS_6[point], janela);
-  if (point === 'jejum') return 'Jejum';
-  return point === 'pre_almoco' ? 'Pré-almoço' : 'Pré-jantar';
+  if (point === 'jejum') return t('fichaBD.pontos.jejum');
+  return point === 'pre_almoco' ? t('fichaBD.pontos.preAlmoco') : t('fichaBD.pontos.preJantar');
 }
 
 function metaLabel6(point: Point6, janela: JanelaPosPrandial): string {
@@ -69,9 +70,9 @@ function metaLabel6(point: Point6, janela: JanelaPosPrandial): string {
   return '70-100'; // pré-prandiais
 }
 
-function tooltip6(point: Point6, janela: JanelaPosPrandial): string {
+function tooltip6(point: Point6, janela: JanelaPosPrandial, t: TFunction): string {
   if (isPosPrandial(point)) return tooltipPosPrandial(janela);
-  return TOOLTIP_6_FIXO[point];
+  return tooltipFixo6(point, t);
 }
 
 const IS_PRE_PRANDIAL: Record<Point6, boolean> = {
@@ -110,6 +111,7 @@ interface FichaBDFormProps {
 export default function FichaBDForm({
   paciente, consultas, isPreview, onSaved, onCancel, editingConsulta,
 }: FichaBDFormProps) {
+  const { t } = useTranslation();
   const { profissionalData } = useProfissionalData();
 
   // 35B — Pactuação pós-prandial (1h/2h). Em edição, carrega a janela já gravada (loader
@@ -165,14 +167,14 @@ export default function FichaBDForm({
   const retornoDias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil: false, igSemanas: igSemNum });
 
   const headerTitle = isFirstFichaBD
-    ? 'RETORNO 3 — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo'
+    ? t('fichaBD.headerRetorno3')
     : igSemNum > 30
-      ? 'FICHA D — Acompanhamento com insulina, após a 30ª semana (Perfil Glicêmico de 6 pontos × 7 dias)'
-      : 'FICHA B — Acompanhamento com insulina, até a 30ª semana (Perfil Glicêmico de 6 pontos × 15 dias)';
+      ? t('fichaBD.headerFichaD')
+      : t('fichaBD.headerFichaB');
 
   const dayMessage = igSemNum > 30
-    ? 'Preencha até 7 dias de medições.'
-    : 'Preencha até 15 dias de medições.';
+    ? t('fichaBD.dayMessage7')
+    : t('fichaBD.dayMessage15');
 
   const cellRefs = useRef<(HTMLInputElement | null)[][]>(
     DAYS.map(() => Array(POINTS_6.length).fill(null))
@@ -217,7 +219,7 @@ export default function FichaBDForm({
       for (const p of POINTS_6) {
         const val = parseInt(row[p]);
         if (!isNaN(val) && val > 0 && isHypoglycemia(p, val)) {
-          alerts.push({ day: dayIdx + 1, point: label6(p, janela), value: val });
+          alerts.push({ day: dayIdx + 1, point: label6(p, janela, t), value: val });
         }
       }
     });
@@ -313,12 +315,12 @@ export default function FichaBDForm({
   const fichaPersistida = !!editingConsulta;
   const camposPendentes = useMemo<string[]>(() => {
     const f: string[] = [];
-    if (!dataInicio) f.push('Data de início do perfil');
-    if (!dataFim) f.push('Data de fim do perfil');
-    if (!dataConsulta) f.push('Data da consulta');
-    if (!igSemanas) f.push('Idade gestacional (semanas)');
-    if (totalPreenchidos === 0) f.push('Pelo menos 1 valor de glicemia preenchido');
-    if (hasNegativeValues) f.push('Corrigir valores negativos na grade');
+    if (!dataInicio) f.push(t('fichaBD.pendentes.dataInicio'));
+    if (!dataFim) f.push(t('fichaBD.pendentes.dataFim'));
+    if (!dataConsulta) f.push(t('fichaBD.pendentes.dataConsulta'));
+    if (!igSemanas) f.push(t('fichaBD.pendentes.igSemanas'));
+    if (totalPreenchidos === 0) f.push(t('fichaBD.pendentes.umValor'));
+    if (hasNegativeValues) f.push(t('fichaBD.pendentes.valoresNegativos'));
     return f;
   }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
 
@@ -403,7 +405,7 @@ export default function FichaBDForm({
     // Real mode — Supabase
     try {
       const profId = profissionalData?.id;
-      if (!profId) throw new Error('Profissional não encontrado');
+      if (!profId) throw new Error(t('fichaBD.errors.profNotFound'));
 
       const nextSeq = (consultas.length || 0) + 1;
 
@@ -431,7 +433,7 @@ export default function FichaBDForm({
       } else {
         const { data: newConsulta, error: consErr } = await supabase
           .from('consultas').insert(consultaPayload as any).select('id').single();
-        if (consErr || !newConsulta) throw consErr || new Error('Falha ao criar consulta');
+        if (consErr || !newConsulta) throw consErr || new Error(t('fichaBD.errors.createConsulta'));
         consultaId = newConsulta.id;
       }
 
@@ -462,7 +464,7 @@ export default function FichaBDForm({
       } else {
         const { data: newPerfil, error: perfErr } = await supabase
           .from('perfis_glicemicos' as any).insert(perfilPayload as any).select('id').single();
-        if (perfErr || !newPerfil) throw perfErr || new Error('Falha ao criar perfil');
+        if (perfErr || !newPerfil) throw perfErr || new Error(t('fichaBD.errors.createPerfil'));
         perfilId = (newPerfil as any).id;
       }
 
@@ -515,7 +517,7 @@ export default function FichaBDForm({
       setShowImpact(true);
     } catch (err: any) {
       console.error(err);
-      toast.error('Erro ao salvar: ' + (err?.message || 'Erro desconhecido'));
+      toast.error(t('fichaBD.errors.saveError', { message: err?.message || t('fichaBD.errors.unknown') }));
       setSaving(false);
     }
   };
@@ -547,15 +549,15 @@ export default function FichaBDForm({
           {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
         <p className="text-xs text-[#6D28D9]">
-          Preencha a grade com as glicemias capilares registradas pela paciente.
+          {t('fichaBD.fillGridHint')}
         </p>
         {/* Ficha badge + indicador read-only da janela pós-prandial (35B) */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">
-            Ficha {fichaType === 'ficha_b' ? 'B' : 'D'} — com insulina — IG {igSemNum} sem
+            {t('fichaBD.badgeFicha', { ficha: fichaType === 'ficha_b' ? 'B' : 'D', ig: igSemNum })}
           </div>
           <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">
-            Pós-prandial: {prefixoHora(janela)}
+            {t('fichaBD.badgePosPrandial', { janela: prefixoHora(janela) })}
           </div>
         </div>
       </div>
@@ -577,11 +579,11 @@ export default function FichaBDForm({
         <div className="rounded-xl border-2 border-[#EF4444] bg-[#FEE2E2] p-4 space-y-1">
           <p className="text-sm font-bold text-red-800 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-[#EF4444]" />
-            ALERTA DE HIPOGLICEMIA
+            {t('fichaBD.hipoAlertTitle')}
           </p>
           {hypoAlerts.map((a, i) => (
             <p key={i} className="text-xs text-red-700">
-              Valor de {a.value} mg/dL no Dia {a.day} ({a.point}). Avaliar imediatamente e informar ao especialista.
+              {t('fichaBD.hipoAlertItem', { valor: a.value, dia: a.day, ponto: a.point })}
             </p>
           ))}
         </div>
@@ -591,38 +593,38 @@ export default function FichaBDForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data de início do perfil</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Primeiro dia em que a paciente começou a medir as glicemias.</p></TooltipContent></Tooltip></TooltipProvider>
+            <label className="text-xs font-medium text-foreground">{t('fichaBD.labelDataInicio')}</label>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaBD.tooltipDataInicio')}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <DateInput value={dataInicio} onChange={setDataInicio} onValidityChange={setDataInicioValida} />
         </div>
 
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data de encerramento</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Último dia de medição do perfil.</p></TooltipContent></Tooltip></TooltipProvider>
+            <label className="text-xs font-medium text-foreground">{t('fichaBD.labelDataFim')}</label>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaBD.tooltipDataFim')}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <DateInput value={dataFim} onChange={setDataFim} onValidityChange={setDataFimValida} />
         </div>
 
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data da consulta</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Data do retorno. Default: hoje.</p></TooltipContent></Tooltip></TooltipProvider>
+            <label className="text-xs font-medium text-foreground">{t('fichaBD.labelDataConsulta')}</label>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaBD.tooltipDataConsulta')}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <DateInput value={dataConsulta} onChange={setDataConsulta} onValidityChange={setDataConsultaValida} />
         </div>
 
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Idade gestacional atual</label>
-            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">IG atual em semanas + dias. Usada para definir o intervalo do próximo retorno. {descreverReferenciaIg(igAtual)}</p></TooltipContent></Tooltip></TooltipProvider>
+            <label className="text-xs font-medium text-foreground">{t('fichaBD.labelIg')}</label>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaBD.tooltipIg')} {descreverReferenciaIg(igAtual)}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <div className="flex items-center gap-2">
-            <Input type="number" min={0} max={45} value={igSemanas} onChange={e => setIgSemanas(e.target.value)} placeholder="sem" className="w-20" />
-            <span className="text-xs text-muted-foreground">sem +</span>
-            <Input type="number" min={0} max={6} value={igDias} onChange={e => setIgDias(e.target.value)} placeholder="dias" className="w-20" />
-            <span className="text-xs text-muted-foreground">dias</span>
+            <Input type="number" min={0} max={45} value={igSemanas} onChange={e => setIgSemanas(e.target.value)} placeholder={t('fichaBD.igSemPlaceholder')} className="w-20" />
+            <span className="text-xs text-muted-foreground">{t('fichaBD.igSemSuffix')}</span>
+            <Input type="number" min={0} max={6} value={igDias} onChange={e => setIgDias(e.target.value)} placeholder={t('fichaBD.igDiasPlaceholder')} className="w-20" />
+            <span className="text-xs text-muted-foreground">{t('fichaBD.igDiasSuffix')}</span>
           </div>
         </div>
       </div>
@@ -635,17 +637,17 @@ export default function FichaBDForm({
               {percentual.toFixed(1)}%
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Controle: {percentual.toFixed(1)}% das glicemias dentro da meta ({dentroMeta} de {totalPreenchidos} valores)
+              {t('fichaBD.controleResumo', { percentual: percentual.toFixed(1), dentro: dentroMeta, total: totalPreenchidos })}
             </p>
             <p className={`text-xs mt-1 italic ${percentual >= 70 ? 'text-[#16A34A]' : 'text-[#64748B]'}`}>
-              Meta: ≥ 70% das glicemias dentro do alvo
+              {t('fichaBD.metaAlvo')}
             </p>
           </>
         ) : (
           <>
             <p className="text-2xl font-bold text-muted-foreground">—</p>
             <p className="text-xs mt-1 italic text-[#64748B]">
-              Meta: ≥ 70% das glicemias dentro do alvo
+              {t('fichaBD.metaAlvo')}
             </p>
           </>
         )}
@@ -656,21 +658,21 @@ export default function FichaBDForm({
         <table className="w-full min-w-[680px]">
           <thead>
             <tr className="bg-muted/50">
-              <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">Dia</th>
+              <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">{t('fichaBD.dia')}</th>
               {POINTS_6.map(p => (
                 <th
                   key={p}
                   className={`px-2 py-2 text-center ${IS_PRE_PRANDIAL[p] ? 'bg-[#E8E0FF]' : ''}`}
                 >
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-xs font-medium text-foreground">{label6(p, janela)}</span>
+                    <span className="text-xs font-medium text-foreground">{label6(p, janela, t)}</span>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p className="text-xs">{tooltip6(p, janela)}</p>
+                          <p className="text-xs">{tooltip6(p, janela, t)}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -683,7 +685,7 @@ export default function FichaBDForm({
           <tbody>
             {DAYS.map((day, dayIdx) => (
               <tr key={day} className="border-t border-border">
-                <td className="px-2 py-1 text-xs font-medium text-foreground">Dia {day}</td>
+                <td className="px-2 py-1 text-xs font-medium text-foreground">{t('fichaBD.diaN', { dia: day })}</td>
                 {POINTS_6.map((p, colIdx) => {
                   const val = grid[dayIdx][p];
                   const numVal = parseInt(val);
@@ -709,11 +711,11 @@ export default function FichaBDForm({
                           ${!val ? 'border-border' : ''}
                         `}
                         placeholder="—"
-                        aria-label={`Dia ${day} ${label6(p, janela)}`}
+                        aria-label={t('fichaBD.cellAria', { dia: day, ponto: label6(p, janela, t) })}
                       />
-                      {isNeg && <span className="text-[9px] text-red-600 block text-center">Valor inválido</span>}
-                      {isHigh && <span className="text-[9px] text-amber-600 block text-center">Verificar</span>}
-                      {isHypo && <span className="text-[9px] text-red-600 block text-center">Hipoglicemia</span>}
+                      {isNeg && <span className="text-[9px] text-red-600 block text-center">{t('fichaBD.cellInvalido')}</span>}
+                      {isHigh && <span className="text-[9px] text-amber-600 block text-center">{t('fichaBD.cellVerificar')}</span>}
+                      {isHypo && <span className="text-[9px] text-red-600 block text-center">{t('fichaBD.cellHipo')}</span>}
                     </td>
                   );
                 })}
@@ -726,18 +728,18 @@ export default function FichaBDForm({
       {/* Observations */}
       <div className="space-y-1">
         <div className="flex items-center gap-1">
-          <label className="text-xs font-medium text-foreground">Observações</label>
-          <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">Anotações adicionais sobre este retorno.</p></TooltipContent></Tooltip></TooltipProvider>
+          <label className="text-xs font-medium text-foreground">{t('fichaBD.labelObservacoes')}</label>
+          <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaBD.tooltipObservacoes')}</p></TooltipContent></Tooltip></TooltipProvider>
         </div>
-        <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder="Opcional" rows={3} />
+        <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} placeholder={t('fichaBD.observacoesPlaceholder')} rows={3} />
       </div>
 
       {/* Action buttons */}
       <div className="flex justify-end gap-3 print:hidden">
-        <Button variant="outline" onClick={onCancel} disabled={saving}>Cancelar</Button>
+        <Button variant="outline" onClick={onCancel} disabled={saving}>{t('common.cancel')}</Button>
         <Button onClick={handleSave} disabled={!canSave || saving || !todasDatasValidas} className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white">
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Salvar retorno
+          {t('fichaBD.salvarRetorno')}
         </Button>
       </div>
 
@@ -747,16 +749,16 @@ export default function FichaBDForm({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Valores fora da faixa esperada
+              {t('fichaBD.highValueTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Existem valores acima de 400 mg/dL na grade. Verifique se os dados estão corretos antes de continuar.
+              {t('fichaBD.highValueDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setShowHighValueConfirm(false)}>Revisar</Button>
+            <Button variant="outline" onClick={() => setShowHighValueConfirm(false)}>{t('fichaBD.revisar')}</Button>
             <AlertDialogAction onClick={() => { setShowHighValueConfirm(false); handleSave(); }} className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white">
-              Confirmar e salvar
+              {t('fichaBD.confirmarSalvar')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -768,9 +770,9 @@ export default function FichaBDForm({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-center text-lg">
               {savedResult?.adequado ? (
-                <span className="text-[#16A34A]">CONTROLE ADEQUADO COM INSULINA</span>
+                <span className="text-[#16A34A]">{t('fichaBD.impactAdequadoTitle')}</span>
               ) : (
-                <span className="text-[#DC2626]">ENCERRAMENTO DA MARI</span>
+                <span className="text-[#DC2626]">{t('fichaBD.impactEncerramentoTitle')}</span>
               )}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3">
@@ -780,7 +782,7 @@ export default function FichaBDForm({
                     {vereditoControle(savedResult?.percentual ?? 0).titulo}
                   </p>
                   <p className="text-sm">
-                    Manter dose atual. Detalhes no laudo completo abaixo.
+                    {t('fichaBD.impactAdequadoDesc')}
                   </p>
                 </>
               ) : (
@@ -790,7 +792,7 @@ export default function FichaBDForm({
                     {vereditoControle(savedResult?.percentual ?? 0).titulo}
                   </p>
                   <p className="text-sm">
-                    AVALIAR sua segurança para continuar com o caso OU ASSOCIAR com endocrinologista OU CONSIDERAR referenciamento especializado (no caso de sistema público).
+                    {t('fichaBD.impactEncerramentoDesc')}
                   </p>
                 </>
               )}
@@ -798,7 +800,7 @@ export default function FichaBDForm({
           </AlertDialogHeader>
           <AlertDialogFooter className="justify-center">
             <AlertDialogAction onClick={handleCloseImpact} className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white">
-              Fechar e ver laudo completo
+              {t('fichaBD.fecharVerLaudo')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

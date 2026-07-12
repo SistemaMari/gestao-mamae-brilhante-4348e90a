@@ -42,7 +42,8 @@
     "of": "de",
     "loadingData": "Carregando dados...",
     "pageNotFound": "Ops! Página não encontrada",
-    "returnToHome": "Voltar para o início"
+    "returnToHome": "Voltar para o início",
+    "unknownError": "erro desconhecido"
   },
   "languages": {
     "pt-BR": "Português (Brasil)",
@@ -142,7 +143,8 @@
     "passwordUpdatedRedirecting": "Senha atualizada com sucesso! Redirecionando...",
     "minCharsPlaceholder": "Mínimo 6 caracteres",
     "confirmNewPassword": "Confirmar nova senha",
-    "repeatPasswordPlaceholder": "Repita a senha"
+    "repeatPasswordPlaceholder": "Repita a senha",
+    "accountDisabled": "Sua conta foi desativada. Entre em contato com o administrador."
   },
   "dashboard": {
     "title": "Painel do profissional",
@@ -2842,5 +2844,967 @@
     "mostPopular": "Mais popular",
     "upToReportsPerMonth": "Até {{count}} laudos por mês",
     "launchPricingNote": "Preços de lançamento. Valores podem ser ajustados após o período promocional."
+  },
+  "retorno1": {
+    "diag": {
+      "negativoLabel": "Resultado: NEGATIVO — Normoglicemia",
+      "negativoTexto": "Glicemia de jejum: {{valor}} mg/dL. NÃO há diagnóstico de Diabete Mellitus Gestacional neste momento.",
+      "positivoLabel": "Resultado: POSITIVO — Diabete Mellitus Gestacional",
+      "positivoTexto": "Glicemia de jejum: {{valor}} mg/dL. Diagnóstico CONFIRMADO de DMG.",
+      "overtLabel": "Resultado: OVERT DM — Diabete pré-existente",
+      "overtTexto": "Glicemia de jejum: {{valor}} mg/dL. Diagnóstico de Diabete pré-existente diagnosticado durante a gestação."
+    },
+    "pendentes": {
+      "resultadoGj": "Resultado da glicemia de jejum",
+      "tipoExame": "Tipo de exame (plasmática/capilar)",
+      "dataExame": "Data do exame",
+      "dataConsulta": "Data da consulta de retorno",
+      "usgRef": "USG ou referência de IG"
+    },
+    "toasts": {
+      "rascunhoLocalSalvo": "Rascunho local salvo às {{hora}}",
+      "precisaLogar": "Você precisa estar logado.",
+      "rascunhoServidorSalvo": "Rascunho salvo no servidor às {{hora}}",
+      "rascunhoErro": "Erro ao salvar rascunho. Mudanças locais preservadas.",
+      "preenchaObrigatorios": "Preencha todos os campos obrigatórios.",
+      "retornoRegistradoAguardando": "Retorno registrado. Aguardando glicemia plasmática para diagnóstico.",
+      "retornoRegistradoAguardandoCurto": "Retorno registrado. Aguardando glicemia plasmática.",
+      "erroRegistrarConsulta": "Erro ao registrar consulta."
+    },
+    "obs": {
+      "gjPrefix": "GJ: {{valor}} mg/dL ({{tipo}}).",
+      "gjPlasmatica": "GJ: {{valor}} mg/dL (plasmática).",
+      "gjCapilarInvalido": "GJ: {{valor}} mg/dL (capilar). Método não válido para diagnóstico.",
+      "metodoInvalido": "Método não válido para diagnóstico.",
+      "metodoInvalidoCurto": "Método não válido."
+    },
+    "campoObrigatorio": "Campo obrigatório",
+    "conduta": {
+      "title": "Conduta",
+      "negNaoRepetir": "Não repetir glicemia de jejum.",
+      "negPreNatal": "Seguir pré-natal normal.",
+      "negGtt": "Realizar GTT 75g o mais próximo possível de 24 semanas — impreterivelmente antes de 28 semanas.",
+      "negGttJanelaPrefix": "O GTT 75g deverá ser realizado o mais próximo possível da 24ª semana (entre",
+      "negGttJanelaE": "e",
+      "negGttJanelaSuffix": ").",
+      "negGttNaJanela": "O GTT 75g já está na janela — solicitar o mais breve possível.",
+      "posTratamento": "Iniciar tratamento imediato — dieta + atividade física.",
+      "posPerfil": "Solicitar perfil glicêmico de 4 pontos diários por 7 a 10 dias (jejum + 1h pós café + 1h pós almoço + 1h pós jantar).",
+      "posRetorno": "Retorno em 7 a 10 dias com o perfil glicêmico preenchido.",
+      "posUsgDatar": "Solicitar ultrassom obstétrico para datar a gestação.",
+      "posUsgCrescimento": "Solicitar ultrassom obstétrico para referência de crescimento fetal."
+    },
+    "laudoCompleto": {
+      "title": "Laudo Completo",
+      "bloco2": "Bloco 2 — Justificativa Científica: será gerada em breve.",
+      "bloco3": "Bloco 3 — Conduta Orientativa Personalizada: será gerada em breve."
+    },
+    "notasTecnicas": {
+      "title": "Notas técnicas",
+      "nota1": "Não repetir glicemia de jejum para fins diagnósticos — em nenhum cenário, seja resultado positivo ou negativo.",
+      "nota2": "Glicemia plasmática é OBRIGATÓRIA para diagnóstico — glicemia capilar em ponta de dedo não é válida para este fim.",
+      "nota3": "Glicemia capilar de jejum e pós-prandiais são utilizadas exclusivamente para acompanhamento do perfil glicêmico — nunca para diagnóstico.",
+      "nota4": "Se diagnóstico confirmado: iniciar tratamento imediato. O diagnóstico oportuno e correto salva vidas. Não espere, não repita — trate."
+    },
+    "ctrlP": "Para salvar ou imprimir este laudo em PDF: pressione Ctrl+P (Windows) ou Cmd+P (Mac) e escolha \"Salvar como PDF\".",
+    "popup": {
+      "negativoTitle": "DMG negativo — próximo passo: GTT 75g",
+      "positivoTitle": "POSITIVO — Diabete Mellitus Gestacional confirmado.",
+      "overtTitle": "POSITIVO — OVERT DM (diabete prévio) confirmado.",
+      "negResultado": "Resultado: DMG NEGATIVO nesta etapa da gestação.",
+      "negProximoPonto": "O próximo ponto de controle é o GTT 75g.",
+      "negJanela": "Janela para o GTT 75g: {{inicio}} a {{fim}}.",
+      "negAgende": "Solicite/agende o exame imediatamente — a fila nas unidades costuma ser longa.",
+      "negNaJanela": "O GTT 75g já está na janela — solicite imediatamente",
+      "negLimite": "(limite: {{fim}})",
+      "negJanelaPerdida": "Se a janela for perdida, agende o mais próximo possível da 28ª semana — nunca deixe a paciente sem GTT 75g.",
+      "negNaoRepita": "Não repita a glicemia de jejum, independentemente do resultado.",
+      "posTratar": "Não repetir o exame. É hora de tratar. Comece agora.",
+      "btnEntendi": "Entendi",
+      "btnVerLaudo": "Entendi, ver laudo completo"
+    },
+    "editDialog": {
+      "title": "Editar resultado",
+      "desc": "Tem certeza que deseja alterar o resultado? O diagnóstico será recalculado."
+    },
+    "header": {
+      "title": "RETORNO 1 — Resultado da Glicemia de Jejum",
+      "subtitle": "Insira o resultado da glicemia de jejum para diagnóstico automático."
+    },
+    "capilarAlert": "ATENÇÃO: Glicemia capilar não é válida para diagnóstico de DMG. O protocolo exige glicemia plasmática. Oriente a paciente a refazer o exame com a metodologia correta.",
+    "usgRefIntro": "Esta paciente ainda não tem uma referência de IG definida. Aproveite o retorno para registrar a 1ª ultrassonografia.",
+    "usgRefIncompleta": "Complete a referência de IG antes de salvar.",
+    "gj": {
+      "label": "Resultado da glicemia de jejum (mg/dL)",
+      "tooltip": "Insira o valor numérico exato do resultado do exame laboratorial. Ex: 94. Não arredonde.",
+      "placeholder": "Ex: 94",
+      "rangeError": "Valor deve ser entre 1 e 400 mg/dL"
+    },
+    "tipoExame": {
+      "label": "Tipo de exame realizado",
+      "tooltip": "Glicemia PLASMÁTICA é o único método válido para diagnóstico de DMG pelo protocolo Febrasgo/MS/OMS. Glicemia capilar (ponta de dedo) e CGM não são aceitos para diagnóstico.",
+      "placeholder": "Selecione o tipo",
+      "plasmatica": "Plasmática (laboratório)",
+      "capilar": "Capilar (ponta de dedo)"
+    },
+    "dataExame": {
+      "label": "Data do exame",
+      "tooltip": "Data em que o exame foi coletado no laboratório."
+    },
+    "igExame": {
+      "label": "IG na data do exame",
+      "tooltipPrefix": "Idade gestacional na data em que o exame foi coletado.",
+      "tooltipSuffix": "Preenchida automaticamente; edite se necessário.",
+      "weeks": "Semanas",
+      "days": "Dias"
+    },
+    "dataConsulta": {
+      "label": "Data da consulta de retorno",
+      "tooltip": "Data do retorno da paciente. Preenchida automaticamente com a data de hoje. Edite se necessário."
+    },
+    "observacoes": {
+      "label": "Observações",
+      "tooltip": "Anotações adicionais sobre este retorno.",
+      "placeholder": "Anotações opcionais sobre este retorno"
+    },
+    "btnSalvarRascunho": "Salvar rascunho",
+    "btnSalvarFinalizar": "Salvar e finalizar",
+    "btnFinalizarTitle": "Preencha todos os campos obrigatórios para finalizar"
+  },
+  "fichaAC": {
+    "pontos": {
+      "jejum": "Jejum",
+      "jejumTooltip": "Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. Usar glicômetro capilar para acompanhamento — diferente do diagnóstico, onde é obrigatório plasma venoso. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista."
+    },
+    "dayMessage": {
+      "first": "Preencha de 7 a 10 dias de medições.",
+      "upTo7": "Preencha até 7 dias de medições.",
+      "upTo15": "Preencha até 15 dias de medições."
+    },
+    "errors": {
+      "noProfessional": "Profissional não encontrado",
+      "createConsulta": "Falha ao criar consulta",
+      "createPerfil": "Falha ao criar perfil",
+      "saveError": "Erro ao salvar: {{error}}",
+      "unknown": "Erro desconhecido"
+    },
+    "pendentes": {
+      "dataInicio": "Data de início do perfil",
+      "dataFim": "Data de fim do perfil",
+      "dataConsulta": "Data da consulta",
+      "igSemanas": "Idade gestacional (semanas)",
+      "aoMenosUmValor": "Pelo menos 1 valor de glicemia preenchido",
+      "valoresNegativos": "Corrigir valores negativos na grade",
+      "checklist": "Checklist clínico do Retorno 2 (6 itens)",
+      "pactuacao": "Pactuação com a paciente",
+      "memoria": "Avaliação da memória do glicosímetro"
+    },
+    "header": {
+      "titleRetorno2": "RETORNO 2 — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo",
+      "titleFichaC": "FICHA C — Acompanhamento sem insulina, após a 30ª semana (Perfil Glicêmico de 4 pontos × 7 dias)",
+      "titleFichaA": "FICHA A — Acompanhamento sem insulina, até a 30ª semana (Perfil Glicêmico de 4 pontos × 15 dias)",
+      "subtitle": "Preencha a grade com as glicemias capilares registradas pela paciente.",
+      "posPrandialBadge": "Pós-prandial: {{janela}}"
+    },
+    "hypo": {
+      "alertTitle": "ALERTA DE HIPOGLICEMIA",
+      "alertLine": "Valor de {{value}} mg/dL no Dia {{day}} ({{point}}). Avaliar imediatamente e informar ao especialista."
+    },
+    "fields": {
+      "dataInicioLabel": "Data de início do perfil",
+      "dataInicioTooltip": "Primeiro dia em que a paciente começou a medir as glicemias.",
+      "dataFimLabel": "Data de encerramento",
+      "dataFimTooltip": "Último dia de medição do perfil.",
+      "dataConsultaLabel": "Data da consulta",
+      "dataConsultaTooltip": "Data do retorno. Default: hoje. Editável.",
+      "igLabel": "Idade gestacional atual",
+      "igTooltipBefore": "IG atual em semanas + dias. Usada para definir o intervalo do próximo retorno e para identificar se a paciente já passou da 30ª semana.",
+      "igTooltipAfter": "Pré-preenchida automaticamente; editável.",
+      "weeksPlaceholder": "sem",
+      "weeksPlus": "sem +",
+      "daysPlaceholder": "dias",
+      "days": "dias"
+    },
+    "control": {
+      "detail": "Controle: {{percentual}}% das glicemias dentro da meta ({{dentroMeta}} de {{total}} valores)",
+      "target": "Meta: ≥ 70% das glicemias dentro do alvo"
+    },
+    "grid": {
+      "day": "Dia",
+      "dayN": "Dia {{day}}",
+      "metaValue": "< {{value}} mg/dL",
+      "cellAria": "Dia {{day}} {{point}}",
+      "invalid": "Valor inválido",
+      "verify": "Verificar",
+      "hypo": "Hipoglicemia"
+    },
+    "observations": {
+      "label": "Observações",
+      "tooltip": "Anotações adicionais sobre este retorno.",
+      "placeholder": "Opcional"
+    },
+    "actions": {
+      "save": "Salvar retorno"
+    },
+    "highValue": {
+      "title": "Valores fora da faixa esperada",
+      "description": "Existem valores acima de 400 mg/dL na grade. Verifique se os dados estão corretos antes de continuar.",
+      "review": "Revisar",
+      "confirmSave": "Confirmar e salvar"
+    },
+    "impact": {
+      "adequado": "CONTROLE ADEQUADO",
+      "inadequado": "CONTROLE INADEQUADO",
+      "percentual": "{{percentual}}% das glicemias dentro da meta",
+      "adequadoFichaE": "Controle adequado — acompanhamento ampliado para perfil de 6 pontos ainda sem insulina.",
+      "adequadoDefault": "Orientações no laudo completo abaixo.",
+      "inadequadoConduta": "Conduta: iniciar insulina. Dose e orientações no laudo completo abaixo.",
+      "close": "Fechar e ver laudo completo"
+    }
+  },
+  "gtt": {
+    "formTitle": "GTT 75g — Teste de Tolerância à Glicose",
+    "saveButton": "Salvar GTT 75g",
+    "requiredField": "Campo obrigatório",
+    "diagnosticoTardio": "Diagnóstico tardio (IG > 28 semanas) — início imediato do tratamento é crítico.",
+    "printHint": "Para salvar ou imprimir: Ctrl+P (Windows) ou Cmd+P (Mac) → \"Salvar como PDF\".",
+    "diag": {
+      "overtLabel": "OVERT DM — Diabete pré-existente diagnosticado na gestação",
+      "overtTexto": "Diagnóstico de Diabete pré-existente diagnosticado durante a gestação.",
+      "positivoLabel": "GTT 75g ALTERADO — Diagnóstico de DMG confirmado",
+      "positivoTexto": "Qualquer valor alterado no GTT 75g já confirma o diagnóstico de Diabete Mellitus Gestacional.",
+      "positivoTextoRecursoLimitado": "Diagnóstico realizado em cenário de recurso limitado (sem GTT 75g completo). Este método alcança aproximadamente 66% dos diagnósticos — cerca de 34% dos casos podem não ser detectados.",
+      "negativoLabel": "GTT 75g NORMAL — DMG afastado",
+      "negativoTexto": "Todos os valores do GTT 75g estão dentro dos parâmetros normais. O diagnóstico de Diabete Mellitus Gestacional está AFASTADO. Seguir pré-natal normal.",
+      "negativoTextoRecursoLimitado": "Glicemia de jejum dentro dos parâmetros normais. O diagnóstico de DMG está afastado neste exame. Nota: sem o GTT 75g completo, cerca de 34% dos casos podem não ser detectados."
+    },
+    "pendentes": {
+      "glicemiaJejum": "Glicemia em jejum",
+      "glicemia1h": "Glicemia 1h",
+      "glicemia2h": "Glicemia 2h",
+      "dataExame": "Data do exame",
+      "dataConsulta": "Data da consulta"
+    },
+    "toast": {
+      "fillRequired": "Preencha todos os campos obrigatórios.",
+      "mustBeLoggedIn": "Você precisa estar logado.",
+      "consultaError": "Erro ao registrar consulta."
+    },
+    "valores": {
+      "jejum": "Glicemia de jejum",
+      "pos1h": "1h pós-sobrecarga",
+      "pos2h": "2h pós-sobrecarga"
+    },
+    "tabela": {
+      "dosagem": "Dosagem",
+      "resultado": "Resultado",
+      "meta": "Meta",
+      "status": "Status"
+    },
+    "status": {
+      "alterado": "ALTERADO",
+      "normal": "NORMAL"
+    },
+    "recursoLimitado": {
+      "checkboxLabel": "Paciente sem condição financeira/técnica para GTT 75g completo",
+      "warningTitle": "Atenção:",
+      "warningText": "sem o GTT 75g completo, o diagnóstico é baseado apenas na glicemia de jejum, que alcança aproximadamente 66% dos diagnósticos. Cerca de 34% dos casos de DMG podem não ser detectados com este método isolado.",
+      "resultTitle": "Recurso limitado:",
+      "resultText": "diagnóstico baseado apenas na glicemia de jejum (~66% detecção). ~34% dos casos podem não ser detectados."
+    },
+    "ig": {
+      "label": "IG na data do GTT 75g",
+      "tooltipPre": "Idade gestacional em semanas + dias na data do exame.",
+      "tooltipPost": "O GTT 75g deve ser realizado o mais próximo possível de 24 semanas, impreterivelmente antes de 28 semanas. Caso não seja realizado nesse período, deve ser feito o mais breve possível — nunca abandonado.",
+      "weeks": "semanas",
+      "days": "dias",
+      "weeksPlaceholder": "Sem",
+      "daysPlaceholder": "Dias"
+    },
+    "jejum": {
+      "label": "Glicemia de jejum no GTT 75g (mg/dL) *",
+      "tooltip": "Primeira coleta do GTT 75g — antes de ingerir a solução de glicose. Meta normal: < 92 mg/dL.",
+      "placeholder": "Ex: 85"
+    },
+    "pos1h": {
+      "label": "Glicemia 1h pós-sobrecarga (mg/dL) *",
+      "tooltip": "Coleta exatamente 1 hora após ingestão de 75g de glicose. Meta normal: < 180 mg/dL.",
+      "placeholder": "Ex: 155"
+    },
+    "pos2h": {
+      "label": "Glicemia 2h pós-sobrecarga (mg/dL) *",
+      "tooltip": "Coleta exatamente 2 horas após ingestão de 75g de glicose. Meta normal: < 153 mg/dL.",
+      "placeholder": "Ex: 140"
+    },
+    "dataExame": {
+      "label": "Data do exame *",
+      "tooltip": "Data em que o GTT 75g foi realizado."
+    },
+    "dataConsulta": {
+      "label": "Data da consulta de retorno *",
+      "tooltip": "Data do retorno. Default: hoje."
+    },
+    "observacoes": {
+      "label": "Observações",
+      "tooltip": "Anotações adicionais.",
+      "placeholder": "Opcional"
+    },
+    "conduta": {
+      "title": "Conduta",
+      "negativo1": "DMG afastado. Seguir pré-natal normal.",
+      "negativo2": "Não há necessidade de repetir o exame.",
+      "positivo1": "Iniciar tratamento imediato — dieta + atividade física.",
+      "positivo2": "Solicitar perfil glicêmico de 4 pontos diários por 7 a 10 dias.",
+      "positivo3": "Retorno em 7 a 10 dias com o perfil glicêmico preenchido.",
+      "positivoUsg": "Solicitar ultrassom obstétrico",
+      "usgDatar": " para datar a gestação.",
+      "usgCrescimento": " para referência de crescimento fetal."
+    },
+    "laudoCompleto": {
+      "title": "Laudo Completo",
+      "bloco2": "Bloco 2 — Justificativa Científica: será gerada em breve.",
+      "bloco3": "Bloco 3 — Conduta Orientativa Personalizada: será gerada em breve."
+    },
+    "notasTecnicas": {
+      "title": "Notas técnicas",
+      "nota1": "Não repetir glicemia de jejum para fins diagnósticos.",
+      "nota2": "Glicemia plasmática é OBRIGATÓRIA para diagnóstico.",
+      "nota3": "Glicemia capilar é utilizada apenas para acompanhamento — nunca para diagnóstico.",
+      "nota4": "Diagnóstico confirmado: iniciar tratamento imediato."
+    },
+    "popup": {
+      "positivo": "POSITIVO — Diabete Mellitus Gestacional confirmado pelo GTT 75g.",
+      "overt": "POSITIVO — OVERT DM (diabete prévio) confirmado.",
+      "description": "Não repetir o exame. É hora de tratar. Comece agora.",
+      "action": "Entendi, ver laudo completo"
+    },
+    "ref": {
+      "title": "Critérios diagnósticos — referência",
+      "dosagem": "Dosagem",
+      "normal": "Normal",
+      "dmg": "DMG",
+      "overt": "OVERT DM",
+      "jejum": "Jejum",
+      "pos1h": "1h pós",
+      "pos2h": "2h pós",
+      "footnote": "Qualquer UMA das 3 amostras alterada já fecha diagnóstico de DMG."
+    }
+  },
+  "fichaBD": {
+    "adequadoTitulo": "CONTROLE ADEQUADO COM INSULINA — {{pct}} das glicemias dentro da meta",
+    "resultado": "Resultado",
+    "valoresDentroMeta": "{{dentro}} de {{total}} valores dentro da meta ({{pct}}).",
+    "manterDose": "Manter dose atual. Detalhes no laudo completo abaixo.",
+    "hipoglicemia": "Atenção: {{count}} episódio(s) de hipoglicemia registrado(s).",
+    "encerramentoTitulo": "ENCERRAMENTO DA MARI — {{veredito}}",
+    "inadequadoConduta": "AVALIAR sua segurança para continuar com o caso OU ASSOCIAR com endocrinologista OU CONSIDERAR referenciamento especializado (no caso de sistema público). Detalhes no laudo completo abaixo.",
+    "dia": "Dia",
+    "diaN": "Dia {{dia}}",
+    "pontos": {
+      "jejum": "Jejum",
+      "preAlmoco": "Pré-almoço",
+      "preJantar": "Pré-jantar"
+    },
+    "tooltips": {
+      "jejum": "Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.",
+      "prePrandial": "Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista."
+    },
+    "headerRetorno3": "RETORNO 3 — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo",
+    "headerFichaD": "FICHA D — Acompanhamento com insulina, após a 30ª semana (Perfil Glicêmico de 6 pontos × 7 dias)",
+    "headerFichaB": "FICHA B — Acompanhamento com insulina, até a 30ª semana (Perfil Glicêmico de 6 pontos × 15 dias)",
+    "dayMessage7": "Preencha até 7 dias de medições.",
+    "dayMessage15": "Preencha até 15 dias de medições.",
+    "fillGridHint": "Preencha a grade com as glicemias capilares registradas pela paciente.",
+    "badgeFicha": "Ficha {{ficha}} — com insulina — IG {{ig}} sem",
+    "badgePosPrandial": "Pós-prandial: {{janela}}",
+    "hipoAlertTitle": "ALERTA DE HIPOGLICEMIA",
+    "hipoAlertItem": "Valor de {{valor}} mg/dL no Dia {{dia}} ({{ponto}}). Avaliar imediatamente e informar ao especialista.",
+    "labelDataInicio": "Data de início do perfil",
+    "tooltipDataInicio": "Primeiro dia em que a paciente começou a medir as glicemias.",
+    "labelDataFim": "Data de encerramento",
+    "tooltipDataFim": "Último dia de medição do perfil.",
+    "labelDataConsulta": "Data da consulta",
+    "tooltipDataConsulta": "Data do retorno. Default: hoje.",
+    "labelIg": "Idade gestacional atual",
+    "tooltipIg": "IG atual em semanas + dias. Usada para definir o intervalo do próximo retorno.",
+    "igSemPlaceholder": "sem",
+    "igSemSuffix": "sem +",
+    "igDiasPlaceholder": "dias",
+    "igDiasSuffix": "dias",
+    "controleResumo": "Controle: {{percentual}}% das glicemias dentro da meta ({{dentro}} de {{total}} valores)",
+    "metaAlvo": "Meta: ≥ 70% das glicemias dentro do alvo",
+    "cellAria": "Dia {{dia}} {{ponto}}",
+    "cellInvalido": "Valor inválido",
+    "cellVerificar": "Verificar",
+    "cellHipo": "Hipoglicemia",
+    "labelObservacoes": "Observações",
+    "tooltipObservacoes": "Anotações adicionais sobre este retorno.",
+    "observacoesPlaceholder": "Opcional",
+    "salvarRetorno": "Salvar retorno",
+    "highValueTitle": "Valores fora da faixa esperada",
+    "highValueDesc": "Existem valores acima de 400 mg/dL na grade. Verifique se os dados estão corretos antes de continuar.",
+    "revisar": "Revisar",
+    "confirmarSalvar": "Confirmar e salvar",
+    "impactAdequadoTitle": "CONTROLE ADEQUADO COM INSULINA",
+    "impactEncerramentoTitle": "ENCERRAMENTO DA MARI",
+    "impactAdequadoDesc": "Manter dose atual. Detalhes no laudo completo abaixo.",
+    "impactEncerramentoDesc": "AVALIAR sua segurança para continuar com o caso OU ASSOCIAR com endocrinologista OU CONSIDERAR referenciamento especializado (no caso de sistema público).",
+    "fecharVerLaudo": "Fechar e ver laudo completo",
+    "errors": {
+      "profNotFound": "Profissional não encontrado",
+      "createConsulta": "Falha ao criar consulta",
+      "createPerfil": "Falha ao criar perfil",
+      "saveError": "Erro ao salvar: {{message}}",
+      "unknown": "Erro desconhecido"
+    },
+    "pendentes": {
+      "dataInicio": "Data de início do perfil",
+      "dataFim": "Data de fim do perfil",
+      "dataConsulta": "Data da consulta",
+      "igSemanas": "Idade gestacional (semanas)",
+      "umValor": "Pelo menos 1 valor de glicemia preenchido",
+      "valoresNegativos": "Corrigir valores negativos na grade"
+    }
+  },
+  "autosaveIndicator": {
+    "dirty": "Alterações não salvas",
+    "saving": "Salvando...",
+    "saved": "Salvo",
+    "error": "Erro ao salvar"
+  },
+  "bannerUsoLaudos": {
+    "limitReached": "Você atingiu o limite de laudos do seu plano.",
+    "remaining_one": "Resta {{count}} laudo no seu plano atual.",
+    "remaining_other": "Restam {{count}} laudos no seu plano atual.",
+    "usedOfLimit": "{{usados}} de {{limite}} laudos utilizados neste período.",
+    "upgradePlan": "Atualizar plano",
+    "viewPlans": "Ver planos"
+  },
+  "consulta1Result": {
+    "title": "Pedido de exame — Caso Novo",
+    "orientationTitle": "Orientação do exame",
+    "orientationBody": "Caso Novo registrada com sucesso. Solicitar glicemia plasmática de jejum. Jejum de 8 a 12 horas. Coleta venosa processada em laboratório — glicemia capilar em ponta de dedo não é válida para fins diagnósticos."
+  },
+  "usageWarning": {
+    "limitReached": "Seu plano atingiu o limite de laudos.",
+    "remaining_one": "Resta {{count}} laudo neste período.",
+    "remaining_other": "Restam {{count}} laudos neste período.",
+    "upgradePlan": "Atualizar plano",
+    "viewPlans": "Ver planos"
+  },
+  "registroPartoReadOnly": {
+    "title": "Dados do parto",
+    "noStructuredData": "Dados do parto registrados, mas sem detalhes estruturados.",
+    "classificationLabel": "Classificação",
+    "apgarMinutes": "(1º / 5º minuto)"
+  },
+  "registroParto": {
+    "header": "REGISTRO DO PARTO",
+    "subtitle": "Registre o desfecho perinatal para encerrar o acompanhamento.",
+    "subtitle2": "Preencha os dados do parto. Após salvar, esta ficha será encerrada.",
+    "currentIg": "IG atual",
+    "aboutTitle": "Sobre o registro",
+    "aboutBody": "O registro do parto é opcional, mas recomendado. Ele contribui para o histórico longitudinal da paciente e para os indicadores clínicos da plataforma. Após salvar, esta ficha será encerrada.",
+    "moreInfo": "Mais informações",
+    "selectPlaceholder": "Selecione",
+    "viaLabel": "Via de parto",
+    "viaHelp": "Selecione a via de parto.",
+    "vaginal": "Vaginal",
+    "cesarean": "Cesárea",
+    "motivoCesareaLabel": "Motivo da cesárea",
+    "motivoCesareaHelp": "Informe o motivo principal da cesárea (ex: desproporção cefalopélvica, sofrimento fetal, solicitação materna, iteratividade).",
+    "motivoCesareaPlaceholder": "Ex: sofrimento fetal",
+    "dataPartoLabel": "Data do parto",
+    "dataPartoHelp": "Data em que o parto ocorreu. Default: hoje. Editável.",
+    "igLabel": "IG no parto",
+    "igHelp": "Idade gestacional em semanas + dias no momento do parto.",
+    "igHelpAuto": "Calculada automaticamente; editável.",
+    "weeksShort": "Sem",
+    "weeksUnit": "sem",
+    "daysShort": "Dias",
+    "daysUnit": "dias",
+    "igAutoNote": "IG calculada automaticamente a partir da DUM e da data do parto. Edite se necessário.",
+    "igManualNote": "IG ajustada manualmente.",
+    "pesoRnFieldLabel": "Peso do RN (g)",
+    "pesoRnLabel": "Peso do RN",
+    "pesoRnHelp": "Peso do recém-nascido em gramas. Ex: 3.450 g. Faixa: 300 a 6.000 g.",
+    "pesoRnPlaceholder": "Ex: 3450",
+    "sexoRnLabel": "Sexo do RN",
+    "sexoRnHelp": "Sexo do recém-nascido. Necessário para o cálculo automático da classificação (PIG/AIG/GIG).",
+    "male": "Masculino",
+    "female": "Feminino",
+    "classRnLabel": "Classificação do RN",
+    "classRnHelp": "Classificação conforme curva Intergrowth-21st (referência adotada pelo Ministério da Saúde). Calculada automaticamente a partir de peso, IG e sexo do RN. Editável.",
+    "aigOption": "AIG — adequado",
+    "gigOption": "GIG — grande",
+    "pigOption": "PIG — pequeno",
+    "classAutoNote": "Calculado automaticamente (Intergrowth-21st / Ministério da Saúde). Edite se necessário.",
+    "classManualNote": "Classificação ajustada manualmente.",
+    "classOutOfRangeNote": "IG fora da cobertura da curva Intergrowth-21st. Preencha manualmente.",
+    "apgar1Label": "Apgar 1º minuto",
+    "apgar1Help": "Índice de Apgar no primeiro minuto de vida. Escala de 0 a 10.",
+    "apgar5Label": "Apgar 5º minuto",
+    "apgar5Help": "Índice de Apgar no quinto minuto de vida. Escala de 0 a 10.",
+    "apgarLabel": "Apgar",
+    "intercorrMatLabel": "Intercorrências maternas",
+    "intercorrMatHelp": "Houve intercorrências maternas durante o parto? Ex: hemorragia pós-parto, infecção, histerectomia.",
+    "intercorrNeoLabel": "Intercorrências neonatais",
+    "intercorrNeoHelp": "Houve intercorrências neonatais? Ex: necessidade de reanimação, hipoglicemia, internação em UTI.",
+    "descIntercorrNeoLabel": "Descrição das intercorrências neonatais",
+    "descIntercorrNeoPlaceholder": "Descreva as intercorrências neonatais",
+    "aleitamentoFieldLabel": "Aleitamento materno na sala de parto",
+    "aleitamentoLabel": "Aleitamento na sala de parto",
+    "aleitamentoHelp": "Contato pele a pele e primeira mamada na primeira hora de vida.",
+    "observacoesLabel": "Observações",
+    "observacoesHelp": "Espaço para anotações adicionais sobre o parto ou o puerpério imediato.",
+    "observacoesPlaceholder": "Opcional",
+    "saveButton": "Salvar registro do parto",
+    "confirmTitle": "Confirmar encerramento da ficha",
+    "confirmDescription": "Ao salvar o registro do parto, esta ficha será encerrada. Você poderá consultar todo o histórico, mas não poderá adicionar novas consultas. Deseja continuar?",
+    "confirmAction": "Sim, registrar parto",
+    "toast": {
+      "fillRequired": "Preencha todos os campos obrigatórios.",
+      "patientNotFound": "Paciente não encontrada.",
+      "saved": "Registro do parto salvo. Ficha encerrada.",
+      "profileNotFound": "Perfil profissional não encontrado.",
+      "saveError": "Erro ao salvar registro do parto.",
+      "updateStatusError": "Erro ao atualizar status da paciente."
+    },
+    "err": {
+      "viaParto": "Selecione a via de parto.",
+      "motivoCesarea": "Informe o motivo da cesárea.",
+      "igSemanas": "Semanas: 20 a 42.",
+      "igDias": "Dias: 0 a 6.",
+      "dataParto": "Informe a data do parto.",
+      "pesoRn": "Peso: 300 a 6.000 g.",
+      "sexoRn": "Selecione o sexo do RN.",
+      "classRn": "Selecione a classificação.",
+      "apgar": "Apgar: 0 a 10.",
+      "simNao": "Responda sim ou não.",
+      "descIntercorrMat": "Descreva as intercorrências maternas.",
+      "descIntercorrNeo": "Descreva as intercorrências neonatais."
+    },
+    "rotulo": {
+      "viaParto": "Via do parto",
+      "motivoCesarea": "Motivo da cesárea",
+      "igSemanas": "Idade gestacional (semanas)",
+      "igDias": "Idade gestacional (dias)",
+      "dataParto": "Data do parto",
+      "pesoRn": "Peso do recém-nascido",
+      "sexoRn": "Sexo do recém-nascido",
+      "classRn": "Classificação do recém-nascido",
+      "apgar1": "Apgar 1º minuto",
+      "apgar5": "Apgar 5º minuto",
+      "intercorrMat": "Intercorrências maternas (sim/não)",
+      "descIntercorrMat": "Descrição das intercorrências maternas",
+      "intercorrNeo": "Intercorrências neonatais (sim/não)",
+      "descIntercorrNeo": "Descrição das intercorrências neonatais",
+      "aleitamento": "Aleitamento na sala de parto (sim/não)"
+    }
+  },
+  "encerramentoParto": {
+    "title": "Acompanhamento da MARI encerrado",
+    "body": "O acompanhamento desta paciente pela MARI foi concluído com o registro do parto. Toda a história clínica, laudos e perfis glicêmicos permanecem disponíveis para consulta nesta ficha.",
+    "reteste": "<strong>Reteste puerperal:</strong> realizar GTT 75g (jejum + 2h) entre 6 e 8 semanas após o parto."
+  },
+  "blockingModal": {
+    "title": "Limite do plano atingido",
+    "message": "Limite do seu plano {{plano}} atingido. Para continuar, faça upgrade do plano.",
+    "currentPlanFallback": "atual",
+    "viewPlans": "Ver planos"
+  },
+  "fichaACReadOnlyGrid": {
+    "day": "Dia",
+    "dayNum": "Dia {{num}}",
+    "fasting": "Jejum"
+  },
+  "encerramentoInsulinizacao": {
+    "titleInsulinizacao": "Acompanhamento da MARI encerrado por insulinização",
+    "titleMotivo": "Acompanhamento da MARI encerrado — {{motivo}}",
+    "insulinizacaoBody": "A introdução de insulina foi indicada e o laudo correspondente foi emitido com a conduta e os três arranjos de continuidade (obstetra conduzindo, associação com endocrinologista ou referência para serviço especializado). O acompanhamento ativo dentro da MARI se encerra neste ponto — toda a história clínica, laudos e perfis glicêmicos permanecem disponíveis para consulta nesta ficha.",
+    "historicoDisponivel": "Toda a história clínica, laudos e perfis glicêmicos permanecem disponíveis para consulta nesta ficha.",
+    "continuidadeClinica": "<strong>Continuidade clínica:</strong> siga os arranjos descritos no laudo de insulinização. A MARI não emitirá novos retornos automáticos para esta paciente.",
+    "retestePuerperal": "<strong>Reteste puerperal:</strong> realizar GTT 75g (jejum + 2h) entre <strong>{{inicio}}</strong> e <strong>{{fim}}</strong> ({{origem}}).",
+    "corpo": {
+      "parto": "Acompanhamento encerrado — parto em {{data}}.",
+      "aborto": "Acompanhamento encerrado — registro de aborto em {{data}}.",
+      "naoRetornou": "Acompanhamento encerrado — paciente não retornou.",
+      "outroComObs": "Acompanhamento encerrado. {{obs}}",
+      "outro": "Acompanhamento encerrado.",
+      "default": "Acompanhamento encerrado."
+    }
+  },
+  "usg": {
+    "cardTitle": "Ultrassonografias e referência de IG",
+    "addUsg": "Adicionar USG",
+    "firstUsg": "1ª USG",
+    "usgOrdem": "USG #{{ordem}}",
+    "dum": "DUM",
+    "notDefined": "não definida",
+    "refLabel": "Referência de IG:",
+    "changeRef": "Trocar referência",
+    "changeRefAria": "Trocar referência de IG",
+    "igToday": "IG hoje:",
+    "igFormat": "{{semanas}}s {{dias}}d",
+    "loading": "carregando…",
+    "emptyNoUsgNoDum": "Nenhuma USG registrada e DUM não informada.",
+    "editAria": "Editar {{label}}",
+    "editTitle": "Editar USG",
+    "deleteAria": "Excluir {{label}}",
+    "deleteTitle": "Excluir USG",
+    "addModalTitle": "Adicionar ultrassonografia",
+    "addModalDesc": "Registre os dados do laudo. A 1ª USG é a referência preferencial.",
+    "alreadyRegistered": "USGs já cadastradas",
+    "noPreviousUsg": "Nenhuma USG anterior registrada.",
+    "preferredReference": "referência preferencial",
+    "saveUsg": "Salvar USG",
+    "refModalTitle": "Referência de IG",
+    "refModalDesc": "Escolha qual fonte usar para calcular a idade gestacional desta paciente.",
+    "dumOption": "DUM — {{data}} - {{ig}}",
+    "dumNotInformed": "DUM (não informada)",
+    "noUsgYetHint": "Nenhuma USG registrada ainda. Adicione uma USG para liberar a opção.",
+    "saveRef": "Salvar referência",
+    "editModalTitle": "Editar {{label}}",
+    "editModalDesc": "Ajuste data e IG do laudo. A ordem da USG é mantida.",
+    "saveChanges": "Salvar alterações",
+    "deleteConfirmTitle": "Excluir {{label}}?",
+    "deleteConfirmDesc": "Esta ação não pode ser desfeita. A USG de {{data}} será removida permanentemente.",
+    "deleteConfirmActiveRefWarning": "Esta é a USG ativa como referência de IG. Após a exclusão, a referência será automaticamente realocada para a USG de menor ordem restante (ou para a DUM, se não houver mais USGs).",
+    "toasts": {
+      "registered": "USG registrada.",
+      "updated": "USG atualizada.",
+      "deleted": "USG excluída.",
+      "refUpdated": "Referência de IG atualizada."
+    },
+    "errors": {
+      "fillDateAndIg": "Preencha data e IG da USG.",
+      "duplicateDateHistory": "Já existe uma USG registrada nesta data para esta paciente. Verifique o histórico ou edite a USG existente.",
+      "duplicateDate": "Já existe uma USG nesta data para esta paciente. Edite a existente ou use outra data.",
+      "duplicateDateShort": "Já existe uma USG nesta data para esta paciente.",
+      "duplicateDateOther": "Outra USG já está registrada nessa data para esta paciente. Use outra data ou edite a existente.",
+      "futureDate": "Data do exame não pode ser futura.",
+      "saveWithMessage": "Erro ao salvar USG: {{message}}",
+      "saveGeneric": "Erro ao salvar USG. Verifique os dados e tente novamente.",
+      "editWithMessage": "Erro: {{message}}",
+      "editGeneric": "Erro ao salvar edição da USG.",
+      "delete": "Erro ao excluir USG.",
+      "updateRef": "Erro ao atualizar referência."
+    }
+  },
+  "realtimeIndicator": {
+    "idle": "Sem conexão",
+    "connecting": "Conectando...",
+    "live": "Atualização ao vivo",
+    "error": "Sem tempo real"
+  },
+  "telaInadimplente": {
+    "howToRegularize": "Como regularizar?",
+    "stepRenew": "Clique em <strong>\"Renovar assinatura\"</strong> abaixo",
+    "stepPaymentMethod": "Escolha Pix, Boleto ou Cartão de crédito",
+    "stepReactivated": "Após o pagamento, seu acesso é reativado automaticamente",
+    "stepGoToPlans": "Acesse a página de planos e renove sua assinatura",
+    "renewSubscription": "Renovar assinatura",
+    "viewPlans": "Ver planos",
+    "signOut": "Sair da conta"
+  },
+  "encerrarAcompanhamento": {
+    "title": "Encerrar acompanhamento",
+    "intro": "Escolha o motivo do encerramento. O acompanhamento ativo da MARI será encerrado — a ficha permanece disponível para consulta.",
+    "dateLabelParto": "Data do parto",
+    "dateLabelAborto": "Data do aborto",
+    "invalidDate": "Informe uma data válida e não futura.",
+    "obsLabel": "Observação",
+    "obsPlaceholder": "Descreva o motivo do encerramento.",
+    "confirm": "Encerrar acompanhamento"
+  },
+  "fichaE": {
+    "point": {
+      "jejum": "Jejum",
+      "posCafe": "1h pós café",
+      "preAlmoco": "Pré-almoço",
+      "posAlmoco": "1h pós almoço",
+      "preJantar": "Pré-jantar",
+      "posJantar": "1h pós jantar"
+    },
+    "tooltip": {
+      "jejum": "Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente.",
+      "posCafe": "Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente.",
+      "preAlmoco": "Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia.",
+      "posAlmoco": "Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia.",
+      "preJantar": "Glicemia coletada imediatamente antes da refeição (sem jejum prolongado). Meta: entre 70 e 100 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia.",
+      "posJantar": "Coleta exatamente 1 hora após o início da refeição. Meta: < 140 mg/dL. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia."
+    },
+    "pending": {
+      "dataInicio": "Data de início do perfil",
+      "dataFim": "Data de fim do perfil",
+      "dataConsulta": "Data da consulta",
+      "igSemanas": "Idade gestacional (semanas)",
+      "atLeastOneValue": "Pelo menos 1 valor de glicemia preenchido",
+      "fixNegative": "Corrigir valores negativos na grade"
+    },
+    "errors": {
+      "professionalNotFound": "Profissional não encontrado",
+      "createConsulta": "Falha ao criar consulta",
+      "createPerfil": "Falha ao criar perfil",
+      "saveGeneric": "Erro ao salvar: {{message}}"
+    },
+    "headerTitle": "Retorno — Perfil de 6 pontos × 7 a 10 dias (sem insulina)",
+    "headerSubtitle": "Reavaliação ampliada (memória do glicosímetro confirma o controle). Preencha a grade com as glicemias capilares registradas pela paciente.",
+    "headerBadge": "Perfil de 6 pontos — sem insulina — IG {{ig}} sem",
+    "fillDaysHint": "Preencha de 7 a 10 dias de medições.",
+    "hypoAlertTitle": "ALERTA DE HIPOGLICEMIA",
+    "hypoAlertItem": "Valor de {{value}} mg/dL no Dia {{day}} ({{point}}). Avaliar imediatamente.",
+    "dataInicioLabel": "Data de início do perfil",
+    "dataInicioTooltip": "Primeiro dia em que a paciente começou a medir as glicemias.",
+    "dataFimLabel": "Data de encerramento",
+    "dataFimTooltip": "Último dia de medição do perfil.",
+    "dataConsultaLabel": "Data da consulta",
+    "dataConsultaTooltip": "Data do retorno. Default: hoje.",
+    "igLabel": "Idade gestacional atual",
+    "igTooltip": "IG atual em semanas + dias. Define o roteamento (Ficha B ou D) quando houver migração para insulina.",
+    "weeksPlaceholder": "sem",
+    "weeksSuffix": "sem +",
+    "daysPlaceholder": "dias",
+    "daysSuffix": "dias",
+    "controlSummary": "Controle: {{percent}}% das glicemias dentro da meta ({{inMeta}} de {{total}} valores)",
+    "metaGoal": "Meta: ≥ 70% das glicemias dentro do alvo",
+    "colDay": "Dia",
+    "dayLabel": "Dia {{day}}",
+    "cellAria": "Dia {{day}} {{point}}",
+    "cellInvalid": "Valor inválido",
+    "cellCheck": "Verificar",
+    "cellHypo": "Hipoglicemia",
+    "obsLabel": "Observações",
+    "obsTooltip": "Anotações adicionais sobre este retorno.",
+    "obsPlaceholder": "Opcional",
+    "saveReturn": "Salvar retorno",
+    "highValueTitle": "Valores fora da faixa esperada",
+    "highValueDesc": "Existem valores acima de 400 mg/dL na grade. Verifique se os dados estão corretos antes de continuar.",
+    "review": "Revisar",
+    "confirmAndSave": "Confirmar e salvar",
+    "impactAdequate": "CONTROLE ADEQUADO — sem insulina",
+    "impactInsulin": "INICIAR INSULINA",
+    "impactPercent": "{{percent}}% das glicemias dentro da meta",
+    "impactNextSteps": "Conduta e próximos passos no laudo completo abaixo.",
+    "impactClose": "Fechar e ver laudo completo"
+  },
+  "consulta1": {
+    "fillAllRequired": "Preencha todos os campos obrigatórios.",
+    "newCaseRegistered": "Caso Novo registrada com sucesso!",
+    "mustBeLoggedIn": "Você precisa estar logado.",
+    "fileLimitReached": "Limite de fichas atingido para o plano atual.",
+    "errorCreatingPatient": "Erro ao criar paciente.",
+    "errorSavingPatient": "Erro ao salvar paciente.",
+    "patientCreatedButConsultationError": "Paciente criada, mas erro ao registrar consulta.",
+    "requiredField": "Campo obrigatório",
+    "headerTitle": "CASO NOVO — Dados da Paciente",
+    "headerSubtitle": "Preencha os dados iniciais e abra a ficha clínica com pedido de exame.",
+    "nameTooltip": "Nome completo para identificação na ficha e no laudo.",
+    "fullNameLabel": "Nome completo",
+    "namePlaceholder": "Nome da paciente",
+    "birthdateTooltip": "Usada para calcular a idade automaticamente.",
+    "birthdateLabel": "Data de nascimento",
+    "yearsOld_one": "{{count}} ano",
+    "yearsOld_other": "{{count}} anos",
+    "identificationTooltip": "Selecione o tipo de documento e informe o número de identificação da paciente.",
+    "identificationLabel": "Identificação",
+    "idTypeCpf": "CPF",
+    "idTypeMedicalRecord": "Prontuário",
+    "idTypeCns": "CNS",
+    "idNumberPlaceholder": "Número (opcional)",
+    "whatsappTooltip": "Opcional. DDD + número, 10 ou 11 dígitos. DDI brasileiro (+55) é fixo.",
+    "whatsappLabel": "WhatsApp",
+    "locationTooltip": "Local de residência da paciente. A lista de estados e cidades muda conforme o país.",
+    "locationLabel": "Localização",
+    "selectCity": "Selecione a cidade...",
+    "selectStateFirst": "Selecione o estado primeiro",
+    "lastPeriodTooltip": "Data da última menstruação. Usada para calcular a idade gestacional automaticamente.",
+    "lastPeriodLabel": "DUM (Data da última menstruação)",
+    "unknownLastPeriod": "Não sei a data da última menstruação",
+    "consultationDateTooltip": "Data em que esta consulta está sendo realizada. Padrão: hoje.",
+    "consultationDateLabel": "Data da consulta",
+    "clinicalNotesTooltip": "Anotações adicionais sobre a paciente: histórico, comorbidades, medicamentos em uso, etc.",
+    "clinicalNotesLabel": "Observações clínicas",
+    "optionalPlaceholder": "Opcional",
+    "previousDmgTooltip": "Marque se a paciente já teve diagnóstico de Diabete Mellitus Gestacional em gestação prévia.",
+    "previousDmgLabel": "DMG em gestação anterior",
+    "saveConsultation": "Salvar consulta"
+  },
+  "appShell": {
+    "navPatients": "Pacientes",
+    "navNewPatient": "Nova Paciente",
+    "navTutorial": "Tutorial",
+    "navMyDashboard": "Meu Dashboard",
+    "breadcrumbNewPatient": "Nova paciente",
+    "breadcrumbPatientFile": "Ficha da paciente",
+    "breadcrumbMyPlan": "Meu Plano",
+    "breadcrumbMyProfile": "Meu Perfil",
+    "breadcrumbMyDashboard": "Meu Dashboard",
+    "logoAlt": "MARI — Maternal ARtificial Intelligence",
+    "myProfile": "Meu perfil",
+    "myPlan": "Meu plano",
+    "planLabel": "Plano Inicial",
+    "menu": "Menu",
+    "myCourses": "Meus Cursos",
+    "tutorial": "Tutorial",
+    "metricsLockedTooltip": "Disponível no plano Profissional",
+    "userFallback": "Usuário",
+    "reportsUsageTooltip": "{{used}} de {{limit}} laudos este mês",
+    "menuAria": "Menu"
+  },
+  "cidadeCombobox": {
+    "selectCity": "Selecione a cidade...",
+    "noCityFound": "Nenhuma cidade encontrada.",
+    "searchPlaceholder": "Digite para buscar..."
+  },
+  "bannerStatusPlano": {
+    "viewPlans": "Ver planos"
+  },
+  "usgFlow": {
+    "jaFezPergunta": "A paciente já fez a 1ª ultrassonografia?",
+    "jaFezTooltip": "Se sim, registre data do exame e a IG informada no laudo. A 1ª USG é a referência mais confiável.",
+    "aindaNao": "Ainda não",
+    "dadosTitulo": "Dados da {{ordinal}}Ultrassonografia",
+    "badgeReferencia": "1ª USG — referência preferencial",
+    "dataExame": "Data do exame",
+    "semanas": "Semanas",
+    "dias": "Dias",
+    "qualReferencia": "Qual referência usar para calcular IG a partir de agora?",
+    "dumOption": "DUM — {{data}} - {{ig}}",
+    "dumNaoInformada": "DUM (não informada)",
+    "primeiraUsg": "1ª USG",
+    "usgOrdem": "USG #{{ordem}}",
+    "usgGenerica": "USG",
+    "semReferenciaAviso": "Sem referência de IG definida. O cálculo da janela GTT 75g ficará indisponível até o registro da 1ª USG."
+  },
+  "gttResultCard": {
+    "semDados": "Sem dados de GTT 75g.",
+    "overtLabel": "OVERT DM — Diabete pré-existente diagnosticado na gestação",
+    "overtTexto": "Diagnóstico de Diabete pré-existente diagnosticado durante a gestação.",
+    "positivoLabel": "GTT 75g ALTERADO — Diagnóstico de DMG confirmado",
+    "positivoTextoRecurso": "Diagnóstico realizado em cenário de recurso limitado (sem GTT 75g completo).",
+    "positivoTexto": "Qualquer valor alterado no GTT 75g já confirma o diagnóstico de Diabete Mellitus Gestacional.",
+    "negativoLabel": "GTT 75g NORMAL — DMG afastado",
+    "negativoTextoRecurso": "Glicemia de jejum dentro dos parâmetros normais. O diagnóstico de DMG está afastado neste exame.",
+    "negativoTexto": "Todos os valores do GTT 75g estão dentro dos parâmetros normais. O diagnóstico de Diabete Mellitus Gestacional está AFASTADO.",
+    "glicemiaJejum": "Glicemia de jejum",
+    "h1PosSobrecarga": "1h pós-sobrecarga",
+    "h2PosSobrecarga": "2h pós-sobrecarga",
+    "colDosagem": "Dosagem",
+    "colResultado": "Resultado",
+    "colMeta": "Meta",
+    "statusAlterado": "ALTERADO",
+    "statusNormal": "NORMAL",
+    "recursoLimitadoLabel": "Recurso limitado:",
+    "recursoLimitadoText": "diagnóstico baseado apenas na glicemia de jejum.",
+    "negativoHeading": "Investigação diagnóstica concluída — DMG afastado",
+    "diagnosticoTardio": "Diagnóstico tardio (IG > 28 semanas) — início imediato do tratamento é crítico."
+  },
+  "fichaEResultCard": {
+    "openNextFicha": "Após confirmar o peso e a dose, abra a <strong>Ficha {{ficha}}</strong> pelo botão \"+ Nova consulta\".",
+    "controleAdequadoTitle": "CONTROLE ADEQUADO — {{percentual}}% das glicemias dentro da meta",
+    "condutaLabel": "Conduta",
+    "condutaText": "Manter dieta e exercício, perfil de 6 pontos, reavaliar em 7-10 dias. Sem insulina. Permanece na Ficha E.",
+    "dentroMetaSummary": "{{dentroMeta}} de {{totalPreenchidos}} valores dentro da meta ({{percentual}}%)."
+  },
+  "localizacaoErrorBoundary": {
+    "title": "Localização caiu (instrumentação temporária)",
+    "hint": "Você pode seguir preenchendo o resto da ficha normalmente. O erro completo foi enviado ao console — mande \"deu ruim de novo\" no chat que eu leio e conserto."
+  },
+  "stubEmConstrucao": {
+    "message": "Em construção. Esta tela estará disponível em breve."
+  },
+  "profileForm": {
+    "requiredField": "Campo obrigatório",
+    "fullName": "Nome completo",
+    "fullNameTooltip": "Seu nome completo como aparecerá nos laudos.",
+    "fullNamePlaceholder": "Seu nome completo",
+    "crmCoren": "CRM / COREN",
+    "crmTooltip": "Número do registro profissional. Ex: CRM/SP 123456",
+    "crmPlaceholder": "Ex: CRM/SP 123456",
+    "specialty": "Especialidade",
+    "specialtyTooltip": "Selecione sua área de atuação principal.",
+    "selectPlaceholder": "Selecione...",
+    "country": "País",
+    "state": "Estado",
+    "statePlaceholder": "Digite o estado",
+    "city": "Cidade",
+    "cityPlaceholder": "Digite a cidade",
+    "citySelectPlaceholder": "Selecione a cidade...",
+    "citySelectStateFirst": "Selecione o estado primeiro",
+    "preferredLanguage": "Idioma preferido",
+    "languageTooltip": "Define o idioma da interface e dos laudos gerados.",
+    "defaultIdentifier": "Identificador padrão",
+    "identifierTooltip": "Define qual identificador você usa para suas pacientes.",
+    "phone": "Telefone",
+    "phoneTooltip": "Opcional. Número de contato profissional.",
+    "phonePlaceholder": "(00) 00000-0000",
+    "saveAndContinue": "Salvar e continuar"
+  },
+  "appSidebar": {
+    "patients": "Pacientes",
+    "newPatient": "Nova paciente",
+    "myCourses": "Meus cursos",
+    "metrics": "Métricas",
+    "plans": "Planos",
+    "profile": "Perfil",
+    "tutorial": "Tutorial",
+    "dashboard": "Dashboard",
+    "team": "Equipe",
+    "reports": "Relatórios",
+    "settings": "Configurações",
+    "consolidation": "Consolidação",
+    "units": "Unidades",
+    "panel": "Painel",
+    "diagnostics": "Diagnósticos",
+    "filtersExport": "Filtros e Exportação",
+    "admins": "Administradores",
+    "institutionalAccounts": "Contas Institucionais",
+    "professionalAccounts": "Contas Profissionais",
+    "profileConsultorio": "Consultório",
+    "profileInstitucional": "Institucional",
+    "profileGestor": "Gestor",
+    "profileGestorGeral": "Gestor Geral",
+    "profileAdmin": "Administrador",
+    "userFallback": "Usuário",
+    "logoAltFull": "MARI — Maternal ARtificial Intelligence",
+    "collapse": "Recolher",
+    "expand": "Expandir"
+  },
+  "fichaACResult": {
+    "patientNotFound": "Paciente não encontrada.",
+    "weightConfirmed": "Peso confirmado. Dose calculada.",
+    "weightSaveError": "Erro ao salvar peso: {{error}}",
+    "unknownError": "Erro desconhecido",
+    "controlAdequate": "CONTROLE ADEQUADO — {{percent}}% das glicemias dentro da meta",
+    "controlInadequate": "CONTROLE INADEQUADO — {{percent}}% das glicemias dentro da meta",
+    "result": "Resultado",
+    "valuesInTarget": "{{within}} de {{total}} valores dentro da meta ({{percent}}%).",
+    "guidanceAdequate": "Orientações no laudo completo abaixo.",
+    "guidanceInsulin": "Conduta: iniciar insulina. Dose e orientações no laudo completo abaixo.",
+    "guidanceMev": "Conduta: reforçar dieta e exercício (MEV). Reavaliar mantendo o perfil de 4 pontos.",
+    "weightPromptTitle": "Controle glicêmico abaixo da meta — informe o peso para calcular a dose",
+    "weightPromptDesc": "A conduta indicada pelo protocolo é associar insulina NPH subcutânea. Informe o peso atual da paciente para que o sistema calcule a dose inicial e libere os Blocos 2 e 3 do laudo.",
+    "currentWeightKg": "Peso atual (kg)",
+    "weightTooltip": "O peso é necessário para calcular a dose inicial padrão de insulina: 0,5 UI/kg/dia. Essa dose é padronizada mundialmente para início de insulinoterapia em DMG. Ex: paciente de 70 kg → 35 UI/dia em 2-3 tomadas.",
+    "weightPlaceholder": "Ex: 70",
+    "initialNphDose": "Dose inicial de insulina NPH",
+    "uiPerDay": "UI/dia",
+    "doseSplit": "{{morning}} UI manhã (ao acordar) + {{night}} UI às 22h",
+    "weightFormula": "Peso: {{weight}} kg • fórmula: 0,5 UI/kg/dia"
+  },
+  "retorno1Result": {
+    "negativeLabel": "Resultado: NEGATIVO — Normoglicemia",
+    "negativeText": "Glicemia de jejum: {{valor}} mg/dL. NÃO há diagnóstico de Diabete Mellitus Gestacional neste momento.",
+    "positiveLabel": "Resultado: POSITIVO — Diabete Mellitus Gestacional",
+    "positiveText": "Glicemia de jejum: {{valor}} mg/dL. Diagnóstico CONFIRMADO de DMG.",
+    "overtLabel": "Resultado: OVERT DM — Diabete pré-existente",
+    "overtText": "Glicemia de jejum: {{valor}} mg/dL. Diagnóstico de Diabete pré-existente diagnosticado durante a gestação.",
+    "noResultData": "Sem dados de resultado."
+  },
+  "upgradeRequired": {
+    "title": "Recurso exclusivo",
+    "availableInPlan": "Disponível no plano <1>{{plano}}</1>.",
+    "upgradeButton": "Fazer upgrade"
   }
 }

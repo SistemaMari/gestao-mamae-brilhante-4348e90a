@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +43,7 @@ interface Props {
 export default function EncerrarAcompanhamentoModal({
   open, submitting = false, onClose, onConfirm,
 }: Props) {
+  const { t } = useTranslation();
   const [motivo, setMotivo] = useState<MotivoEncerramento | ''>('');
   const [data, setData] = useState('');
   const [obs, setObs] = useState('');
@@ -80,14 +82,13 @@ export default function EncerrarAcompanhamentoModal({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="font-[Sora] text-[#5B3A8E]">
-            Encerrar acompanhamento
+            {t('encerrarAcompanhamento.title')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Escolha o motivo do encerramento. O acompanhamento ativo da MARI será
-            encerrado — a ficha permanece disponível para consulta.
+            {t('encerrarAcompanhamento.intro')}
           </p>
 
           <RadioGroup
@@ -107,7 +108,9 @@ export default function EncerrarAcompanhamentoModal({
           {motivo && motivoExigeData(motivo) && (
             <div className="space-y-1.5">
               <Label htmlFor="enc-data">
-                Data do {motivo === 'parto' ? 'parto' : 'aborto'}
+                {motivo === 'parto'
+                  ? t('encerrarAcompanhamento.dateLabelParto')
+                  : t('encerrarAcompanhamento.dateLabelAborto')}
               </Label>
               <Input
                 id="enc-data"
@@ -119,7 +122,7 @@ export default function EncerrarAcompanhamentoModal({
               />
               {data && !dataValida && (
                 <p className="text-xs text-[#DC2626]">
-                  Informe uma data válida e não futura.
+                  {t('encerrarAcompanhamento.invalidDate')}
                 </p>
               )}
             </div>
@@ -127,12 +130,12 @@ export default function EncerrarAcompanhamentoModal({
 
           {motivo && motivoExigeObs(motivo) && (
             <div className="space-y-1.5">
-              <Label htmlFor="enc-obs">Observação</Label>
+              <Label htmlFor="enc-obs">{t('encerrarAcompanhamento.obsLabel')}</Label>
               <Textarea
                 id="enc-obs"
                 value={obs}
                 onChange={(e) => setObs(e.target.value)}
-                placeholder="Descreva o motivo do encerramento."
+                placeholder={t('encerrarAcompanhamento.obsPlaceholder')}
                 rows={3}
                 disabled={submitting}
               />
@@ -142,7 +145,7 @@ export default function EncerrarAcompanhamentoModal({
 
         <DialogFooter className="gap-2">
           <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             type="button"
@@ -151,7 +154,7 @@ export default function EncerrarAcompanhamentoModal({
             className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]"
           >
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Encerrar acompanhamento
+            {t('encerrarAcompanhamento.confirm')}
           </Button>
         </DialogFooter>
       </DialogContent>

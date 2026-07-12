@@ -4,6 +4,7 @@
  *  - insulina (controle inadequado): delega para FichaACResultCard (peso → dose 0,5 UI/kg/dia).
  */
 import { FileText } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
 import FichaACResultCard from './FichaACResultCard';
 
 interface FichaEResultCardProps {
@@ -28,6 +29,7 @@ export default function FichaEResultCard({
   doseTotal, doseManha, doseNoite, peso, igSemanas,
   pacienteId, consultaId, isPreview, isReadOnly, onWeightSaved,
 }: FichaEResultCardProps) {
+  const { t } = useTranslation();
   if (!adequado) {
     // Reaproveita o card de A/C: tela de cálculo de dose OBRIGATÓRIA (peso → 0,5 UI/kg/dia).
     return (
@@ -51,7 +53,11 @@ export default function FichaEResultCard({
           onWeightSaved={onWeightSaved}
         />
         <div className="rounded-lg border border-[#D6BCFA] bg-[#F1F0FB] p-3 text-xs text-[#5B21B6]">
-          Após confirmar o peso e a dose, abra a <strong>Ficha {(igSemanas ?? 0) > 30 ? 'D' : 'B'}</strong> pelo botão "+ Nova consulta".
+          <Trans
+            i18nKey="fichaEResultCard.openNextFicha"
+            values={{ ficha: (igSemanas ?? 0) > 30 ? 'D' : 'B' }}
+            components={{ strong: <strong /> }}
+          />
         </div>
       </div>
     );
@@ -64,16 +70,15 @@ export default function FichaEResultCard({
     >
       <h2 className="text-sm font-bold flex items-center gap-2" style={{ color: '#166534' }}>
         <FileText className="h-4 w-4" />
-        CONTROLE ADEQUADO — {percentual.toFixed(1)}% das glicemias dentro da meta
+        {t('fichaEResultCard.controleAdequadoTitle', { percentual: percentual.toFixed(1) })}
       </h2>
       <div className="rounded-lg bg-white/70 p-3 space-y-2">
-        <p className="text-sm font-semibold" style={{ color: '#166534' }}>Conduta</p>
+        <p className="text-sm font-semibold" style={{ color: '#166534' }}>{t('fichaEResultCard.condutaLabel')}</p>
         <p className="text-xs" style={{ color: '#15803D' }}>
-          Manter dieta e exercício, perfil de 6 pontos, reavaliar em 7-10 dias.
-          Sem insulina. Permanece na Ficha E.
+          {t('fichaEResultCard.condutaText')}
         </p>
         <p className="text-xs" style={{ color: '#15803D' }}>
-          {dentroMeta} de {totalPreenchidos} valores dentro da meta ({percentual.toFixed(1)}%).
+          {t('fichaEResultCard.dentroMetaSummary', { dentroMeta, totalPreenchidos, percentual: percentual.toFixed(1) })}
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
@@ -12,6 +13,7 @@ import { useProfissionalData } from '@/hooks/useProfissionalData';
  */
 export default function BannerUsoLaudos() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { profissionalData, loading } = useProfissionalData();
 
   if (loading || !profissionalData) return null;
@@ -45,11 +47,11 @@ export default function BannerUsoLaudos() {
         <div className="flex-1 min-w-[220px]">
           <p className={'text-sm font-medium ' + (atingido ? 'text-destructive' : 'text-amber-900')}>
             {atingido
-              ? 'Você atingiu o limite de laudos do seu plano.'
-              : `Restam ${restantes} ${restantes === 1 ? 'laudo' : 'laudos'} no seu plano atual.`}
+              ? t('bannerUsoLaudos.limitReached')
+              : t('bannerUsoLaudos.remaining', { count: restantes })}
           </p>
           <p className={'text-xs ' + (atingido ? 'text-destructive/80' : 'text-amber-800/80')}>
-            {laudos_usados} de {laudos_limite} laudos utilizados neste período.
+            {t('bannerUsoLaudos.usedOfLimit', { usados: laudos_usados, limite: laudos_limite })}
           </p>
         </div>
 
@@ -58,7 +60,7 @@ export default function BannerUsoLaudos() {
           variant={atingido ? 'destructive' : 'default'}
           onClick={() => navigate('/planos')}
         >
-          {atingido ? 'Atualizar plano' : 'Ver planos'}
+          {atingido ? t('bannerUsoLaudos.upgradePlan') : t('bannerUsoLaudos.viewPlans')}
         </Button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
@@ -42,9 +43,7 @@ const POINTS = ['jejum', 'pos_cafe', 'pos_almoco', 'pos_jantar'] as const;
 type Point = typeof POINTS[number];
 
 // Jejum permanece estático — 35B só torna dinâmicos os pontos pós-prandiais (janela 1h/2h).
-const LABEL_JEJUM = 'Jejum';
 const META_JEJUM = 95;
-const TOOLTIP_JEJUM = 'Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. Usar glicômetro capilar para acompanhamento — diferente do diagnóstico, onde é obrigatório plasma venoso. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista.';
 
 const REFEICAO_POS: Record<Exclude<Point, 'jejum'>, 'café' | 'almoço' | 'jantar'> = {
   pos_cafe: 'café',
@@ -52,16 +51,16 @@ const REFEICAO_POS: Record<Exclude<Point, 'jejum'>, 'café' | 'almoço' | 'janta
   pos_jantar: 'jantar',
 };
 
-function pointLabel(point: Point, janela: JanelaPosPrandial): string {
-  return point === 'jejum' ? LABEL_JEJUM : rotuloPosPrandial(REFEICAO_POS[point], janela);
+function pointLabel(point: Point, janela: JanelaPosPrandial, t: (k: string) => string): string {
+  return point === 'jejum' ? t('fichaAC.pontos.jejum') : rotuloPosPrandial(REFEICAO_POS[point], janela);
 }
 
 function pointMeta(point: Point, janela: JanelaPosPrandial): number {
   return point === 'jejum' ? META_JEJUM : metaPosPrandial(janela);
 }
 
-function pointTooltip(point: Point, janela: JanelaPosPrandial): string {
-  return point === 'jejum' ? TOOLTIP_JEJUM : tooltipPosPrandial(janela);
+function pointTooltip(point: Point, janela: JanelaPosPrandial, t: (k: string) => string): string {
+  return point === 'jejum' ? t('fichaAC.pontos.jejumTooltip') : tooltipPosPrandial(janela);
 }
 
 function isHypoglycemia(value: number): boolean {
@@ -82,6 +81,7 @@ interface FichaACFormProps {
 export default function FichaACForm({
   paciente, consultas, isPreview, onSaved, onCancel, editingConsulta,
 }: FichaACFormProps) {
+  const { t, i18n } = useTranslation();
   const { profissionalData } = useProfissionalData();
 
   // 35B — Pactuação pós-prandial (1h/2h). Em edição, carrega a janela já gravada (loader
@@ -140,10 +140,10 @@ export default function FichaACForm({
 
   // Dynamic message about how many days to fill
   const dayMessage = useMemo(() => {
-    if (isFirstFichaA) return 'Preencha de 7 a 10 dias de medições.';
-    if (igSemNum > 30) return 'Preencha até 7 dias de medições.';
-    return 'Preencha até 15 dias de medições.';
-  }, [isFirstFichaA, igSemNum]);
+    if (isFirstFichaA) return t('fichaAC.dayMessage.first');
+    if (igSemNum > 30) return t('fichaAC.dayMessage.upTo7');
+    return t('fichaAC.dayMessage.upTo15');
+  }, [isFirstFichaA, igSemNum, t]);
 
   // Cell refs for navigation
   const cellRefs = useRef<(HTMLInputElement | null)[][]>(
@@ -183,12 +183,12 @@ export default function FichaACForm({
       for (const p of POINTS) {
         const val = parseInt(row[p]);
         if (!isNaN(val) && isHypoglycemia(val)) {
-          alerts.push({ day: dayIdx + 1, point: pointLabel(p, janela), value: val });
+          alerts.push({ day: dayIdx + 1, point: pointLabel(p, janela, t), value: val });
         }
       }
     });
     return alerts;
-  }, [grid, janela]);
+  }, [grid, janela, t]);
 
   const isAdequado = percentual !== null && percentual >= 70;
   const isInadequado = percentual !== null && percentual < 70;
@@ -203,7 +203,7 @@ export default function FichaACForm({
   const retornoDias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil, igSemanas: igSemNum });
   const dataConsultaLocal = parseDateLocal(dataConsulta);
   const dataProximoRetorno = dataConsultaLocal
-    ? format(addDays(dataConsultaLocal, retornoDias), 'dd/MM/yyyy')
+    ? addDays(dataConsultaLocal, retornoDias).toLocaleDateString(i18n.language)
     : null;
 
   // Impact popup
@@ -376,17 +376,17 @@ export default function FichaACForm({
   const fichaPersistida = !!editingConsulta;
   const camposPendentes = useMemo<string[]>(() => {
     const f: string[] = [];
-    if (!dataInicio) f.push('Data de início do perfil');
-    if (!dataFim) f.push('Data de fim do perfil');
-    if (!dataConsulta) f.push('Data da consulta');
-    if (!igSemanas) f.push('Idade gestacional (semanas)');
-    if (totalPreenchidos === 0) f.push('Pelo menos 1 valor de glicemia preenchido');
-    if (hasNegativeValues) f.push('Corrigir valores negativos na grade');
-    if (isFichaAC && !isChecklistCompleto(checklist)) f.push('Checklist clínico do Retorno 2 (6 itens)');
-    if (isFichaAC && decisaoFichaA?.pendencias.includes("pactuacao_adesao")) f.push('Pactuação com a paciente');
-    if (isFichaAC && decisaoFichaA?.pendencias.includes("memoria_glicosimetro")) f.push('Avaliação da memória do glicosímetro');
+    if (!dataInicio) f.push(t('fichaAC.pendentes.dataInicio'));
+    if (!dataFim) f.push(t('fichaAC.pendentes.dataFim'));
+    if (!dataConsulta) f.push(t('fichaAC.pendentes.dataConsulta'));
+    if (!igSemanas) f.push(t('fichaAC.pendentes.igSemanas'));
+    if (totalPreenchidos === 0) f.push(t('fichaAC.pendentes.aoMenosUmValor'));
+    if (hasNegativeValues) f.push(t('fichaAC.pendentes.valoresNegativos'));
+    if (isFichaAC && !isChecklistCompleto(checklist)) f.push(t('fichaAC.pendentes.checklist'));
+    if (isFichaAC && decisaoFichaA?.pendencias.includes("pactuacao_adesao")) f.push(t('fichaAC.pendentes.pactuacao'));
+    if (isFichaAC && decisaoFichaA?.pendencias.includes("memoria_glicosimetro")) f.push(t('fichaAC.pendentes.memoria'));
     return f;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaAC, checklist, decisaoFichaA]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaAC, checklist, decisaoFichaA, t]);
 
   // 34B.3 seção 3.10 — bloqueia submit quando alguma data clínica é inválida.
   const [dataInicioValida, setDataInicioValida] = useState(true);
@@ -500,7 +500,7 @@ export default function FichaACForm({
     // Real mode — save to Supabase
     try {
       const profId = profissionalData?.id;
-      if (!profId) throw new Error('Profissional não encontrado');
+      if (!profId) throw new Error(t('fichaAC.errors.noProfessional'));
 
       const nextSeq = (consultas.length || 0) + 1;
 
@@ -528,7 +528,7 @@ export default function FichaACForm({
       } else {
         const { data: newConsulta, error: consErr } = await supabase
           .from('consultas').insert(consultaPayload as any).select('id').single();
-        if (consErr || !newConsulta) throw consErr || new Error('Falha ao criar consulta');
+        if (consErr || !newConsulta) throw consErr || new Error(t('fichaAC.errors.createConsulta'));
         consultaId = newConsulta.id;
       }
 
@@ -559,7 +559,7 @@ export default function FichaACForm({
       } else {
         const { data: newPerfil, error: perfErr } = await supabase
           .from('perfis_glicemicos' as any).insert(perfilPayload as any).select('id').single();
-        if (perfErr || !newPerfil) throw perfErr || new Error('Falha ao criar perfil');
+        if (perfErr || !newPerfil) throw perfErr || new Error(t('fichaAC.errors.createPerfil'));
         perfilId = (newPerfil as any).id;
       }
 
@@ -642,7 +642,7 @@ export default function FichaACForm({
       setShowImpact(true);
     } catch (err: any) {
       console.error(err);
-      toast.error('Erro ao salvar: ' + (err?.message || 'Erro desconhecido'));
+      toast.error(t('fichaAC.errors.saveError', { error: err?.message || t('fichaAC.errors.unknown') }));
       setSaving(false);
     }
   };
@@ -671,19 +671,19 @@ export default function FichaACForm({
           <h2 className="text-base font-bold text-[#5B21B6] flex items-center gap-2">
             <FileText className="h-5 w-5" />
             {isFirstFichaA
-              ? 'RETORNO 2 — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo'
+              ? t('fichaAC.header.titleRetorno2')
               : igSemNum > 30
-                ? 'FICHA C — Acompanhamento sem insulina, após a 30ª semana (Perfil Glicêmico de 4 pontos × 7 dias)'
-                : 'FICHA A — Acompanhamento sem insulina, até a 30ª semana (Perfil Glicêmico de 4 pontos × 15 dias)'}
+                ? t('fichaAC.header.titleFichaC')
+                : t('fichaAC.header.titleFichaA')}
           </h2>
           {fichaPersistida && <StatusFichaBadge status={statusFichaLocal} />}
         </div>
         <p className="text-xs text-[#6D28D9]">
-          Preencha a grade com as glicemias capilares registradas pela paciente.
+          {t('fichaAC.header.subtitle')}
         </p>
         {/* 35B — janela pactuada, read-only (não há como alterar depois nesta ficha) */}
         <div className="inline-flex items-center gap-1 rounded-full bg-[#E8E0FF] px-3 py-1 text-xs font-semibold text-[#5B21B6]">
-          Pós-prandial: {prefixoHora(janela)}
+          {t('fichaAC.header.posPrandialBadge', { janela: prefixoHora(janela) })}
         </div>
       </div>
 
@@ -704,11 +704,11 @@ export default function FichaACForm({
         <div className="rounded-xl border-2 border-[#EF4444] bg-[#FEE2E2] p-4 space-y-1">
           <p className="text-sm font-bold text-red-800 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-[#EF4444]" />
-            ALERTA DE HIPOGLICEMIA
+            {t('fichaAC.hypo.alertTitle')}
           </p>
           {hypoAlerts.map((a, i) => (
             <p key={i} className="text-xs text-red-700">
-              Valor de {a.value} mg/dL no Dia {a.day} ({a.point}). Avaliar imediatamente e informar ao especialista.
+              {t('fichaAC.hypo.alertLine', { value: a.value, day: a.day, point: a.point })}
             </p>
           ))}
         </div>
@@ -718,14 +718,14 @@ export default function FichaACForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data de início do perfil</label>
+            <label className="text-xs font-medium text-foreground">{t('fichaAC.fields.dataInicioLabel')}</label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p className="text-xs">Primeiro dia em que a paciente começou a medir as glicemias.</p>
+                  <p className="text-xs">{t('fichaAC.fields.dataInicioTooltip')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -735,14 +735,14 @@ export default function FichaACForm({
 
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data de encerramento</label>
+            <label className="text-xs font-medium text-foreground">{t('fichaAC.fields.dataFimLabel')}</label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p className="text-xs">Último dia de medição do perfil.</p>
+                  <p className="text-xs">{t('fichaAC.fields.dataFimTooltip')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -752,14 +752,14 @@ export default function FichaACForm({
 
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Data da consulta</label>
+            <label className="text-xs font-medium text-foreground">{t('fichaAC.fields.dataConsultaLabel')}</label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p className="text-xs">Data do retorno. Default: hoje. Editável.</p>
+                  <p className="text-xs">{t('fichaAC.fields.dataConsultaTooltip')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -769,14 +769,14 @@ export default function FichaACForm({
 
         <div className="space-y-1">
           <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-foreground">Idade gestacional atual</label>
+            <label className="text-xs font-medium text-foreground">{t('fichaAC.fields.igLabel')}</label>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p className="text-xs">IG atual em semanas + dias. Usada para definir o intervalo do próximo retorno e para identificar se a paciente já passou da 30ª semana. {descreverReferenciaIg(igAtual)} Pré-preenchida automaticamente; editável.</p>
+                  <p className="text-xs">{t('fichaAC.fields.igTooltipBefore')} {descreverReferenciaIg(igAtual)} {t('fichaAC.fields.igTooltipAfter')}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -788,20 +788,20 @@ export default function FichaACForm({
               max={45}
               value={igSemanas}
               onChange={e => setIgSemanas(e.target.value)}
-              placeholder="sem"
+              placeholder={t('fichaAC.fields.weeksPlaceholder')}
               className="w-20"
             />
-            <span className="text-xs text-muted-foreground">sem +</span>
+            <span className="text-xs text-muted-foreground">{t('fichaAC.fields.weeksPlus')}</span>
             <Input
               type="number"
               min={0}
               max={6}
               value={igDias}
               onChange={e => setIgDias(e.target.value)}
-              placeholder="dias"
+              placeholder={t('fichaAC.fields.daysPlaceholder')}
               className="w-20"
             />
-            <span className="text-xs text-muted-foreground">dias</span>
+            <span className="text-xs text-muted-foreground">{t('fichaAC.fields.days')}</span>
           </div>
         </div>
       </div>
@@ -814,17 +814,17 @@ export default function FichaACForm({
               {percentual.toFixed(1)}%
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Controle: {percentual.toFixed(1)}% das glicemias dentro da meta ({dentroMeta} de {totalPreenchidos} valores)
+              {t('fichaAC.control.detail', { percentual: percentual.toFixed(1), dentroMeta, total: totalPreenchidos })}
             </p>
             <p className={`text-xs mt-1 italic ${percentual >= 70 ? 'text-[#16A34A]' : 'text-[#64748B]'}`}>
-              Meta: ≥ 70% das glicemias dentro do alvo
+              {t('fichaAC.control.target')}
             </p>
           </>
         ) : (
           <>
             <p className="text-2xl font-bold text-muted-foreground">—</p>
             <p className="text-xs mt-1 italic text-[#64748B]">
-              Meta: ≥ 70% das glicemias dentro do alvo
+              {t('fichaAC.control.target')}
             </p>
           </>
         )}
@@ -835,23 +835,23 @@ export default function FichaACForm({
         <table className="w-full min-w-[480px]">
           <thead>
             <tr className="bg-muted/50">
-              <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">Dia</th>
+              <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">{t('fichaAC.grid.day')}</th>
               {POINTS.map(p => (
                 <th key={p} className="px-2 py-2 text-center">
                   <div className="flex items-center justify-center gap-1">
-                    <span className="text-xs font-medium text-foreground">{pointLabel(p, janela)}</span>
+                    <span className="text-xs font-medium text-foreground">{pointLabel(p, janela, t)}</span>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
-                          <p className="text-xs">{pointTooltip(p, janela)}</p>
+                          <p className="text-xs">{pointTooltip(p, janela, t)}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <span className="text-[10px] text-muted-foreground">{'< '}{pointMeta(p, janela)} mg/dL</span>
+                  <span className="text-[10px] text-muted-foreground">{t('fichaAC.grid.metaValue', { value: pointMeta(p, janela) })}</span>
                 </th>
               ))}
             </tr>
@@ -859,7 +859,7 @@ export default function FichaACForm({
           <tbody>
             {DAYS.map((day, dayIdx) => (
               <tr key={day} className="border-t border-border">
-                <td className="px-2 py-1 text-xs font-medium text-foreground">Dia {day}</td>
+                <td className="px-2 py-1 text-xs font-medium text-foreground">{t('fichaAC.grid.dayN', { day })}</td>
                 {POINTS.map((p, colIdx) => {
                   const val = grid[dayIdx][p];
                   const numVal = parseInt(val);
@@ -885,16 +885,16 @@ export default function FichaACForm({
                           ${!val ? 'border-border' : ''}
                         `}
                         placeholder="—"
-                        aria-label={`Dia ${day} ${pointLabel(p, janela)}`}
+                        aria-label={t('fichaAC.grid.cellAria', { day, point: pointLabel(p, janela, t) })}
                       />
                       {isNeg && (
-                        <span className="text-[9px] text-red-600 block text-center">Valor inválido</span>
+                        <span className="text-[9px] text-red-600 block text-center">{t('fichaAC.grid.invalid')}</span>
                       )}
                       {isHigh && (
-                        <span className="text-[9px] text-amber-600 block text-center">Verificar</span>
+                        <span className="text-[9px] text-amber-600 block text-center">{t('fichaAC.grid.verify')}</span>
                       )}
                       {isHypo && (
-                        <span className="text-[9px] text-red-600 block text-center">Hipoglicemia</span>
+                        <span className="text-[9px] text-red-600 block text-center">{t('fichaAC.grid.hypo')}</span>
                       )}
                     </td>
                   );
@@ -935,14 +935,14 @@ export default function FichaACForm({
       {/* Observations */}
       <div className="space-y-1">
         <div className="flex items-center gap-1">
-          <label className="text-xs font-medium text-foreground">Observações</label>
+          <label className="text-xs font-medium text-foreground">{t('fichaAC.observations.label')}</label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <p className="text-xs">Anotações adicionais sobre este retorno.</p>
+                <p className="text-xs">{t('fichaAC.observations.tooltip')}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -950,7 +950,7 @@ export default function FichaACForm({
         <Textarea
           value={observacoes}
           onChange={e => setObservacoes(e.target.value)}
-          placeholder="Opcional"
+          placeholder={t('fichaAC.observations.placeholder')}
           rows={3}
         />
       </div>
@@ -958,7 +958,7 @@ export default function FichaACForm({
       {/* Action buttons */}
       <div className="flex justify-end gap-3 print:hidden">
         <Button variant="outline" onClick={onCancel} disabled={saving}>
-          Cancelar
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={handleSave}
@@ -966,7 +966,7 @@ export default function FichaACForm({
           className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
         >
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Salvar retorno
+          {t('fichaAC.actions.save')}
         </Button>
       </div>
 
@@ -976,15 +976,15 @@ export default function FichaACForm({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Valores fora da faixa esperada
+              {t('fichaAC.highValue.title')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Existem valores acima de 400 mg/dL na grade. Verifique se os dados estão corretos antes de continuar.
+              {t('fichaAC.highValue.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setShowHighValueConfirm(false)}>
-              Revisar
+              {t('fichaAC.highValue.review')}
             </Button>
             <AlertDialogAction
               onClick={() => {
@@ -993,7 +993,7 @@ export default function FichaACForm({
               }}
               className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
-              Confirmar e salvar
+              {t('fichaAC.highValue.confirmSave')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1005,24 +1005,24 @@ export default function FichaACForm({
           <AlertDialogHeader>
             <AlertDialogTitle className="text-center text-lg">
               {savedResult?.adequado ? (
-                <span className="text-[#16A34A]">CONTROLE ADEQUADO</span>
+                <span className="text-[#16A34A]">{t('fichaAC.impact.adequado')}</span>
               ) : (
-                <span className="text-[#D97706]">CONTROLE INADEQUADO</span>
+                <span className="text-[#D97706]">{t('fichaAC.impact.inadequado')}</span>
               )}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3">
               <p className="text-base font-semibold">
-                {savedResult?.percentual?.toFixed(1)}% das glicemias dentro da meta
+                {t('fichaAC.impact.percentual', { percentual: savedResult?.percentual?.toFixed(1) })}
               </p>
               {savedResult?.adequado ? (
                 <p className="text-sm">
                   {savedResult?.proximaFicha === 'ficha_e'
-                    ? 'Controle adequado — acompanhamento ampliado para perfil de 6 pontos ainda sem insulina.'
-                    : 'Orientações no laudo completo abaixo.'}
+                    ? t('fichaAC.impact.adequadoFichaE')
+                    : t('fichaAC.impact.adequadoDefault')}
                 </p>
               ) : (
                 <p className="text-sm">
-                  Conduta: iniciar insulina. Dose e orientações no laudo completo abaixo.
+                  {t('fichaAC.impact.inadequadoConduta')}
                 </p>
               )}
             </AlertDialogDescription>
@@ -1032,7 +1032,7 @@ export default function FichaACForm({
               onClick={handleCloseImpact}
               className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
-              Fechar e ver laudo completo
+              {t('fichaAC.impact.close')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

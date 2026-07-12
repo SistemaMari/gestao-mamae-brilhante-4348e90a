@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,9 @@ interface Props {
 export default function UsgManagerCard({
   pacienteId, dum, referenciaIg, referenciaUsgId, isPreview, onChanged,
 }: Props) {
+  const { t } = useTranslation();
+  const usgLabel = (ordem: number) =>
+    ordem === 1 ? t('usg.firstUsg') : t('usg.usgOrdem', { ordem });
   const [usgs, setUsgs] = useState<UsgRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openAdd, setOpenAdd] = useState(false);
@@ -146,15 +150,15 @@ export default function UsgManagerCard({
 
   const refLabel = referenciaIg === 'usg'
     ? (usgAtiva
-        ? (usgAtiva.ordem === 1 ? '1ª USG' : `USG #${usgAtiva.ordem}`)
-        : '1ª USG')
+        ? usgLabel(usgAtiva.ordem)
+        : t('usg.firstUsg'))
     : referenciaIg === 'dum'
-      ? 'DUM'
-      : 'não definida';
+      ? t('usg.dum')
+      : t('usg.notDefined');
 
   const handleAddUsg = async () => {
     if (!usgFlow.dataExame || usgFlow.igSemanas === '') {
-      toast.error('Preencha data e IG da USG.');
+      toast.error(t('usg.errors.fillDateAndIg'));
       return;
     }
     // Validação local pré-INSERT: mesmo dia da paciente já cadastrado?
@@ -162,9 +166,7 @@ export default function UsgManagerCard({
     // mas detectar localmente dá mensagem amigável imediata.
     const dataJaCadastrada = usgs.some((u) => u.data_exame === usgFlow.dataExame);
     if (dataJaCadastrada) {
-      toast.error(
-        'Já existe uma USG registrada nesta data para esta paciente. Verifique o histórico ou edite a USG existente.',
-      );
+      toast.error(t('usg.errors.duplicateDateHistory'));
       return;
     }
     setSaving(true);
@@ -191,17 +193,15 @@ export default function UsgManagerCard({
       const err = error as { code?: string; message?: string } | null;
       if (err?.code === '23505') {
         // unique_violation — provavelmente data duplicada (paciente_id + data_exame)
-        toast.error(
-          'Já existe uma USG nesta data para esta paciente. Edite a existente ou use outra data.',
-        );
+        toast.error(t('usg.errors.duplicateDate'));
       } else if (err?.code === '23514' || (err?.message ?? '').includes('check_violation')) {
         // check_violation — provavelmente data futura (trigger exames_usg_valida_data)
-        toast.error('Data do exame não pode ser futura.');
+        toast.error(t('usg.errors.futureDate'));
       } else {
         toast.error(
           err?.message
-            ? `Erro ao salvar USG: ${err.message}`
-            : 'Erro ao salvar USG. Verifique os dados e tente novamente.',
+            ? t('usg.errors.saveWithMessage', { message: err.message })
+            : t('usg.errors.saveGeneric'),
         );
       }
       return;
@@ -236,7 +236,7 @@ export default function UsgManagerCard({
     }
 
     setSaving(false);
-    toast.success('USG registrada.');
+    toast.success(t('usg.toasts.registered'));
     setOpenAdd(false);
     setUsgFlow({ ...emptyUsgFlow, jaFezUsg: 'sim' });
     await load();
@@ -260,7 +260,7 @@ export default function UsgManagerCard({
     const alvo = openEditUsg;
     if (!alvo) return;
     if (!editFlow.dataExame || editFlow.igSemanas === '') {
-      toast.error('Preencha data e IG da USG.');
+      toast.error(t('usg.errors.fillDateAndIg'));
       return;
     }
     // Bloqueia colisão com outras USGs da mesma paciente em outra data
@@ -268,9 +268,7 @@ export default function UsgManagerCard({
       (u) => u.id !== alvo.id && u.data_exame === editFlow.dataExame,
     );
     if (conflito) {
-      toast.error(
-        'Outra USG já está registrada nessa data para esta paciente. Use outra data ou edite a existente.',
-      );
+      toast.error(t('usg.errors.duplicateDateOther'));
       return;
     }
     setSaving(true);
@@ -286,15 +284,15 @@ export default function UsgManagerCard({
     if (error) {
       const err = error as { code?: string; message?: string };
       if (err.code === '23505') {
-        toast.error('Já existe uma USG nesta data para esta paciente.');
+        toast.error(t('usg.errors.duplicateDateShort'));
       } else if (err.code === '23514') {
-        toast.error('Data do exame não pode ser futura.');
+        toast.error(t('usg.errors.futureDate'));
       } else {
-        toast.error(err.message ? `Erro: ${err.message}` : 'Erro ao salvar edição da USG.');
+        toast.error(err.message ? t('usg.errors.editWithMessage', { message: err.message }) : t('usg.errors.editGeneric'));
       }
       return;
     }
-    toast.success('USG atualizada.');
+    toast.success(t('usg.toasts.updated'));
     setOpenEditUsg(null);
     await load();
     invalidarIg();
@@ -318,7 +316,7 @@ export default function UsgManagerCard({
     if (delErr) {
       setSaving(false);
       console.error(delErr);
-      toast.error('Erro ao excluir USG.');
+      toast.error(t('usg.errors.delete'));
       return;
     }
 
@@ -340,7 +338,7 @@ export default function UsgManagerCard({
     }
 
     setSaving(false);
-    toast.success('USG excluída.');
+    toast.success(t('usg.toasts.deleted'));
     setConfirmDelete(null);
     await load();
     invalidarIg();
@@ -357,12 +355,12 @@ export default function UsgManagerCard({
     const { error } = await supabase.from('pacientes').update(payload as any).eq('id', pacienteId);
     setSaving(false);
     if (error) {
-      toast.error('Erro ao atualizar referência.');
+      toast.error(t('usg.errors.updateRef'));
       return;
     }
     // 40B (3.3): troca explícita da referência de IG.
     await carimbarAtendimento({ pacienteId, tipoOperacao: 'trocar_referencia_ig', recursoId: payload.referencia_usg_id ?? undefined, recursoTipo: 'paciente' });
-    toast.success('Referência de IG atualizada.');
+    toast.success(t('usg.toasts.refUpdated'));
     setOpenEdit(false);
     invalidarIg();
     onChanged?.();
@@ -375,7 +373,7 @@ export default function UsgManagerCard({
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-[#7C4DBA]" />
-          <h3 className="text-sm font-semibold text-[#5B21B6]">Ultrassonografias e referência de IG</h3>
+          <h3 className="text-sm font-semibold text-[#5B21B6]">{t('usg.cardTitle')}</h3>
         </div>
         <Button
           variant="outline"
@@ -384,7 +382,7 @@ export default function UsgManagerCard({
           className="gap-1 border-[#7C4DBA] text-[#7C4DBA] hover:bg-[#E8E0FF]"
         >
           <Plus className="h-3.5 w-3.5" />
-          <span className="text-xs">Adicionar USG</span>
+          <span className="text-xs">{t('usg.addUsg')}</span>
         </Button>
       </div>
 
@@ -392,7 +390,7 @@ export default function UsgManagerCard({
       <div className="rounded-lg border border-[#7C4DBA]/40 bg-[#F8F6FC] px-3 py-2.5 space-y-1.5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#5B21B6]">
-            📌 Referência de IG:{' '}
+            📌 {t('usg.refLabel')}{' '}
             <span className="text-foreground">
               {refLabel}
               {referenciaIg === 'dum' && dum ? ` (${formatDateBR(dum)})` : ''}
@@ -403,15 +401,15 @@ export default function UsgManagerCard({
             type="button"
             onClick={() => setOpenEdit(true)}
             className="inline-flex items-center gap-1 rounded-md border border-[#7C4DBA] px-2 py-1 text-[11px] font-medium text-[#7C4DBA] hover:bg-[#E8E0FF] focus:outline-none focus:ring-2 focus:ring-[#7C4DBA]/40"
-            aria-label="Trocar referência de IG"
+            aria-label={t('usg.changeRefAria')}
           >
-            <Pencil className="h-3 w-3" /> Trocar referência
+            <Pencil className="h-3 w-3" /> {t('usg.changeRef')}
           </button>
         </div>
         <p className="inline-flex items-center gap-1 text-xs text-foreground">
-          IG hoje:{' '}
+          {t('usg.igToday')}{' '}
           <span className="font-semibold">
-            {igHoje ? `${igHoje.semanas}s ${igHoje.dias}d` : '—'}
+            {igHoje ? t('usg.igFormat', { semanas: igHoje.semanas, dias: igHoje.dias }) : '—'}
           </span>
           <IgOrigemTooltip
             referenciaIg={referenciaIg ?? null}
@@ -423,14 +421,14 @@ export default function UsgManagerCard({
 
       {loading ? (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Loader2 className="h-3 w-3 animate-spin" /> carregando…
+          <Loader2 className="h-3 w-3 animate-spin" /> {t('usg.loading')}
         </div>
       ) : (
         <ul className="space-y-1.5">
           {/* DUM como primeira linha quando informada — formato consistente com as USGs */}
           {dum && (
             <li className="flex items-center justify-between rounded-md border border-border bg-[#F8F6FC] px-3 py-2 text-xs">
-              <span className="font-medium text-foreground">DUM</span>
+              <span className="font-medium text-foreground">{t('usg.dum')}</span>
               <span className="text-muted-foreground">
                 {formatDateBR(dum)} - {formatIgCurto(calcIgHojeFromDum(dum))}
               </span>
@@ -439,7 +437,7 @@ export default function UsgManagerCard({
 
           {usgs.length === 0 && !dum && (
             <li className="rounded-md border border-dashed border-border bg-card px-3 py-2 text-xs text-muted-foreground italic">
-              Nenhuma USG registrada e DUM não informada.
+              {t('usg.emptyNoUsgNoDum')}
             </li>
           )}
 
@@ -449,7 +447,7 @@ export default function UsgManagerCard({
               className="flex items-center justify-between gap-2 rounded-md border border-border bg-[#F8F6FC] px-3 py-2 text-xs"
             >
               <span className="font-medium text-foreground">
-                {u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`}
+                {usgLabel(u.ordem)}
               </span>
               <div className="flex items-center gap-3">
                 <span className="text-muted-foreground">
@@ -460,8 +458,8 @@ export default function UsgManagerCard({
                     type="button"
                     onClick={() => abrirEdicaoUsg(u)}
                     className="rounded p-1 text-[#7C4DBA] hover:bg-[#E8E0FF] focus:outline-none focus:ring-2 focus:ring-[#7C4DBA]/40"
-                    aria-label={`Editar ${u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`}`}
-                    title="Editar USG"
+                    aria-label={t('usg.editAria', { label: usgLabel(u.ordem) })}
+                    title={t('usg.editTitle')}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
@@ -469,8 +467,8 @@ export default function UsgManagerCard({
                     type="button"
                     onClick={() => setConfirmDelete(u)}
                     className="rounded p-1 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400/40"
-                    aria-label={`Excluir ${u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`}`}
-                    title="Excluir USG"
+                    aria-label={t('usg.deleteAria', { label: usgLabel(u.ordem) })}
+                    title={t('usg.deleteTitle')}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -485,17 +483,17 @@ export default function UsgManagerCard({
       <Dialog open={openAdd} onOpenChange={setOpenAdd}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Adicionar ultrassonografia</DialogTitle>
+            <DialogTitle>{t('usg.addModalTitle')}</DialogTitle>
             <DialogDescription>
-              Registre os dados do laudo. A 1ª USG é a referência preferencial.
+              {t('usg.addModalDesc')}
             </DialogDescription>
           </DialogHeader>
 
           {/* Bloco 1 (33B): histórico de USGs já cadastradas */}
           <div className="rounded-xl border border-[#7C4DBA]/30 bg-[#F8F6FC] p-3 space-y-2">
-            <h4 className="text-xs font-semibold text-[#5B21B6]">USGs já cadastradas</h4>
+            <h4 className="text-xs font-semibold text-[#5B21B6]">{t('usg.alreadyRegistered')}</h4>
             {usgs.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Nenhuma USG anterior registrada.</p>
+              <p className="text-xs text-muted-foreground italic">{t('usg.noPreviousUsg')}</p>
             ) : (
               <ul className="space-y-1.5">
                 {usgs.map((u) => (
@@ -505,11 +503,11 @@ export default function UsgManagerCard({
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-foreground">
-                        {u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`}
+                        {usgLabel(u.ordem)}
                       </span>
                       {u.ordem === 1 && (
                         <span className="text-[10px] font-medium bg-[#7C4DBA] text-white px-2 py-0.5 rounded-full">
-                          referência preferencial
+                          {t('usg.preferredReference')}
                         </span>
                       )}
                     </div>
@@ -532,14 +530,14 @@ export default function UsgManagerCard({
             numeroOrdem={proximaOrdem}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenAdd(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setOpenAdd(false)}>{t('common.cancel')}</Button>
             <Button
               onClick={handleAddUsg}
               disabled={saving}
               className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar USG
+              {t('usg.saveUsg')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -549,9 +547,9 @@ export default function UsgManagerCard({
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Referência de IG</DialogTitle>
+            <DialogTitle>{t('usg.refModalTitle')}</DialogTitle>
             <DialogDescription>
-              Escolha qual fonte usar para calcular a idade gestacional desta paciente.
+              {t('usg.refModalDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -569,14 +567,14 @@ export default function UsgManagerCard({
               />
               <span>
                 {dum
-                  ? `DUM — ${formatDateBR(dum)} - ${formatIgCurto(calcIgHojeFromDum(dum))}`
-                  : 'DUM (não informada)'}
+                  ? t('usg.dumOption', { data: formatDateBR(dum), ig: formatIgCurto(calcIgHojeFromDum(dum)) })
+                  : t('usg.dumNotInformed')}
               </span>
             </label>
 
             {usgs.length === 0 ? (
               <div className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground italic">
-                Nenhuma USG registrada ainda. Adicione uma USG para liberar a opção.
+                {t('usg.noUsgYetHint')}
               </div>
             ) : (
               usgs.map((u) => {
@@ -595,11 +593,11 @@ export default function UsgManagerCard({
                       onChange={() => setRefDraft({ tipo: 'usg', usgId: u.id })}
                     />
                     <span className="flex-1">
-                      {u.ordem === 1 ? '1ª USG' : `USG #${u.ordem}`} — {formatDateBR(u.data_exame)} - {formatIgCurto(calcIgHojeFromUsg(u))}
+                      {usgLabel(u.ordem)} — {formatDateBR(u.data_exame)} - {formatIgCurto(calcIgHojeFromUsg(u))}
                     </span>
                     {u.ordem === 1 && (
                       <span className="text-[10px] font-medium bg-[#7C4DBA] text-white px-2 py-0.5 rounded-full">
-                        referência preferencial
+                        {t('usg.preferredReference')}
                       </span>
                     )}
                   </label>
@@ -608,7 +606,7 @@ export default function UsgManagerCard({
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setOpenEdit(false)}>{t('common.cancel')}</Button>
             <Button
               onClick={handleSaveRef}
               disabled={
@@ -619,7 +617,7 @@ export default function UsgManagerCard({
               className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar referência
+              {t('usg.saveRef')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -630,10 +628,10 @@ export default function UsgManagerCard({
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              Editar {openEditUsg?.ordem === 1 ? '1ª USG' : `USG #${openEditUsg?.ordem ?? ''}`}
+              {t('usg.editModalTitle', { label: openEditUsg ? usgLabel(openEditUsg.ordem) : '' })}
             </DialogTitle>
             <DialogDescription>
-              Ajuste data e IG do laudo. A ordem da USG é mantida.
+              {t('usg.editModalDesc')}
             </DialogDescription>
           </DialogHeader>
           {openEditUsg && (
@@ -649,7 +647,7 @@ export default function UsgManagerCard({
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenEditUsg(null)} disabled={saving}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={handleEditUsg}
@@ -657,7 +655,7 @@ export default function UsgManagerCard({
               className="bg-[#7C4DBA] hover:bg-[#7E69AB] text-white"
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar alterações
+              {t('usg.saveChanges')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -672,32 +670,29 @@ export default function UsgManagerCard({
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Trash2 className="h-5 w-5 text-red-600" />
-              Excluir {confirmDelete?.ordem === 1 ? '1ª USG' : `USG #${confirmDelete?.ordem ?? ''}`}?
+              {t('usg.deleteConfirmTitle', { label: confirmDelete ? usgLabel(confirmDelete.ordem) : '' })}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <span>
-                Esta ação não pode ser desfeita. A USG de{' '}
-                {confirmDelete ? formatDateBR(confirmDelete.data_exame) : ''} será removida permanentemente.
+                {t('usg.deleteConfirmDesc', { data: confirmDelete ? formatDateBR(confirmDelete.data_exame) : '' })}
               </span>
               {confirmDelete && referenciaIg === 'usg' && referenciaUsgId === confirmDelete.id && (
                 <span className="block rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                  Esta é a USG ativa como referência de IG. Após a exclusão, a referência será
-                  automaticamente realocada para a USG de menor ordem restante (ou para a DUM,
-                  se não houver mais USGs).
+                  {t('usg.deleteConfirmActiveRefWarning')}
                 </span>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setConfirmDelete(null)} disabled={saving}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <AlertDialogAction
               onClick={handleDeleteUsg}
               className="bg-red-600 text-white hover:bg-red-700"
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Excluir
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

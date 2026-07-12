@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import i18n from '@/i18n';
 
 export type UserProfile = 'consultorio' | 'institucional' | 'gestor' | 'gestor_geral' | 'admin';
 
@@ -71,7 +72,7 @@ async function determineProfile(userId: string): Promise<UserProfile | null> {
     await supabase.auth.signOut();
     try {
       const { toast } = await import('sonner');
-      toast.error('Sua conta foi desativada. Entre em contato com o administrador.');
+      toast.error(i18n.t('auth.accountDisabled'));
     } catch { /* ignore */ }
     return null;
   }
