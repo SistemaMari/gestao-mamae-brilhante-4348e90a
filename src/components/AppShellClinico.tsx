@@ -21,6 +21,12 @@ import TelaInadimplente from '@/components/TelaInadimplente';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { avaliarPlanoStatus } from '@/lib/planoStatus';
 import { toast } from '@/hooks/use-toast';
+import mariLogo from '@/assets/mari-logo.png';
+
+function iniciaisNome(nome?: string | null) {
+  if (!nome) return 'US';
+  return nome.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('');
+}
 
 function useBreadcrumb() {
   const { t } = useTranslation();
