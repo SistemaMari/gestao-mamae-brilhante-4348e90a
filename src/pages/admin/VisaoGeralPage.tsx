@@ -251,20 +251,29 @@ export default function VisaoGeralPage() {
 
       {/* Cards rápidos */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <CardResumo label="Total de profissionais" valor={resumo.profissionais} loading={loadingResumo} />
-        <CardResumo label="Total de unidades" valor={resumo.unidades} loading={loadingResumo} />
-        {/* Pacientes e laudos vêm da MV agregada (resumo_global) — o admin não
-            tem RLS pra contar essas tabelas no cliente (privacidade do dado
-            clínico). Na vitrine segue o mock. */}
+        <CardResumo
+          label="Total de profissionais"
+          valor={resumo.profissionais}
+          loading={loadingResumo}
+          tooltip="Todos os profissionais cadastrados na plataforma — consultório e institucional, ativos e inativos."
+        />
+        <CardResumo
+          label="Total de unidades"
+          valor={resumo.unidades}
+          loading={loadingResumo}
+          tooltip="Unidades de saúde institucionais cadastradas (UBS, hospitais, clínicas, etc.)."
+        />
         <CardResumo
           label="Total de pacientes"
           valor={isPreview ? resumo.pacientes : (r0?.total_pacientes ?? null)}
           loading={isPreview ? loadingResumo : resumoGlobal.isLoading}
+          tooltip="Total histórico de pacientes cadastradas no sistema. Vem da view agregada — o admin não acessa o dado clínico individual."
         />
         <CardResumo
           label="Total de laudos gerados"
           valor={isPreview ? resumo.laudos : (r0?.total_laudos ?? null)}
           loading={isPreview ? loadingResumo : resumoGlobal.isLoading}
+          tooltip="Total histórico de laudos emitidos pela MARI. Cada laudo corresponde a uma consulta finalizada."
         />
       </div>
 
@@ -272,6 +281,7 @@ export default function VisaoGeralPage() {
       <SecaoBloco
         titulo="Alertas Operacionais"
         descricao="Sinais que merecem atenção da operação."
+        tooltip="Contagem de sinais operacionais (inadimplência, cotas estouradas, contas inativas, etc.) sobre a base completa — ignora filtros abaixo."
         loading={alertas.isLoading}
         skeleton={
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -313,9 +323,11 @@ export default function VisaoGeralPage() {
       )}
 
       {/* Evolução mensal de profissionais */}
+      {/* Evolução mensal de profissionais */}
       <SecaoBloco
         titulo="Evolução mensal de profissionais"
         descricao="Novos cadastros e profissionais ativos nos últimos 12 meses."
+        tooltip="Série mensal dos últimos 12 meses. Novos = profissionais cadastrados no mês. Ativos = profissionais com pelo menos uma atividade no mês."
         loading={evolProf.isLoading}
         skeletonHeight={280}
       >
@@ -334,6 +346,7 @@ export default function VisaoGeralPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SecaoBloco
           titulo="Profissionais por plano"
+          tooltip="Distribuição dos profissionais ativos por plano contratado (Inicial, Intermediária, Profissional)."
           loading={planos.isLoading}
           skeletonHeight={280}
         >
@@ -343,6 +356,7 @@ export default function VisaoGeralPage() {
         </SecaoBloco>
         <SecaoBloco
           titulo="Unidades por tipo"
+          tooltip="Distribuição das unidades cadastradas por categoria (UBS, hospital, clínica, etc.), considerando os filtros de região selecionados."
           loading={unidades.isLoading}
           skeletonHeight={280}
         >
@@ -356,6 +370,7 @@ export default function VisaoGeralPage() {
       <SecaoBloco
         titulo="Evolução mensal de planos"
         descricao="Novos profissionais por plano nos últimos 12 meses."
+        tooltip="Quantos profissionais assinaram cada plano em cada mês. Ajuda a identificar tendências comerciais e migração entre planos."
         loading={evolPlanos.isLoading}
         skeletonHeight={280}
       >
@@ -367,6 +382,7 @@ export default function VisaoGeralPage() {
       {/* Distribuição por país */}
       <SecaoBloco
         titulo="Distribuição por país"
+        tooltip="Total de profissionais e unidades por país, com o percentual sobre o total de profissionais."
         loading={distribuicao.isLoading}
         skeletonHeight={180}
       >
@@ -389,6 +405,7 @@ export default function VisaoGeralPage() {
       {/* Distribuição por estado */}
       <SecaoBloco
         titulo="Distribuição por estado"
+        tooltip="Total de profissionais e unidades por estado, com o percentual sobre o total de profissionais do país."
         loading={distribuicao.isLoading}
         skeletonHeight={220}
       >
@@ -409,7 +426,12 @@ export default function VisaoGeralPage() {
       </SecaoBloco>
 
       {/* Top cidades */}
-      <SecaoBloco titulo="Top 20 cidades" loading={topCidades.isLoading} skeletonHeight={220}>
+      <SecaoBloco
+        titulo="Top 20 cidades"
+        tooltip="Ranking das 20 cidades com maior número de profissionais cadastrados na plataforma."
+        loading={topCidades.isLoading}
+        skeletonHeight={220}
+      >
         <TabelaOrdenavel
           colunas={[
             { chave: "posicao", titulo: "#", alinhamento: "right" },
