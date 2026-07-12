@@ -903,7 +903,7 @@ export default function DiagnosticosPage() {
       <div className="space-y-6">
         <SecaoTitulo>Quebra por região</SecaoTitulo>
         <TabelaOrdenavel
-          titulo="Taxa de DMG por estado"
+          titulo="Consultório — Taxa de DMG por estado"
           colunas={[
             { key: "estado", label: "Estado" },
             { key: "gestantes", label: "Gestantes", numerica: true },
@@ -911,10 +911,10 @@ export default function DiagnosticosPage() {
             { key: "taxa_dmg", label: "Taxa de DMG", numerica: true, format: (v) => `${v}%` },
           ]}
           linhas={regionalFiltrado.por_estado as unknown as Array<Record<string, unknown>>}
-          vazioMsg="Sem dados regionais ainda."
+          vazioMsg="Sem pacientes de consultório ainda."
         />
         <TabelaOrdenavel
-          titulo="Top 20 cidades (mín. 10 pacientes)"
+          titulo="Consultório — Taxa de DMG por cidade"
           colunas={[
             { key: "cidade", label: "Cidade" },
             { key: "estado", label: "Estado" },
@@ -924,13 +924,12 @@ export default function DiagnosticosPage() {
           ]}
           linhas={
             regionalFiltrado.por_cidade
-              .filter((c) => c.gestantes >= 10)
               .slice(0, 20) as unknown as Array<Record<string, unknown>>
           }
-          vazioMsg="Sem cidades com 10+ pacientes ainda."
+          vazioMsg="Sem pacientes de consultório ainda."
         />
         <TabelaOrdenavel
-          titulo="Métricas por unidade"
+          titulo="Institucional — métricas por unidade"
           colunas={[
             { key: "unidade", label: "Unidade" },
             { key: "cidade", label: "Cidade" },
