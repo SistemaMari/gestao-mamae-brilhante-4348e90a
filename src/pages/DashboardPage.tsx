@@ -247,7 +247,15 @@ export default function DashboardPage() {
     );
   }
 
-  const nomeExibicao = (profissionalData?.nome || '').split(' ')[0] || 'boas-vindas';
+  const nomeExibicao = (() => {
+    const partes = (profissionalData?.nome || '').trim().split(/\s+/).filter(Boolean);
+    const honorificos = /^(dr|dra|dr\.|dra\.|prof|prof\.|sr|sra|sr\.|sra\.)$/i;
+    const primeiro = partes.find((p) => !honorificos.test(p));
+    if (!primeiro) return 'boas-vindas';
+    // Se havia um honorífico antes, mostra "Dr. Nome"
+    const temHonorifico = partes[0] && honorificos.test(partes[0]);
+    return temHonorifico ? `${partes[0]} ${primeiro}` : primeiro;
+  })();
   const hora = new Date().getHours();
   const saudacaoHorario = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
   const dataExtenso = format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
