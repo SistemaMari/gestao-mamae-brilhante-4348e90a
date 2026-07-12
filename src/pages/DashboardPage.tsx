@@ -88,6 +88,18 @@ export default function DashboardPage() {
   const [page, setPage] = useState(1);
   // 38B-C (#7): ids de pacientes com diagnóstico Overt (cenario_clinico='8').
   const [overtIds, setOvertIds] = useState<Set<string>>(new Set());
+  const [unidadeNome, setUnidadeNome] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!profissionalData?.unidade_id) { setUnidadeNome(null); return; }
+    supabase.from('unidades').select('nome, cidade, uf').eq('id', profissionalData.unidade_id).maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        const local = [data.cidade, data.uf].filter(Boolean).join(' / ');
+        setUnidadeNome(local ? `${data.nome} — ${local}` : data.nome);
+      });
+  }, [profissionalData?.unidade_id]);
+
 
   const fetchPacientes = useCallback(async () => {
     if (!profissionalData || isPreview) return;
