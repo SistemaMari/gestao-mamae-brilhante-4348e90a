@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   UserCog, Loader2, Camera, Lock, MessageSquareHeart, Heart, Star,
-  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp, Trash2,
+  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp, Trash2, Building2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
