@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RotateCw, Search, Ban, RefreshCcw, Pencil, ArrowRightLeft } from "lucide-react";
+import { Plus, RotateCw, Search, Ban, RefreshCcw, Pencil, ArrowRightLeft, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { PERFIL_CLINICO_LABEL, FALLBACK_GENERICO, extrairErroEdge } from "@/lib/
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import ModalConvidarProfissional from "./ModalConvidarProfissional";
+import ImportarEmMassaModal, { type ImportConfig } from "./ImportarEmMassaModal";
 import ModalEditarProfissional from "./ModalEditarProfissional";
 import ModalTransferirProfissional from "./ModalTransferirProfissional";
 import AlertRevogarAcesso from "./AlertRevogarAcesso";
@@ -38,6 +39,16 @@ export interface ProfissionalRow {
   created_at: string;
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Aceita rótulos/códigos comuns de perfil clínico → código do banco.
+const PERFIL_MAP: Record<string, string> = {
+  medico: "medico", "médico": "medico", "medico(a)": "medico", "médico(a)": "medico", medica: "medico", "médica": "medico",
+  enfermeiro: "enfermeiro", enfermeira: "enfermeiro", "enfermeiro(a)": "enfermeiro",
+  tecnico: "tecnico_enfermagem", "técnico": "tecnico_enfermagem", tecnico_enfermagem: "tecnico_enfermagem",
+  "tecnico de enfermagem": "tecnico_enfermagem", "técnico de enfermagem": "tecnico_enfermagem", "técnico(a) de enfermagem": "tecnico_enfermagem",
+  outro: "outro", outra: "outro",
+};
+
 interface ContratanteOpt { id: string; nome: string; status: string; }
 const MARI_SANDBOX_NOME = "MARI Sandbox";
 
@@ -47,6 +58,7 @@ export default function AbaProfissionais() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [openConvidar, setOpenConvidar] = useState(false);
+  const [openImportar, setOpenImportar] = useState(false);
   const [editar, setEditar] = useState<ProfissionalRow | null>(null);
   const [transferir, setTransferir] = useState<ProfissionalRow | null>(null);
   const [revogar, setRevogar] = useState<ProfissionalRow | null>(null);
@@ -175,7 +187,10 @@ export default function AbaProfissionais() {
           </div>
         </div>
         <Button variant="outline" onClick={limpar}>{t("admin.clearFilters")}</Button>
-        <Button onClick={() => setOpenConvidar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E] ml-auto">
+        <Button variant="outline" onClick={() => setOpenImportar(true)} className="ml-auto">
+          <Upload className="mr-2 h-4 w-4" /> {t("importar.button")}
+        </Button>
+        <Button onClick={() => setOpenConvidar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
           <Plus className="mr-2 h-4 w-4" /> {t("admin.abaProfissionais.inviteProfessional")}
         </Button>
       </div>
@@ -277,6 +292,42 @@ export default function AbaProfissionais() {
         onOpenChange={setOpenConvidar}
         unidades={unidades ?? []}
         onSucesso={refresh}
+      />
+      <ImportarEmMassaModal
+        open={openImportar}
+        onOpenChange={setOpenImportar}
+        onSucesso={refresh}
+        config={{
+          slug: "profissionais",
+          titulo: t("importar.profissionais.title"),
+          descricao: t("importar.profissionais.desc"),
+          acao: "convidar_profissional_unidade",
+          colunas: [
+            { chave: "unidade", obrigatoria: true },
+            { chave: "nome", obrigatoria: true },
+            { chave: "email", obrigatoria: true },
+            { chave: "perfil_clinico", obrigatoria: true },
+          ],
+          exemplo: { unidade: "UBS Demo Lapa", nome: "Dra. Ana Souza", email: "ana.souza@exemplo.com", perfil_clinico: "Médico" },
+          preparar: (linha) => {
+            const nome = (linha.nome ?? "").trim();
+            const email = (linha.email ?? "").trim().toLowerCase();
+            const unidadeNome = (linha.unidade ?? "").trim();
+            const perfil = PERFIL_MAP[(linha.perfil_clinico ?? "").trim().toLowerCase()] ?? null;
+            const uni = (unidades ?? []).find((u) => u.nome.trim().toLowerCase() === unidadeNome.toLowerCase());
+            const erros: string[] = [];
+            if (!nome) erros.push(t("importar.err.nome"));
+            if (!EMAIL_RE.test(email)) erros.push(t("importar.err.email"));
+            if (!unidadeNome) erros.push(t("importar.err.unidadeVazia"));
+            else if (!uni) erros.push(t("importar.err.unidadeNaoEncontrada"));
+            if (!perfil) erros.push(t("importar.err.perfil"));
+            return {
+              payload: erros.length ? null : { unidade_id: uni!.id, nome, email, perfil },
+              erros,
+              rotulo: nome || email || "—",
+            };
+          },
+        } as ImportConfig}
       />
       <ModalEditarProfissional profissional={editar} onClose={() => setEditar(null)} onSucesso={refresh} />
       <ModalTransferirProfissional
