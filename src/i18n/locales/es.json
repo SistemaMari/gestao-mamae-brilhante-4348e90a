@@ -2549,6 +2549,28 @@
       "generatedBy": "Generado por MARI — {{data}}"
     }
   },
+  "importar": {
+    "button": "Importar en masa",
+    "step1": "1. Descarga la plantilla, complétala y sube el archivo.",
+    "downloadTemplate": "Descargar plantilla",
+    "chooseFile": "Elegir archivo (.xlsx / .csv)",
+    "previewCount": "{{total}} fila(s): {{ok}} ok, {{erros}} con error. Nada se crea hasta que confirmes.",
+    "rowStatus": "Estado",
+    "confirm": "Confirmar e importar ({{count}})",
+    "sending": "Importando {{done}}/{{total}}…",
+    "report": { "ok": "Importados", "errors": "Con error" },
+    "err": {
+      "nome": "Nombre obligatorio",
+      "email": "Correo inválido",
+      "unidadeVazia": "Unidad obligatoria",
+      "unidadeNaoEncontrada": "Unidad no encontrada",
+      "perfil": "Perfil clínico inválido"
+    },
+    "profissionais": {
+      "title": "Importar profesionales en masa",
+      "desc": "Sube una hoja de cálculo (.xlsx/.csv) con unidad, nombre, correo y perfil clínico. Cada profesional recibe la invitación por correo."
+    }
+  },
   "gestaoEquipe": {
     "title": "Gestionar equipo",
     "subtitle": "Gestione los profesionales de su unidad",
