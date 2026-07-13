@@ -587,9 +587,61 @@ export default function DashboardMetricasPage() {
           </AdminChartCard>
         )}
       </div>
+
+      {/* Modal com lista de pacientes ao clicar em um card */}
+      <Dialog open={!!lista} onOpenChange={(o) => !o && setLista(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle style={{ fontFamily: 'Sora, sans-serif', color: '#1E293B' }}>
+              {lista?.titulo}
+            </DialogTitle>
+            <DialogDescription>
+              {t('dashboardMetricas.list.count', {
+                defaultValue: '{{count}} paciente(s) neste grupo',
+                count: lista?.pacientes.length ?? 0,
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[420px] overflow-y-auto rounded-lg border" style={{ borderColor: '#E2E8F0' }}>
+            {lista?.pacientes.length ? (
+              <ul className="divide-y" style={{ borderColor: '#E2E8F0' }}>
+                {[...lista.pacientes]
+                  .sort((a, b) => a.nome.localeCompare(b.nome, i18n.language))
+                  .map((p) => (
+                    <li key={p.id}>
+                      <button
+                        onClick={() => irParaPaciente(p.id)}
+                        disabled={isPreview}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-[#F5F0FF] disabled:cursor-not-allowed disabled:opacity-70"
+                      >
+                        <span
+                          className="text-sm font-medium"
+                          style={{ color: '#1E293B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                        >
+                          {p.nome}
+                        </span>
+                        {!isPreview && <ChevronRight className="h-4 w-4" style={{ color: '#94A3B8' }} />}
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            ) : (
+              <p className="p-6 text-center text-sm" style={{ color: '#64748B' }}>
+                {t('dashboardMetricas.list.empty', { defaultValue: 'Nenhuma paciente neste grupo.' })}
+              </p>
+            )}
+          </div>
+          {isPreview && (
+            <p className="text-xs" style={{ color: '#94A3B8' }}>
+              {t('dashboardMetricas.list.previewNote', { defaultValue: 'Modo demonstração — clique desativado.' })}
+            </p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 // -----------------------------------------------------------------------------
 // Componentes de UI alinhados à família visual do ADMIN
