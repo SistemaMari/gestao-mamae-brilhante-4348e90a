@@ -2485,7 +2485,28 @@
       "overview": "Visão Geral",
       "diagnosis": "Diagnóstico",
       "treatment": "Tratamento",
-      "outcomes": "Desfechos"
+      "outcomes": "Desfechos",
+      "closures": "Encerramentos & acompanhamento"
+    },
+    "kpi": {
+      "tracked": "Gestantes acompanhadas",
+      "trackedSub": "no período",
+      "dmgRate": "Taxa de DMG",
+      "dmgRateSub": "{{count}} com diagnóstico",
+      "active": "Em acompanhamento",
+      "activeSub": "gestações ativas",
+      "overdue": "Retornos vencidos",
+      "overdueSub": "toque para ver"
+    },
+    "closures": {
+      "active": "Em acompanhamento ativo",
+      "activeDetail": "ainda não encerradas",
+      "delivery": "Encerradas por parto",
+      "toEndo": "Encaminhadas ao endócrino",
+      "miscarriage": "Encerradas por aborto",
+      "noReturn": "Não retornaram",
+      "noReturnRate": "{{pct}}% das encerradas",
+      "total": "Total de encerramentos"
     },
     "overview": {
       "awaitingGj": "Aguardando GJ",
