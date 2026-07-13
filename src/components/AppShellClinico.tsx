@@ -73,8 +73,8 @@ interface NavItem {
 const navClinicoConsultorio: NavItem[] = [
   { labelKey: 'nav.patients', icon: Users, path: '/dashboard' },
   { labelKey: 'nav.newPatient', icon: UserPlus, path: '/paciente/nova', checkLimit: true },
-  { labelKey: 'appShell.tutorial', icon: PlayCircle, path: '/tutorial' },
   { labelKey: 'nav.metrics', icon: BarChart3, path: '/dashboard/metricas' },
+  { labelKey: 'appShell.tutorial', icon: PlayCircle, path: '/tutorial' },
 ];
 
 const navClinicoInstitucional: NavItem[] = [
@@ -261,7 +261,7 @@ export default function AppShellClinico() {
       <nav className="flex-1 min-h-0 overflow-y-auto space-y-1 px-3 py-4">
         {itensClinicos.map((item) => (
           <div key={item.path}>
-            {ehInstitucional && item.path === '/tutorial' && (
+            {item.path === '/tutorial' && (
               <div className="my-2 border-t" style={{ borderColor: '#E2E8F0' }} />
             )}
             {renderNavButton(item)}
