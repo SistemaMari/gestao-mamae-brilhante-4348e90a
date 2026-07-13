@@ -498,23 +498,31 @@ export default function DashboardMetricasPage() {
         <section className="flex flex-col gap-4">
           <AdminSectionTitle>{t('dashboardMetricas.sections.overview')}</AdminSectionTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.overview.awaitingGj')} value={statusCounts.aguardando_gj} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })} />
-            <CleanStatCard dotColor="#3B82F6" icon={Clock} label={t('dashboardMetricas.overview.awaitingGtt')} value={statusCounts.aguardando_gtt} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })} />
-            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.overview.dmgConfirmed')} value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })} />
-            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.overview.dmgRuledOut')} value={statusCounts.dmg_afastado} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })} />
-            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Baby} label={t('dashboardMetricas.overview.deliveryResult')} value={statusCounts.resultado_parto} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })} />
-            <CleanStatCard dotColor="#F472B6" icon={Stethoscope} label={t('dashboardMetricas.overview.associateEndo')} value={statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.encaminhada_endocrino) })} />
+            <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.overview.awaitingGj')} value={statusCounts.aguardando_gj} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGj'), pacsByStatus('aguardando_gj'))} />
+            <CleanStatCard dotColor="#3B82F6" icon={Clock} label={t('dashboardMetricas.overview.awaitingGtt')} value={statusCounts.aguardando_gtt} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGtt'), pacsByStatus('aguardando_gtt'))} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.overview.dmgConfirmed')} value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgConfirmed'), pacsDmgConfirmado)} />
+            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.overview.dmgRuledOut')} value={statusCounts.dmg_afastado} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgRuledOut'), pacsByStatus('dmg_afastado'))} />
+            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Baby} label={t('dashboardMetricas.overview.deliveryResult')} value={statusCounts.resultado_parto} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })} onClick={() => abrirLista(t('dashboardMetricas.overview.deliveryResult'), pacsByStatus('resultado_parto'))} />
+            <CleanStatCard dotColor="#F472B6" icon={Stethoscope} label={t('dashboardMetricas.overview.associateEndo')} value={statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.encaminhada_endocrino) })} onClick={() => abrirLista(t('dashboardMetricas.overview.associateEndo'), pacsByStatus('encaminhada_endocrino'))} />
           </div>
         </section>
 
         {/* Diagnóstico — cards + gráfico dentro de CardContainer */}
         <section className="flex flex-col gap-4">
           <AdminSectionTitle>{t('dashboardMetricas.sections.diagnosis')}</AdminSectionTitle>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.diagnosis.totalPatients')} value={allPacientesCount} />
-            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGj')} value={dmgByGJ} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGJ / allPacientesCount) * 100) : 0 })} />
-            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGtt')} value={dmgByGTT} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGTT / allPacientesCount) * 100) : 0 })} />
-            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.diagnosis.dmgRuledOutGtt')} value={dmgAfastado} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0 })} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+            <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.diagnosis.totalPatients')} value={allPacientesCount} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.totalPatients'), filteredPacientes)} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGj')} value={dmgByGJ} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGJ / allPacientesCount) * 100) : 0 })} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.dmgConfirmedGj'), pacsDmgByGJ)} />
+            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGtt')} value={dmgByGTT} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGTT / allPacientesCount) * 100) : 0 })} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.dmgConfirmedGtt'), pacsDmgByGTT)} />
+            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.diagnosis.dmgRuledOutGtt')} value={dmgAfastado} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0 })} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.dmgRuledOutGtt'), pacsDmgAfastado)} />
+            <CleanStatCard
+              dotColor="#F59E0B"
+              icon={HelpCircle}
+              label={t('dashboardMetricas.diagnosis.awaitingDiagnosis', 'Aguardando diagnóstico')}
+              value={aguardandoDiagnosticoCount}
+              detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((aguardandoDiagnosticoCount / allPacientesCount) * 100) : 0 })}
+              onClick={() => abrirLista(t('dashboardMetricas.diagnosis.awaitingDiagnosis', 'Aguardando diagnóstico'), pacsAguardandoDiagnostico)}
+            />
           </div>
 
           {diagPieData.length > 0 && (
@@ -538,9 +546,9 @@ export default function DashboardMetricasPage() {
         <section className="flex flex-col gap-4">
           <AdminSectionTitle>{t('dashboardMetricas.sections.treatment')}</AdminSectionTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.treatment.dietOnly')} value={dietOnly} detail={t('dashboardMetricas.pctOfDmg', { pct: dietOnlyPercent })} />
-            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.treatment.withInsulin')} value={withInsulin} detail={t('dashboardMetricas.pctOfDmg', { pct: withInsulinPercent })} />
-            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Stethoscope} label={t('dashboardMetricas.treatment.withEndo')} value={endocrino} detail={t('dashboardMetricas.pctOfDmg', { pct: endocrinoPercent })} />
+            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.treatment.dietOnly')} value={dietOnly} detail={t('dashboardMetricas.pctOfDmg', { pct: dietOnlyPercent })} onClick={() => abrirLista(t('dashboardMetricas.treatment.dietOnly'), pacsDietOnly)} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.treatment.withInsulin')} value={withInsulin} detail={t('dashboardMetricas.pctOfDmg', { pct: withInsulinPercent })} onClick={() => abrirLista(t('dashboardMetricas.treatment.withInsulin'), pacsWithInsulin)} />
+            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Stethoscope} label={t('dashboardMetricas.treatment.withEndo')} value={endocrino} detail={t('dashboardMetricas.pctOfDmg', { pct: endocrinoPercent })} onClick={() => abrirLista(t('dashboardMetricas.treatment.withEndo'), pacsEndocrino)} />
           </div>
         </section>
 
@@ -548,14 +556,15 @@ export default function DashboardMetricasPage() {
         <section className="flex flex-col gap-4">
           <AdminSectionTitle>{t('dashboardMetricas.sections.closures')}</AdminSectionTitle>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-            <CleanStatCard dotColor="#0EA5A5" icon={CheckCircle} label={t('dashboardMetricas.closures.active')} value={ativasCount} detail={t('dashboardMetricas.closures.activeDetail')} />
-            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Baby} label={t('dashboardMetricas.closures.delivery')} value={encerramentos.parto} />
-            <CleanStatCard dotColor="#F472B6" icon={Stethoscope} label={t('dashboardMetricas.closures.toEndo')} value={encerramentos.insulinizacao} />
-            <CleanStatCard dotColor="#94A3B8" icon={Activity} label={t('dashboardMetricas.closures.miscarriage')} value={encerramentos.aborto} />
-            <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.closures.noReturn')} value={encerramentos.nao_retornou} detail={temEncerramentos ? t('dashboardMetricas.closures.noReturnRate', { pct: naoRetornouTaxa }) : undefined} />
-            <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.closures.total')} value={encerradasCount} />
+            <CleanStatCard dotColor="#0EA5A5" icon={CheckCircle} label={t('dashboardMetricas.closures.active')} value={ativasCount} detail={t('dashboardMetricas.closures.activeDetail')} onClick={() => abrirLista(t('dashboardMetricas.closures.active'), pacsAtivas)} />
+            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Baby} label={t('dashboardMetricas.closures.delivery')} value={encerramentos.parto} onClick={() => abrirLista(t('dashboardMetricas.closures.delivery'), pacsPorMotivo('parto'))} />
+            <CleanStatCard dotColor="#F472B6" icon={Stethoscope} label={t('dashboardMetricas.closures.toEndo')} value={encerramentos.insulinizacao} onClick={() => abrirLista(t('dashboardMetricas.closures.toEndo'), pacsPorMotivo('insulinizacao'))} />
+            <CleanStatCard dotColor="#94A3B8" icon={Activity} label={t('dashboardMetricas.closures.miscarriage')} value={encerramentos.aborto} onClick={() => abrirLista(t('dashboardMetricas.closures.miscarriage'), pacsPorMotivo('aborto'))} />
+            <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.closures.noReturn')} value={encerramentos.nao_retornou} detail={temEncerramentos ? t('dashboardMetricas.closures.noReturnRate', { pct: naoRetornouTaxa }) : undefined} onClick={() => abrirLista(t('dashboardMetricas.closures.noReturn'), pacsPorMotivo('nao_retornou'))} />
+            <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.closures.total')} value={encerradasCount} onClick={() => abrirLista(t('dashboardMetricas.closures.total'), pacsEncerradas)} />
           </div>
         </section>
+
 
         {/* Evolução Mensal */}
         {showChart && (
