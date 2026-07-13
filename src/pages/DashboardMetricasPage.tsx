@@ -366,6 +366,45 @@ export default function DashboardMetricasPage() {
     navigate(isPreview ? '/vitrine/dashboard' : '/dashboard');
   };
 
+  // ---- Modal com lista de pacientes por card ----------------------------
+  const [lista, setLista] = useState<{ titulo: string; pacientes: Paciente[] } | null>(null);
+  const abrirLista = (titulo: string, pacientes: Paciente[]) => {
+    if (!pacientes.length) return;
+    setLista({ titulo, pacientes });
+  };
+  const irParaPaciente = (id: string) => {
+    if (isPreview) return;
+    navigate(`/paciente/${id}`);
+    setLista(null);
+  };
+
+  // Listas derivadas por card (Visão Geral por status_ficha)
+  const pacsByStatus = (status: string) => filteredPacientes.filter(p => p.status_ficha === status);
+  const pacsDmgConfirmado = filteredPacientes.filter(p => p.status_ficha === 'dmg_confirmado' || p.status_ficha === 'encaminhada_endocrino');
+
+  // Diagnóstico — usa consulta_id p/ inferir origem
+  const patientIdsByGJ = new Set(filteredConsultas.filter(c => cc(c) === '1' || (cc(c) === '8' && c.tipo === 'retorno_1')).map(c => c.paciente_id));
+  const patientIdsByGTT = new Set(filteredConsultas.filter(ehGtt).map(c => c.paciente_id));
+  const pacsDmgByGJ = filteredPacientes.filter(p => patientIdsByGJ.has(p.id));
+  const pacsDmgByGTT = filteredPacientes.filter(p => patientIdsByGTT.has(p.id));
+  const pacsDmgAfastado = filteredPacientes.filter(p => p.status_ficha === 'dmg_afastado');
+  // "Aguardando diagnóstico" = pacientes ainda sem desfecho diagnóstico
+  const pacsAguardandoDiagnostico = filteredPacientes.filter(p =>
+    p.status_ficha === 'aguardando_gj' || p.status_ficha === 'aguardando_gtt'
+  );
+  const aguardandoDiagnosticoCount = pacsAguardandoDiagnostico.length;
+
+  // Tratamento
+  const pacsDietOnly = pacsDmgConfirmado.filter(p => !patientsWithInsulin.has(p.id));
+  const pacsWithInsulin = filteredPacientes.filter(p => patientsWithInsulin.has(p.id));
+  const pacsEndocrino = filteredPacientes.filter(p => p.status_ficha === 'encaminhada_endocrino');
+
+  // Encerramentos
+  const pacsAtivas = filteredPacientes.filter(p => !motivoDe(p));
+  const pacsPorMotivo = (m: string) => filteredPacientes.filter(p => motivoDe(p) === m);
+  const pacsEncerradas = filteredPacientes.filter(p => !!motivoDe(p));
+
+
   return (
     <div className="flex flex-col gap-6">
       {/* 1. Header — mesma estrutura do admin (título + subtítulo + ações à direita) */}
