@@ -364,46 +364,59 @@ export default function DashboardMetricasPage() {
   };
 
   return (
-    <div>
-      {/* 1. Header */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
-          {t('dashboardMetricas.title')}
-        </h1>
+    <div className="flex flex-col gap-6">
+      {/* 1. Header — mesma estrutura do admin (título + subtítulo + ações à direita) */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1
+            className="text-[26px] font-bold leading-tight"
+            style={{ fontFamily: 'Sora, sans-serif', color: '#1E293B' }}
+          >
+            {t('dashboardMetricas.title')}
+          </h1>
+          <p
+            className="mt-1 text-sm"
+            style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          >
+            {t('dashboardMetricas.kpi.trackedSub')}
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="w-[150px] text-sm" />
-          <span className="text-sm text-muted-foreground">{t('dashboardMetricas.dateRangeSep')}</span>
-          <Input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} className="w-[150px] text-sm" />
-          <Button variant="outline" size="sm" onClick={handleExportPDF}>
-            <Download className="h-4 w-4 mr-1" /> {t('dashboardMetricas.exportPdf')}
+          <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="h-9 w-[150px] text-sm" />
+          <span className="text-sm" style={{ color: '#94A3B8' }}>{t('dashboardMetricas.dateRangeSep')}</span>
+          <Input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} className="h-9 w-[150px] text-sm" />
+          <Button
+            size="sm"
+            onClick={handleExportPDF}
+            className="h-9 bg-[#7C4DBA] text-white hover:bg-[#6A3FA0]"
+          >
+            <Download className="mr-1 h-4 w-4" /> {t('dashboardMetricas.exportPdf')}
           </Button>
         </div>
       </div>
 
-      {/* 2. Barra operacional (compacta, alinhada à direita) */}
-      <div className="mb-6 flex justify-end gap-3">
+      {/* 2. Barra operacional — chips discretos alinhados à direita */}
+      <div className="flex flex-wrap justify-end gap-2">
         <button
           onClick={handleRetornosClick}
-          className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors hover:opacity-80"
+          className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors hover:opacity-90"
           style={{
             fontFamily: 'Plus Jakarta Sans, sans-serif',
-            fontSize: '14px',
-            backgroundColor: retornosVencidos > 0 ? '#FFF0F6' : 'transparent',
-            borderColor: retornosVencidos > 0 ? '#FBCFE8' : BRAND.borderCinza,
-            color: retornosVencidos > 0 ? '#9D174D' : '#94A3B8',
+            backgroundColor: retornosVencidos > 0 ? '#FEF2F2' : '#F8FAFC',
+            borderColor: retornosVencidos > 0 ? '#FCA5A5' : '#E2E8F0',
+            color: retornosVencidos > 0 ? '#B91C1C' : '#64748B',
           }}
         >
           <AlertTriangle className="h-3.5 w-3.5" />
           {t('dashboardMetricas.overdueReturns', { count: retornosVencidos })}
         </button>
         <div
-          className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+          className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium"
           style={{
             fontFamily: 'Plus Jakarta Sans, sans-serif',
-            fontSize: '14px',
-            backgroundColor: BRAND.bgBranco,
-            borderColor: BRAND.borderCinza,
-            color: BRAND.textLabel,
+            backgroundColor: '#F8FAFC',
+            borderColor: '#E2E8F0',
+            color: '#64748B',
           }}
         >
           <FileText className="h-3.5 w-3.5" />
@@ -411,293 +424,246 @@ export default function DashboardMetricasPage() {
         </div>
       </div>
 
-      <div id="dashboard-metricas-content">
-        {/* Panorama + ação — a faixa que responde "como está meu consultório e o que exige atenção" */}
-        <div className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          <HeroTile
+      <div id="dashboard-metricas-content" className="flex flex-col gap-8">
+        {/* KPIs principais — cards brancos limpos, idênticos ao admin */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <AdminMetricaCard
             label={t('dashboardMetricas.kpi.tracked')}
-            value={allPacientesCount}
-            sub={t('dashboardMetricas.kpi.trackedSub')}
-            accent={BRAND.lilas}
+            valor={allPacientesCount}
+            sublabel={t('dashboardMetricas.kpi.trackedSub')}
           />
-          <HeroTile
+          <AdminMetricaCard
             label={t('dashboardMetricas.kpi.dmgRate')}
-            value={`${taxaDmg}%`}
-            sub={t('dashboardMetricas.kpi.dmgRateSub', { count: dmgCount })}
-            accent={BRAND.roxoEscuro}
+            valor={`${taxaDmg}%`}
+            sublabel={t('dashboardMetricas.kpi.dmgRateSub', { count: dmgCount })}
+            cor={BRAND.lilas}
           />
-          <HeroTile
+          <AdminMetricaCard
             label={t('dashboardMetricas.kpi.active')}
-            value={ativasCount}
-            sub={t('dashboardMetricas.kpi.activeSub')}
-            accent="#0EA5A5"
+            valor={ativasCount}
+            sublabel={t('dashboardMetricas.kpi.activeSub')}
           />
-          <HeroTile
+          <AdminMetricaCard
             label={t('dashboardMetricas.kpi.overdue')}
-            value={retornosVencidos}
-            sub={t('dashboardMetricas.kpi.overdueSub')}
-            accent={retornosVencidos > 0 ? '#E11D48' : '#94A3B8'}
-            action={retornosVencidos > 0}
-            onClick={handleRetornosClick}
+            valor={retornosVencidos}
+            sublabel={t('dashboardMetricas.kpi.overdueSub')}
+            cor={retornosVencidos > 0 ? '#DC2626' : '#94A3B8'}
+            onClick={retornosVencidos > 0 ? handleRetornosClick : undefined}
           />
         </div>
 
-        {/* 3. Visão Geral — 6 cards de status clínico (3x2) */}
-        <SectionTitle>{t('dashboardMetricas.sections.overview')}</SectionTitle>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          <StatusCard
-            icon={<Clock className="h-4 w-4" style={{ color: '#64748B' }} />}
-            label={t('dashboardMetricas.overview.awaitingGj')}
-            value={statusCounts.aguardando_gj}
-            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })}
-            bg="#F1F5F9" border="#CBD5E1"
-          />
-          <StatusCard
-            icon={<Clock className="h-4 w-4" style={{ color: '#3B82F6' }} />}
-            label={t('dashboardMetricas.overview.awaitingGtt')}
-            value={statusCounts.aguardando_gtt}
-            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })}
-            bg="#EFF6FF" border="#93C5FD"
-          />
-          <StatusCard
-            icon={<Activity className="h-4 w-4" style={{ color: '#F97316' }} />}
-            label={t('dashboardMetricas.overview.dmgConfirmed')}
-            value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino}
-            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })}
-            bg="#FFF7ED" border="#FDBA74"
-          />
-          <StatusCard
-            icon={<CheckCircle className="h-4 w-4" style={{ color: '#10B981' }} />}
-            label={t('dashboardMetricas.overview.dmgRuledOut')}
-            value={statusCounts.dmg_afastado}
-            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })}
-            bg="#ECFDF5" border="#6EE7B7"
-          />
-          <StatusCard
-            icon={<Baby className="h-4 w-4" style={{ color: '#8B5CF6' }} />}
-            label={t('dashboardMetricas.overview.deliveryResult')}
-            value={statusCounts.resultado_parto}
-            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })}
-            bg="#F5F3FF" border="#C4B5FD"
-          />
-          <StatusCard
-            icon={<Stethoscope className="h-4 w-4" style={{ color: '#EF4444' }} />}
-            label={t('dashboardMetricas.overview.associateEndo')}
-            value={statusCounts.encaminhada_endocrino}
-            detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.encaminhada_endocrino) })}
-            bg="#FEF2F2" border="#FCA5A5"
-          />
-        </div>
-
-        {/* 4. Diagnóstico */}
-        <SectionTitle>{t('dashboardMetricas.sections.diagnosis')}</SectionTitle>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          <StatusCard
-            icon={<Users className="h-4 w-4" style={{ color: BRAND.textLabel }} />}
-            label={t('dashboardMetricas.diagnosis.totalPatients')}
-            value={allPacientesCount}
-            bg={BRAND.bgBranco} border={BRAND.borderCinza}
-          />
-          <StatusCard
-            icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
-            label={t('dashboardMetricas.diagnosis.dmgConfirmedGj')}
-            value={dmgByGJ}
-            detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGJ / allPacientesCount) * 100) : 0 })}
-            bg={BRAND.bgLavandaDef} border={BRAND.borderLilasPrimario}
-          />
-          <StatusCard
-            icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
-            label={t('dashboardMetricas.diagnosis.dmgConfirmedGtt')}
-            value={dmgByGTT}
-            detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGTT / allPacientesCount) * 100) : 0 })}
-            bg={BRAND.bgLavanda} border={BRAND.borderLilasPrimario}
-          />
-          <StatusCard
-            icon={<CheckCircle className="h-4 w-4" style={{ color: BRAND.verdaAgua }} />}
-            label={t('dashboardMetricas.diagnosis.dmgRuledOutGtt')}
-            value={dmgAfastado}
-            detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0 })}
-            bg={BRAND.bgVerdeSuave} border={BRAND.borderVerdeAgua}
-          />
-        </div>
-
-        {/* Pie: Momento do diagnóstico */}
-        {diagPieData.length > 0 && (
-          <div className="mb-8 rounded-xl border bg-card p-4" style={{ borderColor: BRAND.borderCinza }}>
-            <h3 className="mb-3 text-sm font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
-              {t('dashboardMetricas.pie.title')}
-            </h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={diagPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                  {diagPieData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <RechartsTooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+        {/* Visão Geral — 6 status clínicos como cards limpos com bolinha colorida */}
+        <section className="flex flex-col gap-4">
+          <AdminSectionTitle>{t('dashboardMetricas.sections.overview')}</AdminSectionTitle>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.overview.awaitingGj')} value={statusCounts.aguardando_gj} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })} />
+            <CleanStatCard dotColor="#3B82F6" icon={Clock} label={t('dashboardMetricas.overview.awaitingGtt')} value={statusCounts.aguardando_gtt} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.overview.dmgConfirmed')} value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })} />
+            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.overview.dmgRuledOut')} value={statusCounts.dmg_afastado} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })} />
+            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Baby} label={t('dashboardMetricas.overview.deliveryResult')} value={statusCounts.resultado_parto} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })} />
+            <CleanStatCard dotColor="#F472B6" icon={Stethoscope} label={t('dashboardMetricas.overview.associateEndo')} value={statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.encaminhada_endocrino) })} />
           </div>
-        )}
+        </section>
 
-        {/* 5. Tratamento */}
-        <SectionTitle>{t('dashboardMetricas.sections.treatment')}</SectionTitle>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          <StatusCard
-            icon={<CheckCircle className="h-4 w-4" style={{ color: BRAND.verdaAgua }} />}
-            label={t('dashboardMetricas.treatment.dietOnly')}
-            value={dietOnly}
-            detail={t('dashboardMetricas.pctOfDmg', { pct: dietOnlyPercent })}
-            bg={BRAND.bgVerdeSuave} border={BRAND.borderVerdeAgua}
-          />
-          <StatusCard
-            icon={<Activity className="h-4 w-4" style={{ color: BRAND.lilas }} />}
-            label={t('dashboardMetricas.treatment.withInsulin')}
-            value={withInsulin}
-            detail={t('dashboardMetricas.pctOfDmg', { pct: withInsulinPercent })}
-            bg={BRAND.bgLavanda} border={BRAND.borderLilasPrimario}
-          />
-          <StatusCard
-            icon={<Stethoscope className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
-            label={t('dashboardMetricas.treatment.withEndo')}
-            value={endocrino}
-            detail={t('dashboardMetricas.pctOfDmg', { pct: endocrinoPercent })}
-            bg={BRAND.bgRosaSuave} border={BRAND.borderRosa}
-          />
-        </div>
+        {/* Diagnóstico — cards + gráfico dentro de CardContainer */}
+        <section className="flex flex-col gap-4">
+          <AdminSectionTitle>{t('dashboardMetricas.sections.diagnosis')}</AdminSectionTitle>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.diagnosis.totalPatients')} value={allPacientesCount} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGj')} value={dmgByGJ} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGJ / allPacientesCount) * 100) : 0 })} />
+            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGtt')} value={dmgByGTT} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGTT / allPacientesCount) * 100) : 0 })} />
+            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.diagnosis.dmgRuledOutGtt')} value={dmgAfastado} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0 })} />
+          </div>
 
-        {/* 6. Encerramentos & acompanhamento */}
-        <SectionTitle>{t('dashboardMetricas.sections.closures')}</SectionTitle>
-        <div className="mb-3 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          <StatusCard
-            icon={<CheckCircle className="h-4 w-4" style={{ color: '#0EA5A5' }} />}
-            label={t('dashboardMetricas.closures.active')}
-            value={ativasCount}
-            detail={t('dashboardMetricas.closures.activeDetail')}
-            bg="#ECFEFF" border="#67E8F9"
-          />
-          <StatusCard
-            icon={<Baby className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
-            label={t('dashboardMetricas.closures.delivery')}
-            value={encerramentos.parto}
-            bg={BRAND.bgLavanda} border={BRAND.borderLilas}
-          />
-          <StatusCard
-            icon={<Stethoscope className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
-            label={t('dashboardMetricas.closures.toEndo')}
-            value={encerramentos.insulinizacao}
-            bg={BRAND.bgRosaSuave} border={BRAND.borderRosa}
-          />
-        </div>
-        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
-          <StatusCard
-            icon={<Activity className="h-4 w-4" style={{ color: '#94A3B8' }} />}
-            label={t('dashboardMetricas.closures.miscarriage')}
-            value={encerramentos.aborto}
-            bg={BRAND.bgBranco} border={BRAND.borderCinza}
-          />
-          <StatusCard
-            icon={<Clock className="h-4 w-4" style={{ color: '#94A3B8' }} />}
-            label={t('dashboardMetricas.closures.noReturn')}
-            value={encerramentos.nao_retornou}
-            detail={temEncerramentos ? t('dashboardMetricas.closures.noReturnRate', { pct: naoRetornouTaxa }) : undefined}
-            bg={BRAND.bgBranco} border={BRAND.borderCinza}
-          />
-          <StatusCard
-            icon={<Users className="h-4 w-4" style={{ color: BRAND.textLabel }} />}
-            label={t('dashboardMetricas.closures.total')}
-            value={encerradasCount}
-            bg={BRAND.bgBranco} border={BRAND.borderCinza}
-          />
-        </div>
+          {diagPieData.length > 0 && (
+            <AdminChartCard title={t('dashboardMetricas.pie.title')}>
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie data={diagPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} isAnimationActive={false} stroke="#FFFFFF" strokeWidth={2}>
+                    {diagPieData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip />
+                  <Legend iconType="circle" wrapperStyle={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </AdminChartCard>
+          )}
+        </section>
 
-        {/* 7. Evolução Mensal (stacked bars — LAST) */}
+        {/* Tratamento */}
+        <section className="flex flex-col gap-4">
+          <AdminSectionTitle>{t('dashboardMetricas.sections.treatment')}</AdminSectionTitle>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.treatment.dietOnly')} value={dietOnly} detail={t('dashboardMetricas.pctOfDmg', { pct: dietOnlyPercent })} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.treatment.withInsulin')} value={withInsulin} detail={t('dashboardMetricas.pctOfDmg', { pct: withInsulinPercent })} />
+            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Stethoscope} label={t('dashboardMetricas.treatment.withEndo')} value={endocrino} detail={t('dashboardMetricas.pctOfDmg', { pct: endocrinoPercent })} />
+          </div>
+        </section>
+
+        {/* Encerramentos & acompanhamento */}
+        <section className="flex flex-col gap-4">
+          <AdminSectionTitle>{t('dashboardMetricas.sections.closures')}</AdminSectionTitle>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+            <CleanStatCard dotColor="#0EA5A5" icon={CheckCircle} label={t('dashboardMetricas.closures.active')} value={ativasCount} detail={t('dashboardMetricas.closures.activeDetail')} />
+            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Baby} label={t('dashboardMetricas.closures.delivery')} value={encerramentos.parto} />
+            <CleanStatCard dotColor="#F472B6" icon={Stethoscope} label={t('dashboardMetricas.closures.toEndo')} value={encerramentos.insulinizacao} />
+            <CleanStatCard dotColor="#94A3B8" icon={Activity} label={t('dashboardMetricas.closures.miscarriage')} value={encerramentos.aborto} />
+            <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.closures.noReturn')} value={encerramentos.nao_retornou} detail={temEncerramentos ? t('dashboardMetricas.closures.noReturnRate', { pct: naoRetornouTaxa }) : undefined} />
+            <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.closures.total')} value={encerradasCount} />
+          </div>
+        </section>
+
+        {/* Evolução Mensal */}
         {showChart && (
-          <div className="mb-8 rounded-xl border bg-card p-4" style={{ borderColor: BRAND.borderCinza }}>
-            <h2 className="mb-4 text-base font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
-              {t('dashboardMetricas.chart.title')}
-            </h2>
+          <AdminChartCard title={t('dashboardMetricas.chart.title')}>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: BRAND.textLabel }} />
-                <YAxis tick={{ fontSize: 12, fill: BRAND.textLabel }} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: BRAND.textLabel }} axisLine={{ stroke: '#E2E8F0' }} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: BRAND.textLabel }} allowDecimals={false} axisLine={false} tickLine={false} />
                 <RechartsTooltip />
-                <Legend />
+                <Legend iconType="circle" wrapperStyle={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 12 }} />
                 <Bar dataKey="novas" name={t('dashboardMetricas.chart.newPatients')} stackId="a" fill={BRAND.lilas} radius={[0, 0, 0, 0]}>
                   <LabelList dataKey="novas" content={renderLabel} />
                 </Bar>
-                <Bar dataKey="dmg" name={t('dashboardMetricas.chart.dmgConfirmed')} stackId="a" fill={BRAND.roxoEscuro} radius={[4, 4, 0, 0]}>
+                <Bar dataKey="dmg" name={t('dashboardMetricas.chart.dmgConfirmed')} stackId="a" fill={BRAND.roxoEscuro} radius={[6, 6, 0, 0]}>
                   <LabelList dataKey="dmg" content={renderLabel} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </AdminChartCard>
         )}
       </div>
     </div>
   );
 }
 
-// --- StatusCard component ---
-function StatusCard({ icon, label, value, detail, bg, border }: {
-  icon: React.ReactNode;
+// -----------------------------------------------------------------------------
+// Componentes de UI alinhados à família visual do ADMIN
+// (mesmo card branco, mesma tipografia, mesmo comportamento de hover).
+// -----------------------------------------------------------------------------
+
+function AdminMetricaCard({
+  label,
+  valor,
+  sublabel,
+  cor,
+  onClick,
+}: {
+  label: string;
+  valor: string | number;
+  sublabel?: string;
+  cor?: string;
+  onClick?: () => void;
+}) {
+  const Tag: any = onClick ? 'button' : 'div';
+  return (
+    <Tag
+      onClick={onClick}
+      className={`rounded-xl border bg-white p-5 text-left shadow-sm transition-all ${onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : ''}`}
+      style={{ borderColor: '#E2E8F0' }}
+    >
+      <div
+        className="text-sm"
+        style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+      >
+        {label}
+      </div>
+      <div
+        className="mt-2 text-[32px] leading-none font-bold"
+        style={{ color: cor ?? '#1E293B', fontFamily: 'Sora, sans-serif' }}
+      >
+        {valor}
+      </div>
+      {sublabel && (
+        <div
+          className="mt-2 text-xs"
+          style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+        >
+          {sublabel}
+        </div>
+      )}
+    </Tag>
+  );
+}
+
+function CleanStatCard({
+  icon: Icon,
+  label,
+  value,
+  detail,
+  dotColor,
+}: {
+  icon: React.ElementType;
   label: string;
   value: number;
   detail?: string;
-  bg: string;
-  border: string;
+  dotColor: string;
 }) {
   return (
     <div
-      className="rounded-xl border p-4"
-      style={{ backgroundColor: bg, borderColor: border }}
+      className="rounded-xl border bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+      style={{ borderColor: '#E2E8F0' }}
     >
-      <div className="flex items-center gap-2 mb-2">
-        {icon}
-        <span className="text-sm" style={{ color: BRAND.textLabel, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{label}</span>
+      <div className="mb-2 flex items-center gap-2">
+        <span
+          className="inline-flex h-6 w-6 items-center justify-center rounded-full"
+          style={{ backgroundColor: `${dotColor}1A` }}
+        >
+          <Icon className="h-3.5 w-3.5" style={{ color: dotColor }} />
+        </span>
+        <span
+          className="text-sm"
+          style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+        >
+          {label}
+        </span>
       </div>
-      <p className="text-[28px] font-bold" style={{ color: BRAND.textNumero }}>{value}</p>
-      {detail && <p className="text-sm mt-1" style={{ color: BRAND.textLabel }}>{detail}</p>}
+      <p
+        className="text-[28px] font-bold leading-none"
+        style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
+      >
+        {value}
+      </p>
+      {detail && (
+        <p
+          className="mt-2 text-xs"
+          style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+        >
+          {detail}
+        </p>
+      )}
     </div>
   );
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function AdminSectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-4 text-base font-semibold" style={{ fontFamily: 'Sora, sans-serif', color: BRAND.textNumero }}>
+    <h2
+      className="text-lg font-semibold"
+      style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
+    >
       {children}
     </h2>
   );
 }
 
-// KPI de destaque da faixa de topo (panorama + ação).
-function HeroTile({ label, value, sub, accent, action, onClick }: {
-  label: string;
-  value: React.ReactNode;
-  sub?: string;
-  accent: string;
-  action?: boolean;
-  onClick?: () => void;
-}) {
-  const Tag: any = action ? 'button' : 'div';
+function AdminChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Tag
-      onClick={onClick}
-      className={`relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-shadow ${action ? 'cursor-pointer hover:shadow-md' : ''}`}
-      style={{ borderColor: BRAND.borderCinza }}
+    <div
+      className="rounded-xl border bg-white p-5 shadow-sm"
+      style={{ borderColor: '#E2E8F0' }}
     >
-      {/* faixa de acento à esquerda */}
-      <span className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: accent }} />
-      <p className="text-[13px] font-medium" style={{ color: BRAND.textLabel, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-        {label}
-      </p>
-      <p className="mt-1.5 text-[34px] font-bold leading-none" style={{ color: BRAND.textNumero, fontFamily: 'Sora, sans-serif' }}>
-        {value}
-      </p>
-      {sub && <p className="mt-1.5 text-xs" style={{ color: action ? accent : BRAND.textLabel }}>{sub}</p>}
-    </Tag>
+      <h3
+        className="mb-4 text-base font-semibold"
+        style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
+      >
+        {title}
+      </h3>
+      {children}
+    </div>
   );
 }
 
