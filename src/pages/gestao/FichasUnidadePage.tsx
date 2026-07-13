@@ -174,7 +174,8 @@ export default function FichasUnidadePage() {
         .from('pacientes')
         .select('id, nome, status_ficha, profissional_id, data_ultima_consulta, data_proximo_retorno, created_at, dum, usg_data, usg_ig_semanas, usg_ig_dias')
         .eq('unidade_id', prof.unidade_id)
-        .eq('is_rascunho', false);
+        .eq('is_rascunho', false)
+        .order('created_at', { ascending: false });
 
       setFichas((pacs || []).map((p: any) => ({
         id: p.id,
