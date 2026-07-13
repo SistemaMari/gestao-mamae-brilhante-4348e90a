@@ -646,16 +646,21 @@ function CleanStatCard({
   value,
   detail,
   dotColor,
+  onClick,
 }: {
   icon: React.ElementType;
   label: string;
   value: number;
   detail?: string;
   dotColor: string;
+  onClick?: () => void;
 }) {
+  const clickable = !!onClick && value > 0;
+  const Tag: any = clickable ? 'button' : 'div';
   return (
-    <div
-      className="rounded-xl border bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+    <Tag
+      onClick={clickable ? onClick : undefined}
+      className={`group relative w-full rounded-xl border bg-white p-5 text-left shadow-sm transition-all ${clickable ? 'cursor-pointer hover:-translate-y-0.5 hover:border-[#C4B5FD] hover:shadow-md' : ''}`}
       style={{ borderColor: '#E2E8F0' }}
     >
       <div className="mb-2 flex items-center gap-2">
@@ -671,6 +676,12 @@ function CleanStatCard({
         >
           {label}
         </span>
+        {clickable && (
+          <ChevronRight
+            className="ml-auto h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
+            style={{ color: '#94A3B8' }}
+          />
+        )}
       </div>
       <p
         className="text-[28px] font-bold leading-none"
@@ -686,9 +697,10 @@ function CleanStatCard({
           {detail}
         </p>
       )}
-    </div>
+    </Tag>
   );
 }
+
 
 function AdminSectionTitle({ children }: { children: React.ReactNode }) {
   return (
