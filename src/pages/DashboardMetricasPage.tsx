@@ -157,6 +157,9 @@ export default function DashboardMetricasPage() {
     });
   }, [pacientes, dateStart, dateEnd]);
 
+  const [lista, setLista] = useState<{ titulo: string; pacientes: Paciente[] } | null>(null);
+
+
   const allPacientesCount = filteredPacientes.length;
 
   // --- VISÃO GERAL: 6 status cards ---
