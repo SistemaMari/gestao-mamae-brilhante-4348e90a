@@ -25,6 +25,7 @@ const navByProfile: Record<string, NavItem[]> = {
     { label: 'appSidebar.newPatient', icon: UserPlus, path: '/paciente/nova' },
     { label: 'appSidebar.myCourses', icon: GraduationCap, path: '/meus-cursos' },
     { label: 'appSidebar.metrics', icon: BarChart3, path: '/dashboard/metricas' },
+    { label: 'appSidebar.tutorial', icon: PlayCircle, path: '/tutorial', dividerBefore: true },
     { label: 'appSidebar.plans', icon: CreditCard, path: '/planos' },
     { label: 'appSidebar.profile', icon: UserCircle, path: '/perfil' },
   ],
