@@ -528,21 +528,117 @@ export default function DashboardMetricasPage() {
             />
           </div>
 
-          {diagPieData.length > 0 && (
-            <AdminChartCard title={t('dashboardMetricas.pie.title')}>
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie data={diagPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} isAnimationActive={false} stroke="#FFFFFF" strokeWidth={2}>
-                    {diagPieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip />
-                  <Legend iconType="circle" wrapperStyle={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 12 }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </AdminChartCard>
-          )}
+          {(() => {
+            const diagTotal = diagPieData.reduce((s, d) => s + d.value, 0);
+            const listaDe = (name: string) => {
+              if (name === t('dashboardMetricas.pie.diagGj')) return pacsDmgByGJ;
+              if (name === t('dashboardMetricas.pie.gttNormal') || name === t('dashboardMetricas.pie.gttTardio')) return pacsDmgByGTT;
+              return [];
+            };
+            return diagTotal > 0 ? (
+              <AdminChartCard title={t('dashboardMetricas.pie.title')}>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-[260px_1fr] md:items-center">
+                  {/* Donut com total no centro */}
+                  <div className="relative mx-auto h-[240px] w-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={diagPieData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={68}
+                          outerRadius={100}
+                          paddingAngle={2}
+                          isAnimationActive={false}
+                          stroke="#FFFFFF"
+                          strokeWidth={2}
+                        >
+                          {diagPieData.map((entry, i) => (
+                            <Cell key={i} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip
+                          contentStyle={{
+                            borderRadius: 10,
+                            border: '1px solid #E2E8F0',
+                            fontFamily: 'Plus Jakarta Sans, sans-serif',
+                            fontSize: 12,
+                          }}
+                          formatter={(value: number, name: string) => [
+                            `${value} (${Math.round((value / diagTotal) * 100)}%)`,
+                            name,
+                          ]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                      <span
+                        className="text-3xl font-bold leading-none"
+                        style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
+                      >
+                        {diagTotal}
+                      </span>
+                      <span
+                        className="mt-1 text-[11px] uppercase tracking-wide"
+                        style={{ color: '#94A3B8', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                      >
+                        {t('dashboardMetricas.pie.centerLabel', { defaultValue: 'diagnósticos' })}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Legenda detalhada clicável */}
+                  <ul className="flex flex-col gap-1.5">
+                    {diagPieData.map((entry) => {
+                      const pacs = listaDe(entry.name);
+                      const pct = Math.round((entry.value / diagTotal) * 100);
+                      const clickable = pacs.length > 0;
+                      const Tag: any = clickable ? 'button' : 'div';
+                      return (
+                        <Tag
+                          key={entry.name}
+                          onClick={clickable ? () => abrirLista(entry.name, pacs) : undefined}
+                          className={`group flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left transition-all ${clickable ? 'hover:border-[#E2E8F0] hover:bg-[#F8FAFC]' : ''}`}
+                        >
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span
+                            className="flex-1 text-sm"
+                            style={{ color: '#334155', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          >
+                            {entry.name}
+                          </span>
+                          <span
+                            className="text-sm font-semibold tabular-nums"
+                            style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
+                          >
+                            {entry.value}
+                          </span>
+                          <span
+                            className="w-12 text-right text-xs tabular-nums"
+                            style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                          >
+                            {pct}%
+                          </span>
+                          {clickable && (
+                            <ChevronRight
+                              className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
+                              style={{ color: '#94A3B8' }}
+                            />
+                          )}
+                        </Tag>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </AdminChartCard>
+            ) : null;
+          })()}
+
         </section>
 
         {/* Tratamento */}
