@@ -1,7 +1,7 @@
 import { useState, useMemo, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RotateCw, Search } from "lucide-react";
+import { Plus, RotateCw, Search, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ModalCriarUnidade from "./ModalCriarUnidade";
+import ImportarEmMassaModal, { type ImportConfig } from "./ImportarEmMassaModal";
 import ModalEditarUnidade, { type UnidadeEditavel } from "./ModalEditarUnidade";
 import ModalTrocarGestor from "./ModalTrocarGestor";
 import ModalReenviarConvite from "./ModalReenviarConvite";
@@ -42,6 +43,7 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [openCriar, setOpenCriar] = useState(false);
+  const [openImportar, setOpenImportar] = useState(false);
   const [editar, setEditar] = useState<UnidadeEditavel | null>(null);
   const [trocar, setTrocar] = useState<{ id: string; nome: string } | null>(null);
   const [reenviar, setReenviar] = useState<{ tipo: "gestor_unidade"; id: string; email?: string | null } | null>(null);
@@ -134,6 +136,9 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
             {isLoading ? t("common.loading") : t("admin.unidades.count", { count: unidades.length })}
           </p>
         </div>
+        <Button variant="outline" onClick={() => setOpenImportar(true)}>
+          <Upload className="mr-2 h-4 w-4" /> {t("importar.button")}
+        </Button>
         <Button onClick={() => setOpenCriar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
           <Plus className="mr-2 h-4 w-4" /> {t("admin.unidades.createUnit")}
         </Button>
@@ -260,6 +265,49 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
       </div>
 
       <ModalCriarUnidade open={openCriar} onOpenChange={setOpenCriar} onSucesso={refresh} onIrParaContratantes={onIrParaContratantes} />
+      <ImportarEmMassaModal
+        open={openImportar}
+        onOpenChange={setOpenImportar}
+        onSucesso={refresh}
+        config={{
+          slug: "unidades",
+          titulo: t("importar.unidades.title"),
+          descricao: t("importar.unidades.desc"),
+          acao: "criar_unidade",
+          colunas: [
+            { chave: "contratante", obrigatoria: true },
+            { chave: "nome", obrigatoria: true },
+            { chave: "tipo", obrigatoria: true },
+            { chave: "cnes" },
+            { chave: "pais" },
+            { chave: "estado", obrigatoria: true },
+            { chave: "cidade", obrigatoria: true },
+          ],
+          exemplo: { contratante: "Demo Health", nome: "UBS Exemplo", tipo: "UBS", cnes: "", pais: "Brasil", estado: "SP", cidade: "São Paulo" },
+          preparar: (linha) => {
+            const nome = (linha.nome ?? "").trim();
+            const contratanteNome = (linha.contratante ?? "").trim();
+            const tipo = (linha.tipo ?? "").trim();
+            const pais = (linha.pais ?? "").trim() || "Brasil";
+            const estado = (linha.estado ?? "").trim();
+            const cidade = (linha.cidade ?? "").trim();
+            const cnes = (linha.cnes ?? "").trim();
+            const ct = contratantesOpt.find((c) => c.nome.trim().toLowerCase() === contratanteNome.toLowerCase());
+            const erros: string[] = [];
+            if (!contratanteNome) erros.push(t("importar.err.contratanteVazio"));
+            else if (!ct) erros.push(t("importar.err.contratanteNaoEncontrado"));
+            if (!nome) erros.push(t("importar.err.nomeUnidade"));
+            if (!tipo) erros.push(t("importar.err.tipo"));
+            if (!estado) erros.push(t("importar.err.estado"));
+            if (!cidade) erros.push(t("importar.err.cidade"));
+            return {
+              payload: erros.length ? null : { contratante_id: ct!.id, nome, tipo, cnes: cnes || null, pais, estado, cidade },
+              erros,
+              rotulo: nome || "—",
+            };
+          },
+        } as ImportConfig}
+      />
       <ModalEditarUnidade unidade={editar} onClose={() => setEditar(null)} onSucesso={refresh} />
       <ModalTrocarGestor unidade={trocar} onClose={() => setTrocar(null)} onSucesso={refresh} />
       <ModalReenviarConvite alvo={reenviar} onClose={() => setReenviar(null)} />

@@ -2564,11 +2564,25 @@
       "email": "Correo inválido",
       "unidadeVazia": "Unidad obligatoria",
       "unidadeNaoEncontrada": "Unidad no encontrada",
-      "perfil": "Perfil clínico inválido"
+      "perfil": "Perfil clínico inválido",
+      "contratanteVazio": "Contratante obligatorio",
+      "contratanteNaoEncontrado": "Contratante no encontrado",
+      "nomeUnidade": "Nombre de la unidad obligatorio",
+      "tipo": "Tipo obligatorio",
+      "estado": "Estado obligatorio",
+      "cidade": "Ciudad obligatoria"
     },
     "profissionais": {
       "title": "Importar profesionales en masa",
       "desc": "Sube una hoja de cálculo (.xlsx/.csv) con unidad, nombre, correo y perfil clínico. Cada profesional recibe la invitación por correo."
+    },
+    "unidades": {
+      "title": "Importar unidades en masa",
+      "desc": "Sube una hoja de cálculo (.xlsx/.csv) con contratante, nombre, tipo, estado y ciudad. El plan siempre es Institucional; el gestor queda abierto para vincular después."
+    },
+    "gestores": {
+      "title": "Importar gestores de unidad en masa",
+      "desc": "Sube una hoja de cálculo (.xlsx/.csv) con nombre, correo y (opcional) unidad. Cada gestor recibe la invitación por correo."
     }
   },
   "gestaoEquipe": {

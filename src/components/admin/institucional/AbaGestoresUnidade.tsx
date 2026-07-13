@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RotateCw, Search, Ban, RefreshCcw, Pencil, Link2, Unlink } from "lucide-react";
+import { Plus, RotateCw, Search, Ban, RefreshCcw, Pencil, Link2, Unlink, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +12,14 @@ import { Badge } from "@/components/ui/badge";
 import { FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
 import { toast } from "sonner";
 import ModalCadastrarGestorUnidade from "./ModalCadastrarGestorUnidade";
+import ImportarEmMassaModal, { type ImportConfig } from "./ImportarEmMassaModal";
 import ModalEditarGestorUnidade from "./ModalEditarGestorUnidade";
 import AlertRevogarGestorUnidade from "./AlertRevogarGestorUnidade";
 import AlertReativarGestorUnidade from "./AlertReativarGestorUnidade";
 import ModalVincularGestor, { type AlvoVinculacao } from "./ModalVincularGestor";
 import AlertDesvincularGestor from "./AlertDesvincularGestor";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export interface GestorUnidadeRow {
   id: string;
@@ -44,6 +47,7 @@ export default function AbaGestoresUnidade() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [openCadastrar, setOpenCadastrar] = useState(false);
+  const [openImportar, setOpenImportar] = useState(false);
   const [editar, setEditar] = useState<GestorUnidadeRow | null>(null);
   const [revogar, setRevogar] = useState<GestorUnidadeRow | null>(null);
   const [reativar, setReativar] = useState<GestorUnidadeRow | null>(null);
@@ -72,6 +76,14 @@ export default function AbaGestoresUnidade() {
       });
       if (error) throw new Error("Erro ao listar gestores.");
       return (data?.gestores ?? []) as GestorUnidadeRow[];
+    },
+  });
+
+  const { data: unidadesOpt = [] } = useQuery({
+    queryKey: ["institucional", "unidades-opts-gestor"],
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("gerenciar-institucional", { body: { acao: "listar_unidades" } });
+      return ((data?.unidades ?? []) as Array<{ id: string; nome: string }>);
     },
   });
 
@@ -148,7 +160,10 @@ export default function AbaGestoresUnidade() {
           </div>
         </div>
         <Button variant="outline" onClick={limpar}>{t("admin.clearFilters")}</Button>
-        <Button onClick={() => setOpenCadastrar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E] ml-auto">
+        <Button variant="outline" onClick={() => setOpenImportar(true)} className="ml-auto">
+          <Upload className="mr-2 h-4 w-4" /> {t("importar.button")}
+        </Button>
+        <Button onClick={() => setOpenCadastrar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
           <Plus className="mr-2 h-4 w-4" /> {t("admin.gestoresUnidade.addGestor")}
         </Button>
       </div>
@@ -257,6 +272,42 @@ export default function AbaGestoresUnidade() {
       </div>
 
       <ModalCadastrarGestorUnidade open={openCadastrar} onOpenChange={setOpenCadastrar} onSucesso={refresh} />
+      <ImportarEmMassaModal
+        open={openImportar}
+        onOpenChange={setOpenImportar}
+        onSucesso={refresh}
+        config={{
+          slug: "gestores-unidade",
+          titulo: t("importar.gestores.title"),
+          descricao: t("importar.gestores.desc"),
+          acao: "cadastrar_gestor_unidade",
+          colunas: [
+            { chave: "nome", obrigatoria: true },
+            { chave: "email", obrigatoria: true },
+            { chave: "unidade" },
+          ],
+          exemplo: { nome: "Gestor Exemplo", email: "gestor@exemplo.com", unidade: "" },
+          preparar: (linha) => {
+            const nome = (linha.nome ?? "").trim();
+            const email = (linha.email ?? "").trim().toLowerCase();
+            const unidadeNome = (linha.unidade ?? "").trim();
+            const erros: string[] = [];
+            if (!nome) erros.push(t("importar.err.nome"));
+            if (!EMAIL_RE.test(email)) erros.push(t("importar.err.email"));
+            let unidade_id: string | undefined;
+            if (unidadeNome) {
+              const u = unidadesOpt.find((x) => x.nome.trim().toLowerCase() === unidadeNome.toLowerCase());
+              if (!u) erros.push(t("importar.err.unidadeNaoEncontrada"));
+              else unidade_id = u.id;
+            }
+            return {
+              payload: erros.length ? null : (unidade_id ? { nome, email, unidade_id } : { nome, email }),
+              erros,
+              rotulo: nome || email || "—",
+            };
+          },
+        } as ImportConfig}
+      />
       <ModalEditarGestorUnidade alvo={editar} onClose={() => setEditar(null)} onSucesso={refresh} />
       <AlertRevogarGestorUnidade alvo={revogar} onClose={() => setRevogar(null)} onSucesso={refresh} />
       <AlertReativarGestorUnidade alvo={reativar} onClose={() => setReativar(null)} onSucesso={refresh} />

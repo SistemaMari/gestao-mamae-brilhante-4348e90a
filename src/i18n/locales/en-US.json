@@ -2564,11 +2564,25 @@
       "email": "Invalid email",
       "unidadeVazia": "Unit required",
       "unidadeNaoEncontrada": "Unit not found",
-      "perfil": "Invalid clinical profile"
+      "perfil": "Invalid clinical profile",
+      "contratanteVazio": "Contractor required",
+      "contratanteNaoEncontrado": "Contractor not found",
+      "nomeUnidade": "Unit name required",
+      "tipo": "Type required",
+      "estado": "State required",
+      "cidade": "City required"
     },
     "profissionais": {
       "title": "Bulk import professionals",
       "desc": "Upload a spreadsheet (.xlsx/.csv) with unit, name, email and clinical profile. Each professional receives the invite by email."
+    },
+    "unidades": {
+      "title": "Bulk import units",
+      "desc": "Upload a spreadsheet (.xlsx/.csv) with contractor, name, type, state and city. The plan is always Institutional; the manager is left open to link later."
+    },
+    "gestores": {
+      "title": "Bulk import unit managers",
+      "desc": "Upload a spreadsheet (.xlsx/.csv) with name, email and (optional) unit. Each manager receives the invite by email."
     }
   },
   "gestaoEquipe": {
