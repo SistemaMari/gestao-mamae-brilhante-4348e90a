@@ -25,6 +25,7 @@ interface Paciente {
   data_proximo_retorno: string | null;
   profissional_id: string;
   unidade_id: string | null;
+  motivo_encerramento?: string | null;
 }
 
 interface Consulta {
@@ -82,7 +83,7 @@ export default function DashboardMetricasPage() {
   const [loading, setLoading] = useState(true);
 
   const defaultEnd = new Date();
-  const defaultStart = subDays(defaultEnd, 90);
+  const defaultStart = subDays(defaultEnd, 365);
   const [dateStart, setDateStart] = useState(format(defaultStart, 'yyyy-MM-dd'));
   const [dateEnd, setDateEnd] = useState(format(defaultEnd, 'yyyy-MM-dd'));
 
@@ -104,7 +105,7 @@ export default function DashboardMetricasPage() {
 
     const isInstitucional = !!profissionalData.unidade_id;
 
-    let pacQuery = supabase.from('pacientes').select('id, nome, status_ficha, created_at, data_proximo_retorno, profissional_id, unidade_id').eq('is_rascunho', false);
+    let pacQuery = supabase.from('pacientes').select('id, nome, status_ficha, created_at, data_proximo_retorno, profissional_id, unidade_id, motivo_encerramento').eq('is_rascunho', false);
     if (isInstitucional) {
       pacQuery = pacQuery.eq('unidade_id', profissionalData.unidade_id!);
     } else {
@@ -193,15 +194,18 @@ export default function DashboardMetricasPage() {
     return consultas.filter(c => patientIds.has(c.paciente_id));
   }, [consultas, filteredPacientes]);
 
-  // DMG na GJ: cenario_1 or cenario_8 on retorno_1
+  // Formato do cenário é CRU no banco ('1','6','6B','8','3','7'), não 'cenario_1'.
+  // (Mesmo bug corrigido no admin #57 — aqui nunca tinha sido.) Normaliza p/ maiúsculo.
+  const cc = (c: Consulta) => (c.cenario_clinico ?? '').toUpperCase();
+  const ehGtt = (c: Consulta) => cc(c) === '6' || cc(c) === '6B';
+
+  // DMG na GJ: cenário 1, ou 8 (overt) no retorno_1
   const dmgByGJ = filteredConsultas.filter(c =>
-    c.cenario_clinico === 'cenario_1' || (c.cenario_clinico === 'cenario_8' && c.tipo === 'retorno_1')
+    cc(c) === '1' || (cc(c) === '8' && c.tipo === 'retorno_1')
   ).length;
 
-  // DMG no GTT 75g: cenario_6 or cenario_6b
-  const dmgByGTT = filteredConsultas.filter(c =>
-    c.cenario_clinico === 'cenario_6' || c.cenario_clinico === 'cenario_6b'
-  ).length;
+  // DMG no GTT 75g: cenário 6 ou 6B
+  const dmgByGTT = filteredConsultas.filter(ehGtt).length;
 
   const dmgAfastado = filteredPacientes.filter(p => p.status_ficha === 'dmg_afastado').length;
 
@@ -212,13 +216,13 @@ export default function DashboardMetricasPage() {
   }, [exames, filteredPacientes]);
 
   const gttNormal = filteredConsultas.filter(c => {
-    if (c.cenario_clinico !== 'cenario_6' && c.cenario_clinico !== 'cenario_6b') return false;
+    if (!ehGtt(c)) return false;
     const ex = filteredExames.find(e => e.consulta_id === c.id);
     return !ex || !ex.ig_semanas_na_data || ex.ig_semanas_na_data <= 28;
   }).length;
 
   const gttTardio = filteredConsultas.filter(c => {
-    if (c.cenario_clinico !== 'cenario_6' && c.cenario_clinico !== 'cenario_6b') return false;
+    if (!ehGtt(c)) return false;
     const ex = filteredExames.find(e => e.consulta_id === c.id);
     return ex && ex.ig_semanas_na_data && ex.ig_semanas_na_data > 28;
   }).length;
@@ -232,7 +236,7 @@ export default function DashboardMetricasPage() {
   // --- TRATAMENTO ---
   const patientsWithInsulin = new Set(
     filteredConsultas
-      .filter(c => c.cenario_clinico === 'cenario_3' || c.cenario_clinico === 'cenario_7')
+      .filter(c => cc(c) === '3' || cc(c) === '7')
       .map(c => c.paciente_id)
   );
   const withInsulin = patientsWithInsulin.size;
@@ -244,9 +248,27 @@ export default function DashboardMetricasPage() {
   const withInsulinPercent = Math.round((withInsulin / dmgTratamento) * 100);
   const endocrinoPercent = Math.round((endocrino / dmgTratamento) * 100);
 
-  // --- DESFECHOS ---
-  const partoPacientes = filteredPacientes.filter(p => p.status_ficha === 'resultado_parto');
-  const hasPartos = partoPacientes.length > 0;
+  // --- ENCERRAMENTOS & ACOMPANHAMENTO ---
+  // Motivo derivado: status resultado_parto → parto; encaminhada_endocrino ou
+  // motivo insulinizacao → insulinização; senão o motivo_encerramento cru.
+  const motivoDe = (p: Paciente): string | null => {
+    if (p.status_ficha === 'resultado_parto') return 'parto';
+    if (p.status_ficha === 'encaminhada_endocrino' || p.motivo_encerramento === 'insulinizacao') return 'insulinizacao';
+    return p.motivo_encerramento ?? null;
+  };
+  const encerramentos = { parto: 0, aborto: 0, insulinizacao: 0, nao_retornou: 0, outro: 0 };
+  let encerradasCount = 0;
+  filteredPacientes.forEach(p => {
+    const m = motivoDe(p);
+    if (m && (m in encerramentos)) {
+      encerramentos[m as keyof typeof encerramentos]++;
+      encerradasCount++;
+    }
+  });
+  const ativasCount = Math.max(allPacientesCount - encerradasCount, 0);
+  const naoRetornouTaxa = encerradasCount > 0 ? Math.round((encerramentos.nao_retornou / encerradasCount) * 100) : 0;
+  const taxaDmg = allPacientesCount > 0 ? Math.round((dmgCount / allPacientesCount) * 100) : 0;
+  const temEncerramentos = encerradasCount > 0;
 
   // --- EVOLUÇÃO MENSAL ---
   const startDate = new Date(dateStart);
@@ -390,6 +412,36 @@ export default function DashboardMetricasPage() {
       </div>
 
       <div id="dashboard-metricas-content">
+        {/* Panorama + ação — a faixa que responde "como está meu consultório e o que exige atenção" */}
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <HeroTile
+            label={t('dashboardMetricas.kpi.tracked')}
+            value={allPacientesCount}
+            sub={t('dashboardMetricas.kpi.trackedSub')}
+            accent={BRAND.lilas}
+          />
+          <HeroTile
+            label={t('dashboardMetricas.kpi.dmgRate')}
+            value={`${taxaDmg}%`}
+            sub={t('dashboardMetricas.kpi.dmgRateSub', { count: dmgCount })}
+            accent={BRAND.roxoEscuro}
+          />
+          <HeroTile
+            label={t('dashboardMetricas.kpi.active')}
+            value={ativasCount}
+            sub={t('dashboardMetricas.kpi.activeSub')}
+            accent="#0EA5A5"
+          />
+          <HeroTile
+            label={t('dashboardMetricas.kpi.overdue')}
+            value={retornosVencidos}
+            sub={t('dashboardMetricas.kpi.overdueSub')}
+            accent={retornosVencidos > 0 ? '#E11D48' : '#94A3B8'}
+            action={retornosVencidos > 0}
+            onClick={handleRetornosClick}
+          />
+        </div>
+
         {/* 3. Visão Geral — 6 cards de status clínico (3x2) */}
         <SectionTitle>{t('dashboardMetricas.sections.overview')}</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -515,25 +567,50 @@ export default function DashboardMetricasPage() {
           />
         </div>
 
-        {/* 6. Desfechos */}
-        <SectionTitle>{t('dashboardMetricas.sections.outcomes')}</SectionTitle>
-        {!hasPartos ? (
-          <div className="rounded-xl border bg-card p-8 text-center mb-8" style={{ borderColor: BRAND.borderCinza }}>
-            <Baby className="mx-auto h-10 w-10" style={{ color: '#94A3B8' }} />
-            <p className="mt-2 text-sm" style={{ color: BRAND.textLabel }}>
-              {t('dashboardMetricas.outcomes.noDeliveries')}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            <StatusCard
-              icon={<Baby className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
-              label={t('dashboardMetricas.outcomes.deliveriesRecorded')}
-              value={partoPacientes.length}
-              bg={BRAND.bgLavanda} border={BRAND.borderLilas}
-            />
-          </div>
-        )}
+        {/* 6. Encerramentos & acompanhamento */}
+        <SectionTitle>{t('dashboardMetricas.sections.closures')}</SectionTitle>
+        <div className="mb-3 grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <StatusCard
+            icon={<CheckCircle className="h-4 w-4" style={{ color: '#0EA5A5' }} />}
+            label={t('dashboardMetricas.closures.active')}
+            value={ativasCount}
+            detail={t('dashboardMetricas.closures.activeDetail')}
+            bg="#ECFEFF" border="#67E8F9"
+          />
+          <StatusCard
+            icon={<Baby className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
+            label={t('dashboardMetricas.closures.delivery')}
+            value={encerramentos.parto}
+            bg={BRAND.bgLavanda} border={BRAND.borderLilas}
+          />
+          <StatusCard
+            icon={<Stethoscope className="h-4 w-4" style={{ color: BRAND.roxoEscuro }} />}
+            label={t('dashboardMetricas.closures.toEndo')}
+            value={encerramentos.insulinizacao}
+            bg={BRAND.bgRosaSuave} border={BRAND.borderRosa}
+          />
+        </div>
+        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <StatusCard
+            icon={<Activity className="h-4 w-4" style={{ color: '#94A3B8' }} />}
+            label={t('dashboardMetricas.closures.miscarriage')}
+            value={encerramentos.aborto}
+            bg={BRAND.bgBranco} border={BRAND.borderCinza}
+          />
+          <StatusCard
+            icon={<Clock className="h-4 w-4" style={{ color: '#94A3B8' }} />}
+            label={t('dashboardMetricas.closures.noReturn')}
+            value={encerramentos.nao_retornou}
+            detail={temEncerramentos ? t('dashboardMetricas.closures.noReturnRate', { pct: naoRetornouTaxa }) : undefined}
+            bg={BRAND.bgBranco} border={BRAND.borderCinza}
+          />
+          <StatusCard
+            icon={<Users className="h-4 w-4" style={{ color: BRAND.textLabel }} />}
+            label={t('dashboardMetricas.closures.total')}
+            value={encerradasCount}
+            bg={BRAND.bgBranco} border={BRAND.borderCinza}
+          />
+        </div>
 
         {/* 7. Evolução Mensal (stacked bars — LAST) */}
         {showChart && (
@@ -595,6 +672,35 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
+// KPI de destaque da faixa de topo (panorama + ação).
+function HeroTile({ label, value, sub, accent, action, onClick }: {
+  label: string;
+  value: React.ReactNode;
+  sub?: string;
+  accent: string;
+  action?: boolean;
+  onClick?: () => void;
+}) {
+  const Tag: any = action ? 'button' : 'div';
+  return (
+    <Tag
+      onClick={onClick}
+      className={`relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-shadow ${action ? 'cursor-pointer hover:shadow-md' : ''}`}
+      style={{ borderColor: BRAND.borderCinza }}
+    >
+      {/* faixa de acento à esquerda */}
+      <span className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: accent }} />
+      <p className="text-[13px] font-medium" style={{ color: BRAND.textLabel, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+        {label}
+      </p>
+      <p className="mt-1.5 text-[34px] font-bold leading-none" style={{ color: BRAND.textNumero, fontFamily: 'Sora, sans-serif' }}>
+        {value}
+      </p>
+      {sub && <p className="mt-1.5 text-xs" style={{ color: action ? accent : BRAND.textLabel }}>{sub}</p>}
+    </Tag>
+  );
+}
+
 // ==========================================================================
 // PREVIEW DATA — 8 pacientes fictícias com dados internamente consistentes
 // TODO: remover mock e conectar ao Supabase quando em produção
@@ -635,41 +741,41 @@ function generatePreviewConsultas(): Consulta[] {
   return [
     // Moara (p1): Caso Novo → Retorno 1 com GJ ≥92 → cenário 1
     { id: 'c1a', paciente_id: 'p1', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-10T10:00:00Z' },
-    { id: 'c1b', paciente_id: 'p1', cenario_clinico: 'cenario_1', tipo: 'retorno_1', created_at: '2026-03-17T10:00:00Z' },
+    { id: 'c1b', paciente_id: 'p1', cenario_clinico: '1', tipo: 'retorno_1', created_at: '2026-03-17T10:00:00Z' },
 
     // Maria Luísa (p2): Apenas caso novo
     { id: 'c2a', paciente_id: 'p2', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-04-05T10:00:00Z' },
 
     // Ana Carolina (p3): Caso Novo → Retorno 1 GJ <92 → aguardando GTT 75g
     { id: 'c3a', paciente_id: 'p3', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-15T10:00:00Z' },
-    { id: 'c3b', paciente_id: 'p3', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-03-22T10:00:00Z' },
+    { id: 'c3b', paciente_id: 'p3', cenario_clinico: '2', tipo: 'retorno_1', created_at: '2026-03-22T10:00:00Z' },
 
     // Juliana (p4): Caso Novo → Retorno 1 GJ <92 → GTT 75g normal → cenário 5 (afastado)
     { id: 'c4a', paciente_id: 'p4', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-02-12T10:00:00Z' },
-    { id: 'c4b', paciente_id: 'p4', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-02-19T10:00:00Z' },
-    { id: 'c4c', paciente_id: 'p4', cenario_clinico: 'cenario_5', tipo: 'retorno_2', created_at: '2026-03-05T10:00:00Z' },
+    { id: 'c4b', paciente_id: 'p4', cenario_clinico: '2', tipo: 'retorno_1', created_at: '2026-02-19T10:00:00Z' },
+    { id: 'c4c', paciente_id: 'p4', cenario_clinico: '5', tipo: 'retorno_2', created_at: '2026-03-05T10:00:00Z' },
 
     // Patrícia (p5): GTT 75g alterado IG 26sem → cenário 6
     { id: 'c5a', paciente_id: 'p5', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-02-20T10:00:00Z' },
-    { id: 'c5b', paciente_id: 'p5', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-02-27T10:00:00Z' },
-    { id: 'c5c', paciente_id: 'p5', cenario_clinico: 'cenario_6', tipo: 'retorno_2', created_at: '2026-03-15T10:00:00Z' },
+    { id: 'c5b', paciente_id: 'p5', cenario_clinico: '2', tipo: 'retorno_1', created_at: '2026-02-27T10:00:00Z' },
+    { id: 'c5c', paciente_id: 'p5', cenario_clinico: '6', tipo: 'retorno_2', created_at: '2026-03-15T10:00:00Z' },
 
     // Camila (p6): GTT 75g alterado tardio IG 30sem → cenário 6b
     { id: 'c6a', paciente_id: 'p6', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-22T10:00:00Z' },
-    { id: 'c6b', paciente_id: 'p6', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-03-29T10:00:00Z' },
-    { id: 'c6c', paciente_id: 'p6', cenario_clinico: 'cenario_6b', tipo: 'retorno_2', created_at: '2026-04-08T10:00:00Z' },
+    { id: 'c6b', paciente_id: 'p6', cenario_clinico: '2', tipo: 'retorno_1', created_at: '2026-03-29T10:00:00Z' },
+    { id: 'c6c', paciente_id: 'p6', cenario_clinico: '6B', tipo: 'retorno_2', created_at: '2026-04-08T10:00:00Z' },
     // Camila also has insulin
-    { id: 'c6d', paciente_id: 'p6', cenario_clinico: 'cenario_3', tipo: 'retorno_3', created_at: '2026-04-10T10:00:00Z' },
+    { id: 'c6d', paciente_id: 'p6', cenario_clinico: '3', tipo: 'retorno_3', created_at: '2026-04-10T10:00:00Z' },
 
     // Fernanda (p7): DMG na GJ → cenário 1 → parto
     { id: 'c7a', paciente_id: 'p7', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-02-05T10:00:00Z' },
-    { id: 'c7b', paciente_id: 'p7', cenario_clinico: 'cenario_1', tipo: 'retorno_1', created_at: '2026-02-12T10:00:00Z' },
+    { id: 'c7b', paciente_id: 'p7', cenario_clinico: '1', tipo: 'retorno_1', created_at: '2026-02-12T10:00:00Z' },
 
     // Beatriz (p8): GTT 75g alterado → cenário 6 → insulina → cenário 7 (endocrino)
     { id: 'c8a', paciente_id: 'p8', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-28T10:00:00Z' },
-    { id: 'c8b', paciente_id: 'p8', cenario_clinico: 'cenario_2', tipo: 'retorno_1', created_at: '2026-04-04T10:00:00Z' },
-    { id: 'c8c', paciente_id: 'p8', cenario_clinico: 'cenario_6', tipo: 'retorno_2', created_at: '2026-04-08T10:00:00Z' },
-    { id: 'c8d', paciente_id: 'p8', cenario_clinico: 'cenario_7', tipo: 'retorno_3', created_at: '2026-04-10T10:00:00Z' },
+    { id: 'c8b', paciente_id: 'p8', cenario_clinico: '2', tipo: 'retorno_1', created_at: '2026-04-04T10:00:00Z' },
+    { id: 'c8c', paciente_id: 'p8', cenario_clinico: '6', tipo: 'retorno_2', created_at: '2026-04-08T10:00:00Z' },
+    { id: 'c8d', paciente_id: 'p8', cenario_clinico: '7', tipo: 'retorno_3', created_at: '2026-04-10T10:00:00Z' },
   ];
 }
 

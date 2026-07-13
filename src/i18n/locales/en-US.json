@@ -2485,7 +2485,28 @@
       "overview": "Overview",
       "diagnosis": "Diagnosis",
       "treatment": "Treatment",
-      "outcomes": "Outcomes"
+      "outcomes": "Outcomes",
+      "closures": "Closures & follow-up"
+    },
+    "kpi": {
+      "tracked": "Pregnancies tracked",
+      "trackedSub": "in the period",
+      "dmgRate": "GDM rate",
+      "dmgRateSub": "{{count}} diagnosed",
+      "active": "In follow-up",
+      "activeSub": "active pregnancies",
+      "overdue": "Overdue returns",
+      "overdueSub": "tap to view"
+    },
+    "closures": {
+      "active": "Active follow-up",
+      "activeDetail": "not yet closed",
+      "delivery": "Closed by delivery",
+      "toEndo": "Referred to endocrinologist",
+      "miscarriage": "Closed by miscarriage",
+      "noReturn": "Did not return",
+      "noReturnRate": "{{pct}}% of closures",
+      "total": "Total closures"
     },
     "overview": {
       "awaitingGj": "Awaiting FPG",
