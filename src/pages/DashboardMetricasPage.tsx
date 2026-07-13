@@ -6,8 +6,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  BarChart3, Download, Loader2, Users, AlertTriangle,
-  FileText, Activity, Baby, Clock, Stethoscope, CheckCircle
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  BarChart3, Download, Loader2, Users, AlertTriangle, ChevronRight,
+  FileText, Activity, Baby, Clock, Stethoscope, CheckCircle, HelpCircle,
 } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, differenceInDays } from 'date-fns';
 import { ptBR, enUS, es } from 'date-fns/locale';
