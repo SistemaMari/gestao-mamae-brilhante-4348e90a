@@ -413,24 +413,6 @@ export default function AppShellClinico() {
 
         {/* Main content area */}
         <main className="flex-1 overflow-y-auto bg-background print:overflow-visible">
-          {/* Breadcrumb */}
-          {breadcrumb && (
-            <div className="border-b border-border bg-card px-6 py-2.5 print:hidden">
-              <nav className="flex items-center gap-1.5 text-[13px]" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-                {breadcrumb.parent && (
-                  <>
-                    <Link to={breadcrumb.parent.path} className="hover:underline" style={{ color: '#94A3B8' }}>
-                      {breadcrumb.parent.label}
-                    </Link>
-                    <ChevronRight className="h-3 w-3" style={{ color: '#94A3B8' }} />
-                  </>
-                )}
-                <span className="font-medium" style={{ color: '#2D2B55' }}>
-                  {breadcrumb.current}
-                </span>
-              </nav>
-            </div>
-          )}
 
           <div className="mx-auto max-w-[1200px] px-4 py-6 md:px-6">
             <Outlet />
