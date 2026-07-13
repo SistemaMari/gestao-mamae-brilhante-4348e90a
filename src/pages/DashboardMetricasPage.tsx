@@ -367,7 +367,6 @@ export default function DashboardMetricasPage() {
   };
 
   // ---- Modal com lista de pacientes por card ----------------------------
-  const [lista, setLista] = useState<{ titulo: string; pacientes: Paciente[] } | null>(null);
   const abrirLista = (titulo: string, pacientes: Paciente[]) => {
     if (!pacientes.length) return;
     setLista({ titulo, pacientes });
@@ -377,6 +376,7 @@ export default function DashboardMetricasPage() {
     navigate(`/paciente/${id}`);
     setLista(null);
   };
+
 
   // Listas derivadas por card (Visão Geral por status_ficha)
   const pacsByStatus = (status: string) => filteredPacientes.filter(p => p.status_ficha === status);
