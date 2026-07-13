@@ -654,8 +654,10 @@ export default function FichaPacientePage() {
       const desfecho = derivarDesfechoClinico(c);
       laudoTextos.garantir(c.id, c.tipo, desfecho);
     }
+    // Fase 2: reexecuta ao trocar o idioma do app → o preview do laudo é
+    // re-buscado no novo idioma (o dedupe do hook é por consulta::idioma).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paciente?.id, consultas]);
+  }, [paciente?.id, consultas, i18n.language]);
 
 
 
