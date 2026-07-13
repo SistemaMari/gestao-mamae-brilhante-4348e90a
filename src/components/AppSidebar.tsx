@@ -255,19 +255,21 @@ export default function AppSidebar() {
         {items.map((item) => {
           const active = location.pathname === item.path;
           return (
-            <button
-              key={item.label}
-              onClick={() => navigate(item.path)}
-              className={cn(
-                'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                active
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              )}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>{t(item.label)}</span>}
-            </button>
+            <div key={item.label}>
+              {item.dividerBefore && <div className="my-2 border-t border-border" />}
+              <button
+                onClick={() => navigate(item.path)}
+                className={cn(
+                  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                  active
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+                {!collapsed && <span>{t(item.label)}</span>}
+              </button>
+            </div>
           );
         })}
       </nav>
