@@ -690,20 +690,20 @@ export default function DiagnosticosPage() {
           tooltip={t("admin.diagnosticos.cardDmgOvertTip")}
         />
         <MetricaCard
-          label="Taxa de controle adequado (4 pontos — MEV)"
+          label="Taxa de controle adequado"
           valor={`${resumo.taxa_controle_global}%`}
-          sublabel="Perfil 4 pontos (dieta e atividade física)"
+          sublabel="Controle por dieta e atividade física"
           cor={COR_VERDE}
           destaque
-          tooltip="Percentual de pacientes DMG do perfil 4 pontos (MEV — dieta e atividade física) que atingiram controle adequado apenas com mudança de estilo de vida. Base: pacientes que iniciaram tratamento em MEV."
+          tooltip="Percentual de pacientes DMG que atingiram controle adequado apenas com dieta e atividade física. Base: pacientes que iniciaram tratamento em MEV."
         />
         <MetricaCard
-          label="Taxa de controle inadequado (4 pontos — MEV)"
+          label="Taxa de controle inadequado"
           valor={`${resumo.taxa_controle_inadequado ?? 0}%`}
-          sublabel="Perfil 4 pontos — precisou associar endócrino"
+          sublabel="Necessidade de insulina"
           cor={COR_VERMELHO}
           destaque
-          tooltip="Percentual de pacientes DMG do perfil 4 pontos (MEV) que não atingiram controle apenas com mudança de estilo de vida e precisaram ser encaminhadas para associar endocrinologia. Base: pacientes que iniciaram tratamento em MEV."
+          tooltip="Percentual de pacientes DMG que não atingiram controle apenas com dieta e atividade física e precisaram associar insulina. Base: pacientes que iniciaram tratamento em MEV."
         />
       </div>
 
