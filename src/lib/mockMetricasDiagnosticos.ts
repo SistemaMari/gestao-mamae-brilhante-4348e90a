@@ -8,6 +8,8 @@ export const mockMetricasDiagnosticos = {
     overt: 14,
     dmg_overt_total: 201,
     taxa_controle_global: 78.6,
+    taxa_controle_inadequado: 21.4,
+    mev_base: 173,
   },
   evolucao_mensal: [
     { mes: "2025-06", gestantes: 78, diagnosticos: 11 },

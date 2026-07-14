@@ -30,6 +30,8 @@ interface Metricas {
     overt: number;
     dmg_overt_total: number;
     taxa_controle_global: number;
+    taxa_controle_inadequado?: number;
+    mev_base?: number;
   };
   evolucao_mensal: Array<{ mes: string; gestantes: number; diagnosticos: number }>;
   momento_diagnostico: {
@@ -649,7 +651,7 @@ export default function DiagnosticosPage() {
       <NotaLgpd />
 
       {/* 1. Cards de resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
         <MetricaCard
           label={t("admin.diagnosticos.cardTotalGestantes")}
           valor={resumo.total_gestantes}
@@ -688,12 +690,20 @@ export default function DiagnosticosPage() {
           tooltip={t("admin.diagnosticos.cardDmgOvertTip")}
         />
         <MetricaCard
-          label={t("admin.diagnosticos.cardControlRate")}
+          label="Taxa de controle adequado (4 pontos — MEV)"
           valor={`${resumo.taxa_controle_global}%`}
-          sublabel={t("admin.diagnosticos.cardControlRateSub")}
+          sublabel="Perfil 4 pontos (dieta e atividade física)"
           cor={COR_VERDE}
           destaque
-          tooltip={t("admin.diagnosticos.cardControlRateTip")}
+          tooltip="Percentual de pacientes DMG do perfil 4 pontos (MEV — dieta e atividade física) que atingiram controle adequado apenas com mudança de estilo de vida. Base: pacientes que iniciaram tratamento em MEV."
+        />
+        <MetricaCard
+          label="Taxa de controle inadequado (4 pontos — MEV)"
+          valor={`${resumo.taxa_controle_inadequado ?? 0}%`}
+          sublabel="Perfil 4 pontos — precisou associar endócrino"
+          cor={COR_VERMELHO}
+          destaque
+          tooltip="Percentual de pacientes DMG do perfil 4 pontos (MEV) que não atingiram controle apenas com mudança de estilo de vida e precisaram ser encaminhadas para associar endocrinologia. Base: pacientes que iniciaram tratamento em MEV."
         />
       </div>
 
