@@ -2564,11 +2564,25 @@
       "email": "E-mail inválido",
       "unidadeVazia": "Unidade obrigatória",
       "unidadeNaoEncontrada": "Unidade não encontrada",
-      "perfil": "Perfil clínico inválido"
+      "perfil": "Perfil clínico inválido",
+      "contratanteVazio": "Contratante obrigatório",
+      "contratanteNaoEncontrado": "Contratante não encontrado",
+      "nomeUnidade": "Nome da unidade obrigatório",
+      "tipo": "Tipo obrigatório",
+      "estado": "Estado obrigatório",
+      "cidade": "Cidade obrigatória"
     },
     "profissionais": {
       "title": "Importar profissionais em massa",
       "desc": "Suba uma planilha (.xlsx/.csv) com unidade, nome, e-mail e perfil clínico. Cada profissional recebe o convite por e-mail."
+    },
+    "unidades": {
+      "title": "Importar unidades em massa",
+      "desc": "Suba uma planilha (.xlsx/.csv) com contratante, nome, tipo, estado e cidade. O plano é sempre Institucional; o gestor fica em aberto para vincular depois."
+    },
+    "gestores": {
+      "title": "Importar gestores de unidade em massa",
+      "desc": "Suba uma planilha (.xlsx/.csv) com nome, e-mail e (opcional) unidade. Cada gestor recebe o convite por e-mail."
     }
   },
   "gestaoEquipe": {
