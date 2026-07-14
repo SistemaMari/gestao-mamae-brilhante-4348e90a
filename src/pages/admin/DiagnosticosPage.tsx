@@ -133,21 +133,21 @@ interface MetricaCardProps {
 function MetricaCard({ label, valor, sublabel, cor, destaque, tooltip }: MetricaCardProps) {
   return (
     <div
-      className="rounded-xl border bg-white p-5 shadow-sm"
+      className="rounded-xl border bg-white p-3 shadow-sm h-full flex flex-col"
       style={{
         borderColor: destaque ? cor ?? "#E2E8F0" : "#E2E8F0",
         borderWidth: destaque ? 2 : 1,
       }}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <div className="text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="text-xs" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
           {label}
         </div>
         {tooltip && (
           <TooltipProvider delayDuration={150}>
             <UiTooltip>
               <TooltipTrigger asChild>
-                <Info className="h-3.5 w-3.5" style={{ color: COR_CINZA }} />
+                <Info className="h-3 w-3 shrink-0" style={{ color: COR_CINZA }} />
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs">
                 <p className="text-xs">{tooltip}</p>
@@ -157,13 +157,13 @@ function MetricaCard({ label, valor, sublabel, cor, destaque, tooltip }: Metrica
         )}
       </div>
       <div
-        className="text-[32px] leading-none font-bold"
+        className="text-[24px] leading-none font-bold"
         style={{ color: cor ?? "#1E293B", fontFamily: FONT_TITULO }}
       >
         {valor}
       </div>
       {sublabel && (
-        <div className="mt-2 text-xs" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
+        <div className="mt-auto pt-2 text-[11px] leading-tight" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
           {sublabel}
         </div>
       )}
