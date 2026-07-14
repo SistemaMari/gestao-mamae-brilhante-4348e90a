@@ -30,6 +30,8 @@ interface Metricas {
     overt: number;
     dmg_overt_total: number;
     taxa_controle_global: number;
+    taxa_controle_inadequado?: number;
+    mev_base?: number;
   };
   evolucao_mensal: Array<{ mes: string; gestantes: number; diagnosticos: number }>;
   momento_diagnostico: {
