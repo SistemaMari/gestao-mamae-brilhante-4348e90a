@@ -425,7 +425,8 @@ async function gerarPdf(
   drawText(`DMG confirmado: ${resumo.dmg ?? 0}`);
   drawText(`OVERT DM: ${resumo.overt ?? 0}`);
   drawText(`DMG + OVERT DM: ${resumo.dmg_overt_total ?? 0}`);
-  drawText(`Taxa de controle global: ${resumo.taxa_controle_global ?? 0}%`);
+  drawText(`Taxa de controle adequado (4 pontos — MEV): ${resumo.taxa_controle_global ?? 0}%`);
+  drawText(`Taxa de controle inadequado (4 pontos — MEV): ${resumo.taxa_controle_inadequado ?? 0}%`);
   drawText(`Total profissionais: ${d.resumoGlobal?.total_profissionais ?? 0}`);
   drawText(`Ativos (30d): ${d.resumoGlobal?.profissionais_ativos_30d ?? 0}`);
   drawText(`Unidades: ${d.resumoGlobal?.total_unidades ?? 0}`);
