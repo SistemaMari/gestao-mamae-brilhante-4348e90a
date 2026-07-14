@@ -133,21 +133,21 @@ interface MetricaCardProps {
 function MetricaCard({ label, valor, sublabel, cor, destaque, tooltip }: MetricaCardProps) {
   return (
     <div
-      className="rounded-xl border bg-white p-5 shadow-sm"
+      className="rounded-xl border bg-white p-3 shadow-sm h-full flex flex-col"
       style={{
         borderColor: destaque ? cor ?? "#E2E8F0" : "#E2E8F0",
         borderWidth: destaque ? 2 : 1,
       }}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <div className="text-sm" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="text-xs" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
           {label}
         </div>
         {tooltip && (
           <TooltipProvider delayDuration={150}>
             <UiTooltip>
               <TooltipTrigger asChild>
-                <Info className="h-3.5 w-3.5" style={{ color: COR_CINZA }} />
+                <Info className="h-3 w-3 shrink-0" style={{ color: COR_CINZA }} />
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs">
                 <p className="text-xs">{tooltip}</p>
@@ -157,13 +157,13 @@ function MetricaCard({ label, valor, sublabel, cor, destaque, tooltip }: Metrica
         )}
       </div>
       <div
-        className="text-[32px] leading-none font-bold"
+        className="text-[24px] leading-none font-bold"
         style={{ color: cor ?? "#1E293B", fontFamily: FONT_TITULO }}
       >
         {valor}
       </div>
       {sublabel && (
-        <div className="mt-2 text-xs" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
+        <div className="mt-auto pt-2 text-[11px] leading-tight" style={{ color: "#64748B", fontFamily: FONT_CORPO }}>
           {sublabel}
         </div>
       )}
@@ -651,25 +651,27 @@ export default function DiagnosticosPage() {
       <NotaLgpd />
 
       {/* 1. Cards de resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
-        <div className="relative">
+      <div className="grid grid-cols-2 lg:grid-cols-7 gap-3">
+        <div className="relative h-full">
           <MetricaCard
             label={t("admin.diagnosticos.cardTotalGestantes")}
             valor={resumo.total_gestantes}
             tooltip={t("admin.diagnosticos.cardTotalGestantesTip")}
           />
-          <span aria-hidden className="hidden lg:block absolute top-3 bottom-3 -right-2 w-px bg-slate-300" />
+          <span aria-hidden className="hidden lg:block absolute top-2 bottom-2 -right-[7px] w-[2px] bg-slate-300 rounded-full" />
         </div>
-        <MetricaCard
-          label="DMG afastado"
-          valor={Math.max(0, resumo.total_gestantes - resumo.dmg_overt_total)}
-          sublabel={t("admin.diagnosticos.ofTotal", {
-            pct: pctSobreTotal(Math.max(0, resumo.total_gestantes - resumo.dmg_overt_total)),
-          })}
-          cor={COR_VERDE}
-          tooltip="Gestantes rastreadas cujo resultado afastou DMG e Overt DM."
-        />
-        <div className="relative">
+        <div className="h-full">
+          <MetricaCard
+            label="DMG afastado"
+            valor={Math.max(0, resumo.total_gestantes - resumo.dmg_overt_total)}
+            sublabel={t("admin.diagnosticos.ofTotal", {
+              pct: pctSobreTotal(Math.max(0, resumo.total_gestantes - resumo.dmg_overt_total)),
+            })}
+            cor={COR_VERDE}
+            tooltip="Gestantes rastreadas cujo resultado afastou DMG e Overt DM."
+          />
+        </div>
+        <div className="relative h-full">
           <MetricaCard
             label={t("admin.diagnosticos.cardDmg")}
             valor={resumo.dmg}
@@ -677,17 +679,18 @@ export default function DiagnosticosPage() {
             cor={COR_LARANJA}
             tooltip={t("admin.diagnosticos.cardDmgTip")}
           />
-          <span aria-hidden className="hidden lg:block absolute top-3 bottom-3 -right-2 w-px bg-slate-300" />
+          <span aria-hidden className="hidden lg:block absolute top-2 bottom-2 -right-[7px] w-[2px] bg-slate-300 rounded-full" />
         </div>
-
-        <MetricaCard
-          label="OVERT DM"
-          valor={resumo.overt}
-          sublabel={t("admin.diagnosticos.ofTotal", { pct: pctSobreTotal(resumo.overt) })}
-          cor={COR_VERMELHO}
-          tooltip={t("admin.diagnosticos.cardOvertTip")}
-        />
-        <div className="relative">
+        <div className="h-full">
+          <MetricaCard
+            label="OVERT DM"
+            valor={resumo.overt}
+            sublabel={t("admin.diagnosticos.ofTotal", { pct: pctSobreTotal(resumo.overt) })}
+            cor={COR_VERMELHO}
+            tooltip={t("admin.diagnosticos.cardOvertTip")}
+          />
+        </div>
+        <div className="relative h-full">
           <MetricaCard
             label={t("admin.diagnosticos.cardDmgOvert")}
             valor={resumo.dmg_overt_total}
@@ -696,25 +699,30 @@ export default function DiagnosticosPage() {
             destaque
             tooltip={t("admin.diagnosticos.cardDmgOvertTip")}
           />
-          <span aria-hidden className="hidden lg:block absolute top-3 bottom-3 -right-2 w-px bg-slate-300" />
+          <span aria-hidden className="hidden lg:block absolute top-2 bottom-2 -right-[7px] w-[2px] bg-slate-300 rounded-full" />
         </div>
-        <MetricaCard
-          label="Taxa de controle adequado"
-          valor={`${resumo.taxa_controle_global}%`}
-          sublabel="Controle por dieta e atividade física"
-          cor={COR_VERDE}
-          destaque
-          tooltip="Percentual de pacientes DMG que atingiram controle adequado apenas com dieta e atividade física. Base: pacientes que iniciaram tratamento em MEV."
-        />
-        <MetricaCard
-          label="Taxa de controle inadequado"
-          valor={`${resumo.taxa_controle_inadequado ?? 0}%`}
-          sublabel="Necessidade de insulina"
-          cor={COR_VERMELHO}
-          destaque
-          tooltip="Percentual de pacientes DMG que não atingiram controle apenas com dieta e atividade física e precisaram associar insulina. Base: pacientes que iniciaram tratamento em MEV."
-        />
+        <div className="h-full">
+          <MetricaCard
+            label="Taxa de controle adequado"
+            valor={`${resumo.taxa_controle_global}%`}
+            sublabel="Controle por dieta e atividade física"
+            cor={COR_VERDE}
+            destaque
+            tooltip="Percentual de pacientes DMG que atingiram controle adequado apenas com dieta e atividade física. Base: pacientes que iniciaram tratamento em MEV."
+          />
+        </div>
+        <div className="h-full">
+          <MetricaCard
+            label="Taxa de controle inadequado"
+            valor={`${resumo.taxa_controle_inadequado ?? 0}%`}
+            sublabel="Necessidade de insulina"
+            cor={COR_VERMELHO}
+            destaque
+            tooltip="Percentual de pacientes DMG que não atingiram controle apenas com dieta e atividade física e precisaram associar insulina. Base: pacientes que iniciaram tratamento em MEV."
+          />
+        </div>
       </div>
+
 
 
       {/* 2. Evolução mensal */}
