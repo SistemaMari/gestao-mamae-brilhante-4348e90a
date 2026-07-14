@@ -136,12 +136,14 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
             {isLoading ? t("common.loading") : t("admin.unidades.count", { count: unidades.length })}
           </p>
         </div>
-        <Button variant="outline" onClick={() => setOpenImportar(true)}>
-          <Upload className="mr-2 h-4 w-4" /> {t("importar.button")}
-        </Button>
-        <Button onClick={() => setOpenCriar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
-          <Plus className="mr-2 h-4 w-4" /> {t("admin.unidades.createUnit")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setOpenImportar(true)}>
+            <Upload className="mr-2 h-4 w-4" /> {t("importar.button")}
+          </Button>
+          <Button onClick={() => setOpenCriar(true)} className="bg-[#7C4DBA] text-white hover:bg-[#5B3A8E]">
+            <Plus className="mr-2 h-4 w-4" /> {t("admin.unidades.createUnit")}
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-lg border">
