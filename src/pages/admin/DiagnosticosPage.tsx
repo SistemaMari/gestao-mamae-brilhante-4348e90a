@@ -658,7 +658,7 @@ export default function DiagnosticosPage() {
             valor={resumo.total_gestantes}
             tooltip={t("admin.diagnosticos.cardTotalGestantesTip")}
           />
-          <span aria-hidden className="hidden lg:block absolute top-2 bottom-2 -right-[7px] w-[2px] bg-slate-300 rounded-full" />
+          <span aria-hidden className="hidden lg:block absolute top-2 bottom-2 -right-[7px] w-[2px] bg-[#9b87f5] rounded-full" />
         </div>
         <div className="h-full">
           <MetricaCard
@@ -671,7 +671,7 @@ export default function DiagnosticosPage() {
             tooltip="Gestantes rastreadas cujo resultado afastou DMG e Overt DM."
           />
         </div>
-        <div className="relative h-full">
+        <div className="h-full">
           <MetricaCard
             label={t("admin.diagnosticos.cardDmg")}
             valor={resumo.dmg}
@@ -679,9 +679,8 @@ export default function DiagnosticosPage() {
             cor={COR_LARANJA}
             tooltip={t("admin.diagnosticos.cardDmgTip")}
           />
-          <span aria-hidden className="hidden lg:block absolute top-2 bottom-2 -right-[7px] w-[2px] bg-slate-300 rounded-full" />
         </div>
-        <div className="h-full">
+        <div className="relative h-full">
           <MetricaCard
             label="OVERT DM"
             valor={resumo.overt}
@@ -689,6 +688,7 @@ export default function DiagnosticosPage() {
             cor={COR_VERMELHO}
             tooltip={t("admin.diagnosticos.cardOvertTip")}
           />
+          <span aria-hidden className="hidden lg:block absolute top-2 bottom-2 -right-[7px] w-[2px] bg-[#9b87f5] rounded-full" />
         </div>
         <div className="relative h-full">
           <MetricaCard
@@ -699,7 +699,7 @@ export default function DiagnosticosPage() {
             destaque
             tooltip={t("admin.diagnosticos.cardDmgOvertTip")}
           />
-          <span aria-hidden className="hidden lg:block absolute top-2 bottom-2 -right-[7px] w-[2px] bg-slate-300 rounded-full" />
+          <span aria-hidden className="hidden lg:block absolute top-2 bottom-2 -right-[7px] w-[2px] bg-[#9b87f5] rounded-full" />
         </div>
         <div className="h-full">
           <MetricaCard
