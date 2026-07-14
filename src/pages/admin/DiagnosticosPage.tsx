@@ -649,11 +649,20 @@ export default function DiagnosticosPage() {
       <NotaLgpd />
 
       {/* 1. Cards de resumo */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <MetricaCard
           label={t("admin.diagnosticos.cardTotalGestantes")}
           valor={resumo.total_gestantes}
           tooltip={t("admin.diagnosticos.cardTotalGestantesTip")}
+        />
+        <MetricaCard
+          label="DMG afastado"
+          valor={Math.max(0, resumo.total_gestantes - resumo.dmg_overt_total)}
+          sublabel={t("admin.diagnosticos.ofTotal", {
+            pct: pctSobreTotal(Math.max(0, resumo.total_gestantes - resumo.dmg_overt_total)),
+          })}
+          cor={COR_VERDE}
+          tooltip="Gestantes rastreadas cujo resultado afastou DMG e Overt DM."
         />
         <MetricaCard
           label={t("admin.diagnosticos.cardDmg")}
@@ -662,6 +671,7 @@ export default function DiagnosticosPage() {
           cor={COR_LARANJA}
           tooltip={t("admin.diagnosticos.cardDmgTip")}
         />
+
         <MetricaCard
           label="OVERT DM"
           valor={resumo.overt}
