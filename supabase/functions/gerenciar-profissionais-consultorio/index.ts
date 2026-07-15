@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
           `id, nome, crm, especialidade, telefone, plano_id, plano_status,
            plano_expira_em, laudos_limite, laudos_usados, asaas_subscription_id,
            acesso_revogado, created_at, user_id,
-           planos:plano_id ( nome, preco_mensal, laudos_por_mes )`
+           planos:plano_id ( nome, preco_mensal, laudos_por_mes, pacientes_max )`
         )
         .is("unidade_id", null)
         .is("perfil_institucional", null)
@@ -120,6 +120,18 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Pacientes cadastrados por profissional (cota do plano atual).
+      const { data: pacientesRows } = await supabaseAdmin
+        .from("pacientes")
+        .select("profissional_id")
+        .in("profissional_id", profIds.length ? profIds : ["00000000-0000-0000-0000-000000000000"])
+        .eq("is_rascunho", false);
+
+      const pacientesCount = new Map<string, number>();
+      for (const r of pacientesRows ?? []) {
+        pacientesCount.set(r.profissional_id, (pacientesCount.get(r.profissional_id) ?? 0) + 1);
+      }
+
       const profissionais = (profs ?? []).map((p: any) => {
         const u = authMap.get(p.user_id);
         return {
@@ -136,6 +148,8 @@ Deno.serve(async (req) => {
           plano_expira_em: p.plano_expira_em,
           laudos_limite: p.laudos_limite,
           laudos_usados: p.laudos_usados,
+          pacientes_max: p.planos?.pacientes_max ?? null,
+          pacientes_usados: pacientesCount.get(p.id) ?? 0,
           asaas_subscription_id: p.asaas_subscription_id,
           acesso_revogado: p.acesso_revogado,
           convite_pendente: u ? !u.email_confirmed_at : false,

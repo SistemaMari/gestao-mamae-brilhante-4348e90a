@@ -5,27 +5,28 @@ import { Button } from '@/components/ui/button';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 
 /**
- * Banner global de uso de laudos.
+ * Banner global de uso de pacientes (cota do plano).
  * - Esconde quando usado < 70% do limite.
  * - Aviso amarelo entre 70%-99%.
  * - Aviso vermelho quando 100% (limite atingido).
- * - Não mostra para planos institucionais ilimitados (limite >= 9999).
+ * - Não mostra quando o plano não tem limite de pacientes (institucional/ilimitado).
  */
-export default function BannerUsoLaudos() {
+export default function BannerUsoPacientes() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { profissionalData, loading } = useProfissionalData();
 
   if (loading || !profissionalData) return null;
 
-  const { laudos_usados, laudos_limite } = profissionalData;
-  if (laudos_limite >= 9999) return null;
+  const pacientesMax = profissionalData.planos?.pacientes_max ?? null;
+  if (pacientesMax === null) return null;
 
-  const pct = laudos_limite > 0 ? laudos_usados / laudos_limite : 0;
+  const { pacientes_usados } = profissionalData;
+  const pct = pacientesMax > 0 ? pacientes_usados / pacientesMax : 0;
   if (pct < 0.7) return null;
 
-  const atingido = laudos_usados >= laudos_limite;
-  const restantes = Math.max(0, laudos_limite - laudos_usados);
+  const atingido = pacientes_usados >= pacientesMax;
+  const restantes = Math.max(0, pacientesMax - pacientes_usados);
 
   return (
     <div
@@ -47,11 +48,11 @@ export default function BannerUsoLaudos() {
         <div className="flex-1 min-w-[220px]">
           <p className={'text-sm font-medium ' + (atingido ? 'text-destructive' : 'text-amber-900')}>
             {atingido
-              ? t('bannerUsoLaudos.limitReached')
-              : t('bannerUsoLaudos.remaining', { count: restantes })}
+              ? t('bannerUsoPacientes.limitReached')
+              : t('bannerUsoPacientes.remaining', { count: restantes })}
           </p>
           <p className={'text-xs ' + (atingido ? 'text-destructive/80' : 'text-amber-800/80')}>
-            {t('bannerUsoLaudos.usedOfLimit', { usados: laudos_usados, limite: laudos_limite })}
+            {t('bannerUsoPacientes.usedOfLimit', { usados: pacientes_usados, limite: pacientesMax })}
           </p>
         </div>
 
@@ -60,7 +61,7 @@ export default function BannerUsoLaudos() {
           variant={atingido ? 'destructive' : 'default'}
           onClick={() => navigate('/planos')}
         >
-          {atingido ? t('bannerUsoLaudos.upgradePlan') : t('bannerUsoLaudos.viewPlans')}
+          {atingido ? t('bannerUsoPacientes.upgradePlan') : t('bannerUsoPacientes.viewPlans')}
         </Button>
       </div>
     </div>

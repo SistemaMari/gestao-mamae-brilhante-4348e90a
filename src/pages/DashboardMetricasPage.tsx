@@ -187,7 +187,6 @@ export default function DashboardMetricasPage() {
   }).length;
 
   const laudosUsados = isPreview ? 5 : (profissionalData?.laudos_usados ?? 0);
-  const laudosLimite = isPreview ? 50 : (profissionalData?.laudos_limite ?? 3);
 
   // --- DIAGNÓSTICO ---
   const dmgConfirmados = filteredPacientes.filter(p =>
@@ -465,7 +464,7 @@ export default function DashboardMetricasPage() {
           }}
         >
           <FileText className="h-3.5 w-3.5" />
-          {t('dashboardMetricas.reportsGenerated', { usados: laudosUsados, limite: laudosLimite })}
+          {t('dashboardMetricas.reportsGeneratedTotal', { count: laudosUsados })}
         </div>
       </div>
 

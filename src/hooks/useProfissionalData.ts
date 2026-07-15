@@ -6,7 +6,9 @@ export interface PlanoInfo {
   slug: string;
   nome: string;
   laudos_por_mes: number;
+  pacientes_max: number | null;
   preco_mensal: number;
+  metricas_habilitado: boolean;
 }
 
 export interface ProfissionalData {
@@ -18,6 +20,7 @@ export interface ProfissionalData {
   proxima_renovacao: string | null;
   laudos_limite: number;
   laudos_usados: number;
+  pacientes_usados: number;
   crm: string | null;
   especialidade: string | null;
   nome: string;
@@ -39,12 +42,24 @@ export function useProfissionalData() {
       const { data: prof } = await supabase
         .from('profissionais')
         .select(
-          'id, plano_id, plano_status, plano_expira_em, proxima_renovacao, laudos_limite, laudos_usados, crm, especialidade, nome, identificador_padrao, unidade_id, planos:plano_id(slug, nome, laudos_por_mes, preco_mensal)'
+          'id, plano_id, plano_status, plano_expira_em, proxima_renovacao, laudos_limite, laudos_usados, crm, especialidade, nome, identificador_padrao, unidade_id, planos:plano_id(slug, nome, laudos_por_mes, pacientes_max, preco_mensal, metricas_habilitado)'
         )
         .eq('user_id', user.id)
         .maybeSingle();
 
-      setData(prof as unknown as ProfissionalData | null);
+      if (!prof) {
+        setData(null);
+        setLoading(false);
+        return;
+      }
+
+      const { count } = await supabase
+        .from('pacientes')
+        .select('id', { count: 'exact', head: true })
+        .eq('profissional_id', prof.id)
+        .eq('is_rascunho', false);
+
+      setData({ ...prof, pacientes_usados: count ?? 0 } as unknown as ProfissionalData);
       setLoading(false);
     };
 

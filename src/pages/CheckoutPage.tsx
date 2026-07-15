@@ -37,10 +37,10 @@ function maskCep(v: string) {
 }
 
 // ─── Plano info ───────────────────────────────────────────────────────────────
-const PLANOS: Record<string, { nome: string; preco: string; laudos: number }> = {
-  inicial:       { nome: 'Inicial',       preco: 'R$ 79,00/mês',  laudos: 10  },
-  intermediaria: { nome: 'Intermediária', preco: 'R$ 139,00/mês', laudos: 35  },
-  profissional:  { nome: 'Profissional',  preco: 'R$ 299,00/mês', laudos: 100 },
+const PLANOS: Record<string, { nome: string; preco: string; pacientes: number }> = {
+  inicial:       { nome: 'Inicial',       preco: 'R$ 79,00/mês',  pacientes: 10  },
+  intermediaria: { nome: 'Intermediária', preco: 'R$ 139,00/mês', pacientes: 35  },
+  profissional:  { nome: 'Profissional',  preco: 'R$ 299,00/mês', pacientes: 100 },
 };
 
 // ─── Schema de validação ─────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ export default function CheckoutPage() {
               <div>
                 <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">{t('checkout.planoSelecionado')}</p>
                 <p className="font-heading text-xl font-bold text-foreground mt-1">{planoInfo.nome}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{t('checkout.laudosPorMes', { count: planoInfo.laudos })}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('checkout.pacientesLimite', { count: planoInfo.pacientes })}</p>
               </div>
               <p className="font-heading text-2xl font-bold text-primary">{planoInfo.preco}</p>
             </div>

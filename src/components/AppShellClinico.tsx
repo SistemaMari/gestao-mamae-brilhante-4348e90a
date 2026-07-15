@@ -15,7 +15,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import BlockingModal from '@/components/BlockingModal';
-import BannerUsoLaudos from '@/components/BannerUsoLaudos';
+import BannerUsoPacientes from '@/components/BannerUsoPacientes';
 import BannerStatusPlano from '@/components/BannerStatusPlano';
 import TelaInadimplente from '@/components/TelaInadimplente';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -146,10 +146,10 @@ export default function AppShellClinico() {
     : user?.email?.split('@')[0] || '';
 
   const planoNome = profissionalData?.planos?.nome ?? '';
-  const planoLimite = profissionalData?.planos?.laudos_por_mes ?? profissionalData?.laudos_limite ?? 0;
-  const laudosUsados = profissionalData?.laudos_usados ?? 0;
-  const consumoPct = planoLimite > 0
-    ? Math.min(100, Math.round((laudosUsados / planoLimite) * 100))
+  const pacientesMax = profissionalData?.planos?.pacientes_max ?? null;
+  const pacientesUsados = profissionalData?.pacientes_usados ?? 0;
+  const consumoPct = pacientesMax !== null && pacientesMax > 0
+    ? Math.min(100, Math.round((pacientesUsados / pacientesMax) * 100))
     : 0;
   const consumoCor = consumoPct >= 100 ? '#EF4444' : consumoPct >= 80 ? '#F59E0B' : '#7E69AB';
 
@@ -352,23 +352,31 @@ export default function AppShellClinico() {
             onClick={() => navigate('/planos')}
             className="pointer-events-auto hidden lg:flex items-center gap-3 rounded-full pl-3 pr-4 py-1.5 text-xs font-medium hover:opacity-90 transition shadow-sm"
             style={{ backgroundColor: '#F1F0FB', color: '#7E69AB' }}
-            title={t('appShell.reportsUsageTooltip', { used: laudosUsados, limit: planoLimite })}
+            title={pacientesMax !== null
+              ? t('appShell.patientsUsageTooltip', { used: pacientesUsados, limit: pacientesMax })
+              : t('appShell.patientsUsageUnlimited')}
           >
             <span className="font-semibold">{t('nav.plans')} {planoNome}</span>
-            <span className="flex items-center gap-2">
-              <span
-                className="relative block h-1.5 w-24 rounded-full overflow-hidden"
-                style={{ backgroundColor: '#E2DEF5' }}
-              >
+            {pacientesMax !== null ? (
+              <span className="flex items-center gap-2">
                 <span
-                  className="absolute left-0 top-0 h-full rounded-full transition-all"
-                  style={{ width: `${consumoPct}%`, backgroundColor: consumoCor }}
-                />
+                  className="relative block h-1.5 w-24 rounded-full overflow-hidden"
+                  style={{ backgroundColor: '#E2DEF5' }}
+                >
+                  <span
+                    className="absolute left-0 top-0 h-full rounded-full transition-all"
+                    style={{ width: `${consumoPct}%`, backgroundColor: consumoCor }}
+                  />
+                </span>
+                <span className="tabular-nums" style={{ color: consumoCor }}>
+                  {pacientesUsados}/{pacientesMax}
+                </span>
               </span>
+            ) : (
               <span className="tabular-nums" style={{ color: consumoCor }}>
-                {laudosUsados}/{planoLimite}
+                {t('appShell.unlimited')}
               </span>
-            </span>
+            )}
           </button>
         )}
         <div className="pointer-events-auto">
@@ -388,7 +396,7 @@ export default function AppShellClinico() {
 
       {/* Banners globais */}
       <BannerStatusPlano />
-      {perfilSidebar !== 'institucional' && <BannerUsoLaudos />}
+      {perfilSidebar !== 'institucional' && <BannerUsoPacientes />}
 
       <div className="flex flex-1 min-h-0 overflow-hidden print:block print:overflow-visible print:h-auto print:min-h-0">
         {/* Desktop sidebar */}

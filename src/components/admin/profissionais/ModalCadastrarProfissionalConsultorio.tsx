@@ -19,7 +19,7 @@ interface Plano {
   id: string;
   nome: string;
   preco_mensal: number;
-  laudos_por_mes: number;
+  pacientes_max: number | null;
 }
 
 export default function ModalCadastrarProfissionalConsultorio({
@@ -43,7 +43,7 @@ export default function ModalCadastrarProfissionalConsultorio({
     queryFn: async () => {
       const { data } = await supabase
         .from("planos")
-        .select("id, nome, preco_mensal, laudos_por_mes, ativo, ordem")
+        .select("id, nome, preco_mensal, pacientes_max, ativo, ordem")
         .eq("ativo", true)
         .order("ordem");
       return (data ?? []) as Plano[];
@@ -131,7 +131,9 @@ export default function ModalCadastrarProfissionalConsultorio({
               <SelectContent>
                 {planos.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.nome} — R$ {Number(p.preco_mensal).toFixed(2)} ({t("admin.cadastrarProfissionalConsultorio.reportsPerMonth", { count: p.laudos_por_mes })})
+                    {p.nome} — R$ {Number(p.preco_mensal).toFixed(2)} ({p.pacientes_max
+                      ? t("admin.cadastrarProfissionalConsultorio.patientsLimit", { count: p.pacientes_max })
+                      : t("admin.cadastrarProfissionalConsultorio.patientsUnlimited")})
                   </SelectItem>
                 ))}
               </SelectContent>

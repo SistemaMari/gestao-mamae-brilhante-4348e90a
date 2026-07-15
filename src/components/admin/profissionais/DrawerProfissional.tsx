@@ -31,6 +31,8 @@ export interface ProfissionalConsultorio {
   plano_expira_em: string | null;
   laudos_limite: number;
   laudos_usados: number;
+  pacientes_max: number | null;
+  pacientes_usados: number;
   asaas_subscription_id: string | null;
   asaas_customer_id?: string | null;
   proxima_renovacao?: string | null;
@@ -130,8 +132,8 @@ export default function DrawerProfissional({
     </div>
   );
 
-  const pct = profissional.laudos_limite > 0
-    ? Math.min(100, (profissional.laudos_usados / profissional.laudos_limite) * 100)
+  const pct = profissional.pacientes_max && profissional.pacientes_max > 0
+    ? Math.min(100, (profissional.pacientes_usados / profissional.pacientes_max) * 100)
     : 0;
 
   const statusBadge = profissional.acesso_revogado ? (
@@ -196,8 +198,10 @@ export default function DrawerProfissional({
 
             <div className="mt-3">
               <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>{t("admin.profissionais.monthReports")}</span>
-                <span>{profissional.laudos_usados}/{profissional.laudos_limite}</span>
+                <span>{t("admin.profissionais.patientsQuota")}</span>
+                <span>
+                  {profissional.pacientes_usados}/{profissional.pacientes_max ?? '∞'}
+                </span>
               </div>
               <Progress value={pct} className="h-2" />
             </div>

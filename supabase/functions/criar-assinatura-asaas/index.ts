@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
   // 1. Busca plano no banco
   const { data: plano } = await supabase
     .from("planos")
-    .select("id, nome, preco_mensal, laudos_por_mes, suporte")
+    .select("id, nome, preco_mensal, pacientes_max, suporte")
     .eq("slug", plano_slug)
     .eq("ativo", true)
     .maybeSingle();
@@ -110,7 +110,9 @@ Deno.serve(async (req) => {
     value: plano.preco_mensal,
     nextDueDate: hoje,
     cycle: "MONTHLY",
-    description: `${plano.nome} MARI | ${plano.laudos_por_mes} laudos/mês`,
+    description: plano.pacientes_max
+      ? `${plano.nome} MARI | até ${plano.pacientes_max} pacientes`
+      : `${plano.nome} MARI`,
     externalReference: plano_slug,
   };
 

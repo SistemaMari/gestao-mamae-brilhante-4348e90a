@@ -163,7 +163,6 @@ const App = () => (
                 path="/dashboard/metricas"
                 element={
                   <PlanoGuard
-                    planosPermitidos={['profissional']}
                     nomePlanoNecessario="Profissional"
                     titulo="Dashboard analítico"
                     descricao="Acompanhe métricas avançadas do seu consultório: evolução de pacientes, taxas de controle, desfechos. Disponível no plano Profissional."

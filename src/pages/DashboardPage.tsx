@@ -248,8 +248,9 @@ export default function DashboardPage() {
     }
   };
 
-  const usagePercent = profissionalData
-    ? Math.round((profissionalData.laudos_usados / profissionalData.laudos_limite) * 100)
+  const pacientesMax = profissionalData?.planos?.pacientes_max ?? null;
+  const usagePercent = profissionalData && pacientesMax
+    ? Math.round((profissionalData.pacientes_usados / pacientesMax) * 100)
     : 0;
 
   if (profLoading && !isPreview) {
@@ -385,8 +386,8 @@ export default function DashboardPage() {
       {/* Usage warning banner */}
       {profissionalData && !ehInstitucional && (
         <UsageWarningBanner
-          laudosUsados={profissionalData.laudos_usados}
-          laudosLimite={profissionalData.laudos_limite}
+          usados={profissionalData.pacientes_usados}
+          limite={pacientesMax}
         />
       )}
 
@@ -409,16 +410,16 @@ export default function DashboardPage() {
               </button>
             </div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground">{t('dashboard.reportsUsed')}</span>
+              <span className="text-sm text-muted-foreground">{t('dashboard.patientsUsed')}</span>
               <span className="text-sm text-muted-foreground">
-                {isPreview ? '3' : profissionalData?.laudos_usados}/{isPreview ? '10' : profissionalData?.laudos_limite}
+                {isPreview ? '3' : profissionalData?.pacientes_usados}/{isPreview ? '10' : (pacientesMax ?? '∞')}
               </span>
             </div>
             <Progress value={isPreview ? 30 : usagePercent} className="h-2" />
             <div className="mt-2 flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{t('nav.patients')}</span>
+              <span className="text-sm text-muted-foreground">{t('dashboard.reportsGeneratedInfo')}</span>
               <span className="text-sm text-muted-foreground">
-                {pacientes.length}
+                {isPreview ? pacientes.length : profissionalData?.laudos_usados ?? 0}
               </span>
             </div>
           </div>

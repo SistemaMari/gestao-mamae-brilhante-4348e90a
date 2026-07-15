@@ -4,9 +4,7 @@ import { useProfissionalData } from '@/hooks/useProfissionalData';
 import UpgradeRequired from './UpgradeRequired';
 
 interface PlanoGuardProps {
-  /** Slugs de planos que liberam o recurso. Ex.: ['profissional']. */
-  planosPermitidos: string[];
-  /** Nome amigável do menor plano permitido (mostrado no bloqueio). */
+  /** Nome amigável do plano atual, mostrado no bloqueio quando a feature está desligada. */
   nomePlanoNecessario: string;
   titulo?: string;
   descricao?: string;
@@ -14,16 +12,15 @@ interface PlanoGuardProps {
 }
 
 /**
- * Guarda rotas por plano do profissional.
+ * Guarda a rota de métricas pela flag planos.metricas_habilitado.
  * - Carregando: spinner.
- * - Plano permitido: renderiza o conteúdo.
- * - Plano insuficiente: renderiza UpgradeRequired em página cheia.
+ * - Feature habilitada no plano do profissional: renderiza o conteúdo.
+ * - Feature desabilitada (admin desligou para o plano): renderiza UpgradeRequired em página cheia.
  *
  * Observação: Acesso aos DADOS é protegido pelas RLS policies do Supabase.
- * Este guard cuida da UX da rota — quem força a URL vê tela de upgrade.
+ * Este guard cuida da UX da rota — quem força a URL vê tela de bloqueio.
  */
 export default function PlanoGuard({
-  planosPermitidos,
   nomePlanoNecessario,
   titulo,
   descricao,
@@ -39,8 +36,8 @@ export default function PlanoGuard({
     );
   }
 
-  const planoAtual = profissionalData?.planos?.slug ?? 'inicial';
-  if (!planosPermitidos.includes(planoAtual)) {
+  const habilitado = profissionalData?.planos?.metricas_habilitado ?? false;
+  if (!habilitado) {
     return (
       <UpgradeRequired
         planoNecessario={nomePlanoNecessario}

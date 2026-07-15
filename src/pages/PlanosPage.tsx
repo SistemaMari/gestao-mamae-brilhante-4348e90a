@@ -199,7 +199,7 @@ export default function PlanosPage() {
                   <ul className="mb-6 flex-1 space-y-2.5">
                     <li className="flex items-start gap-2 text-sm text-foreground">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
-                      {t('planos.upToReportsPerMonth', { count: plano.laudos_por_mes })}
+                      {t('planos.unlimitedReports')}
                     </li>
                     <li className="flex items-start gap-2 text-sm text-foreground">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />

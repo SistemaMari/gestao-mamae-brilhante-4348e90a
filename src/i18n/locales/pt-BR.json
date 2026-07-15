@@ -215,7 +215,9 @@
     "lastShort": "Última",
     "previous": "Anterior",
     "next": "Próxima",
-    "pageOf": "{{page}} de {{total}}"
+    "pageOf": "{{page}} de {{total}}",
+    "patientsUsed": "Pacientes cadastrados",
+    "reportsGeneratedInfo": "Laudos gerados"
   },
   "management": {
     "title": "Painel de Gestão",
@@ -634,7 +636,8 @@
       "reactivateTitle": "Reativar acesso de {{nome}}?",
       "reactivateDesc": "O profissional volta a ter acesso ao MARI. Plano e limite de laudos preservados como estavam. Profissional precisa fazer login de novo. Se a assinatura no Asaas estiver cancelada, lembre-se de reativar lá também.",
       "reactivating": "Reativando…",
-      "reactivateAction": "Reativar acesso"
+      "reactivateAction": "Reativar acesso",
+      "patientsQuota": "Pacientes cadastrados"
     },
     "feedbacks": {
       "title": "Feedbacks",
@@ -748,7 +751,9 @@
       "planPlaceholder": "Selecione um plano",
       "reportsPerMonth": "{{count}} laudos/mês",
       "sending": "Enviando…",
-      "submit": "Cadastrar e enviar convite"
+      "submit": "Cadastrar e enviar convite",
+      "patientsLimit": "{{count}} pacientes",
+      "patientsUnlimited": "pacientes ilimitados"
     },
     "institucionais": {
       "title": "Gerenciamento institucional",
@@ -810,11 +815,12 @@
       "title": "Mudar plano de {{nome}}",
       "description": "O limite mensal de laudos será atualizado conforme o novo plano.",
       "novoPlanoLabel": "Novo plano *",
-      "planoOption": "{{nome}} — R$ {{preco}} ({{laudos}} laudos/mês)",
+      "planoOption": "{{nome}} — R$ {{preco}} ({{pacientes}} pacientes)",
       "motivoLabel": "Motivo da mudança *",
       "motivoPlaceholder": "Mínimo 10 caracteres",
       "confirm": "Confirmar mudança",
-      "successToast": "Plano alterado para {{plano}}. Limite atualizado."
+      "successToast": "Plano alterado para {{plano}}. Limite atualizado.",
+      "planoOptionUnlimited": "{{nome}} — R$ {{preco}} (pacientes ilimitados)"
     },
     "laudoTextos": {
       "title": "Textos de Laudo",
@@ -990,7 +996,7 @@
       "saved": "Plano atualizado.",
       "saveError": "Erro ao salvar: {{error}}",
       "title": "Planos",
-      "subtitle": "Edite nome, laudos/mês, preço e link de pagamento de cada plano de consultório.",
+      "subtitle": "Edite nome, limite de pacientes, preço e link de pagamento de cada plano de consultório.",
       "loadError": "Não foi possível carregar os planos.",
       "laudosPerMonth": "{{count}} laudos/mês",
       "pricePerMonth": "{{preco}}/mês",
@@ -1005,9 +1011,9 @@
       "laudosPerMonthLabel": "Laudos por mês",
       "priceLabel": "Preço (R$/mês)",
       "priceInfo": "O preço vale para <strong>novas assinaturas</strong>. As assinaturas atuais só mudam se você escolher <strong>\"Reajustar geral\"</strong> (aí o novo valor é aplicado às cobranças ativas no Asaas).",
-      "paymentLinkLabel": "Link de pagamento (Asaas)",
+      "paymentLinkLabel": "Link do plano no Asaas",
       "openAsaasLink": "Abrir link do Asaas",
-      "paymentLinkHelp": "Link do produto no Asaas — facilita o acesso na hora de conferir/editar a cobrança.",
+      "paymentLinkHelp": "Link interno de edição do plano no Asaas (não é o link de checkout do cliente) — facilita o acesso na hora de conferir/editar a cobrança.",
       "changedPrefix": "Você alterou",
       "changedLaudos": "laudos/mês ({{from}} → {{to}})",
       "changedAnd": " e ",
@@ -1023,7 +1029,17 @@
       "confirmReajusteAffected": "(até {{count}} cliente)",
       "confirmReajusteAffected_other": "(até {{count}} clientes)",
       "confirmReajusteTail": ". Os clientes atuais passarão a pagar o novo valor. Esta ação afeta faturamento e não se desfaz sozinha.",
-      "confirmReajusteAction": "Sim, reajustar"
+      "confirmReajusteAction": "Sim, reajustar",
+      "patientsLimit": "{{count}} pacientes",
+      "patientsUnlimited": "Pacientes ilimitados",
+      "patientsLimitLabel": "Limite de pacientes",
+      "patientsLimitHelp": "Deixe em branco para ilimitado.",
+      "pacientesMudouInfo": "Limite de pacientes alterado de {{from}} para {{to}} — já vale para os {{count}} clientes atuais deste plano.",
+      "savedWithPacientes": "Plano atualizado. O novo limite de pacientes já vale para os {{count}} clientes atuais.",
+      "metricsOn": "Métricas ativas",
+      "metricsOff": "Métricas bloqueadas",
+      "metricsToggleLabel": "Dashboard analítico (métricas)",
+      "metricsToggleHelp": "Libera ou bloqueia o acesso ao dashboard de métricas avançadas para quem está neste plano."
     },
     "barrasRanking": {
       "emptyPeriod": "Sem dados no período."
@@ -2547,7 +2563,8 @@
       "period": "Período: {{inicio}} a {{fim}}",
       "generatedOn": "Gerado em: {{data}}",
       "generatedBy": "Gerado por MARI — {{data}}"
-    }
+    },
+    "reportsGeneratedTotal": "Laudos gerados: {{count}}"
   },
   "importar": {
     "button": "Importar em massa",
@@ -2558,7 +2575,10 @@
     "rowStatus": "Status",
     "confirm": "Confirmar e importar ({{count}})",
     "sending": "Importando {{done}}/{{total}}…",
-    "report": { "ok": "Importados", "errors": "Com erro" },
+    "report": {
+      "ok": "Importados",
+      "errors": "Com erro"
+    },
     "err": {
       "nome": "Nome obrigatório",
       "email": "E-mail inválido",
@@ -2820,7 +2840,8 @@
     "oQueAconteceDepois": "O que acontece depois?",
     "aposConfirmacaoPre": "Após a confirmação do pagamento, você receberá um",
     "aposConfirmacaoStrong": "e-mail",
-    "aposConfirmacaoPos": "com o link para criar sua senha e acessar o MARI."
+    "aposConfirmacaoPos": "com o link para criar sua senha e acessar o MARI.",
+    "pacientesLimite": "Até {{count}} pacientes"
   },
   "baseConhecimento": {
     "title": "Base de Conhecimento",
@@ -2981,7 +3002,8 @@
     "yourCurrentPlan": "Seu plano atual",
     "mostPopular": "Mais popular",
     "upToReportsPerMonth": "Até {{count}} laudos por mês",
-    "launchPricingNote": "Preços de lançamento. Valores podem ser ajustados após o período promocional."
+    "launchPricingNote": "Preços de lançamento. Valores podem ser ajustados após o período promocional.",
+    "unlimitedReports": "Laudos ilimitados"
   },
   "retorno1": {
     "diag": {
@@ -3424,9 +3446,9 @@
     "orientationBody": "Caso Novo registrada com sucesso. Solicitar glicemia plasmática de jejum. Jejum de 8 a 12 horas. Coleta venosa processada em laboratório — glicemia capilar em ponta de dedo não é válida para fins diagnósticos."
   },
   "usageWarning": {
-    "limitReached": "Seu plano atingiu o limite de laudos.",
-    "remaining_one": "Resta {{count}} laudo neste período.",
-    "remaining_other": "Restam {{count}} laudos neste período.",
+    "limitReached": "Seu plano atingiu o limite de pacientes.",
+    "remaining_one": "Resta {{count}} paciente no seu plano.",
+    "remaining_other": "Restam {{count}} pacientes no seu plano.",
     "upgradePlan": "Atualizar plano",
     "viewPlans": "Ver planos"
   },
@@ -3788,7 +3810,10 @@
     "metricsLockedTooltip": "Disponível no plano Profissional",
     "userFallback": "Usuário",
     "reportsUsageTooltip": "{{used}} de {{limit}} laudos este mês",
-    "menuAria": "Menu"
+    "menuAria": "Menu",
+    "patientsUsageTooltip": "{{used}} de {{limit}} pacientes cadastrados",
+    "patientsUsageUnlimited": "Pacientes ilimitados",
+    "unlimited": "Ilimitado"
   },
   "cidadeCombobox": {
     "selectCity": "Selecione a cidade...",
@@ -3944,5 +3969,13 @@
     "title": "Recurso exclusivo",
     "availableInPlan": "Disponível no plano <1>{{plano}}</1>.",
     "upgradeButton": "Fazer upgrade"
+  },
+  "bannerUsoPacientes": {
+    "limitReached": "Você atingiu o limite de pacientes do seu plano.",
+    "remaining_one": "Resta {{count}} paciente no seu plano atual.",
+    "remaining_other": "Restam {{count}} pacientes no seu plano atual.",
+    "usedOfLimit": "{{usados}} de {{limite}} pacientes cadastrados neste plano.",
+    "upgradePlan": "Atualizar plano",
+    "viewPlans": "Ver planos"
   }
 }

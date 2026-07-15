@@ -38,7 +38,7 @@ export default function ModalMudarPlanoConsultorio({
     queryFn: async () => {
       const { data } = await supabase
         .from("planos")
-        .select("id, nome, preco_mensal, laudos_por_mes, ativo, ordem")
+        .select("id, nome, preco_mensal, pacientes_max, ativo, ordem")
         .eq("ativo", true)
         .order("ordem");
       return data ?? [];
@@ -95,7 +95,9 @@ export default function ModalMudarPlanoConsultorio({
               <SelectContent>
                 {planos.filter((p: any) => p.id !== planoAtualId).map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {t("admin.mudarPlano.planoOption", { nome: p.nome, preco: Number(p.preco_mensal).toFixed(2), laudos: p.laudos_por_mes })}
+                    {p.pacientes_max
+                      ? t("admin.mudarPlano.planoOption", { nome: p.nome, preco: Number(p.preco_mensal).toFixed(2), pacientes: p.pacientes_max })
+                      : t("admin.mudarPlano.planoOptionUnlimited", { nome: p.nome, preco: Number(p.preco_mensal).toFixed(2) })}
                   </SelectItem>
                 ))}
               </SelectContent>

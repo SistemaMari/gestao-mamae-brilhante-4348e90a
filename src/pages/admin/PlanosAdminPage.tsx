@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -22,9 +23,10 @@ interface Plano {
   id: string;
   slug: string;
   nome: string;
-  laudos_por_mes: number;
+  pacientes_max: number | null;
   preco_mensal: number;
   link_pagamento_asaas: string | null;
+  metricas_habilitado: boolean;
   ordem: number;
 }
 
@@ -32,11 +34,12 @@ interface FormState {
   id: string;
   slug: string;
   nome: string;
-  laudos_por_mes: number;
-  laudos_original: number;
+  pacientes_max: number | null;
+  pacientes_original: number | null;
   preco_str: string;
   preco_original: number;
   link_pagamento_asaas: string;
+  metricas_habilitado: boolean;
   propagacao: 'preservar' | 'reajustar';
 }
 
@@ -55,7 +58,7 @@ export default function PlanosAdminPage() {
       const [resPlanos, resProfs] = await Promise.all([
         supabase
           .from('planos')
-          .select('id, slug, nome, laudos_por_mes, preco_mensal, link_pagamento_asaas, ordem')
+          .select('id, slug, nome, pacientes_max, preco_mensal, link_pagamento_asaas, metricas_habilitado, ordem')
           .order('ordem', { ascending: true }),
         supabase.from('profissionais').select('plano_id'),
       ]);
@@ -77,19 +80,20 @@ export default function PlanosAdminPage() {
       id: p.id,
       slug: p.slug,
       nome: p.nome,
-      laudos_por_mes: p.laudos_por_mes,
-      laudos_original: p.laudos_por_mes,
+      pacientes_max: p.pacientes_max,
+      pacientes_original: p.pacientes_max,
       preco_str: String(p.preco_mensal),
       preco_original: p.preco_mensal,
       link_pagamento_asaas: p.link_pagamento_asaas ?? '',
+      metricas_habilitado: p.metricas_habilitado,
       propagacao: 'preservar',
     });
   }
 
-  const laudosMudou = form ? form.laudos_por_mes !== form.laudos_original : false;
+  const pacientesMudou = form ? form.pacientes_max !== form.pacientes_original : false;
   const precoNum = form ? (Number(form.preco_str) || 0) : 0;
   const precoMudou = form ? precoNum !== form.preco_original : false;
-  const mudouAlgo = laudosMudou || precoMudou;
+  const mudouAlgo = pacientesMudou || precoMudou;
   const afetados = form ? (contagem[form.id] ?? 0) : 0;
 
   function iniciarSalvar() {
@@ -116,23 +120,18 @@ export default function PlanosAdminPage() {
         .from('planos')
         .update({
           nome: form.nome.trim(),
-          laudos_por_mes: form.laudos_por_mes,
+          pacientes_max: form.pacientes_max,
           preco_mensal: preco,
           link_pagamento_asaas: form.link_pagamento_asaas.trim() || null,
+          metricas_habilitado: form.metricas_habilitado,
         })
         .eq('id', form.id);
       if (error) throw error;
 
+      // Pacientes: o limite é lido direto do plano (join ao vivo em
+      // pode_criar_ficha), então a mudança já vale imediatamente para todos
+      // os clientes atuais — não precisa de propagação nem escolha do admin.
       const reajustar = form.propagacao === 'reajustar';
-
-      // Laudos: propaga o limite aos clientes atuais (no banco).
-      if (reajustar && laudosMudou) {
-        const { error: errProp } = await supabase
-          .from('profissionais')
-          .update({ laudos_limite: form.laudos_por_mes })
-          .eq('plano_id', form.id);
-        if (errProp) throw errProp;
-      }
 
       // Preço: reajusta as assinaturas atuais direto no Asaas (cobrança real).
       if (reajustar && precoMudou) {
@@ -154,8 +153,8 @@ export default function PlanosAdminPage() {
         }
       } else {
         toast.success(
-          reajustar && laudosMudou
-            ? t('admin.planos.savedWithLaudos')
+          pacientesMudou
+            ? t('admin.planos.savedWithPacientes', { count: afetados })
             : t('admin.planos.saved'),
         );
       }
@@ -212,7 +211,13 @@ export default function PlanosAdminPage() {
                   <Badge variant="outline" className="shrink-0">{p.slug}</Badge>
                 </div>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  {t('admin.planos.laudosPerMonth', { count: p.laudos_por_mes })} · {t('admin.planos.pricePerMonth', { preco: fmtPreco(p.preco_mensal) })}
+                  {p.pacientes_max !== null
+                    ? t('admin.planos.patientsLimit', { count: p.pacientes_max })
+                    : t('admin.planos.patientsUnlimited')} · {t('admin.planos.pricePerMonth', { preco: fmtPreco(p.preco_mensal) })}
+                  {' · '}
+                  <span className={p.metricas_habilitado ? 'text-secondary' : 'text-muted-foreground'}>
+                    {p.metricas_habilitado ? t('admin.planos.metricsOn') : t('admin.planos.metricsOff')}
+                  </span>
                 </p>
                 {p.link_pagamento_asaas && (
                   <a
@@ -272,16 +277,18 @@ export default function PlanosAdminPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label>{t('admin.planos.laudosPerMonthLabel')}</Label>
+                  <Label>{t('admin.planos.patientsLimitLabel')}</Label>
                   <Input
                     type="text"
                     inputMode="numeric"
-                    value={String(form.laudos_por_mes)}
+                    placeholder={t('admin.planos.patientsUnlimited')}
+                    value={form.pacientes_max === null ? '' : String(form.pacientes_max)}
                     onChange={(e) => {
                       const d = e.target.value.replace(/\D/g, '');
-                      setForm({ ...form, laudos_por_mes: d ? Number(d) : 0 });
+                      setForm({ ...form, pacientes_max: d ? Number(d) : null });
                     }}
                   />
+                  <p className="text-xs text-muted-foreground">{t('admin.planos.patientsLimitHelp')}</p>
                 </div>
                 <div className="space-y-1.5">
                   <Label>{t('admin.planos.priceLabel')}</Label>
@@ -315,7 +322,7 @@ export default function PlanosAdminPage() {
                 <div className="flex items-center gap-2">
                   <Input
                     type="url"
-                    placeholder="https://www.asaas.com/c/..."
+                    placeholder="https://www.asaas.com/paymentCampaign/show/..."
                     value={form.link_pagamento_asaas}
                     onChange={(e) => setForm({ ...form, link_pagamento_asaas: e.target.value })}
                   />
@@ -339,46 +346,69 @@ export default function PlanosAdminPage() {
                 </p>
               </div>
 
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
+                <div>
+                  <Label className="text-sm font-medium text-foreground">{t('admin.planos.metricsToggleLabel')}</Label>
+                  <p className="text-xs text-muted-foreground">{t('admin.planos.metricsToggleHelp')}</p>
+                </div>
+                <Switch
+                  checked={form.metricas_habilitado}
+                  onCheckedChange={(checked) => setForm({ ...form, metricas_habilitado: checked })}
+                />
+              </div>
+
               {mudouAlgo && (
                 <div className="space-y-2 rounded-md border border-[#E8E0FF] bg-[#F5F0FF] p-3">
-                  <p className="text-sm font-medium text-foreground">
-                    {t('admin.planos.changedPrefix')}{' '}
-                    {laudosMudou && t('admin.planos.changedLaudos', { from: form.laudos_original, to: form.laudos_por_mes })}
-                    {laudosMudou && precoMudou && t('admin.planos.changedAnd')}
-                    {precoMudou && t('admin.planos.changedPrice', { from: fmtPreco(form.preco_original), to: fmtPreco(precoNum) })}
-                    {t('admin.planos.changedSuffix')}
-                  </p>
-                  <RadioGroup
-                    value={form.propagacao}
-                    onValueChange={(v) =>
-                      setForm({ ...form, propagacao: v as 'preservar' | 'reajustar' })
-                    }
-                    className="gap-2"
-                  >
-                    <label className="flex cursor-pointer items-start gap-2 text-sm">
-                      <RadioGroupItem value="preservar" className="mt-0.5" />
-                      <span>
-                        <Trans
-                          i18nKey="admin.planos.optPreservar"
-                          count={afetados}
-                          values={{ count: afetados }}
-                          components={{ b: <span className="font-medium" /> }}
-                        />
-                      </span>
-                    </label>
-                    <label className="flex cursor-pointer items-start gap-2 text-sm">
-                      <RadioGroupItem value="reajustar" className="mt-0.5" />
-                      <span>
-                        <Trans
-                          i18nKey="admin.planos.optReajustar"
-                          count={afetados}
-                          values={{ count: afetados }}
-                          components={{ b: <span className="font-medium" /> }}
-                        />
-                        {precoMudou && t('admin.planos.optReajustarAsaas')}
-                      </span>
-                    </label>
-                  </RadioGroup>
+                  {pacientesMudou && (
+                    <p className="text-sm text-foreground">
+                      {t('admin.planos.pacientesMudouInfo', {
+                        from: form.pacientes_original ?? '∞',
+                        to: form.pacientes_max ?? '∞',
+                        count: afetados,
+                      })}
+                    </p>
+                  )}
+
+                  {precoMudou && (
+                    <>
+                      <p className="text-sm font-medium text-foreground">
+                        {t('admin.planos.changedPrefix')}{' '}
+                        {t('admin.planos.changedPrice', { from: fmtPreco(form.preco_original), to: fmtPreco(precoNum) })}
+                        {t('admin.planos.changedSuffix')}
+                      </p>
+                      <RadioGroup
+                        value={form.propagacao}
+                        onValueChange={(v) =>
+                          setForm({ ...form, propagacao: v as 'preservar' | 'reajustar' })
+                        }
+                        className="gap-2"
+                      >
+                        <label className="flex cursor-pointer items-start gap-2 text-sm">
+                          <RadioGroupItem value="preservar" className="mt-0.5" />
+                          <span>
+                            <Trans
+                              i18nKey="admin.planos.optPreservar"
+                              count={afetados}
+                              values={{ count: afetados }}
+                              components={{ b: <span className="font-medium" /> }}
+                            />
+                          </span>
+                        </label>
+                        <label className="flex cursor-pointer items-start gap-2 text-sm">
+                          <RadioGroupItem value="reajustar" className="mt-0.5" />
+                          <span>
+                            <Trans
+                              i18nKey="admin.planos.optReajustar"
+                              count={afetados}
+                              values={{ count: afetados }}
+                              components={{ b: <span className="font-medium" /> }}
+                            />
+                            {t('admin.planos.optReajustarAsaas')}
+                          </span>
+                        </label>
+                      </RadioGroup>
+                    </>
+                  )}
                 </div>
               )}
             </div>

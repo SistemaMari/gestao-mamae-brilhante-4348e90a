@@ -4,19 +4,22 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
 interface UsageWarningBannerProps {
-  laudosUsados: number;
-  laudosLimite: number;
+  usados: number;
+  limite: number | null;
 }
 
-export default function UsageWarningBanner({ laudosUsados, laudosLimite }: UsageWarningBannerProps) {
+export default function UsageWarningBanner({ usados, limite }: UsageWarningBannerProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const percentual = laudosLimite > 0 ? (laudosUsados / laudosLimite) * 100 : 0;
+
+  if (limite === null) return null;
+
+  const percentual = limite > 0 ? (usados / limite) * 100 : 0;
 
   if (percentual < 90) return null;
 
-  const atingiu = laudosUsados >= laudosLimite;
-  const restantes = Math.max(0, laudosLimite - laudosUsados);
+  const atingiu = usados >= limite;
+  const restantes = Math.max(0, limite - usados);
   const pct = Math.min(100, Math.round(percentual));
 
   // Paleta lilás alinhada ao design system, sem faixa amarela agressiva.
@@ -55,7 +58,7 @@ export default function UsageWarningBanner({ laudosUsados, laudosLimite }: Usage
               />
             </span>
             <span className="text-xs tabular-nums" style={{ color: '#64748B' }}>
-              {laudosUsados} / {laudosLimite} · {pct}%
+              {usados} / {limite} · {pct}%
             </span>
           </div>
         </div>
