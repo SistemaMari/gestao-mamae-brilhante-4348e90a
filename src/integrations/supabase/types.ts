@@ -1605,6 +1605,7 @@ export type Database = {
           id: string
           laudos_por_mes: number
           link_pagamento_asaas: string | null
+          metricas_habilitado: boolean
           nome: string
           ordem: number
           pacientes_max: number | null
@@ -1620,6 +1621,7 @@ export type Database = {
           id?: string
           laudos_por_mes: number
           link_pagamento_asaas?: string | null
+          metricas_habilitado?: boolean
           nome: string
           ordem: number
           pacientes_max?: number | null
@@ -1635,6 +1637,7 @@ export type Database = {
           id?: string
           laudos_por_mes?: number
           link_pagamento_asaas?: string | null
+          metricas_habilitado?: boolean
           nome?: string
           ordem?: number
           pacientes_max?: number | null
