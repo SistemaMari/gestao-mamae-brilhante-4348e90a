@@ -89,11 +89,12 @@ Deno.serve(async (req) => {
     .maybeSingle();
   const logId = logRow?.id;
 
+  // Não marca processed_at em erro: mantém o evento retentável pelo retry automático da Asaas.
   const marcarErro = async (msg: string) => {
     if (logId) {
       await supabase
         .from("asaas_webhook_events")
-        .update({ error: msg, processed_at: new Date().toISOString() })
+        .update({ error: msg })
         .eq("id", logId);
     }
   };
@@ -178,7 +179,6 @@ Deno.serve(async (req) => {
         await supabase
           .from("profissionais")
           .update({
-            plano: slug,
             plano_id: plano.id,
             plano_status: "ativo",
             laudos_limite: plano.laudos_por_mes,
@@ -218,7 +218,6 @@ Deno.serve(async (req) => {
       const { error: profErr } = await supabase.from("profissionais").insert({
         user_id: userId,
         nome,
-        plano: slug,
         plano_id: plano.id,
         plano_status: "ativo",
         laudos_limite: plano.laudos_por_mes,
