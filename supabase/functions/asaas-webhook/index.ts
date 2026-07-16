@@ -77,14 +77,15 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Registra recebimento (auditoria)
+  // Registra recebimento (auditoria). Upsert por event_id: retentativas da Asaas reenviam
+  // o mesmo event_id, e a coluna tem UNIQUE constraint — um insert simples falharia
+  // silenciosamente nessas retentativas, deixando logId indefinido.
   const { data: logRow } = await supabase
     .from("asaas_webhook_events")
-    .insert({
-      event_id: eventId,
-      event_type: eventType,
-      payload,
-    })
+    .upsert(
+      { event_id: eventId, event_type: eventType, payload },
+      { onConflict: "event_id" },
+    )
     .select("id")
     .maybeSingle();
   const logId = logRow?.id;
