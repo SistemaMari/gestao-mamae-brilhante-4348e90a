@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
     subscription_id: subscriptionId,
     payment_id: paymentId,
     boleto_linha_digitavel: boletoData.identificationField ?? null,
-    boleto_pdf_url: `${asaasBase()}/payments/${paymentId}/bankSlipPdf`,
+    boleto_pdf_url: payment.bankSlipUrl ?? null,
     due_date: payment.dueDate ?? hoje,
     plano: { nome: plano.nome, preco: plano.preco_mensal },
   });
