@@ -568,6 +568,8 @@ export type Database = {
           id: string
           slot: number
           texto: string
+          texto_en: string | null
+          texto_es: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -576,6 +578,8 @@ export type Database = {
           id?: string
           slot: number
           texto?: string
+          texto_en?: string | null
+          texto_es?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -584,6 +588,8 @@ export type Database = {
           id?: string
           slot?: number
           texto?: string
+          texto_en?: string | null
+          texto_es?: string | null
           updated_at?: string
           updated_by?: string | null
         }
