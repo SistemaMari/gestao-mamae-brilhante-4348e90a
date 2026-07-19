@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cenarioSemTextoLaudo, ehDesfechoInsulina } from './laudoMapping';
+import { cenarioSemTextoLaudo, ehDesfechoInsulina, laudoLeva4Notas } from './laudoMapping';
 
 describe('cenarioSemTextoLaudo', () => {
   it('Caso Novo (consulta_1) é card-only — inclusive DMG afastado', () => {
@@ -50,3 +50,30 @@ describe('ehDesfechoInsulina (banner de urgência com endocrinologista)', () => 
     expect(ehDesfechoInsulina(undefined)).toBe(false);
   });
 });
+
+
+describe('laudoLeva4Notas (Ajustes V3 item 14)', () => {
+  it('laudos que CONFIRMAM DMG pela glicemia levam as 4 notas', () => {
+    expect(laudoLeva4Notas({ tipo: 'consulta_1', status_gerado: 'aguardando_gj' })).toBe(true); // Caso Novo (pedido de GJ)
+    expect(laudoLeva4Notas({ tipo: 'retorno_1', cenario_clinico: '1' })).toBe(true); // DMG confirmado por GJ
+    expect(laudoLeva4Notas({ tipo: 'gtt', cenario_clinico: '6' })).toBe(true); // GTT positivo
+    expect(laudoLeva4Notas({ tipo: 'gtt', cenario_clinico: '6B' })).toBe(true); // GTT borderline
+  });
+
+  it('negativo, encaminhamento e aguardando GTT levam só a nota 4', () => {
+    expect(laudoLeva4Notas({ tipo: 'consulta_1', status_gerado: 'dmg_afastado' })).toBe(false);
+    expect(laudoLeva4Notas({ tipo: 'retorno_1', status_gerado: 'dmg_afastado' })).toBe(false);
+    expect(laudoLeva4Notas({ tipo: 'retorno_1', status_gerado: 'aguardando_gtt' })).toBe(false); // GJ normal aguardando GTT
+    expect(laudoLeva4Notas({ tipo: 'retorno_1', status_gerado: 'encaminhada_endocrino' })).toBe(false);
+    expect(laudoLeva4Notas({ tipo: 'gtt', cenario_clinico: 'negativo' })).toBe(false);
+  });
+
+  it('fichas de acompanhamento e parto levam só a nota 4', () => {
+    expect(laudoLeva4Notas({ tipo: 'ficha_a', percentual_meta: 80 })).toBe(false);
+    expect(laudoLeva4Notas({ tipo: 'ficha_c', percentual_meta: 50 })).toBe(false);
+    expect(laudoLeva4Notas({ tipo: 'ficha_b', percentual_meta: 80 })).toBe(false);
+    expect(laudoLeva4Notas({ tipo: 'ficha_e' })).toBe(false);
+    expect(laudoLeva4Notas({ tipo: 'registro_parto' })).toBe(false);
+  });
+});
+

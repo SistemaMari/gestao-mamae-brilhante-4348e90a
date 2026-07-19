@@ -142,6 +142,32 @@ export function ehDesfechoInsulina(desfecho: string | null | undefined): boolean
   return desfecho === 'r2_insulina' || desfecho === 'r3_insulina' || desfecho === 'r4b_insulina';
 }
 
+/**
+ * Ajustes V3 item 14 — quais notas técnicas o laudo leva.
+ *
+ * As notas 1–3 tratam do MÉTODO de diagnóstico (glicemia plasmática venosa
+ * obrigatória, não repetir, capilar só para acompanhamento) e só fazem sentido
+ * nos laudos que CONFIRMAM o DMG pela glicemia: Caso Novo (pedido de GJ),
+ * Retorno 1 com DMG confirmado por GJ e GTT positivo. A nota 4 (disclaimer)
+ * vale para TODOS os laudos.
+ *
+ * Em DMG afastado (negativo), encaminhamento no Retorno 1, fichas de
+ * acompanhamento e parto/encerramento → só a nota 4.
+ *
+ * Decide pelo DESFECHO (não pelo cenário grosso): assim o "Retorno 1 com GJ
+ * normal aguardando GTT" (mapeado como cenário 1, mas desfecho 'negativo')
+ * cai corretamente em "só a nota 4".
+ */
+export function laudoLeva4Notas(c: ConsultaParaMapear): boolean {
+  if (c.tipo === 'consulta_1') return derivarDesfechoClinico(c) !== 'negativo';
+  if (c.tipo === 'retorno_1') return derivarDesfechoClinico(c) === '1';
+  if (c.tipo === 'gtt') {
+    const d = derivarDesfechoClinico(c);
+    return d === '6' || d === '6B';
+  }
+  return false;
+}
+
 export function cenarioLabel(cenario: Cenario): string {
   const map: Record<string, string> = {
     '1': 'Cenário 1 — Rastreio inicial',

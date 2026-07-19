@@ -65,6 +65,7 @@ import { calcularDppISO, janelaRetestePuerperal } from '@/lib/dpp';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import PlaceholderBlocoLaudo from '@/components/laudo/PlaceholderBlocoLaudo';
 import { mapearCenario, derivarDesfechoClinico, cenarioSemTextoLaudo, ehDesfechoInsulina } from '@/lib/laudoMapping';
+import { getNotasLaudo } from '@/components/laudo/NotasTecnicasCard';
 import { type JanelaPosPrandial, normalizarJanela } from '@/lib/posPrandial';
 import { useLaudoTextos } from '@/hooks/useLaudoTextos';
 import { useAutoriaFicha } from '@/hooks/useAutoriaFicha';
@@ -1401,6 +1402,7 @@ export default function FichaPacientePage() {
           igDias={igNaConsulta1?.dias ?? null}
           dataLaudo={parseDateLocal(primeiraConsulta.data) ?? new Date()}
           cenario={cenarioStandalone}
+          notasTecnicas={getNotasLaudo({ tipo: primeiraConsulta.tipo, status_gerado: paciente.status_ficha, cenario_clinico: primeiraConsulta.cenario_clinico })}
           estado={estadoStandalone}
           variaveis={montarVariaveisLaudo({
             paciente: { nome: paciente.nome },
@@ -1950,6 +1952,7 @@ export default function FichaPacientePage() {
                               igDias={igLaudo?.dias ?? null}
                               dataLaudo={dataLaudo}
                               cenario={cenario}
+                              notasTecnicas={getNotasLaudo({ tipo: c.tipo, status_gerado: c.status_gerado, cenario_clinico: c.cenario_clinico, decisao: c.decisao, percentual_meta: c.percentual_meta })}
                               estado={estadoC}
                               variaveis={montarVariaveisLaudo({
                                 paciente: { nome: paciente.nome },
