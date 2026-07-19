@@ -117,10 +117,10 @@ export default function EncerramentoInsulinizacaoCard({ motivo, data, obs, retes
         // Reteste puerperal — conduta acionável, em amarelo-ovo (só com DMG confirmado).
         <div
           className="flex items-start gap-3 rounded-lg border p-3"
-          style={{ backgroundColor: '#FEF9C3', borderColor: '#FACC15' }}
+          style={{ backgroundColor: '#F4FF00', borderColor: '#CCD400' }}
         >
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: '#CA8A04' }} />
-          <p className="text-sm" style={{ color: '#713F12' }}>
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: '#3F3F00' }} />
+          <p className="text-sm" style={{ color: '#1F1F00' }}>
             <Trans
               i18nKey="encerramentoInsulinizacao.retestePuerperal"
               components={{ strong: <strong /> }}

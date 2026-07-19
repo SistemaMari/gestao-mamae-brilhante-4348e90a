@@ -81,7 +81,7 @@ export default function DicasAdminPage() {
       // carregado (tolera o período antes da migration).
       if ("texto_en" in d) payload.texto_en = (d.texto_en ?? "").trim() || null;
       if ("texto_es" in d) payload.texto_es = (d.texto_es ?? "").trim() || null;
-      return supabase.from("dicas_dashboard").update(payload).eq("id", d.id);
+      return supabase.from("dicas_dashboard").update(payload as never).eq("id", d.id);
     });
     const results = await Promise.all(updates);
     const erros = results.filter((r) => r.error);

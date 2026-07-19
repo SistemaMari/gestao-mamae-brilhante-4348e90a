@@ -23,9 +23,9 @@ export default function EncerramentoPartoCard() {
       </div>
 
       {/* 38B-B (#22): lembrete de reteste puerperal — conduta acionável, em âmbar */}
-      <div className="flex items-start gap-3 rounded-lg border p-3" style={{ backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }}>
-        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: '#B45309' }} />
-        <p className="text-sm" style={{ color: '#92400E' }}>
+      <div className="flex items-start gap-3 rounded-lg border p-3" style={{ backgroundColor: '#F4FF00', borderColor: '#CCD400' }}>
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: '#3F3F00' }} />
+        <p className="text-sm" style={{ color: '#1F1F00' }}>
           <Trans i18nKey="encerramentoParto.reteste" components={{ strong: <strong /> }} />
         </p>
       </div>
