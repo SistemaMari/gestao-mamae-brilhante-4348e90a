@@ -192,6 +192,12 @@ export default function FichaACForm({
   // incompleto; acalma quando todos os campos estão preenchidos.
   const camposTopoCompletos = !!(dataInicio && dataFim && dataConsulta && igSemanas);
 
+  // Ajustes V3 item 4 — coluna Data na grade: cada dia = data de início + (N-1).
+  const datasDias = useMemo(() => {
+    const base = parseDateLocal(dataInicio);
+    return DAYS.map((_, idx) => (base ? format(addDays(base, idx), 'dd/MM/yyyy') : '—'));
+  }, [dataInicio]);
+
   // Hypoglycemia alerts — qualquer valor < 70 em qualquer ponto
   const hypoAlerts = useMemo(() => {
     const alerts: { day: number; point: string; value: number }[] = [];
@@ -876,10 +882,12 @@ export default function FichaACForm({
 
       {/* 4-point × 15-day grid */}
       <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-[480px]">
+        <table className="w-full min-w-[580px]">
           <thead>
             <tr className="bg-muted/50">
               <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">{t('fichaAC.grid.day')}</th>
+              {/* Ajustes V3 item 4 — coluna Data (derivada da data de início do perfil). */}
+              <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-24 whitespace-nowrap">{t('fichaAC.grid.date')}</th>
               {POINTS.map(p => (
                 <th key={p} className="px-2 py-2 text-center">
                   <div className="flex items-center justify-center gap-1">
@@ -904,6 +912,8 @@ export default function FichaACForm({
             {DAYS.map((day, dayIdx) => (
               <tr key={day} className="border-t border-border">
                 <td className="px-2 py-1 text-xs font-medium text-foreground">{t('fichaAC.grid.dayN', { day })}</td>
+                {/* Ajustes V3 item 4 — data do dia (data de início + N-1). */}
+                <td className="px-2 py-1 text-xs text-muted-foreground whitespace-nowrap">{datasDias[dayIdx]}</td>
                 {POINTS.map((p, colIdx) => {
                   const val = grid[dayIdx][p];
                   const numVal = parseInt(val);

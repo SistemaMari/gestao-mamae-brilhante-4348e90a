@@ -184,6 +184,12 @@ export default function FichaEForm({
   // Ajustes V3 item 12 — destaque do bloco do topo enquanto incompleto.
   const camposTopoCompletos = !!(dataInicio && dataFim && dataConsulta && igSemanas);
 
+  // Ajustes V3 item 4 — coluna Data na grade: cada dia = data de início + (N-1).
+  const datasDias = useMemo(() => {
+    const base = parseDateLocal(dataInicio);
+    return DAYS.map((_, idx) => (base ? format(addDays(base, idx), 'dd/MM/yyyy') : '—'));
+  }, [dataInicio]);
+
   const isAdequado = percentual !== null && percentual >= 70;
 
   const hypoAlerts = useMemo(() => {
@@ -586,10 +592,12 @@ export default function FichaEForm({
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-[680px]">
+        <table className="w-full min-w-[780px]">
           <thead>
             <tr className="bg-muted/50">
               <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-16">{t('fichaE.colDay')}</th>
+              {/* Ajustes V3 item 4 — coluna Data (derivada da data de início do perfil). */}
+              <th className="px-2 py-2 text-xs font-medium text-foreground text-left w-24 whitespace-nowrap">{t('fichaE.colDate')}</th>
               {POINTS_6.map(p => (
                 <th key={p} className={`px-2 py-2 text-center ${IS_PRE_PRANDIAL[p] ? 'bg-[#E8E0FF]' : ''}`}>
                   <div className="flex items-center justify-center gap-1">
@@ -614,6 +622,8 @@ export default function FichaEForm({
             {DAYS.map((day, dayIdx) => (
               <tr key={day} className="border-t border-border">
                 <td className="px-2 py-1 text-xs font-medium text-foreground">{t('fichaE.dayLabel', { day })}</td>
+                {/* Ajustes V3 item 4 — data do dia (data de início + N-1). */}
+                <td className="px-2 py-1 text-xs text-muted-foreground whitespace-nowrap">{datasDias[dayIdx]}</td>
                 {POINTS_6.map((p, colIdx) => {
                   const val = grid[dayIdx][p];
                   const numVal = parseInt(val);

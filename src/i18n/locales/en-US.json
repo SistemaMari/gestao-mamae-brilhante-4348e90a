@@ -3193,6 +3193,7 @@
     },
     "grid": {
       "day": "Day",
+      "date": "Date",
       "dayN": "Day {{day}}",
       "metaValue": "< {{value}} mg/dL",
       "cellAria": "Day {{day}} {{point}}",
@@ -3731,6 +3732,7 @@
     "controlSummary": "Control: {{percent}}% of blood glucose readings within target ({{inMeta}} of {{total}} values)",
     "metaGoal": "Target: ≥ 70% of blood glucose readings within range",
     "colDay": "Day",
+    "colDate": "Date",
     "dayLabel": "Day {{day}}",
     "cellAria": "Day {{day}} {{point}}",
     "cellInvalid": "Invalid value",

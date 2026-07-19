@@ -3193,6 +3193,7 @@
     },
     "grid": {
       "day": "Dia",
+      "date": "Data",
       "dayN": "Dia {{day}}",
       "metaValue": "< {{value}} mg/dL",
       "cellAria": "Dia {{day}} {{point}}",
@@ -3731,6 +3732,7 @@
     "controlSummary": "Controle: {{percent}}% das glicemias dentro da meta ({{inMeta}} de {{total}} valores)",
     "metaGoal": "Meta: ≥ 70% das glicemias dentro do alvo",
     "colDay": "Dia",
+    "colDate": "Data",
     "dayLabel": "Dia {{day}}",
     "cellAria": "Dia {{day}} {{point}}",
     "cellInvalid": "Valor inválido",
