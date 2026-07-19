@@ -506,16 +506,24 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-              <table className="w-full table-fixed text-sm">
+            <div className="hidden md:block rounded-xl border border-border bg-card overflow-x-auto shadow-sm">
+              <table className="w-full min-w-[1040px] table-auto border-separate border-spacing-0 text-sm">
+                <colgroup>
+                  <col className="w-10" />
+                  <col className="w-[42%]" />
+                  <col className="w-[110px]" />
+                  <col className="w-[150px]" />
+                  <col className="w-[220px]" />
+                  <col className="w-[260px]" />
+                </colgroup>
                 <thead>
                   <tr className="border-b-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-                    <th className="w-8 px-2 py-4" aria-label={t('dashboard.attention')}></th>
-                    <th className="w-auto px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">{t('dashboard.colPatient')}</th>
-                    <th className="w-[88px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colGaToday')}</th>
-                    <th className="w-[120px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colLastConsultation')}</th>
-                    <th className="w-[160px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('common.status')}</th>
-                    <th className="w-[220px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colReturn')}</th>
+                    <th className="px-3 py-4" aria-label={t('dashboard.attention')}></th>
+                    <th className="px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">{t('dashboard.colPatient')}</th>
+                    <th className="border-l border-primary/15 px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colGaToday')}</th>
+                    <th className="border-l border-primary/15 px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colLastConsultation')}</th>
+                    <th className="border-l border-primary/15 px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('common.status')}</th>
+                    <th className="border-l border-primary/15 px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colReturn')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -530,7 +538,7 @@ export default function DashboardPage() {
                         onClick={() => navigate(`${isPreview ? '/vitrine' : ''}/paciente/${pac.id}`)}
                       >
                         {/* 38B-C (#15): ícone de atenção em coluna própria — nomes alinhados. */}
-                        <td className="w-8 px-2 py-3 align-middle">
+                        <td className="px-3 py-3 align-middle">
                           {pac.dmg_gestacao_anterior && (
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -540,7 +548,7 @@ export default function DashboardPage() {
                             </Tooltip>
                           )}
                         </td>
-                        <td className="px-6 py-3 min-w-0">
+                        <td className="px-7 py-3 min-w-0">
                           <div className="min-w-0">
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -553,14 +561,14 @@ export default function DashboardPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-3 text-muted-foreground whitespace-nowrap">{formatIg(igMap.get(pac.id) ?? null)}</td>
-                        <td className="px-6 py-3 text-muted-foreground whitespace-nowrap">
+                        <td className="border-l border-border/70 px-7 py-3 text-muted-foreground whitespace-nowrap">{formatIg(igMap.get(pac.id) ?? null)}</td>
+                        <td className="border-l border-border/70 px-7 py-3 text-muted-foreground whitespace-nowrap">
                           {pac.data_ultima_consulta
                             ? formatDateBR(pac.data_ultima_consulta)
                             : t('dashboard.noDate')}
                         </td>
 
-                        <td className="px-6 py-3">
+                        <td className="border-l border-border/70 px-7 py-3">
                           {/* 38B-C (#7): Overt lê o cenário do registro, não o status. */}
                           {overtIds.has(pac.id) ? (
                             <Tooltip>
@@ -585,7 +593,7 @@ export default function DashboardPage() {
 
                           )}
                         </td>
-                        <td className="px-6 py-3">
+                        <td className="border-l border-border/70 px-7 py-3">
                           {returnBadge && (
                             <Tooltip>
                               <TooltipTrigger asChild>
