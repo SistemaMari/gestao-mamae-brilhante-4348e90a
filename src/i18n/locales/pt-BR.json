@@ -358,6 +358,7 @@
     "removePhoto": "Remover foto",
     "photoHint": "PNG ou JPG, até 2 MB.",
     "requestChange": "Solicitar alteração",
+    "emailLockedTooltip": "Seu e-mail é a credencial de acesso e está vinculado ao seu cadastro de cobrança, por isso não pode ser alterado por aqui.",
     "phoneWhatsapp": "Telefone / WhatsApp",
     "birthdate": "Data de aniversário",
     "selectPlaceholder": "Selecione...",

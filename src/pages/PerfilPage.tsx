@@ -6,8 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   UserCog, Loader2, Camera, Lock, MessageSquareHeart, Heart, Star,
-  AlertTriangle, Eye, EyeOff, Paperclip, ChevronDown, ChevronUp, Trash2, Building2,
+  AlertTriangle, Eye, EyeOff, Paperclip, ChevronDown, ChevronUp, Trash2, Building2, Info,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -369,10 +370,19 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
             <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} />
           </div>
           <div>
-            <Label>{t('common.email')}</Label>
             {/* E-mail é somente leitura: a troca é feita pelo suporte (mantém o
-                login e o cadastro de cobrança no Asaas em sincronia). O botão de
-                "solicitar alteração" foi removido — quem precisar troca via suporte. */}
+                login e o cadastro de cobrança no Asaas em sincronia). A tooltip
+                explica o MOTIVO sem oferecer o caminho — evita que o campo pareça
+                defeito, sem convidar pedidos de troca. */}
+            <div className="flex items-center gap-1.5">
+              <Label>{t('common.email')}</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">{t('profile.emailLockedTooltip')}</TooltipContent>
+              </Tooltip>
+            </div>
             <Input value={email} disabled className="bg-muted" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">

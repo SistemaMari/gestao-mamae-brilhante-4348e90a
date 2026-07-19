@@ -358,6 +358,7 @@
     "removePhoto": "Remove photo",
     "photoHint": "PNG or JPG, up to 2 MB.",
     "requestChange": "Request change",
+    "emailLockedTooltip": "Your email is your sign-in credential and is linked to your billing record, so it can't be changed here.",
     "phoneWhatsapp": "Phone / WhatsApp",
     "birthdate": "Date of birth",
     "selectPlaceholder": "Select...",
