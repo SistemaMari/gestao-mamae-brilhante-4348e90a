@@ -506,15 +506,15 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden md:block rounded-xl border border-border bg-card overflow-x-auto shadow-sm">
-              <table className="w-full min-w-[1040px] table-auto border-separate border-spacing-0 text-sm">
+            <div className="hidden md:block rounded-xl border border-border bg-card shadow-sm">
+              <table className="w-full table-fixed border-collapse text-sm">
                 <colgroup>
-                  <col className="w-10" />
-                  <col className="w-[42%]" />
-                  <col className="w-[110px]" />
-                  <col className="w-[150px]" />
-                  <col className="w-[220px]" />
-                  <col className="w-[260px]" />
+                  <col className="w-8" />
+                  <col />
+                  <col className="w-[88px]" />
+                  <col className="w-[120px]" />
+                  <col className="w-[180px]" />
+                  <col className="w-[170px]" />
                 </colgroup>
                 <thead>
                   <tr className="border-b-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
