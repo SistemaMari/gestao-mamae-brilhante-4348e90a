@@ -5,9 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { supabase } from '@/integrations/supabase/client';
 import { addPreviewPaciente } from '@/lib/previewPatients';
-import { countries } from '@/data/locationData';
-import { useCidadesIBGE } from '@/hooks/useCidadesIBGE';
-import CidadeCombobox from '@/components/CidadeCombobox';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +28,6 @@ import {
 import DateInput from '@/components/ficha/DateInput';
 import UsgFlowSection, { emptyUsgFlow, type UsgFlowValue } from '@/components/UsgFlowSection';
 import { Checkbox } from '@/components/ui/checkbox';
-import LocalizacaoErrorBoundary from '@/components/LocalizacaoErrorBoundary';
 
 function todayISO() {
   return todayLocalISO();
@@ -55,9 +51,6 @@ export default function Consulta1Form() {
   const [dataConsulta, setDataConsulta] = useState(todayISO());
   const [observacoes, setObservacoes] = useState('');
   const [dmgAnterior, setDmgAnterior] = useState<boolean | null>(null);
-  const [pais, setPais] = useState('Brasil');
-  const [estado, setEstado] = useState('');
-  const [cidade, setCidade] = useState('');
   const [usgFlow, setUsgFlow] = useState<UsgFlowValue>(emptyUsgFlow);
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState(false);
@@ -71,12 +64,6 @@ export default function Consulta1Form() {
     const nasc = parseDateLocal(dataNascimento);
     return nasc ? differenceInYears(new Date(), nasc) : null;
   }, [dataNascimento]);
-
-  // Location cascading logic
-  const selectedCountry = useMemo(() => countries.find((c) => c.value === pais), [pais]);
-  const stateList = selectedCountry?.states || [];
-  const isOutro = pais === 'Outro';
-  const { cidades: cityList } = useCidadesIBGE(pais, estado);
 
   const whatsappValidacao = validarWhatsappBR(whatsapp);
   const dumValido = dumDesconhecida || !!dum;
@@ -115,9 +102,6 @@ export default function Consulta1Form() {
         numero_identificacao: numeroId.trim() || null,
         tipo_identificacao: tipoIdentificacao,
         dum: dumDesconhecida ? null : dum,
-        pais,
-        estado: estado || null,
-        cidade: cidade || null,
         usg_data: usgFlow.jaFezUsg === 'sim' ? usgFlow.dataExame : null,
         usg_ig_semanas: usgFlow.jaFezUsg === 'sim' ? Number(usgFlow.igSemanas) : null,
         usg_ig_dias: usgFlow.jaFezUsg === 'sim' ? Number(usgFlow.igDias || 0) : null,
@@ -158,9 +142,6 @@ export default function Consulta1Form() {
       tipo_identificacao: tipoIdentificacao,
       whatsapp: paraFormatoCanonico(whatsapp),
       dum: dumDesconhecida ? null : dum,
-      pais,
-      estado: estado || null,
-      cidade: cidade || null,
       dmg_gestacao_anterior: dmgAnterior === true,
       data_ultima_consulta: dataConsulta,
       is_rascunho: false,
@@ -411,78 +392,10 @@ export default function Consulta1Form() {
             )}
           </div>
 
-          <LocalizacaoErrorBoundary>
-          <div className="space-y-2">
-            <FieldLabel tooltip={t('consulta1.locationTooltip')}>
-              {t('consulta1.locationLabel')}
-            </FieldLabel>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Select value={pais} onValueChange={(v) => {
-                // eslint-disable-next-line no-console
-                console.debug('[Localizacao] setPais', { v });
-                setPais(v); setEstado(''); setCidade('');
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('patient.country')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {isOutro ? (
-                <Input
-                  value={estado}
-                  onChange={(e) => { setEstado(e.target.value); setCidade(''); }}
-                  placeholder={t('patient.state')}
-                />
-              ) : (
-                <Select value={estado} onValueChange={(v) => {
-                  // eslint-disable-next-line no-console
-                  console.debug('[Localizacao] setEstado', {
-                    pais, uf: v, stateListLen: stateList.length,
-                  });
-                  try {
-                    setEstado(v);
-                    setCidade('');
-                  } catch (err) {
-                    // eslint-disable-next-line no-console
-                    console.error('[Localizacao] setEstado threw', err);
-                    throw err;
-                  }
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('patient.state')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stateList.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {isOutro ? (
-                <Input
-                  value={cidade}
-                  onChange={(e) => setCidade(e.target.value)}
-                  placeholder={t('patient.city')}
-                />
-              ) : (
-                <CidadeCombobox
-                  value={cidade}
-                  onChange={setCidade}
-                  cidades={cityList}
-                  disabled={!estado}
-                  placeholder={estado ? t('consulta1.selectCity') : t('consulta1.selectStateFirst')}
-                />
-              )}
-            </div>
-          </div>
-          </LocalizacaoErrorBoundary>
-
+          {/* Ajustes V3 item 8 — País/Estado/Cidade da paciente removidos do
+              formulário (a incidência é filtrada pela localização da rede/consultório,
+              não da paciente). Colunas preservadas no banco; apenas não são mais
+              coletadas no Caso Novo. */}
 
           {/* DUM */}
           <div className="space-y-2">
@@ -621,10 +534,17 @@ function FieldLabel({
   required?: boolean;
   tooltip: string;
 }) {
+  const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5">
       <Label htmlFor={htmlFor}>
-        {children} {required && <span className="text-destructive">*</span>}
+        {children}
+        {/* Ajustes V3 item 9 — asterisco substituído por rótulo explícito com destaque. */}
+        {required && (
+          <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 align-middle">
+            {t('common.preenchimentoObrigatorio')}
+          </span>
+        )}
       </Label>
       <Tooltip>
         <TooltipTrigger asChild>

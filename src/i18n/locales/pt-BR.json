@@ -1,6 +1,7 @@
 {
   "common": {
     "save": "Salvar",
+    "preenchimentoObrigatorio": "preenchimento obrigatório",
     "cancel": "Cancelar",
     "edit": "Editar",
     "delete": "Excluir",
