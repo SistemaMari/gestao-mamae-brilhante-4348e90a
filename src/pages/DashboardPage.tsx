@@ -518,12 +518,12 @@ export default function DashboardPage() {
                 </colgroup>
                 <thead>
                   <tr className="border-b-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-                    <th className="px-3 py-4" aria-label={t('dashboard.attention')}></th>
-                    <th className="px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">{t('dashboard.colPatient')}</th>
-                    <th className="border-l border-primary/15 px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colGaToday')}</th>
-                    <th className="border-l border-primary/15 px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colLastConsultation')}</th>
-                    <th className="border-l border-primary/15 px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('common.status')}</th>
-                    <th className="border-l border-primary/15 px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colReturn')}</th>
+                    <th className="px-2 py-4" aria-label={t('dashboard.attention')}></th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">{t('dashboard.colPatient')}</th>
+                    <th className="border-l border-primary/15 px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colGaToday')}</th>
+                    <th className="border-l border-primary/15 px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colLastConsultation')}</th>
+                    <th className="border-l border-primary/15 px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('common.status')}</th>
+                    <th className="border-l border-primary/15 px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colReturn')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
