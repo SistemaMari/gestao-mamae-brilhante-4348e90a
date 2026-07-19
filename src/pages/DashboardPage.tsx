@@ -105,7 +105,11 @@ export default function DashboardPage() {
     t('dashboard.tips.tip8'),
     t('dashboard.tips.tip9'),
   ], [t]);
-  const [dicasPool, setDicasPool] = useState<string[]>(DICAS_FALLBACK);
+  // Dicas vindas do banco JÁ no idioma atual (vazio = sem tradução disponível).
+  // O pool é DERIVADO — assim o fallback acompanha a troca de idioma, em vez de
+  // ficar congelado no idioma do primeiro render (bug do item 19).
+  const [dicasDb, setDicasDb] = useState<string[]>([]);
+  const dicasPool = dicasDb.length > 0 ? dicasDb : DICAS_FALLBACK;
 
   useEffect(() => {
     if (!profissionalData?.unidade_id) { setUnidadeNome(null); return; }
@@ -133,16 +137,19 @@ export default function DashboardPage() {
         .select('*')
         .eq('ativa', true)
         .order('slot', { ascending: true });
-      if (!error && data && data.length > 0) {
-        // Item 19 — dica no idioma da interface. Cai para o texto em português
-        // quando a tradução está vazia (ou quando as colunas ainda não existem).
-        const lang = (i18n.language || 'pt').slice(0, 2);
-        const campo = lang === 'en' ? 'texto_en' : lang === 'es' ? 'texto_es' : 'texto';
-        const textos = (data as Record<string, unknown>[])
-          .map((d) => String(d[campo] || d.texto || '').trim())
-          .filter((t) => t.length > 0);
-        if (textos.length > 0) setDicasPool(textos);
-      }
+      // Item 19 — dica no idioma da interface.
+      // Em pt usa `texto`. Em en/es usa a tradução correspondente e IGNORA as
+      // dicas sem tradução: se nenhuma estiver traduzida, o pool fica vazio e o
+      // painel cai nas dicas padrão, que já são traduzidas — melhor do que
+      // exibir o texto em português numa interface em inglês/espanhol.
+      const lang = (i18n.language || 'pt').slice(0, 2);
+      const campo = lang === 'en' ? 'texto_en' : lang === 'es' ? 'texto_es' : 'texto';
+      const textos = !error && data
+        ? (data as Record<string, unknown>[])
+            .map((d) => String(d[campo] ?? '').trim())
+            .filter((t) => t.length > 0)
+        : [];
+      setDicasDb(textos);
     })();
   }, [i18n.language]);
 
