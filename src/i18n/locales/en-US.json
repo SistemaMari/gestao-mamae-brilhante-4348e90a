@@ -205,6 +205,7 @@
     "noPatientsHint": "Click \"+New Patient\" to get started.",
     "noResults": "No patients found for \"{{search}}\".",
     "attention": "Attention",
+    "attentionColTooltip": "The ⚠ symbol marks a patient with a history of GDM in a previous pregnancy.",
     "colPatient": "Patient",
     "colGaToday": "GA today",
     "colLastConsultation": "Last consultation",

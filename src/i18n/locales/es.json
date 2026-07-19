@@ -205,6 +205,7 @@
     "noPatientsHint": "Haz clic en \"+Nueva Gestante\" para comenzar.",
     "noResults": "No se encontró ninguna gestante para \"{{search}}\".",
     "attention": "Atención",
+    "attentionColTooltip": "El símbolo ⚠ indica una gestante con antecedente de DMG en un embarazo anterior.",
     "colPatient": "Gestante",
     "colGaToday": "EG hoy",
     "colLastConsultation": "Última consulta",

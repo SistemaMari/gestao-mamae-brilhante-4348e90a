@@ -514,7 +514,15 @@ export default function DashboardPage() {
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="border-b-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-                    <th className="px-2 py-4" aria-label={t('dashboard.attention')}></th>
+                    <th className="px-2 py-4" aria-label={t('dashboard.attention')}>
+                      {/* Ajustes V3 — explica o ícone ⚠ da coluna (DMG em gestação anterior). */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="mx-auto h-3.5 w-3.5 cursor-help text-muted-foreground/70" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">{t('dashboard.attentionColTooltip')}</TooltipContent>
+                      </Tooltip>
+                    </th>
                     <th className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">{t('dashboard.colPatient')}</th>
                     <th className="border-l border-primary/15 px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colGaToday')}</th>
                     <th className="border-l border-primary/15 px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colLastConsultation')}</th>
