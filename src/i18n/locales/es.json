@@ -1530,7 +1530,10 @@
       "slotLabel": "Slot {{slot}} de 30",
       "active": "Activa",
       "inactive": "Inactiva",
-      "textPlaceholder": "Escriba la frase que aparecerá en la tarjeta 'Consejo del día'…"
+      "textPlaceholder": "Escriba la frase que aparecerá en la tarjeta 'Consejo del día'…",
+      "textEnLabel": "Traducción — Inglés (opcional)",
+      "textEsLabel": "Traducción — Español (opcional)",
+      "textTranslationPlaceholder": "Si se deja vacío, se muestra el texto en portugués."
     },
     "gestoresUnidade": {
       "inviteResent": "Invitación reenviada a {{email}}.",

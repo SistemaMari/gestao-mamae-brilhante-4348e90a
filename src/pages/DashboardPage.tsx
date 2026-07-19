@@ -130,17 +130,21 @@ export default function DashboardPage() {
     (async () => {
       const { data, error } = await supabase
         .from('dicas_dashboard')
-        .select('texto')
+        .select('*')
         .eq('ativa', true)
         .order('slot', { ascending: true });
       if (!error && data && data.length > 0) {
-        const textos = (data as { texto: string }[])
-          .map((d) => (d.texto || '').trim())
+        // Item 19 — dica no idioma da interface. Cai para o texto em português
+        // quando a tradução está vazia (ou quando as colunas ainda não existem).
+        const lang = (i18n.language || 'pt').slice(0, 2);
+        const campo = lang === 'en' ? 'texto_en' : lang === 'es' ? 'texto_es' : 'texto';
+        const textos = (data as Record<string, unknown>[])
+          .map((d) => String(d[campo] || d.texto || '').trim())
           .filter((t) => t.length > 0);
         if (textos.length > 0) setDicasPool(textos);
       }
     })();
-  }, []);
+  }, [i18n.language]);
 
 
 

@@ -1530,7 +1530,10 @@
       "slotLabel": "Slot {{slot}} of 30",
       "active": "Active",
       "inactive": "Inactive",
-      "textPlaceholder": "Type the phrase that will appear in the 'Tip of the day' card…"
+      "textPlaceholder": "Type the phrase that will appear in the 'Tip of the day' card…",
+      "textEnLabel": "Translation — English (optional)",
+      "textEsLabel": "Translation — Spanish (optional)",
+      "textTranslationPlaceholder": "If left empty, the Portuguese text is shown."
     },
     "gestoresUnidade": {
       "inviteResent": "Invitation resent to {{email}}.",
