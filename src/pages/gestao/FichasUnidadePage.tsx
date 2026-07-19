@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Search, FileDown, FileSpreadsheet, FileText, ChevronLeft, ChevronRight, AlertTriangle, AlertCircle, AlertOctagon, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { STATUS_CONFIG } from '@/lib/fichaUtils';
+import { STATUS_CONFIG, getStatusPacienteChip } from '@/lib/fichaUtils';
+import type { MotivoEncerramento } from '@/lib/motivoEncerramento';
 import { useIgBatch, getIgBatch, formatIg } from '@/lib/getIg';
 import { slugify } from '@/lib/slugify';
 import { exportarFichasExcel } from '@/lib/exportarFichasExcel';
@@ -29,6 +30,7 @@ interface Ficha {
   id: string;
   nome: string;
   status_ficha: string;
+  motivo_encerramento?: MotivoEncerramento | null;
   profissional_id: string;
   profissional_nome: string;
   data_ultima_consulta: string | null;
@@ -172,7 +174,7 @@ export default function FichasUnidadePage() {
 
       const { data: pacs } = await supabase
         .from('pacientes')
-        .select('id, nome, status_ficha, profissional_id, data_ultima_consulta, data_proximo_retorno, created_at, dum, usg_data, usg_ig_semanas, usg_ig_dias')
+        .select('id, nome, status_ficha, motivo_encerramento, profissional_id, data_ultima_consulta, data_proximo_retorno, created_at, dum, usg_data, usg_ig_semanas, usg_ig_dias')
         .eq('unidade_id', prof.unidade_id)
         .eq('is_rascunho', false)
         .order('created_at', { ascending: false });
@@ -181,6 +183,7 @@ export default function FichasUnidadePage() {
         id: p.id,
         nome: p.nome,
         status_ficha: p.status_ficha,
+        motivo_encerramento: p.motivo_encerramento ?? null,
         profissional_id: p.profissional_id,
         profissional_nome: (profsMap.get(p.profissional_id) || 'Desconhecido') as string,
         data_ultima_consulta: p.data_ultima_consulta,
@@ -479,7 +482,9 @@ export default function FichasUnidadePage() {
               </TableRow>
             ) : (
               pageItems.map((f, idx) => {
-                const cfg = STATUS_CONFIG[f.status_ficha];
+                // Ajustes V3 itens 5/6 — tag unificada: encerramento por motivo
+                // (parto/aborto/insulinização) tem precedência sobre status_ficha.
+                const cfg = getStatusPacienteChip(f);
                 return (
                   <TableRow
                     key={f.id}

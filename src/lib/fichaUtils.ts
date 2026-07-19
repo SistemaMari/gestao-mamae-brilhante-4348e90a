@@ -1,5 +1,6 @@
 import { addDays, differenceInDays } from 'date-fns';
 import { parseDateLocal } from '@/lib/dateUtils';
+import { resolverMotivoEfetivo, type MotivoEncerramento } from '@/lib/motivoEncerramento';
 
 export const STATUS_CONFIG: Record<string, { label: string; color: string; meaning: string }> = {
   aguardando_gj: {
@@ -32,7 +33,81 @@ export const STATUS_CONFIG: Record<string, { label: string; color: string; meani
     color: 'bg-red-500',
     meaning: 'Cenário 7: controle inadequado com insulina. MARI encerrada. Acompanhamento compartilhado GO + endocrinologista.',
   },
+  // Ajustes V3 item 5 — a tag de encerramento por insulinização faltava nas listas,
+  // fazendo a paciente cair no fallback "Aguardando GJ". Mantida igual ao rótulo
+  // exibido dentro da ficha (i18n fichaPaciente.status.encerrada_insulinizacao).
+  encerrada_insulinizacao: {
+    label: 'Encerrada por insulinização',
+    color: 'bg-indigo-500',
+    meaning: 'Jornada da MARI encerrada: iniciada a insulinização. Acompanhamento segue fora da ferramenta.',
+  },
 };
+
+/**
+ * Ajustes V3 itens 5 e 6 — tags de encerramento no painel de pacientes.
+ *
+ * O encerramento manual (parto/aborto/não retornou/outro) grava só
+ * `motivo_encerramento`, sem tocar `status_ficha` (decisão do 42E). A
+ * insulinização grava ambos. As listas liam apenas `status_ficha` cru, então
+ * esses encerramentos não apareciam (ou apareciam como a tag legada
+ * "Resultado do parto"). Este mapa dá a cada motivo a tag exibida.
+ */
+const ENCERRAMENTO_CHIP: Record<MotivoEncerramento, { label: string; color: string; meaning: string }> = {
+  insulinizacao: STATUS_CONFIG.encerrada_insulinizacao,
+  parto: {
+    label: 'Encerrada · Parto',
+    color: 'bg-purple-500',
+    meaning: 'Acompanhamento encerrado por parto.',
+  },
+  aborto: {
+    label: 'Encerrada · Aborto',
+    color: 'bg-slate-500',
+    meaning: 'Acompanhamento encerrado por aborto.',
+  },
+  nao_retornou: {
+    label: 'Encerrada · Não retornou',
+    color: 'bg-gray-500',
+    meaning: 'Acompanhamento encerrado: a paciente não retornou.',
+  },
+  outro: {
+    label: 'Encerrada · Outro',
+    color: 'bg-gray-500',
+    meaning: 'Acompanhamento encerrado (outro motivo).',
+  },
+};
+
+/**
+ * Tag de status exibida no painel/listas de pacientes. Unifica com o que a
+ * ficha mostra: encerramento (via `motivo_encerramento` efetivo) tem precedência
+ * sobre o `status_ficha`; caso contrário usa o `STATUS_CONFIG` normal.
+ * O `status_ficha='resultado_parto'` legado (modelo antigo, sem motivo) é
+ * normalizado como encerramento por parto — some a tag "Resultado do parto".
+ */
+export function getStatusPacienteChip(p: {
+  status_ficha: string;
+  motivo_encerramento?: MotivoEncerramento | null;
+}): { label: string; color: string; meaning: string } {
+  const motivo = resolverMotivoEfetivo(p);
+  if (motivo) return ENCERRAMENTO_CHIP[motivo];
+  if (p.status_ficha === 'resultado_parto') return ENCERRAMENTO_CHIP.parto;
+  return STATUS_CONFIG[p.status_ficha] ?? STATUS_CONFIG.aguardando_gj;
+}
+
+/** Status_ficha terminais (fora os encerramentos por motivo) — DMG afastado e
+ *  encaminhamento ao endócrino também tiram a paciente do acompanhamento ativo. */
+const STATUS_TERMINAIS = ['resultado_parto', 'dmg_afastado', 'encaminhada_endocrino'];
+
+/**
+ * Uma paciente conta como "encerrada" (para o filtro "mostrar encerradas") quando
+ * tem motivo de encerramento efetivo OU um status_ficha terminal.
+ */
+export function isPacienteEncerrada(p: {
+  status_ficha: string;
+  motivo_encerramento?: MotivoEncerramento | null;
+}): boolean {
+  if (resolverMotivoEfetivo(p)) return true;
+  return STATUS_TERMINAIS.includes(p.status_ficha);
+}
 
 /**
  * Linha de USG mínima usada para cálculo de IG.

@@ -3,6 +3,9 @@ import {
   calcIdadeGestacional,
   calcIdadeGestacionalStruct,
   resolveUsgAtiva,
+  getStatusPacienteChip,
+  isPacienteEncerrada,
+  STATUS_CONFIG,
   type UsgRefInput,
 } from './fichaUtils';
 
@@ -219,5 +222,61 @@ describe('calcIdadeGestacional — comportamento legado (retrocompat)', () => {
     expect(calcIdadeGestacionalStruct({ dum: DUM }))
       .toEqual({ semanas: 20, dias: 0 });
     expect(calcIdadeGestacionalStruct({})).toBeNull();
+  });
+});
+
+/**
+ * Ajustes V3 itens 5 e 6 — tags de encerramento no painel de pacientes.
+ * A tag deve refletir o encerramento (motivo_encerramento efetivo) e não a
+ * tag legada "Resultado do parto"; a insulinização precisa ter tag própria.
+ */
+describe('getStatusPacienteChip — tags do painel (Ajustes V3 itens 5/6)', () => {
+  it('paciente ativa → usa STATUS_CONFIG do status_ficha', () => {
+    expect(getStatusPacienteChip({ status_ficha: 'dmg_confirmado' }))
+      .toEqual(STATUS_CONFIG.dmg_confirmado);
+    expect(getStatusPacienteChip({ status_ficha: 'aguardando_gtt' }))
+      .toEqual(STATUS_CONFIG.aguardando_gtt);
+  });
+
+  it('encerrada por insulinização (status) → tag própria, NÃO cai em Aguardando GJ', () => {
+    const chip = getStatusPacienteChip({ status_ficha: 'encerrada_insulinizacao' });
+    expect(chip.label).toBe('Encerrada por insulinização');
+    expect(chip).not.toEqual(STATUS_CONFIG.aguardando_gj);
+  });
+
+  it('motivo=insulinizacao mesmo com status_ficha dmg_confirmado → tag de insulinização', () => {
+    const chip = getStatusPacienteChip({
+      status_ficha: 'dmg_confirmado',
+      motivo_encerramento: 'insulinizacao',
+    });
+    expect(chip.label).toBe('Encerrada por insulinização');
+  });
+
+  it('encerramento manual (parto/aborto) via motivo → tag de encerramento correspondente', () => {
+    expect(getStatusPacienteChip({ status_ficha: 'dmg_confirmado', motivo_encerramento: 'parto' }).label)
+      .toBe('Encerrada · Parto');
+    expect(getStatusPacienteChip({ status_ficha: 'dmg_confirmado', motivo_encerramento: 'aborto' }).label)
+      .toBe('Encerrada · Aborto');
+  });
+
+  it('status_ficha=resultado_parto legado (sem motivo) → NÃO mostra "Resultado do parto"', () => {
+    const chip = getStatusPacienteChip({ status_ficha: 'resultado_parto' });
+    expect(chip.label).toBe('Encerrada · Parto');
+    expect(chip.label).not.toBe('Resultado do parto');
+  });
+});
+
+describe('isPacienteEncerrada — filtro "mostrar encerradas"', () => {
+  it('ativas retornam false', () => {
+    expect(isPacienteEncerrada({ status_ficha: 'dmg_confirmado' })).toBe(false);
+    expect(isPacienteEncerrada({ status_ficha: 'aguardando_gj' })).toBe(false);
+  });
+
+  it('encerradas (motivo OU status terminal) retornam true', () => {
+    expect(isPacienteEncerrada({ status_ficha: 'encerrada_insulinizacao' })).toBe(true);
+    expect(isPacienteEncerrada({ status_ficha: 'dmg_confirmado', motivo_encerramento: 'parto' })).toBe(true);
+    expect(isPacienteEncerrada({ status_ficha: 'resultado_parto' })).toBe(true);
+    expect(isPacienteEncerrada({ status_ficha: 'dmg_afastado' })).toBe(true);
+    expect(isPacienteEncerrada({ status_ficha: 'encaminhada_endocrino' })).toBe(true);
   });
 });
