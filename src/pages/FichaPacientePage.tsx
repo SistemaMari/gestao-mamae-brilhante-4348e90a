@@ -638,9 +638,20 @@ export default function FichaPacientePage() {
     for (const c of consultas) {
       if (c.status_ficha === 'rascunho') continue; // ficha ainda não submetida
 
-      const isInadequadoAC =
-        (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') && (c.percentual_meta ?? 0) < 70;
-      if (isInadequadoAC) {
+      // Item 13: o aviso "informe o peso p/ dose de insulina" só faz sentido quando
+      // a decisão REALMENTE leva a insulina (próxima = ficha_b/d — recusa/r3/teto).
+      // Antes disparava em qualquer ficha inadequada (percentual<70), inclusive
+      // quando a gestante ACEITOU reforçar MEV (próxima=ficha_a, sem insulina) —
+      // aí a tela mostrava "aceita MEV" + "informe o peso p/ insulina" (contradição).
+      // Obs.: usa proxima_ficha_recomendada (confiável) e NÃO conduta_gerada, que o
+      // motor mantém como 'reforcar_mev' mesmo na recusa.
+      const decisaoLevaInsulina =
+        c.proxima_ficha_recomendada === 'ficha_b' || c.proxima_ficha_recomendada === 'ficha_d';
+      const precisaPesoParaInsulina =
+        (c.tipo === 'ficha_a' || c.tipo === 'ficha_c') &&
+        (c.percentual_meta ?? 0) < 70 &&
+        decisaoLevaInsulina;
+      if (precisaPesoParaInsulina) {
         const peso = c.peso_kg;
         if (peso == null || peso <= 0) {
           // 42I — estado ACIONÁVEL "informe o peso", não spinner de carregamento.
