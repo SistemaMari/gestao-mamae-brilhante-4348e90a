@@ -1,3 +1,5 @@
+import type { MotivoEncerramento } from '@/lib/motivoEncerramento';
+
 export interface PreviewConsulta {
   id: string;
   tipo: string;
@@ -76,6 +78,9 @@ export interface PreviewPaciente {
   /** id da USG ativa em exames_usg. NULL = fallback para USG ordem=1 (33B). */
   referencia_usg_id?: string | null;
   status_ficha: string;
+  /** Ajustes V3 itens 5/6 — fonte de verdade do encerramento (parto/aborto/
+   *  não retornou/outro grava só isto; insulinização grava isto + status_ficha). */
+  motivo_encerramento?: MotivoEncerramento | null;
   dmg_gestacao_anterior: boolean | null;
   data_ultima_consulta: string | null;
   data_proximo_retorno: string | null;

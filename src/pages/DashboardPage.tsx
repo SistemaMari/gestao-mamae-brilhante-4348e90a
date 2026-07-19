@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
-import { STATUS_CONFIG } from '@/lib/fichaUtils';
+import { getStatusPacienteChip, isPacienteEncerrada } from '@/lib/fichaUtils';
 import { useIgBatch, formatIg } from '@/lib/getIg';
 
 interface Paciente extends PreviewPaciente {}
@@ -150,7 +150,7 @@ export default function DashboardPage() {
 
     const { data } = await supabase
       .from('pacientes')
-      .select('id, nome, numero_identificacao, dum, usg_data, usg_ig_semanas, usg_ig_dias, status_ficha, dmg_gestacao_anterior, data_ultima_consulta, data_proximo_retorno, tipo_retorno')
+      .select('id, nome, numero_identificacao, dum, usg_data, usg_ig_semanas, usg_ig_dias, status_ficha, motivo_encerramento, dmg_gestacao_anterior, data_ultima_consulta, data_proximo_retorno, tipo_retorno')
       .eq('is_rascunho', false)
       .order('data_ultima_consulta', { ascending: false, nullsFirst: false });
 
@@ -210,12 +210,12 @@ export default function DashboardPage() {
     channelName: 'dashboard-pacientes',
   });
 
-  const ENCERRADAS_STATUS = ['resultado_parto', 'dmg_afastado', 'encaminhada_endocrino'];
-
   const filtered = useMemo(() => {
     let list = pacientes;
     if (!showEncerradas) {
-      list = list.filter((p) => !ENCERRADAS_STATUS.includes(p.status_ficha));
+      // Ajustes V3 item 6 — encerramento agora inclui os motivos (parto/aborto/…)
+      // e a insulinização, não só os status_ficha terminais legados.
+      list = list.filter((p) => !isPacienteEncerrada(p));
     }
     if (!search.trim()) return list;
     const q = search.toLowerCase();
@@ -518,7 +518,7 @@ export default function DashboardPage() {
                 <tbody className="divide-y divide-border">
                   {paginated.map((pac) => {
                     const returnBadge = getReturnBadge(pac, t);
-                    const statusCfg = STATUS_CONFIG[pac.status_ficha] || STATUS_CONFIG.aguardando_gj;
+                    const statusCfg = getStatusPacienteChip(pac);
 
                     return (
                       <tr
@@ -616,7 +616,7 @@ export default function DashboardPage() {
             <div className="md:hidden space-y-3">
               {paginated.map((pac) => {
                 const returnBadge = getReturnBadge(pac, t);
-                const statusCfg = STATUS_CONFIG[pac.status_ficha] || STATUS_CONFIG.aguardando_gj;
+                const statusCfg = getStatusPacienteChip(pac);
 
                 return (
                   <button
