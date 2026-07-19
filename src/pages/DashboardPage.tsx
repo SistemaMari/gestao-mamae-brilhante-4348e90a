@@ -506,16 +506,12 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden md:block rounded-xl border border-border bg-card shadow-sm">
-              <table className="w-full table-fixed border-collapse text-sm">
-                <colgroup>
-                  <col className="w-8" />
-                  <col />
-                  <col className="w-[88px]" />
-                  <col className="w-[120px]" />
-                  <col className="w-[180px]" />
-                  <col className="w-[170px]" />
-                </colgroup>
+            {/* Layout automático + rolagem horizontal: as colunas se ajustam ao
+                conteúdo (cabeçalhos, tags e data de retorno) em vez de transbordar.
+                O table-fixed + colgroup estreito do ajuste anterior fazia o conteúdo
+                whitespace-nowrap vazar pras colunas vizinhas. */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+              <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="border-b-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
                     <th className="px-2 py-4" aria-label={t('dashboard.attention')}></th>
