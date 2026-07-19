@@ -708,7 +708,7 @@ export default function DiagnosticosPage() {
             sublabel="Controle por dieta e atividade física"
             cor={COR_VERDE}
             destaque
-            tooltip="Percentual de pacientes DMG que atingiram controle adequado apenas com dieta e atividade física. Base: pacientes que iniciaram tratamento em MEV."
+            tooltip="Percentual de gestantes DMG que atingiram controle adequado apenas com dieta e atividade física. Base: gestantes que iniciaram tratamento em MEV."
           />
         </div>
         <div className="h-full">
@@ -718,7 +718,7 @@ export default function DiagnosticosPage() {
             sublabel="Necessidade de insulina"
             cor={COR_VERMELHO}
             destaque
-            tooltip="Percentual de pacientes DMG que não atingiram controle apenas com dieta e atividade física e precisaram associar insulina. Base: pacientes que iniciaram tratamento em MEV."
+            tooltip="Percentual de gestantes DMG que não atingiram controle apenas com dieta e atividade física e precisaram associar insulina. Base: gestantes que iniciaram tratamento em MEV."
           />
         </div>
       </div>
