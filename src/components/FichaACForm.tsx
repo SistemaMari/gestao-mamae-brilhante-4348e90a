@@ -156,25 +156,41 @@ export default function FichaACForm({
   }, []);
 
   // Compute control percentage in real time
-  const { totalPreenchidos, dentroMeta, percentual } = useMemo(() => {
+  const { totalPreenchidos, dentroMeta, percentual, diasPreenchidos } = useMemo(() => {
     let total = 0;
     let ok = 0;
+    let dias = 0;
     for (const row of grid) {
+      // Ajustes V3 item 3 — um dia conta como preenchido se tem ao menos uma medição.
+      let diaTemValor = false;
       for (const p of POINTS) {
         const val = parseInt(row[p]);
         if (!val || val <= 0) continue; // empty or 0 = skip
+        diaTemValor = true;
         total++;
         // Hipoglicemia (< 70) sempre conta como fora da meta, em qualquer ponto
         if (isHypoglycemia(val)) continue;
         if (val < pointMeta(p, janela)) ok++;
       }
+      if (diaTemValor) dias++;
     }
     return {
       totalPreenchidos: total,
       dentroMeta: ok,
       percentual: total > 0 ? Math.round((ok / total) * 1000) / 10 : null,
+      diasPreenchidos: dias,
     };
   }, [grid, janela]);
+
+  // Ajustes V3 item 3 — mínimo de 7 dias de medições para poder salvar a ficha.
+  const MINIMO_DIAS = 7;
+  const diasSuficientes = diasPreenchidos >= MINIMO_DIAS;
+  // Ajustes V3 item 2 — só cobra "preenchimento obrigatório" depois que o usuário
+  // começou a preencher a grade (não polui a ficha em branco).
+  const mostrarObrigatorios = totalPreenchidos > 0;
+  // Ajustes V3 item 12 — bloco do topo (datas + IG) ganha destaque enquanto
+  // incompleto; acalma quando todos os campos estão preenchidos.
+  const camposTopoCompletos = !!(dataInicio && dataFim && dataConsulta && igSemanas);
 
   // Hypoglycemia alerts — qualquer valor < 70 em qualquer ponto
   const hypoAlerts = useMemo(() => {
@@ -359,6 +375,8 @@ export default function FichaACForm({
     if (!dataInicio || !dataFim || !dataConsulta) return false;
     if (!igSemanas) return false;
     if (totalPreenchidos === 0) return false;
+    // Ajustes V3 item 3 — bloqueia salvar com menos de 7 dias preenchidos.
+    if (!diasSuficientes) return false;
     if (hasNegativeValues) return false;
     // 36B REV3 — Ficha A exige checklist completo + caminho clínico fechado (sem pendências de pactuação/memória)
     if (isFichaAC) {
@@ -366,7 +384,7 @@ export default function FichaACForm({
       if (decisaoFichaA && decisaoFichaA.pendencias.some(p => p === 'pactuacao_adesao' || p === 'memoria_glicosimetro')) return false;
     }
     return true;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues, isFichaAC, checklist, decisaoFichaA]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, diasSuficientes, hasNegativeValues, isFichaAC, checklist, decisaoFichaA]);
 
   // 34B.2 — status + pendentes (badge e banner).
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
@@ -721,8 +739,14 @@ export default function FichaACForm({
         </div>
       )}
 
-      {/* Form fields */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Form fields — Ajustes V3 item 12: bloco do topo com destaque de cor
+          enquanto incompleto (datas do perfil + IG são os campos mais pulados). */}
+      <div className={`rounded-xl p-4 transition-colors ${
+        camposTopoCompletos
+          ? 'border border-border bg-card'
+          : 'border-2 border-[#F59E0B] bg-[#FFFBEB]'
+      }`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-1">
             <label className="text-xs font-medium text-foreground">{t('fichaAC.fields.dataInicioLabel')}</label>
@@ -738,6 +762,9 @@ export default function FichaACForm({
             </TooltipProvider>
           </div>
           <DateInput value={dataInicio} onChange={setDataInicio} onValidityChange={setDataInicioValida} />
+          {mostrarObrigatorios && !dataInicio && (
+            <p className="text-xs text-red-600">{t('fichaAC.obrigatorio')}</p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -755,6 +782,9 @@ export default function FichaACForm({
             </TooltipProvider>
           </div>
           <DateInput value={dataFim} onChange={setDataFim} onValidityChange={setDataFimValida} />
+          {mostrarObrigatorios && !dataFim && (
+            <p className="text-xs text-red-600">{t('fichaAC.obrigatorio')}</p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -772,6 +802,9 @@ export default function FichaACForm({
             </TooltipProvider>
           </div>
           <DateInput value={dataConsulta} onChange={setDataConsulta} onValidityChange={setDataConsultaValida} />
+          {mostrarObrigatorios && !dataConsulta && (
+            <p className="text-xs text-red-600">{t('fichaAC.obrigatorio')}</p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -810,6 +843,10 @@ export default function FichaACForm({
             />
             <span className="text-xs text-muted-foreground">{t('fichaAC.fields.days')}</span>
           </div>
+          {mostrarObrigatorios && !igSemanas && (
+            <p className="text-xs text-red-600">{t('fichaAC.obrigatorio')}</p>
+          )}
+        </div>
         </div>
       </div>
 
@@ -976,6 +1013,13 @@ export default function FichaACForm({
           {t('fichaAC.actions.save')}
         </Button>
       </div>
+
+      {/* Ajustes V3 item 3 — aviso de mínimo de dias, logo abaixo do botão salvar. */}
+      {mostrarObrigatorios && !diasSuficientes && (
+        <p className="text-right text-xs font-medium text-[#D97706] print:hidden">
+          {t('fichaAC.minDias', { min: MINIMO_DIAS })}
+        </p>
+      )}
 
       {/* High value confirmation dialog */}
       <AlertDialog open={showHighValueConfirm} onOpenChange={setShowHighValueConfirm}>

@@ -3148,6 +3148,8 @@
       "saveError": "Error al guardar: {{error}}",
       "unknown": "Error desconocido"
     },
+    "obrigatorio": "campo obligatorio",
+    "minDias": "Complete al menos {{min}} días para guardar la ficha.",
     "pendentes": {
       "dataInicio": "Fecha de inicio del perfil",
       "dataFim": "Fecha de fin del perfil",
@@ -3738,6 +3740,8 @@
     "obsTooltip": "Notas adicionales sobre este retorno.",
     "obsPlaceholder": "Opcional",
     "saveReturn": "Guardar retorno",
+    "obrigatorio": "campo obligatorio",
+    "minDias": "Complete al menos {{min}} días para guardar la ficha.",
     "highValueTitle": "Valores fuera del rango esperado",
     "highValueDesc": "Hay valores superiores a 400 mg/dL en la cuadrícula. Verifica que los datos sean correctos antes de continuar.",
     "review": "Revisar",

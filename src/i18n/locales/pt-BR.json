@@ -3148,6 +3148,8 @@
       "saveError": "Erro ao salvar: {{error}}",
       "unknown": "Erro desconhecido"
     },
+    "obrigatorio": "preenchimento obrigatório",
+    "minDias": "Preencha pelo menos {{min}} dias para salvar a ficha.",
     "pendentes": {
       "dataInicio": "Data de início do perfil",
       "dataFim": "Data de fim do perfil",
@@ -3738,6 +3740,8 @@
     "obsTooltip": "Anotações adicionais sobre este retorno.",
     "obsPlaceholder": "Opcional",
     "saveReturn": "Salvar retorno",
+    "obrigatorio": "preenchimento obrigatório",
+    "minDias": "Preencha pelo menos {{min}} dias para salvar a ficha.",
     "highValueTitle": "Valores fora da faixa esperada",
     "highValueDesc": "Existem valores acima de 400 mg/dL na grade. Verifique se os dados estão corretos antes de continuar.",
     "review": "Revisar",

@@ -152,23 +152,37 @@ export default function FichaEForm({
     cellRefs.current[day][col] = el;
   }, []);
 
-  const { totalPreenchidos, dentroMeta, percentual } = useMemo(() => {
+  const { totalPreenchidos, dentroMeta, percentual, diasPreenchidos } = useMemo(() => {
     let total = 0;
     let ok = 0;
+    let dias = 0;
     for (const row of grid) {
+      // Ajustes V3 item 3 — um dia conta como preenchido se tem ao menos uma medição.
+      let diaTemValor = false;
       for (const p of POINTS_6) {
         const val = parseInt(row[p]);
         if (!val || val <= 0) continue;
+        diaTemValor = true;
         total++;
         if (isWithinMeta(p, val)) ok++;
       }
+      if (diaTemValor) dias++;
     }
     return {
       totalPreenchidos: total,
       dentroMeta: ok,
       percentual: total > 0 ? Math.round((ok / total) * 1000) / 10 : null,
+      diasPreenchidos: dias,
     };
   }, [grid]);
+
+  // Ajustes V3 item 3 — mínimo de 7 dias de medições para poder salvar.
+  const MINIMO_DIAS = 7;
+  const diasSuficientes = diasPreenchidos >= MINIMO_DIAS;
+  // Ajustes V3 item 2 — só cobra "preenchimento obrigatório" após começar a grade.
+  const mostrarObrigatorios = totalPreenchidos > 0;
+  // Ajustes V3 item 12 — destaque do bloco do topo enquanto incompleto.
+  const camposTopoCompletos = !!(dataInicio && dataFim && dataConsulta && igSemanas);
 
   const isAdequado = percentual !== null && percentual >= 70;
 
@@ -242,9 +256,11 @@ export default function FichaEForm({
     if (!dataInicio || !dataFim || !dataConsulta) return false;
     if (!igSemanas) return false;
     if (totalPreenchidos === 0) return false;
+    // Ajustes V3 item 3 — bloqueia salvar com menos de 7 dias preenchidos.
+    if (!diasSuficientes) return false;
     if (hasNegativeValues) return false;
     return true;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, hasNegativeValues]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, diasSuficientes, hasNegativeValues]);
 
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
   // Rascunho NÃO é sinalizado durante o preenchimento: badge "Rascunho" + banner de
@@ -503,6 +519,10 @@ export default function FichaEForm({
         </div>
       )}
 
+      {/* Ajustes V3 item 12 — bloco do topo com destaque enquanto incompleto. */}
+      <div className={`rounded-xl p-4 transition-colors ${
+        camposTopoCompletos ? 'border border-border bg-card' : 'border-2 border-[#F59E0B] bg-[#FFFBEB]'
+      }`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-1">
@@ -510,6 +530,7 @@ export default function FichaEForm({
             <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaE.dataInicioTooltip')}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <DateInput value={dataInicio} onChange={setDataInicio} onValidityChange={setDataInicioValida} />
+          {mostrarObrigatorios && !dataInicio && <p className="text-xs text-red-600">{t('fichaE.obrigatorio')}</p>}
         </div>
         <div className="space-y-1">
           <div className="flex items-center gap-1">
@@ -517,6 +538,7 @@ export default function FichaEForm({
             <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaE.dataFimTooltip')}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <DateInput value={dataFim} onChange={setDataFim} onValidityChange={setDataFimValida} />
+          {mostrarObrigatorios && !dataFim && <p className="text-xs text-red-600">{t('fichaE.obrigatorio')}</p>}
         </div>
         <div className="space-y-1">
           <div className="flex items-center gap-1">
@@ -524,6 +546,7 @@ export default function FichaEForm({
             <TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent className="max-w-xs"><p className="text-xs">{t('fichaE.dataConsultaTooltip')}</p></TooltipContent></Tooltip></TooltipProvider>
           </div>
           <DateInput value={dataConsulta} onChange={setDataConsulta} onValidityChange={setDataConsultaValida} />
+          {mostrarObrigatorios && !dataConsulta && <p className="text-xs text-red-600">{t('fichaE.obrigatorio')}</p>}
         </div>
         <div className="space-y-1">
           <div className="flex items-center gap-1">
@@ -536,7 +559,9 @@ export default function FichaEForm({
             <Input type="number" min={0} max={6} value={igDias} onChange={e => setIgDias(e.target.value)} placeholder={t('fichaE.daysPlaceholder')} className="w-20" />
             <span className="text-xs text-muted-foreground">{t('fichaE.daysSuffix')}</span>
           </div>
+          {mostrarObrigatorios && !igSemanas && <p className="text-xs text-red-600">{t('fichaE.obrigatorio')}</p>}
         </div>
+      </div>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4 text-center">
@@ -642,6 +667,13 @@ export default function FichaEForm({
           {t('fichaE.saveReturn')}
         </Button>
       </div>
+
+      {/* Ajustes V3 item 3 — aviso de mínimo de dias, abaixo do botão salvar. */}
+      {mostrarObrigatorios && !diasSuficientes && (
+        <p className="text-right text-xs font-medium text-[#D97706] print:hidden">
+          {t('fichaE.minDias', { min: MINIMO_DIAS })}
+        </p>
+      )}
 
       <AlertDialog open={showHighValueConfirm} onOpenChange={setShowHighValueConfirm}>
         <AlertDialogContent>
