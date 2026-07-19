@@ -449,12 +449,12 @@ export default function FichasUnidadePage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-[#5B3A8E] hover:bg-[#5B3A8E]">
-              <TableHead className="text-white">{t('gestao.fichasUnidade.colPaciente')}</TableHead>
-              <TableHead className="text-white">{t('gestao.fichasUnidade.colIg')}</TableHead>
-              <TableHead className="text-white">{t('common.status')}</TableHead>
-              <TableHead className="text-white">{t('gestao.fichasUnidade.colProfissional')}</TableHead>
-              <TableHead className="text-white">{t('gestao.fichasUnidade.colUltimaConsulta')}</TableHead>
-              <TableHead className="text-white">{t('gestao.fichasUnidade.colProximaConsulta')}</TableHead>
+              <TableHead className="text-white py-4 pl-6 pr-8">{t('gestao.fichasUnidade.colPaciente')}</TableHead>
+              <TableHead className="text-white py-4 px-8">{t('gestao.fichasUnidade.colIg')}</TableHead>
+              <TableHead className="text-white py-4 px-8">{t('common.status')}</TableHead>
+              <TableHead className="text-white py-4 px-8">{t('gestao.fichasUnidade.colProfissional')}</TableHead>
+              <TableHead className="text-white py-4 px-8">{t('gestao.fichasUnidade.colUltimaConsulta')}</TableHead>
+              <TableHead className="text-white py-4 px-8 pr-6">{t('gestao.fichasUnidade.colProximaConsulta')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
