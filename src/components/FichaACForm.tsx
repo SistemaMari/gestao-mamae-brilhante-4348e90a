@@ -579,7 +579,13 @@ export default function FichaACForm({
         if (valErr) throw valErr;
       }
 
-      await supabase
+      // Erro 2 (Ajustes V3) — este update é o que sincroniza o encerramento por
+      // insulinização (status + motivo + data + zera próximo retorno). Se falhar
+      // em silêncio, a paciente fica "presa": decisão roteia p/ insulina mas o
+      // encerramento não persiste → sem próximo passo e sem card. Checar o erro
+      // (como já se faz no insert de valores_perfil acima) transforma a falha
+      // silenciosa em erro visível, evitando recriar o estado dessincronizado.
+      const { error: pacErr } = await supabase
         .from('pacientes')
         .update({
           status_ficha: pacienteStatusFicha,
@@ -591,6 +597,7 @@ export default function FichaACForm({
           data_proximo_retorno: proximoRetornoISO,
         })
         .eq('id', paciente.id);
+      if (pacErr) throw pacErr;
 
       const { carimbarAtendimento } = await import('@/lib/carimbar');
       await carimbarAtendimento({
