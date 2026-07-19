@@ -221,12 +221,11 @@ export default function FichasUnidadePage() {
     if (idsFiltro) base = base.filter(f => idsFiltro.has(f.id));
     if (statusFiltro) base = base.filter(f => f.status_ficha === statusFiltro);
     if (buscaDebounced.trim()) {
-      // Ajustes V3 item 15 — a busca casa nome da paciente OU nome do médico
-      // (ex.: "quais pacientes o Dr. Fulano atendeu").
+      // Item 15 (busca por médico) ADIADO — precisa de RPC que exponha os médicos
+      // que atenderam cada paciente (multi-médico por paciente, nomes protegidos
+      // por RLS no perfil institucional). Por ora a busca casa só o nome da paciente.
       const q = stripAccents(buscaDebounced.trim());
-      base = base.filter(f =>
-        stripAccents(f.nome).includes(q) || stripAccents(f.profissional_nome).includes(q),
-      );
+      base = base.filter(f => stripAccents(f.nome).includes(q));
     }
     // Ajustes V3 item 7 — lista em ordem alfabética (por nome da paciente).
     return [...base].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
