@@ -511,11 +511,11 @@ export default function DashboardPage() {
                 <thead>
                   <tr className="border-b-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
                     <th className="w-8 px-2 py-4" aria-label={t('dashboard.attention')}></th>
-                    <th className="w-auto px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">{t('dashboard.colPatient')}</th>
-                    <th className="w-[88px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colGaToday')}</th>
-                    <th className="w-[120px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colLastConsultation')}</th>
-                    <th className="w-[160px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('common.status')}</th>
-                    <th className="w-[220px] px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colReturn')}</th>
+                    <th className="w-auto px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80">{t('dashboard.colPatient')}</th>
+                    <th className="w-[88px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colGaToday')}</th>
+                    <th className="w-[120px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colLastConsultation')}</th>
+                    <th className="w-[160px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('common.status')}</th>
+                    <th className="w-[220px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colReturn')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -540,7 +540,7 @@ export default function DashboardPage() {
                             </Tooltip>
                           )}
                         </td>
-                        <td className="px-4 py-3 min-w-0">
+                        <td className="px-6 py-3 min-w-0">
                           <div className="min-w-0">
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -553,14 +553,14 @@ export default function DashboardPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{formatIg(igMap.get(pac.id) ?? null)}</td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        <td className="px-6 py-3 text-muted-foreground whitespace-nowrap">{formatIg(igMap.get(pac.id) ?? null)}</td>
+                        <td className="px-6 py-3 text-muted-foreground whitespace-nowrap">
                           {pac.data_ultima_consulta
                             ? formatDateBR(pac.data_ultima_consulta)
                             : t('dashboard.noDate')}
                         </td>
 
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-3">
                           {/* 38B-C (#7): Overt lê o cenário do registro, não o status. */}
                           {overtIds.has(pac.id) ? (
                             <Tooltip>
@@ -585,7 +585,7 @@ export default function DashboardPage() {
 
                           )}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-3">
                           {returnBadge && (
                             <Tooltip>
                               <TooltipTrigger asChild>
