@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Check, Crown, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { nomeAmigavelCurso } from '@/lib/nomesCursos';
 
 interface Plano {
   id: string;
@@ -209,15 +208,9 @@ export default function PlanosPage() {
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
                       {labelSuporte(plano.suporte)}
                     </li>
-                    {plano.cursos_inclusos.map((slug) => (
-                      <li
-                        key={slug}
-                        className="flex items-start gap-2 text-sm text-foreground"
-                      >
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
-                        {nomeAmigavelCurso(slug)}
-                      </li>
-                    ))}
+                    {/* Cursos removidos da descrição dos planos (a pedido).
+                        `cursos_inclusos` segue no banco e continua liberando o
+                        acesso em "Meus cursos" — apenas não é mais listado aqui. */}
                   </ul>
 
                   <Button
