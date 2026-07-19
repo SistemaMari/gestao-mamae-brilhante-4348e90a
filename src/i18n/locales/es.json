@@ -2230,7 +2230,7 @@
       "kpiAcompanhamento": "En seguimiento",
       "kpiConcluidas": "Concluidas",
       "chipTodos": "Todas ({{count}})",
-      "searchPlaceholder": "Buscar por nombre de paciente...",
+      "searchPlaceholder": "Buscar por paciente o médico...",
       "exportCsv": "Exportar CSV",
       "exportExcel": "Exportar Excel",
       "exportEmptyTitle": "Ninguna ficha para exportar con los filtros actuales.",

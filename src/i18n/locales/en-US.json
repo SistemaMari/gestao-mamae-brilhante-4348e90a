@@ -2230,7 +2230,7 @@
       "kpiAcompanhamento": "Under follow-up",
       "kpiConcluidas": "Completed",
       "chipTodos": "All ({{count}})",
-      "searchPlaceholder": "Search by patient name...",
+      "searchPlaceholder": "Search by patient or doctor...",
       "exportCsv": "Export CSV",
       "exportExcel": "Export Excel",
       "exportEmptyTitle": "No records to export with the current filters.",

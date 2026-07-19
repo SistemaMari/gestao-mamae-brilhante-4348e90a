@@ -217,9 +217,12 @@ export default function DashboardPage() {
       // e a insulinização, não só os status_ficha terminais legados.
       list = list.filter((p) => !isPacienteEncerrada(p));
     }
-    if (!search.trim()) return list;
-    const q = search.toLowerCase();
-    return list.filter((p) => p.nome.toLowerCase().includes(q));
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((p) => p.nome.toLowerCase().includes(q));
+    }
+    // Ajustes V3 item 7 — painel de pacientes em ordem alfabética (por nome).
+    return [...list].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
   }, [pacientes, search, showEncerradas]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
