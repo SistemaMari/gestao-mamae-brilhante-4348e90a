@@ -6,16 +6,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   UserCog, Loader2, Camera, Lock, MessageSquareHeart, Heart, Star,
-  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp, Trash2, Building2,
+  AlertTriangle, Eye, EyeOff, Paperclip, ChevronDown, ChevronUp, Trash2, Building2, Info,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -142,7 +140,6 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
   const [zonaAberta, setZonaAberta] = useState(false);
   const [confirmSenha, setConfirmSenha] = useState('');
   const [excluindo, setExcluindo] = useState(false);
-  const [emailModal, setEmailModal] = useState(false);
   const [confirmRemoverFoto, setConfirmRemoverFoto] = useState(false);
   const [removendoFoto, setRemovendoFoto] = useState(false);
 
@@ -373,13 +370,20 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
             <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} />
           </div>
           <div>
-            <Label>{t('common.email')}</Label>
-            <div className="flex gap-2">
-              <Input value={email} disabled className="bg-muted" />
-              <Button type="button" variant="outline" onClick={() => setEmailModal(true)}>
-                <Mail className="h-4 w-4" /> {t('profile.requestChange')}
-              </Button>
+            {/* E-mail é somente leitura: a troca é feita pelo suporte (mantém o
+                login e o cadastro de cobrança no Asaas em sincronia). A tooltip
+                explica o MOTIVO sem oferecer o caminho — evita que o campo pareça
+                defeito, sem convidar pedidos de troca. */}
+            <div className="flex items-center gap-1.5">
+              <Label>{t('common.email')}</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">{t('profile.emailLockedTooltip')}</TooltipContent>
+              </Tooltip>
             </div>
+            <Input value={email} disabled className="bg-muted" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -569,23 +573,6 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
           )}
         </Card>
       )}
-
-      {/* Modal solicitar alteração de e-mail */}
-      <Dialog open={emailModal} onOpenChange={setEmailModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('profile.emailChangeTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('profile.emailChangeDescBefore')}{' '}
-              <a href="mailto:suporte@novodmg.com.br" className="text-primary underline">suporte@novodmg.com.br</a>{' '}
-              {t('profile.emailChangeDescAfter')}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setEmailModal(false)}>{t('profile.understood')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Confirmação — remover foto */}
       <AlertDialog open={confirmRemoverFoto} onOpenChange={setConfirmRemoverFoto}>
