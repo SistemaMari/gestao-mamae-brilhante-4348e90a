@@ -3148,6 +3148,8 @@
       "saveError": "Error saving: {{error}}",
       "unknown": "Unknown error"
     },
+    "obrigatorio": "required field",
+    "minDias": "Fill in at least {{min}} days to save the record.",
     "pendentes": {
       "dataInicio": "Profile start date",
       "dataFim": "Profile end date",
@@ -3738,6 +3740,8 @@
     "obsTooltip": "Additional notes about this follow-up.",
     "obsPlaceholder": "Optional",
     "saveReturn": "Save follow-up",
+    "obrigatorio": "required field",
+    "minDias": "Fill in at least {{min}} days to save the record.",
     "highValueTitle": "Values outside the expected range",
     "highValueDesc": "There are values above 400 mg/dL in the grid. Check that the data is correct before continuing.",
     "review": "Review",
