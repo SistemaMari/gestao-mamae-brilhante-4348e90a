@@ -695,7 +695,7 @@ export default function DashboardMetricasPage() {
             </DialogTitle>
             <DialogDescription>
               {t('dashboardMetricas.list.count', {
-                defaultValue: '{{count}} paciente(s) neste grupo',
+                defaultValue: '{{count}} gestante(s) neste grupo',
                 count: lista?.pacientes.length ?? 0,
               })}
             </DialogDescription>
@@ -725,7 +725,7 @@ export default function DashboardMetricasPage() {
               </ul>
             ) : (
               <p className="p-6 text-center text-sm" style={{ color: '#64748B' }}>
-                {t('dashboardMetricas.list.empty', { defaultValue: 'Nenhuma paciente neste grupo.' })}
+                {t('dashboardMetricas.list.empty', { defaultValue: 'Nenhuma gestante neste grupo.' })}
               </p>
             )}
           </div>

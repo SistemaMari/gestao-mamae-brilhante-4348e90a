@@ -53,8 +53,8 @@
   },
   "nav": {
     "dashboard": "Panel",
-    "patients": "Pacientes",
-    "newPatient": "Nueva paciente",
+    "patients": "Gestantes",
+    "newPatient": "Nueva gestante",
     "history": "Historial",
     "reports": "Informes",
     "metrics": "Métricas",
@@ -150,10 +150,10 @@
   "dashboard": {
     "title": "Panel del profesional",
     "welcome": "Hola, {{name}}",
-    "myPatients": "Mis pacientes",
-    "newPatient": "Nueva paciente",
-    "noPatients": "Aún no tienes pacientes registradas",
-    "createFirst": "Registrar primera paciente",
+    "myPatients": "Mis gestantes",
+    "newPatient": "Nueva gestante",
+    "noPatients": "Aún no tienes gestantes registradas",
+    "createFirst": "Registrar primera gestante",
     "lastUpdate": "Última actualización",
     "status": "Estado",
     "viewMetrics": "Ver métricas",
@@ -177,7 +177,7 @@
       "tip6": "DMG tratada es desenlace materno-fetal preservado.",
       "tip7": "La PTOG 75g es el estándar de oro entre 24-28 semanas; ayunas, 1h y 2h.",
       "tip8": "La insulinización en DMG sigue con el obstetra — el endocrinólogo apoya, no asume el control prenatal.",
-      "tip9": "La reclasificación posparto (6-12 semanas) es obligatoria en toda paciente con DMG."
+      "tip9": "La reclasificación posparto (6-12 semanas) es obligatoria en toda gestante con DMG."
     },
     "greetingMorning": "Buenos días",
     "greetingAfternoon": "Buenas tardes",
@@ -192,20 +192,20 @@
     "todayIs": "Hoy es",
     "todaySubtitle": "Un gran día para cuidar de tus gestantes.",
     "quickAction": "Acción rápida",
-    "registerNewPatient": "Registrar nueva paciente",
+    "registerNewPatient": "Registrar nueva gestante",
     "startNewFile": "Iniciar una nueva ficha clínica →",
     "tipOfTheDay": "Consejo del día",
     "testPlan": "Plan de prueba",
     "planName": "Plan {{name}}",
     "managePlan": "Gestionar plan",
     "reportsUsed": "Informes utilizados",
-    "searchPlaceholder": "Buscar paciente por nombre...",
+    "searchPlaceholder": "Buscar gestante por nombre...",
     "showClosedFiles": "Mostrar fichas cerradas",
-    "showClosedFilesTooltip": "Incluye pacientes con estado \"Resultado del parto\", \"DMG descartada\" y \"Derivar a endocrino\".",
-    "noPatientsHint": "Haz clic en \"+Nueva Paciente\" para comenzar.",
-    "noResults": "No se encontró ninguna paciente para \"{{search}}\".",
+    "showClosedFilesTooltip": "Incluye gestantes con estado \"Resultado del parto\", \"DMG descartada\" y \"Derivar a endocrino\".",
+    "noPatientsHint": "Haz clic en \"+Nueva Gestante\" para comenzar.",
+    "noResults": "No se encontró ninguna gestante para \"{{search}}\".",
     "attention": "Atención",
-    "colPatient": "Paciente",
+    "colPatient": "Gestante",
     "colGaToday": "EG hoy",
     "colLastConsultation": "Última consulta",
     "colReturn": "Retorno",
@@ -217,7 +217,7 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "pageOf": "{{page}} de {{total}}",
-    "patientsUsed": "Pacientes registrados",
+    "patientsUsed": "Gestantes registradas",
     "reportsGeneratedInfo": "Informes generados"
   },
   "management": {
@@ -236,7 +236,7 @@
     "inPeriod": "en el período",
     "dmgPriorPregnancy": "DMG en gestación anterior",
     "positiveHistory": "historial positivo",
-    "patientsOnInsulin": "Pacientes en insulina",
+    "patientsOnInsulin": "Gestantes en insulina",
     "lastProfile": "último perfil",
     "teamManagement": "Gestión del equipo",
     "manageTeam": "Gestionar equipo",
@@ -248,7 +248,7 @@
     "filesShown": "{{shown}} de {{total}} fichas mostradas",
     "recentActivity": "Actividad reciente",
     "noActivity": "Ninguna actividad registrada",
-    "patient": "Paciente",
+    "patient": "Gestante",
     "professional": "Profesional",
     "lastConsultation": "Última consulta",
     "createdAt": "Creada el",
@@ -298,7 +298,7 @@
     "expired": "Expirado"
   },
   "patient": {
-    "newPatientTitle": "Nueva paciente",
+    "newPatientTitle": "Nueva gestante",
     "name": "Nombre",
     "identifier": "Identificación",
     "birthdate": "Fecha de nacimiento",
@@ -311,9 +311,9 @@
     "country": "País",
     "state": "Estado",
     "city": "Ciudad",
-    "create": "Crear paciente",
-    "created": "Paciente creada",
-    "updated": "Paciente actualizada"
+    "create": "Crear gestante",
+    "created": "Gestante creada",
+    "updated": "Gestante actualizada"
   },
   "plans": {
     "title": "Planes",
@@ -327,8 +327,8 @@
     "professional": "Profesional",
     "monthly": "/mes",
     "reportsLimit": "{{count}} informes",
-    "patientsLimit": "{{count}} pacientes",
-    "unlimitedPatients": "Pacientes ilimitadas",
+    "patientsLimit": "{{count}} gestantes",
+    "unlimitedPatients": "Gestantes ilimitadas",
     "stripeSoon": "Pago en línea próximamente."
   },
   "profile": {
@@ -491,8 +491,8 @@
       "cardProfessionalsTip": "Todos los profesionales registrados en la plataforma — consultorio e institucional, activos e inactivos.",
       "cardUnits": "Total de unidades",
       "cardUnitsTip": "Unidades de salud institucionales registradas (centros de salud, hospitales, clínicas, etc.).",
-      "cardPatients": "Total de pacientes",
-      "cardPatientsTip": "Total histórico de pacientes registradas en el sistema. Proviene de la vista agregada — el administrador no accede al dato clínico individual.",
+      "cardPatients": "Total de gestantes",
+      "cardPatientsTip": "Total histórico de gestantes registradas en el sistema. Proviene de la vista agregada — el administrador no accede al dato clínico individual.",
       "cardReports": "Total de informes generados",
       "cardReportsTip": "Total histórico de informes emitidos por MARI. Cada informe corresponde a una consulta finalizada.",
       "alertsTitle": "Alertas operativas",
@@ -504,7 +504,7 @@
       "evolDesc": "Comparativo separado entre profesionales de consultorio (suscriptores individuales) e institucionales (vinculados a una unidad).",
       "evolConsultorioTitle": "Profesionales de consultorio",
       "evolConsultorioDesc": "Suscriptores individuales de los planes Inicial, Intermedio y Profesional.",
-      "evolConsultorioTip": "Solo profesionales SIN vínculo con unidad institucional. Nuevos = registrados en el mes. Activos = con al menos una actividad (paciente, consulta, informe o parto) en el mes.",
+      "evolConsultorioTip": "Solo profesionales SIN vínculo con unidad institucional. Nuevos = registrados en el mes. Activos = con al menos una actividad (gestante, consulta, informe o parto) en el mes.",
       "evolInstitucionalTitle": "Profesionales institucionales",
       "evolInstitucionalDesc": "Profesionales vinculados a unidades (centros de salud, hospitales, clínicas contratantes).",
       "evolInstitucionalTip": "Solo profesionales CON vínculo a una unidad institucional. Nuevos = registrados en el mes. Activos = con al menos una actividad en el mes.",
@@ -525,8 +525,8 @@
       "topCitiesTip": "Ranking de las 20 ciudades con más profesionales de consultorio (sin vínculo con unidad).",
       "profByUnitTitle": "Profesionales por unidad",
       "profByUnitTip": "Profesionales vinculados a unidades (institucional), agrupados por la unidad de atención.",
-      "patByUnitTitle": "Pacientes por unidad",
-      "patByUnitDesc": "Historial acumulado de pacientes e informes generados por unidad.",
+      "patByUnitTitle": "Gestantes por unidad",
+      "patByUnitDesc": "Historial acumulado de gestantes e informes generados por unidad.",
       "colCountry": "País",
       "colProfessionals": "Profesionales",
       "colPctProfessionals": "% profesionales",
@@ -536,7 +536,7 @@
       "colUnit": "Unidad",
       "colType": "Tipo",
       "colUf": "Estado",
-      "colPatientsHist": "Pacientes (histórico)",
+      "colPatientsHist": "Gestantes (histórico)",
       "colReportsGenerated": "Informes generados",
       "notInformed": "No informado",
       "managersTotal": "Total de gestores generales",
@@ -638,7 +638,7 @@
       "reactivateDesc": "El profesional vuelve a tener acceso a MARI. El plan y el límite de informes se conservan como estaban. El profesional debe iniciar sesión nuevamente. Si la suscripción en Asaas está cancelada, recuerde reactivarla allí también.",
       "reactivating": "Reactivando…",
       "reactivateAction": "Reactivar acceso",
-      "patientsQuota": "Pacientes registrados"
+      "patientsQuota": "Gestantes registradas"
     },
     "feedbacks": {
       "title": "Comentarios",
@@ -730,10 +730,10 @@
       "destinationLabel": "Unidad de destino",
       "selectPlaceholder": "Selecciona…",
       "warnBefore": "{{nome}} tiene",
-      "warnMid": "paciente(s) en seguimiento activo en",
-      "warnAfter": ". Tras la transferencia, estas pacientes quedarán sin profesional responsable. El gestor de la unidad de origen deberá reasignarlas.",
+      "warnMid": "gestante(s) en seguimiento activo en",
+      "warnAfter": ". Tras la transferencia, estas gestantes quedarán sin profesional responsable. El gestor de la unidad de origen deberá reasignarlas.",
       "confirm": "Confirmar transferencia",
-      "success": "{{nome}} transferido a {{destino}}. {{count}} pacientes quedaron para reasignación en el origen."
+      "success": "{{nome}} transferido a {{destino}}. {{count}} gestantes quedaron para reasignación en el origen."
     },
     "cadastrarProfissionalConsultorio": {
       "title": "Registrar profesional",
@@ -753,8 +753,8 @@
       "reportsPerMonth": "{{count}} informes/mes",
       "sending": "Enviando…",
       "submit": "Registrar y enviar invitación",
-      "patientsLimit": "{{count}} pacientes",
-      "patientsUnlimited": "pacientes ilimitados"
+      "patientsLimit": "{{count}} gestantes",
+      "patientsUnlimited": "gestantes ilimitados"
     },
     "institucionais": {
       "title": "Gestión institucional",
@@ -816,12 +816,12 @@
       "title": "Cambiar el plan de {{nome}}",
       "description": "El límite mensual de informes se actualizará según el nuevo plan.",
       "novoPlanoLabel": "Nuevo plan *",
-      "planoOption": "{{nome}} — R$ {{preco}} ({{pacientes}} pacientes)",
+      "planoOption": "{{nome}} — R$ {{preco}} ({{gestantes}} gestantes)",
       "motivoLabel": "Motivo del cambio *",
       "motivoPlaceholder": "Mínimo 10 caracteres",
       "confirm": "Confirmar cambio",
       "successToast": "Plan cambiado a {{plano}}. Límite actualizado.",
-      "planoOptionUnlimited": "{{nome}} — R$ {{preco}} (pacientes ilimitados)"
+      "planoOptionUnlimited": "{{nome}} — R$ {{preco}} (gestantes ilimitados)"
     },
     "laudoTextos": {
       "title": "Textos de Informe",
@@ -864,7 +864,7 @@
           "7": "cerrar MARI",
           "parto": "Parto — controló con dieta y ejercicio",
           "aborto": "Aborto — controló con dieta y ejercicio",
-          "nao_retornou": "La paciente no regresó"
+          "nao_retornou": "La gestante no regresó"
         },
         "bloco": {
           "justificativa": "Justificación Científica",
@@ -909,7 +909,7 @@
       },
       "rascunhosPendentes": "{{count}} borrador(es) esperando publicación.",
       "nenhumRascunho": "Ningún borrador pendiente.",
-      "variaveisSummary": "Variables disponibles (escribe entre corchetes, ej.: [nombre de la paciente])",
+      "variaveisSummary": "Variables disponibles (escribe entre corchetes, ej.: [nombre de la gestante])",
       "carregarError": "Error al cargar los textos. Recarga la página.",
       "oQueEsteCenario": "Qué es este escenario",
       "rascunhosBadge": "{{count}} borrador(es)",
@@ -964,7 +964,7 @@
       "success": "Acceso de {{nome}} reactivado.",
       "title": "¿Reactivar el acceso de {{nome}}?",
       "bullet1": "El profesional podrá iniciar sesión de nuevo con su contraseña actual.",
-      "bullet2": "Volverá a ver los pacientes de la unidad {{unidade}}.",
+      "bullet2": "Volverá a ver los gestantes de la unidad {{unidade}}.",
       "bullet3": "No es necesario enviar una nueva invitación.",
       "confirm": "Confirmar reactivación"
     },
@@ -997,7 +997,7 @@
       "saved": "Plan actualizado.",
       "saveError": "Error al guardar: {{error}}",
       "title": "Planes",
-      "subtitle": "Edite nombre, límite de pacientes, precio y enlace de pago de cada plan de consultorio.",
+      "subtitle": "Edite nombre, límite de gestantes, precio y enlace de pago de cada plan de consultorio.",
       "loadError": "No se pudieron cargar los planes.",
       "laudosPerMonth": "{{count}} informes/mes",
       "pricePerMonth": "{{preco}}/mes",
@@ -1031,12 +1031,12 @@
       "confirmReajusteAffected_other": "(hasta {{count}} clientes)",
       "confirmReajusteTail": ". Los clientes actuales pasarán a pagar el nuevo valor. Esta acción afecta la facturación y no se deshace sola.",
       "confirmReajusteAction": "Sí, reajustar",
-      "patientsLimit": "{{count}} pacientes",
-      "patientsUnlimited": "Pacientes ilimitados",
-      "patientsLimitLabel": "Límite de pacientes",
+      "patientsLimit": "{{count}} gestantes",
+      "patientsUnlimited": "Gestantes ilimitados",
+      "patientsLimitLabel": "Límite de gestantes",
       "patientsLimitHelp": "Deje en blanco para ilimitado.",
-      "pacientesMudouInfo": "Límite de pacientes cambiado de {{from}} a {{to}} — ya vale para los {{count}} clientes actuales de este plan.",
-      "savedWithPacientes": "Plan actualizado. El nuevo límite de pacientes ya vale para los {{count}} clientes actuales.",
+      "pacientesMudouInfo": "Límite de gestantes cambiado de {{from}} a {{to}} — ya vale para los {{count}} clientes actuales de este plan.",
+      "savedWithPacientes": "Plan actualizado. El nuevo límite de gestantes ya vale para los {{count}} clientes actuales.",
       "metricsOn": "Métricas activas",
       "metricsOff": "Métricas bloqueadas",
       "metricsToggleLabel": "Panel analítico (métricas)",
@@ -1351,7 +1351,7 @@
       "dialogDesc": "El video aparece en la pestaña Tutorial del perfil seleccionado.",
       "perfilLabel": "Perfil",
       "titleLabel": "Título",
-      "titlePlaceholder": "Ej.: Cómo registrar una paciente",
+      "titlePlaceholder": "Ej.: Cómo registrar una gestante",
       "descLabel": "Descripción (opcional)",
       "descPlaceholder": "Un resumen breve de lo que enseña el video.",
       "orderLabel": "Orden",
@@ -1414,7 +1414,7 @@
       "lgpdLabel": "Nota LGPD.",
       "lgpdText": "Todas las métricas mostradas son agregadas y anonimizadas — no hay nombre, documento, historia clínica, valores individuales de glucemia ni informes. Los datos estadísticos agregados se enmarcan en el Art. 12 de la LGPD (los datos anonimizados no se consideran datos personales a los efectos de esta ley).",
       "noClosuresYet": "Ningún seguimiento cerrado aún.",
-      "patients": "Pacientes",
+      "patients": "Gestantes",
       "pizzaCaption": "Gestantes diagnosticadas por vía · {{total}} en total",
       "pizzaItemTitle": "{{count}} gestantes ({{pct}}%) diagnosticadas por {{rota}}",
       "pizzaItemBadge": "{{count}} gestantes · {{pct}}%",
@@ -1434,10 +1434,10 @@
       "cardDmgTip": "Gestantes con diagnóstico confirmado de Diabetes Mellitus Gestacional (escenarios 1, 6 y 6b) — criterio Febrasgo.",
       "cardOvertTip": "Diabetes manifiesta (preexistente identificada en la gestación, escenario 8): glucemia en ayunas ≥ 126 mg/dL o poscarga ≥ 200 mg/dL.",
       "cardDmgOvert": "DMG + OVERT DM combinados",
-      "cardDmgOvertTip": "Suma automática de pacientes con DMG u OVERT DM — total de gestantes con diabetes diagnosticada.",
+      "cardDmgOvertTip": "Suma automática de gestantes con DMG u OVERT DM — total de gestantes con diabetes diagnosticada.",
       "cardControlRate": "Tasa de control adecuado",
       "cardControlRateSub": "Dieta + insulina suficiente / DMG",
-      "cardControlRateTip": "Porcentaje de pacientes con DMG que lograron un control glucémico adecuado solo con dieta y ejercicio, sin necesidad de derivación al endocrinólogo.",
+      "cardControlRateTip": "Porcentaje de gestantes con DMG que lograron un control glucémico adecuado solo con dieta y ejercicio, sin necesidad de derivación al endocrinólogo.",
       "evolTitle": "Evolución mensual",
       "evolDesc": "Últimos 12 meses — gestantes registradas y diagnósticos confirmados.",
       "seriesGestantes": "Gestantes",
@@ -1455,22 +1455,22 @@
       "hintApos28": "Después de 28 semanas",
       "weeksAbbr": "sem",
       "historicoTitle": "Antecedente de DMG en gestación anterior",
-      "patientsWithHistory": "Pacientes con antecedente",
+      "patientsWithHistory": "Gestantes con antecedente",
       "patientsWithHistoryTip": "Gestantes que informaron un diagnóstico de DMG en una gestación anterior en el registro inicial.",
       "dmgAgain": "Tuvieron DMG nuevamente",
-      "dmgAgainTip": "Entre las pacientes con antecedente previo, cuántas se confirmaron con DMG en esta gestación.",
+      "dmgAgainTip": "Entre las gestantes con antecedente previo, cuántas se confirmaron con DMG en esta gestación.",
       "recurrenceRate": "Tasa de recurrencia",
-      "recurrenceRateTip": "De las pacientes que tuvieron DMG en una gestación anterior, cuántas se confirmaron con DMG aquí. Las demás no desarrollaron DMG esta vez, aún no se confirmaron o se clasificaron como OVERT DM. Recurrencia esperada en la literatura: ~40–70%.",
+      "recurrenceRateTip": "De las gestantes que tuvieron DMG en una gestación anterior, cuántas se confirmaron con DMG aquí. Las demás no desarrollaron DMG esta vez, aún no se confirmaron o se clasificaron como OVERT DM. Recurrencia esperada en la literatura: ~40–70%.",
       "encerramentosTitle": "Cierres y adherencia",
       "emAcompanhamento": "En seguimiento",
-      "emAcompanhamentoSub": "pacientes activas en MARI",
-      "emAcompanhamentoTip": "Pacientes con seguimiento activo en MARI (aún no cerradas por parto, aborto, insulinización o abandono).",
+      "emAcompanhamentoSub": "gestantes activas en MARI",
+      "emAcompanhamentoTip": "Gestantes con seguimiento activo en MARI (aún no cerradas por parto, aborto, insulinización o abandono).",
       "encerrados": "Seguimientos cerrados",
       "encerradosSub": "parto, aborto, insulinización, no regresó…",
       "encerradosTip": "Total de seguimientos cerrados por cualquier motivo. Detalle por motivo en el gráfico de abajo.",
       "naoRetornaram": "No regresaron",
       "naoRetornaramSub": "{{count}} de {{total}} cerradas",
-      "naoRetornaramTip": "Pacientes cuyo seguimiento se cerró por no haber regresado — indicador de adherencia/abandono.",
+      "naoRetornaramTip": "Gestantes cuyo seguimiento se cerró por no haber regresado — indicador de adherencia/abandono.",
       "encerramentosPorMotivo": "Cierres por motivo",
       "encerramentosTotalCount_one": "{{count}} cierre en total",
       "encerramentosTotalCount_other": "{{count}} cierres en total",
@@ -1482,15 +1482,15 @@
       "igEncaminhamento": "EG media en la derivación al endocrinólogo",
       "weeksValue": "{{count}} sem",
       "soonerBetter": "cuanto antes, mejor",
-      "igEncaminhamentoTip": "Edad gestacional media en que las pacientes que necesitaron insulina fueron derivadas al endocrinólogo. Referencia: cuanto antes, mejor el pronóstico.",
+      "igEncaminhamentoTip": "Edad gestacional media en que las gestantes que necesitaron insulina fueron derivadas al endocrinólogo. Referencia: cuanto antes, mejor el pronóstico.",
       "funilTitle": "Embudo de tratamiento",
       "funilDesc": "Total → DMG → Solo dieta → Insulina iniciada → Insulina suficiente → Asociar endocrinólogo.",
       "controlOnlyDiet": "Control solo con dieta + ejercicio",
-      "ofDmgPatients": "{{pct}} de las pacientes con DMG",
-      "controlOnlyDietTip": "Pacientes con DMG que lograron un control glucémico adecuado sin necesidad de insulina — escenario ideal, manejo integral por la GO.",
+      "ofDmgPatients": "{{pct}} de las gestantes con DMG",
+      "controlOnlyDietTip": "Gestantes con DMG que lograron un control glucémico adecuado sin necesidad de insulina — escenario ideal, manejo integral por la GO.",
       "needEndocrino": "Necesidad de asociar endocrinólogo",
-      "needEndocrinoSub": "{{pct}} de las pacientes con DMG · la GO sigue siendo protagonista del prenatal.",
-      "needEndocrinoTip": "Pacientes que necesitaron iniciar insulina (escenario 7) y fueron derivadas al endocrinólogo. La GO sigue siendo protagonista del prenatal; MARI finaliza el manejo de la glucemia en este punto.",
+      "needEndocrinoSub": "{{pct}} de las gestantes con DMG · la GO sigue siendo protagonista del prenatal.",
+      "needEndocrinoTip": "Gestantes que necesitaron iniciar insulina (escenario 7) y fueron derivadas al endocrinólogo. La GO sigue siendo protagonista del prenatal; MARI finaliza el manejo de la glucemia en este punto.",
       "laudosVolumeTitle": "Volumen de informes generados por mes",
       "laudosVolumeMeta": "últimos 12 meses · actualizado en tiempo real",
       "laudosVolumeDesc": "Cada informe corresponde a una consulta finalizada en MARI. La serie puede aparecer en cero mientras el historial de informes no está poblado (p. ej., base recién migrada o período sin atenciones finalizadas).",
@@ -1502,12 +1502,12 @@
       "dmgByCity": "Tasa de DMG por ciudad",
       "colGestantes": "Gestantes",
       "colDmgRate": "Tasa de DMG",
-      "noConsultorioPatients": "Sin pacientes de consultorio aún.",
+      "noConsultorioPatients": "Sin gestantes de consultorio aún.",
       "institucionalGroupTitle": "Análisis institucionales",
       "institucionalGroupDesc": "Tasa de DMG por unidad — centros de salud, hospitales y clínicas conveniadas.",
       "metricsByUnit": "Métricas por unidad",
       "colUnit": "Unidad",
-      "noUnitPatients": "Ninguna unidad con pacientes vinculadas.",
+      "noUnitPatients": "Ninguna unidad con gestantes vinculadas.",
       "detailLocation": "Ubicación",
       "detailNoDmg": "Sin DMG"
     },
@@ -1618,7 +1618,7 @@
       "affectProfessionals_other": "{{count}} profesionales con acceso revocado (incluye gestores de unidad)",
       "affectManagers": "Los vínculos con gestores generales asociados a este contratante se deshacen",
       "preservedData": "DATOS PRESERVADOS:",
-      "preservePatients": "Las pacientes en seguimiento conservan sus datos clínicos intactos",
+      "preservePatients": "Las gestantes en seguimiento conservan sus datos clínicos intactos",
       "preserveAuthorship": "Los sellos de autoría en las historias clínicas se preservan",
       "preserveHistory": "El historial de exámenes e informes es inmutable",
       "reversibleNote": "Esta acción es REVERSIBLE — puede reactivar el contratante después.",
@@ -1803,13 +1803,13 @@
     },
     "pactuacaoPosPrandial": {
       "title": "Acuerdo de mediciones posprandiales",
-      "description": "¿Acordó con la paciente mediciones posprandiales de 1 hora o 2 horas?",
+      "description": "¿Acordó con la gestante mediciones posprandiales de 1 hora o 2 horas?",
       "radiogroupLabel": "Ventana de las mediciones posprandiales",
       "opcao1h": "1 hora",
       "opcao2h": "2 horas",
       "aposRefeicoes": "{{prefixo}} después del desayuno / almuerzo / cena",
       "meta": "Meta: < {{valor}} mg/dL",
-      "explicacao": "La medición de 1 hora es la más usada. La de 2 horas puede acordarse por comodidad de la paciente. Es una decisión clínica tomada junto con la paciente y no puede modificarse después en esta ficha.",
+      "explicacao": "La medición de 1 hora es la más usada. La de 2 horas puede acordarse por comodidad de la gestante. Es una decisión clínica tomada junto con la gestante y no puede modificarse después en esta ficha.",
       "confirmar": "Confirmar y abrir ficha"
     },
     "camposPendentesBanner": {
@@ -1847,10 +1847,10 @@
       "fichaD": "Perfil de 6 puntos con insulina (después de 30 semanas)",
       "fichaE": "Perfil de 6 puntos sin insulina",
       "condutaManterMev": "MANTENER MEV (15 días)",
-      "condutaReforcarMev": "REFORZAR MEV — pactar con la paciente",
+      "condutaReforcarMev": "REFORZAR MEV — pactar con la gestante",
       "condutaInsulina": "INICIAR INSULINA",
       "condutaAvaliarMemoria": "EVALUAR MEMORIA DEL GLUCÓMETRO",
-      "pactuacaoLabel": "Acuerdo con la paciente:",
+      "pactuacaoLabel": "Acuerdo con la gestante:",
       "aceitaReforcarMev": "Acepta reforzar MEV (nueva prueba en 7-10 días)",
       "recusaIniciarInsulina": "Rechaza — iniciar insulina",
       "memoriaPergunta": "¿La memoria del glucómetro coincide con los valores anotados?",
@@ -1866,7 +1866,7 @@
     "decisaoExtras": {
       "title": "Decisión clínica del Retorno 2",
       "memoriaLabel": "Evaluación de la memoria del glucómetro",
-      "pactuacaoLabel": "Acuerdo con la paciente",
+      "pactuacaoLabel": "Acuerdo con la gestante",
       "pactAceita": "Acepta reforzar los cambios en el estilo de vida",
       "pactRecusa": "Rechaza — iniciar insulina",
       "memConfirma": "Confirma",
@@ -1898,12 +1898,12 @@
     "janelaGtt": {
       "title": "Ventana para PTOG 75g",
       "jaNaJanela": "La PTOG 75g ya está dentro de la ventana — solicítela lo antes posible.",
-      "instrucao": "La PTOG 75g debe realizarse lo más cerca posible de la semana 24 (entre <strong>{{inicio}}</strong> y <strong>{{fim}}</strong>). Oriente a la paciente desde ya.",
-      "nota": "Esta orientación aparece desde ahora para que la paciente tenga tiempo de agendar el examen, que con frecuencia tiene lista de espera en las unidades de salud. Si no logra realizarlo dentro de la ventana, el examen debe hacerse lo antes posible — incluso después de las 28 semanas."
+      "instrucao": "La PTOG 75g debe realizarse lo más cerca posible de la semana 24 (entre <strong>{{inicio}}</strong> y <strong>{{fim}}</strong>). Oriente a la gestante desde ya.",
+      "nota": "Esta orientación aparece desde ahora para que la gestante tenga tiempo de agendar el examen, que con frecuencia tiene lista de espera en las unidades de salud. Si no logra realizarlo dentro de la ventana, el examen debe hacerse lo antes posible — incluso después de las 28 semanas."
     },
     "cabecalho": {
       "laudo": "Informe",
-      "paciente": "Paciente:",
+      "paciente": "Gestante:",
       "ig": "EG:",
       "data": "Fecha:",
       "igNaoDefinida": "Referencia de EG no definida"
@@ -1934,13 +1934,13 @@
     "bannerUrgenciaEndocrino": {
       "title": "ATENCIÓN — urgencia con el endocrinólogo",
       "prazo": "Si opta por asociar o derivar al endocrinólogo, la consulta debe ocurrir en <strong>7 a 10 días</strong> a partir de hoy.",
-      "aviso": "Si el profesional no tiene disponibilidad en ese plazo, oriente a la paciente a buscar otro endocrinólogo con urgencia. <strong>Un feto en régimen hiperglucémico no puede esperar.</strong>"
+      "aviso": "Si el profesional no tiene disponibilidad en ese plazo, oriente a la gestante a buscar otro endocrinólogo con urgencia. <strong>Un feto en régimen hiperglucémico no puede esperar.</strong>"
     },
     "blocosTexto": {
       "carregando": "Cargando textos del informe…",
       "pendente": "Informe aún no cargado.",
       "carregarLaudo": "Cargar informe",
-      "aguardandoPeso": "Ingrese el peso actual de la paciente para generar el informe completo con la dosis inicial de insulina.",
+      "aguardandoPeso": "Ingrese el peso actual de la gestante para generar el informe completo con la dosis inicial de insulina.",
       "erroTitulo": "No se pudieron cargar los textos",
       "erroDescricao": "No se pudieron cargar los textos del informe. Inténtelo de nuevo en unos instantes.",
       "desativado": "La generación de informes está temporalmente desactivada por la administración del sistema.",
@@ -1966,8 +1966,8 @@
       },
       "metricas": {
         "pacientes_ativos": {
-          "label": "Pacientes activas",
-          "labelLong": "número de pacientes activas",
+          "label": "Gestantes activas",
+          "labelLong": "número de gestantes activas",
           "tooltip": "Mayor es mejor: indica el volumen de atención de la unidad."
         },
         "laudos_emitidos": {
@@ -2012,7 +2012,7 @@
       "partosRegistrados": "Partos registrados",
       "partosRegistradosTip": "Partos registrados en el período por las unidades seleccionadas.",
       "profissionaisAtivos": "Profesionales activos",
-      "profissionaisAtivosTip": "Profesionales con al menos 1 paciente en seguimiento."
+      "profissionaisAtivosTip": "Profesionales con al menos 1 gestante en seguimiento."
     },
     "perfilClinico": {
       "title": "Perfil clínico consolidado",
@@ -2059,14 +2059,14 @@
       "colUnidade": "Unidad",
       "colGestor": "Gestor",
       "colGestorTooltip": "Profesional registrado como gestor de la unidad. Vacío cuando nadie ocupa el rol.",
-      "colPacientesAtivos": "Pacientes activos",
+      "colPacientesAtivos": "Gestantes activas",
       "colPacientesAtivosTooltip": "Gestantes con FUM en los últimos 280 días.",
       "colLaudosEmitidos": "Informes emitidos",
       "colLaudosEmitidosTooltip": "Informes generados en el período seleccionado.",
       "colPartos": "Partos",
       "colPartosTooltip": "Partos registrados en el período seleccionado.",
       "colProfissionais": "Profesionales",
-      "colProfissionaisTooltip": "Profesionales con al menos 1 paciente en seguimiento en la unidad.",
+      "colProfissionaisTooltip": "Profesionales con al menos 1 gestante en seguimiento en la unidad.",
       "colTaxaDmg": "Tasa DMG+",
       "colTaxaDmgTooltip": "Porcentaje de gestantes con diagnóstico positivo de DMG. Rango esperado Febrasgo: 7-18%.",
       "title": "Visión general de la red",
@@ -2090,18 +2090,18 @@
     },
     "indicadoresFluxo": {
       "tempoMedioTitle": "Tiempo promedio hasta el 1er informe",
-      "tempoMedioTooltip": "Tiempo promedio (en días) entre la primera consulta de una paciente y la emisión del primer informe, considerando pacientes diagnosticadas en los últimos 90 días. Tiempo ideal: hasta 14 días. Más de 30 días indica diagnóstico tardío — la paciente puede llegar a la semana 28 sin el tamizaje adecuado.",
+      "tempoMedioTooltip": "Tiempo promedio (en días) entre la primera consulta de una gestante y la emisión del primer informe, considerando gestantes diagnosticadas en los últimos 90 días. Tiempo ideal: hasta 14 días. Más de 30 días indica diagnóstico tardío — la gestante puede llegar a la semana 28 sin el tamizaje adecuado.",
       "loadError": "Error al cargar.",
       "semDados": "Sin datos en el período",
       "sublabelAtencao": "Por encima del tiempo ideal — revisar el flujo",
       "sublabelCritico": "Diagnóstico muy tardío — atención urgente",
-      "sublabelIdeal": "desde la 1ª consulta de la paciente",
+      "sublabelIdeal": "desde la 1ª consulta de la gestante",
       "dias": "{{valor}} días",
       "sobrecargaTitle": "Profesional sobrecargado",
-      "sobrecargaTooltip": "Alerta automática cuando algún profesional tiene más del doble de la carga promedio de pacientes activas del equipo. La carga desigual puede provocar retrasos y sobrecarga emocional. Considere redistribuir.",
+      "sobrecargaTooltip": "Alerta automática cuando algún profesional tiene más del doble de la carga promedio de gestantes activas del equipo. La carga desigual puede provocar retrasos y sobrecarga emocional. Considere redistribuir.",
       "cargaEquilibrada": "Carga equilibrada en el equipo",
-      "profPacientes": "{{nome}} — {{count}} pacientes",
-      "considereRedistribuir": "Considere redistribuir parte de las pacientes."
+      "profPacientes": "{{nome}} — {{count}} gestantes",
+      "considereRedistribuir": "Considere redistribuir parte de las gestantes."
     },
     "metricasParto": {
       "title": "Partos y desenlaces neonatales",
@@ -2117,22 +2117,22 @@
       "pig": "PEG"
     },
     "pacientesPorProfissional": {
-      "title": "Pacientes por profesional",
+      "title": "Gestantes por profesional",
       "empty": "Sin datos para el período seleccionado."
     },
     "blocoGargalos": {
       "title": "Cuellos de botella del cuidado",
-      "tooltipSemGj": "Pacientes con primera consulta registrada pero sin glucemia en ayunas en la atención. La GA es el primer examen de tamizaje de DMG (protocolo Febrasgo) y debe solicitarse en la primera consulta prenatal — incluso para identificar diabetes pregestacional. Una falla aquí significa que el tamizaje no comenzó.",
-      "tooltipGtt": "Pacientes de más de 28 semanas que aún no han hecho la Prueba de Tolerancia a la Glucosa. La ventana ideal de tamizaje es de 24 a 28 semanas — después de eso, el diagnóstico se retrasa y el tiempo de tratamiento antes del parto se acorta. Convocar a estas pacientes es prioritario.",
-      "tooltipSemRetorno": "Pacientes diagnosticadas con DMG cuya última atención fue hace más de 14 días. La DMG exige un seguimiento cercano (perfiles glucémicos quincenales, ajuste de tratamiento). La ausencia de retorno puede indicar abandono — factor crítico de riesgo para el binomio madre-bebé.",
+      "tooltipSemGj": "Gestantes con primera consulta registrada pero sin glucemia en ayunas en la atención. La GA es el primer examen de tamizaje de DMG (protocolo Febrasgo) y debe solicitarse en la primera consulta prenatal — incluso para identificar diabetes pregestacional. Una falla aquí significa que el tamizaje no comenzó.",
+      "tooltipGtt": "Gestantes de más de 28 semanas que aún no han hecho la Prueba de Tolerancia a la Glucosa. La ventana ideal de tamizaje es de 24 a 28 semanas — después de eso, el diagnóstico se retrasa y el tiempo de tratamiento antes del parto se acorta. Convocar a estas gestantes es prioritario.",
+      "tooltipSemRetorno": "Gestantes diagnosticadas con DMG cuya última atención fue hace más de 14 días. La DMG exige un seguimiento cercano (perfiles glucémicos quincenales, ajuste de tratamiento). La ausencia de retorno puede indicar abandono — factor crítico de riesgo para el binomio madre-bebé.",
       "semGjTitulo": "Sin GA en la primera consulta",
-      "semGjDescricao": "Pacientes con atención pero sin glucemia en ayunas registrada.",
+      "semGjDescricao": "Gestantes con atención pero sin glucemia en ayunas registrada.",
       "gttTitulo": "PTOG 75g atrasada",
       "gttDescricao": "EG ≥ 28 semanas sin PTOG registrada.",
       "semRetornoTitulo": "DMG confirmada sin retorno",
       "semRetornoDescricao": "Sin registro de atención hace más de 14 días.",
       "emptyState": "Ningún cuello de botella identificado. La unidad está al día con los flujos críticos.",
-      "verPacientes": "Ver pacientes"
+      "verPacientes": "Ver gestantes"
     },
     "blocoOperacao": {
       "title": "Operación de la unidad",
@@ -2142,15 +2142,15 @@
       "laudosTitle": "Informes en los últimos 30 días",
       "laudosTooltip": "Total de informes de DMG generados por su equipo en los últimos 30 días. Indica la productividad de diagnóstico en el período. Una caída brusca puede señalar una falla en el flujo de tamizaje.",
       "laudosSubtitle": "emitidos por el equipo",
-      "profsTitle": "Profesionales con paciente activo",
-      "profsTooltip": "Profesionales de su unidad que tienen al menos 1 paciente en seguimiento. Útil para detectar profesionales ociosos o sobrecargados — vea la distribución detallada en la pestaña Equipo.",
+      "profsTitle": "Profesionales con gestante activa",
+      "profsTooltip": "Profesionales de su unidad que tienen al menos 1 gestante en seguimiento. Útil para detectar profesionales ociosos o sobrecargados — vea la distribución detallada en la pestaña Equipo.",
       "profsSubtitle": "de {{total}} en la unidad"
     },
     "performanceIndividual": {
       "laudosCount_one": "{{count}} informe",
       "laudosCount_other": "{{count}} informes",
-      "pacientesCount_one": "{{count}} paciente",
-      "pacientesCount_other": "{{count}} pacientes",
+      "pacientesCount_one": "{{count}} gestante",
+      "pacientesCount_other": "{{count}} gestantes",
       "maisAtivos": "Más activos",
       "maisAtivosTooltip": "Los 3 profesionales con mayor producción de informes del equipo. Puede ser útil para reconocimiento, mentoría de nuevos miembros o redistribución de carga.",
       "menosAtivos": "Menos activos",
@@ -2167,7 +2167,7 @@
       "totalHistorico": "total histórico"
     },
     "blocoPerfilClinico": {
-      "title": "Perfil clínico de las pacientes",
+      "title": "Perfil clínico de las gestantes",
       "semGestantes": "Sin gestantes activas por el momento.",
       "alertaSubnotificacao": "Su prevalencia de DMG está por debajo de lo esperado ({{pct}}% vs. rango Febrasgo de 7-18%). Puede indicar subdiagnóstico — revise si el cribado se realiza según protocolo en la primera consulta y en la ventana de 24-28 semanas.",
       "alertaAltoRisco": "Su prevalencia de DMG está por encima de lo esperado ({{pct}}% vs. rango Febrasgo de 7-18%). Puede indicar población de alto riesgo — considere revisar factores demográficos como edad materna, IMC pregestacional e historial familiar.",
@@ -2177,12 +2177,12 @@
       "badgeAltoRisco": "Alto riesgo",
       "esperadoFebrasgo": "Esperado: 7–18% (Febrasgo)",
       "emInsulina": "En insulina",
-      "ttInsulina": "Pacientes con DMG confirmado que están en terapia con insulina. En poblaciones brasileñas con DMG, se espera que el 20-30% de las diagnosticadas requieran insulinoterapia (Febrasgo). Porcentajes muy superiores pueden indicar diagnóstico tardío o perfiles más graves.",
+      "ttInsulina": "Gestantes con DMG confirmado que están en terapia con insulina. En poblaciones brasileñas con DMG, se espera que el 20-30% de las diagnosticadas requieran insulinoterapia (Febrasgo). Porcentajes muy superiores pueden indicar diagnóstico tardío o perfiles más graves.",
       "pctDasDmg": "{{pct}}% de las DMG",
-      "ttDmgAnterior": "Pacientes con antecedentes de DMG en una gestación anterior. Este grupo tiene hasta 7 veces más riesgo de repetir el diagnóstico — son candidatas a cribado precoz, antes de la ventana estándar de 24-28 semanas (Febrasgo).",
+      "ttDmgAnterior": "Gestantes con antecedentes de DMG en una gestación anterior. Este grupo tiene hasta 7 veces más riesgo de repetir el diagnóstico — son candidatas a cribado precoz, antes de la ventana estándar de 24-28 semanas (Febrasgo).",
       "pctDasAtivas": "{{pct}}% de las activas",
       "igMediaDiagnostico": "EG media al diagnóstico",
-      "ttIgMedia": "Edad gestacional media (en semanas + días) en la que su equipo diagnostica DMG, considerando los últimos 90 días. Ventana ideal de cribado Febrasgo: 24-28 semanas. Por encima de 28 semanas indica diagnóstico tardío — la paciente puede llegar al tercer trimestre sin tratamiento adecuado, aumentando el riesgo de macrosomía y complicaciones en el parto.",
+      "ttIgMedia": "Edad gestacional media (en semanas + días) en la que su equipo diagnostica DMG, considerando los últimos 90 días. Ventana ideal de cribado Febrasgo: 24-28 semanas. Por encima de 28 semanas indica diagnóstico tardío — la gestante puede llegar al tercer trimestre sin tratamiento adecuado, aumentando el riesgo de macrosomía y complicaciones en el parto.",
       "ultimos90dias": "últimos 90 días"
     },
     "configuracoes": {
@@ -2216,7 +2216,7 @@
     "blocoTendencia": {
       "title": "Tendencia de la unidad",
       "howToRead": "Cómo leer este gráfico",
-      "tooltip": "Cada punto del gráfico representa una fotografía de ese mes: cuántas pacientes estaban embarazadas y cuántas tenían DMG confirmada en ese momento. Como el diagnóstico de DMG suele ocurrir entre las 24-28 semanas (3 a 5 meses después de la primera consulta), una paciente puede ingresar a la unidad en un mes y aparecer como diagnosticada varios meses después — por eso la fotografía mensual es la forma correcta de medir la prevalencia a lo largo del tiempo.",
+      "tooltip": "Cada punto del gráfico representa una fotografía de ese mes: cuántas gestantes estaban embarazadas y cuántas tenían DMG confirmada en ese momento. Como el diagnóstico de DMG suele ocurrir entre las 24-28 semanas (3 a 5 meses después de la primera consulta), una gestante puede ingresar a la unidad en un mes y aparecer como diagnosticada varios meses después — por eso la fotografía mensual es la forma correcta de medir la prevalencia a lo largo del tiempo.",
       "noData6m": "Sin datos en los últimos 6 meses.",
       "seriesGestantes": "Embarazadas activas",
       "seriesDmg": "DMG confirmadas",
@@ -2224,13 +2224,13 @@
     },
     "fichasUnidade": {
       "title": "Fichas de la unidad",
-      "subtitle": "Lista completa de pacientes en seguimiento.",
+      "subtitle": "Lista completa de gestantes en seguimiento.",
       "kpiTotal": "Total",
       "kpiAguardandoGj": "En espera de GA",
       "kpiAcompanhamento": "En seguimiento",
       "kpiConcluidas": "Concluidas",
       "chipTodos": "Todas ({{count}})",
-      "searchPlaceholder": "Buscar por nombre de paciente...",
+      "searchPlaceholder": "Buscar por nombre de gestante...",
       "exportCsv": "Exportar CSV",
       "exportExcel": "Exportar Excel",
       "exportEmptyTitle": "Ninguna ficha para exportar con los filtros actuales.",
@@ -2239,7 +2239,7 @@
       "csvGerado": "Archivo CSV generado.",
       "excelGerado": "Archivo Excel generado.",
       "excelErro": "No se pudo generar el Excel. Inténtalo de nuevo.",
-      "colPaciente": "Paciente",
+      "colPaciente": "Gestante",
       "colIg": "EG",
       "colProfissional": "Profesional",
       "colUltimaConsulta": "Última consulta",
@@ -2249,12 +2249,12 @@
       "filtroSemGjPrimeira": "Sin GA en la primera consulta",
       "filtroAtrasadasGtt": "PTOG 75g atrasada",
       "filtroSemRetorno": "DMG confirmada sin retorno",
-      "pacienteCount": "{{count}} paciente",
+      "pacienteCount": "{{count}} gestante",
       "limparFiltroGargalo": "Limpiar filtro de cuello de botella",
       "emptyFiltered": "Ninguna ficha coincide con los filtros aplicados.",
-      "emptyGargalo": "Sin pacientes en este cuello de botella por ahora.",
+      "emptyGargalo": "Sin gestantes en este cuello de botella por ahora.",
       "emptyUnidade": "Aún no hay fichas registradas en esta unidad.",
-      "emptyBusca": "No se encontró ninguna paciente con ese nombre. Intenta otra búsqueda.",
+      "emptyBusca": "No se encontró ninguna gestante con ese nombre. Intenta otra búsqueda.",
       "exibindo": "Mostrando {{inicio}}-{{fim}} de {{total}} fichas",
       "pagina": "Página {{page}} de {{total}}"
     },
@@ -2277,7 +2277,7 @@
       "recarregar": "Recargar",
       "moreInfo": "Más información",
       "vsPeriodoAnterior": "vs período anterior",
-      "pacientesAtivos": "Pacientes activas",
+      "pacientesAtivos": "Gestantes activas",
       "pacientesAtivosTip": "Gestantes con FUM en los últimos 280 días en las unidades seleccionadas. Instantánea actual — no depende de la ventana del filtro.",
       "laudosEmitidos": "Informes emitidos",
       "laudosEmitidosTip": "Informes generados en el período seleccionado por las unidades seleccionadas.",
@@ -2286,7 +2286,7 @@
       "partosRegistrados": "Partos registrados",
       "partosRegistradosTip": "Partos registrados en el período por las unidades seleccionadas.",
       "profissionaisAtivos": "Profesionales activos",
-      "profissionaisAtivosTip": "Profesionales con al menos 1 paciente en seguimiento en las unidades seleccionadas."
+      "profissionaisAtivosTip": "Profesionales con al menos 1 gestante en seguimiento en las unidades seleccionadas."
     },
     "blocoRanking": {
       "statusAtiva": "Activa",
@@ -2299,7 +2299,7 @@
       "subtitle": "Por estado operativo. Haga clic en las columnas para reordenar.",
       "empty": "Ninguna unidad registró actividad en el período seleccionado.",
       "colUnidade": "Unidad",
-      "colPacientes": "Pacientes",
+      "colPacientes": "Gestantes",
       "tipPacientes": "Gestantes con FUM en los últimos 280 días.",
       "colLaudos": "Informes",
       "tipLaudos": "Informes generados en el período seleccionado.",
@@ -2308,7 +2308,7 @@
       "colTempoMedio": "Tiempo promedio",
       "tipTempoMedio": "Días promedio entre FUM y parto registrado en el período. '—' cuando no hay partos elegibles.",
       "colUltimaAtividade": "Última actividad",
-      "tipUltimaAtividade": "Último registro (paciente, informe, examen o atención) en la unidad.",
+      "tipUltimaAtividade": "Último registro (gestante, informe, examen o atención) en la unidad.",
       "colStatus": "Estado",
       "tipStatus": "Activa: registro en los últimos 30d. Atención: 30-60d. Inactiva: >60d. No iniciada: sin registros.",
       "dias": "{{valor}} d"
@@ -2429,7 +2429,7 @@
       "atualizarError": "Error al actualizar los datos.",
       "proximoRetornoNaoImplementado": "Próximo retorno aún no implementado."
     },
-    "notFound": "Paciente no encontrada.",
+    "notFound": "Gestante no encontrada.",
     "backToDashboard": "Volver al panel",
     "fichasDaUnidade": "Fichas de la unidad",
     "modoVisualizacao": "Modo de visualización",
@@ -2496,7 +2496,7 @@
     "pctOfDmg": "{{pct}}% de las DMG",
     "empty": {
       "title": "Tu panel aparecerá aquí",
-      "desc": "Registra pacientes y consultas para visualizar tus métricas clínicas."
+      "desc": "Registra gestantes y consultas para visualizar tus métricas clínicas."
     },
     "sections": {
       "overview": "Resumen general",
@@ -2534,7 +2534,7 @@
       "associateEndo": "Asociar endocrino"
     },
     "diagnosis": {
-      "totalPatients": "Total de pacientes",
+      "totalPatients": "Total de gestantes",
       "dmgConfirmedGj": "DMG confirmada en la GB",
       "dmgConfirmedGtt": "DMG confirmada en la PTOG 75g",
       "dmgRuledOutGtt": "DMG descartada en la PTOG 75g"
@@ -2547,7 +2547,7 @@
     },
     "treatment": {
       "dietOnly": "Control solo con dieta",
-      "withInsulin": "Pacientes con insulina",
+      "withInsulin": "Gestantes con insulina",
       "withEndo": "Asociadas al endocrino"
     },
     "outcomes": {
@@ -2556,7 +2556,7 @@
     },
     "chart": {
       "title": "Evolución mensual",
-      "newPatients": "Nuevas pacientes",
+      "newPatients": "Nuevas gestantes",
       "dmgConfirmed": "DMG confirmada"
     },
     "pdf": {
@@ -2705,8 +2705,8 @@
         "description": "Abra la página de planes dentro del shell del sistema, sin autenticación."
       },
       "dashboard": {
-        "title": "Mis Pacientes",
-        "description": "Gestione sus pacientes, siga el estado y los retornos."
+        "title": "Mis Gestantes",
+        "description": "Gestione sus gestantes, siga el estado y los retornos."
       },
       "perfil": {
         "title": "Mi Perfil",
@@ -2734,7 +2734,7 @@
       },
       "fichaCarimbada": {
         "title": "Ficha sellada (demo)",
-        "description": "Visualice una ficha de paciente con el sello CFM del profesional que la atiende."
+        "description": "Visualice una ficha de gestante con el sello CFM del profesional que la atiende."
       }
     },
     "completarPerfil": {
@@ -2842,7 +2842,7 @@
     "aposConfirmacaoPre": "Tras confirmarse el pago, recibirás un",
     "aposConfirmacaoStrong": "correo electrónico",
     "aposConfirmacaoPos": "con el enlace para crear tu contraseña y acceder a MARI.",
-    "pacientesLimite": "Hasta {{count}} pacientes"
+    "pacientesLimite": "Hasta {{count}} gestantes"
   },
   "baseConhecimento": {
     "title": "Base de Conocimiento",
@@ -2925,10 +2925,10 @@
   "historicoLaudos": {
     "title": "Historial de informes",
     "subtitle": "Todos los informes generados, del más reciente al más antiguo.",
-    "searchPlaceholder": "Buscar por paciente...",
+    "searchPlaceholder": "Buscar por gestante...",
     "emptyTitle": "Aún no hay informes",
     "noMatchTitle": "Ningún informe coincide con los filtros",
-    "emptyDesc": "Los informes generados en las fichas de las pacientes aparecerán aquí.",
+    "emptyDesc": "Los informes generados en las fichas de las gestantes aparecerán aquí.",
     "noMatchDesc": "Ajusta los filtros para ver más resultados.",
     "colDoctor": "Médico",
     "colGeneratedAt": "Generado el",
@@ -2968,7 +2968,7 @@
     "print": "Imprimir",
     "downloadPdf": "Descargar PDF",
     "headerTitle": "Informe de apoyo diagnóstico — DMG",
-    "patientLabel": "Paciente:",
+    "patientLabel": "Gestante:",
     "scenario": "Escenario {{cenario}}",
     "generatedOn": "Generado el {{data}}",
     "noContent": "Este informe aún no tiene contenido generado."
@@ -2998,8 +2998,8 @@
     "currentPlan": "Plan actual",
     "upgrade": "Mejorar plan",
     "downgrade": "Bajar de plan",
-    "unlimitedPatients": "Pacientes ilimitados",
-    "upToPatients": "Hasta {{count}} pacientes",
+    "unlimitedPatients": "Gestantes ilimitados",
+    "upToPatients": "Hasta {{count}} gestantes",
     "yourCurrentPlan": "Tu plan actual",
     "mostPopular": "Más popular",
     "upToReportsPerMonth": "Hasta {{count}} informes por mes",
@@ -3078,7 +3078,7 @@
       "negAgende": "Solicite/agende el examen de inmediato — la lista de espera en las unidades suele ser larga.",
       "negNaJanela": "La PTOG de 75g ya está dentro de la ventana — solicítela de inmediato",
       "negLimite": "(límite: {{fim}})",
-      "negJanelaPerdida": "Si se pierde la ventana, agéndela lo más cerca posible de la 28.ª semana — nunca deje a la paciente sin la PTOG de 75g.",
+      "negJanelaPerdida": "Si se pierde la ventana, agéndela lo más cerca posible de la 28.ª semana — nunca deje a la gestante sin la PTOG de 75g.",
       "negNaoRepita": "No repita la glucemia en ayunas, independientemente del resultado.",
       "posTratar": "No repetir el examen. Es hora de tratar. Comience ahora.",
       "btnEntendi": "Entendido",
@@ -3092,8 +3092,8 @@
       "title": "RETORNO 1 — Resultado de la Glucemia en Ayunas",
       "subtitle": "Ingrese el resultado de la glucemia en ayunas para el diagnóstico automático."
     },
-    "capilarAlert": "ATENCIÓN: La glucemia capilar no es válida para el diagnóstico de DMG. El protocolo exige glucemia plasmática. Oriente a la paciente a repetir el examen con la metodología correcta.",
-    "usgRefIntro": "Esta paciente aún no tiene una referencia de EG definida. Aproveche el retorno para registrar la 1.ª ecografía.",
+    "capilarAlert": "ATENCIÓN: La glucemia capilar no es válida para el diagnóstico de DMG. El protocolo exige glucemia plasmática. Oriente a la gestante a repetir el examen con la metodología correcta.",
+    "usgRefIntro": "Esta gestante aún no tiene una referencia de EG definida. Aproveche el retorno para registrar la 1.ª ecografía.",
     "usgRefIncompleta": "Complete la referencia de EG antes de guardar.",
     "gj": {
       "label": "Resultado de la glucemia en ayunas (mg/dL)",
@@ -3121,7 +3121,7 @@
     },
     "dataConsulta": {
       "label": "Fecha de la consulta de retorno",
-      "tooltip": "Fecha del retorno de la paciente. Se completa automáticamente con la fecha de hoy. Edite si es necesario."
+      "tooltip": "Fecha del retorno de la gestante. Se completa automáticamente con la fecha de hoy. Edite si es necesario."
     },
     "observacoes": {
       "label": "Observaciones",
@@ -3159,14 +3159,14 @@
       "aoMenosUmValor": "Al menos 1 valor de glucemia completado",
       "valoresNegativos": "Corregir valores negativos en la cuadrícula",
       "checklist": "Lista de verificación clínica del Retorno 2 (6 ítems)",
-      "pactuacao": "Acuerdo con la paciente",
+      "pactuacao": "Acuerdo con la gestante",
       "memoria": "Evaluación de la memoria del glucómetro"
     },
     "header": {
       "titleRetorno2": "RETORNO 2 — Momento de ver el resultado inicial del tratamiento (Perfil Glucémico de 4 puntos) y definir el siguiente paso",
       "titleFichaC": "FICHA C — Seguimiento sin insulina, después de la semana 30 (Perfil Glucémico de 4 puntos × 7 días)",
       "titleFichaA": "FICHA A — Seguimiento sin insulina, hasta la semana 30 (Perfil Glucémico de 4 puntos × 15 días)",
-      "subtitle": "Complete la cuadrícula con las glucemias capilares registradas por la paciente.",
+      "subtitle": "Complete la cuadrícula con las glucemias capilares registradas por la gestante.",
       "posPrandialBadge": "Posprandial: {{janela}}"
     },
     "hypo": {
@@ -3175,13 +3175,13 @@
     },
     "fields": {
       "dataInicioLabel": "Fecha de inicio del perfil",
-      "dataInicioTooltip": "Primer día en que la paciente comenzó a medir sus glucemias.",
+      "dataInicioTooltip": "Primer día en que la gestante comenzó a medir sus glucemias.",
       "dataFimLabel": "Fecha de finalización",
       "dataFimTooltip": "Último día de medición del perfil.",
       "dataConsultaLabel": "Fecha de la consulta",
       "dataConsultaTooltip": "Fecha del retorno. Predeterminado: hoy. Editable.",
       "igLabel": "Edad gestacional actual",
-      "igTooltipBefore": "EG actual en semanas + días. Se usa para definir el intervalo del próximo retorno e identificar si la paciente ya superó la semana 30.",
+      "igTooltipBefore": "EG actual en semanas + días. Se usa para definir el intervalo del próximo retorno e identificar si la gestante ya superó la semana 30.",
       "igTooltipAfter": "Rellenada automáticamente; editable.",
       "weeksPlaceholder": "sem",
       "weeksPlus": "sem +",
@@ -3270,7 +3270,7 @@
       "normal": "NORMAL"
     },
     "recursoLimitado": {
-      "checkboxLabel": "Paciente sin condición financiera/técnica para una PTOG 75g completa",
+      "checkboxLabel": "Gestante sin condición financiera/técnica para una PTOG 75g completa",
       "warningTitle": "Atención:",
       "warningText": "sin la PTOG 75g completa, el diagnóstico se basa solo en la glucemia en ayunas, que alcanza aproximadamente el 66% de los diagnósticos. Cerca del 34% de los casos de DMG pueden no detectarse con este método aislado.",
       "resultTitle": "Recurso limitado:",
@@ -3378,13 +3378,13 @@
     "headerFichaB": "FICHA B — Seguimiento con insulina, hasta la semana 30 (perfil glucémico de 6 puntos × 15 días)",
     "dayMessage7": "Completa hasta 7 días de mediciones.",
     "dayMessage15": "Completa hasta 15 días de mediciones.",
-    "fillGridHint": "Completa la cuadrícula con las glucemias capilares registradas por la paciente.",
+    "fillGridHint": "Completa la cuadrícula con las glucemias capilares registradas por la gestante.",
     "badgeFicha": "Ficha {{ficha}} — con insulina — EG {{ig}} sem",
     "badgePosPrandial": "Posprandial: {{janela}}",
     "hipoAlertTitle": "ALERTA DE HIPOGLUCEMIA",
     "hipoAlertItem": "Valor de {{valor}} mg/dL en el Día {{dia}} ({{ponto}}). Evaluar de inmediato e informar al especialista.",
     "labelDataInicio": "Fecha de inicio del perfil",
-    "tooltipDataInicio": "Primer día en que la paciente comenzó a medir las glucemias.",
+    "tooltipDataInicio": "Primer día en que la gestante comenzó a medir las glucemias.",
     "labelDataFim": "Fecha de cierre",
     "tooltipDataFim": "Último día de medición del perfil.",
     "labelDataConsulta": "Fecha de la consulta",
@@ -3450,9 +3450,9 @@
     "orientationBody": "Caso Nuevo registrado con éxito. Solicitar glucemia plasmática en ayunas. Ayuno de 8 a 12 horas. Muestra venosa procesada en laboratorio — la glucemia capilar en la yema del dedo no es válida para fines diagnósticos."
   },
   "usageWarning": {
-    "limitReached": "Su plan alcanzó el límite de pacientes.",
-    "remaining_one": "Queda {{count}} paciente en su plan.",
-    "remaining_other": "Quedan {{count}} pacientes en su plan.",
+    "limitReached": "Su plan alcanzó el límite de gestantes.",
+    "remaining_one": "Queda {{count}} gestante en su plan.",
+    "remaining_other": "Quedan {{count}} gestantes en su plan.",
     "upgradePlan": "Mejorar plan",
     "viewPlans": "Ver planes"
   },
@@ -3468,7 +3468,7 @@
     "subtitle2": "Complete los datos del parto. Después de guardar, esta ficha se cerrará.",
     "currentIg": "EG actual",
     "aboutTitle": "Sobre el registro",
-    "aboutBody": "El registro del parto es opcional, pero recomendado. Contribuye al historial longitudinal de la paciente y a los indicadores clínicos de la plataforma. Después de guardar, esta ficha se cerrará.",
+    "aboutBody": "El registro del parto es opcional, pero recomendado. Contribuye al historial longitudinal de la gestante y a los indicadores clínicos de la plataforma. Después de guardar, esta ficha se cerrará.",
     "moreInfo": "Más información",
     "selectPlaceholder": "Seleccione",
     "viaLabel": "Vía de parto",
@@ -3528,11 +3528,11 @@
     "confirmAction": "Sí, registrar parto",
     "toast": {
       "fillRequired": "Complete todos los campos obligatorios.",
-      "patientNotFound": "Paciente no encontrada.",
+      "patientNotFound": "Gestante no encontrada.",
       "saved": "Registro del parto guardado. Ficha cerrada.",
       "profileNotFound": "Perfil profesional no encontrado.",
       "saveError": "Error al guardar el registro del parto.",
-      "updateStatusError": "Error al actualizar el estado de la paciente."
+      "updateStatusError": "Error al actualizar el estado de la gestante."
     },
     "err": {
       "viaParto": "Seleccione la vía de parto.",
@@ -3568,7 +3568,7 @@
   },
   "encerramentoParto": {
     "title": "Seguimiento de MARI finalizado",
-    "body": "El seguimiento de esta paciente en MARI se completó con el registro del parto. Todo el historial clínico, los informes y los perfiles glucémicos permanecen disponibles para su consulta en esta ficha.",
+    "body": "El seguimiento de esta gestante en MARI se completó con el registro del parto. Todo el historial clínico, los informes y los perfiles glucémicos permanecen disponibles para su consulta en esta ficha.",
     "reteste": "<strong>Reevaluación posparto:</strong> realizar PTOG 75g (ayunas + 2h) entre las 6 y 8 semanas tras el parto."
   },
   "blockingModal": {
@@ -3587,12 +3587,12 @@
     "titleMotivo": "Seguimiento de MARI finalizado — {{motivo}}",
     "insulinizacaoBody": "Se indicó la introducción de insulina y se emitió el informe correspondiente con la conducta y los tres arreglos de continuidad (a cargo del obstetra, en conjunto con el endocrinólogo o derivación a un servicio especializado). El seguimiento activo dentro de MARI finaliza en este punto — todo el historial clínico, los informes y los perfiles glucémicos permanecen disponibles para su consulta en esta ficha.",
     "historicoDisponivel": "Todo el historial clínico, los informes y los perfiles glucémicos permanecen disponibles para su consulta en esta ficha.",
-    "continuidadeClinica": "<strong>Continuidad clínica:</strong> siga los arreglos descritos en el informe de insulinización. MARI no emitirá nuevos retornos automáticos para esta paciente.",
+    "continuidadeClinica": "<strong>Continuidad clínica:</strong> siga los arreglos descritos en el informe de insulinización. MARI no emitirá nuevos retornos automáticos para esta gestante.",
     "retestePuerperal": "<strong>Reevaluación posparto:</strong> realizar PTOG 75g (ayunas + 2h) entre <strong>{{inicio}}</strong> y <strong>{{fim}}</strong> ({{origem}}).",
     "corpo": {
       "parto": "Seguimiento finalizado — parto el {{data}}.",
       "aborto": "Seguimiento finalizado — registro de aborto el {{data}}.",
-      "naoRetornou": "Seguimiento finalizado — la paciente no regresó.",
+      "naoRetornou": "Seguimiento finalizado — la gestante no regresó.",
       "outroComObs": "Seguimiento finalizado. {{obs}}",
       "outro": "Seguimiento finalizado.",
       "default": "Seguimiento finalizado."
@@ -3623,7 +3623,7 @@
     "preferredReference": "referencia preferente",
     "saveUsg": "Guardar ecografía",
     "refModalTitle": "Referencia de EG",
-    "refModalDesc": "Elija qué fuente usar para calcular la edad gestacional de esta paciente.",
+    "refModalDesc": "Elija qué fuente usar para calcular la edad gestacional de esta gestante.",
     "dumOption": "FUM — {{data}} - {{ig}}",
     "dumNotInformed": "FUM (no informada)",
     "noUsgYetHint": "Aún no hay ecografías registradas. Agregue una ecografía para habilitar la opción.",
@@ -3642,10 +3642,10 @@
     },
     "errors": {
       "fillDateAndIg": "Complete la fecha y la EG de la ecografía.",
-      "duplicateDateHistory": "Ya existe una ecografía registrada en esta fecha para esta paciente. Revise el historial o edite la ecografía existente.",
-      "duplicateDate": "Ya existe una ecografía en esta fecha para esta paciente. Edite la existente o use otra fecha.",
-      "duplicateDateShort": "Ya existe una ecografía en esta fecha para esta paciente.",
-      "duplicateDateOther": "Ya hay otra ecografía registrada en esa fecha para esta paciente. Use otra fecha o edite la existente.",
+      "duplicateDateHistory": "Ya existe una ecografía registrada en esta fecha para esta gestante. Revise el historial o edite la ecografía existente.",
+      "duplicateDate": "Ya existe una ecografía en esta fecha para esta gestante. Edite la existente o use otra fecha.",
+      "duplicateDateShort": "Ya existe una ecografía en esta fecha para esta gestante.",
+      "duplicateDateOther": "Ya hay otra ecografía registrada en esa fecha para esta gestante. Use otra fecha o edite la existente.",
       "futureDate": "La fecha del examen no puede ser futura.",
       "saveWithMessage": "Error al guardar la ecografía: {{message}}",
       "saveGeneric": "Error al guardar la ecografía. Verifique los datos e inténtelo de nuevo.",
@@ -3713,13 +3713,13 @@
       "saveGeneric": "Error al guardar: {{message}}"
     },
     "headerTitle": "Retorno — Perfil de 6 puntos × 7 a 10 días (sin insulina)",
-    "headerSubtitle": "Reevaluación ampliada (la memoria del glucómetro confirma el control). Completa la cuadrícula con las glucemias capilares registradas por la paciente.",
+    "headerSubtitle": "Reevaluación ampliada (la memoria del glucómetro confirma el control). Completa la cuadrícula con las glucemias capilares registradas por la gestante.",
     "headerBadge": "Perfil de 6 puntos — sin insulina — EG {{ig}} sem",
     "fillDaysHint": "Completa de 7 a 10 días de mediciones.",
     "hypoAlertTitle": "ALERTA DE HIPOGLUCEMIA",
     "hypoAlertItem": "Valor de {{value}} mg/dL en el Día {{day}} ({{point}}). Evaluar de inmediato.",
     "dataInicioLabel": "Fecha de inicio del perfil",
-    "dataInicioTooltip": "Primer día en que la paciente comenzó a medir las glucemias.",
+    "dataInicioTooltip": "Primer día en que la gestante comenzó a medir las glucemias.",
     "dataFimLabel": "Fecha de cierre",
     "dataFimTooltip": "Último día de medición del perfil.",
     "dataConsultaLabel": "Fecha de la consulta",
@@ -3760,20 +3760,20 @@
     "newCaseRegistered": "¡Caso Nuevo registrado con éxito!",
     "mustBeLoggedIn": "Debe iniciar sesión.",
     "fileLimitReached": "Límite de fichas alcanzado para el plan actual.",
-    "errorCreatingPatient": "Error al crear la paciente.",
-    "errorSavingPatient": "Error al guardar la paciente.",
-    "patientCreatedButConsultationError": "Paciente creada, pero error al registrar la consulta.",
+    "errorCreatingPatient": "Error al crear la gestante.",
+    "errorSavingPatient": "Error al guardar la gestante.",
+    "patientCreatedButConsultationError": "Gestante creada, pero error al registrar la consulta.",
     "requiredField": "Campo obligatorio",
-    "headerTitle": "CASO NUEVO — Datos de la Paciente",
+    "headerTitle": "CASO NUEVO — Datos de la Gestante",
     "headerSubtitle": "Complete los datos iniciales y abra la ficha clínica con la solicitud de examen.",
     "nameTooltip": "Nombre completo para identificación en la ficha y el informe.",
     "fullNameLabel": "Nombre completo",
-    "namePlaceholder": "Nombre de la paciente",
+    "namePlaceholder": "Nombre de la gestante",
     "birthdateTooltip": "Se usa para calcular la edad automáticamente.",
     "birthdateLabel": "Fecha de nacimiento",
     "yearsOld_one": "{{count}} año",
     "yearsOld_other": "{{count}} años",
-    "identificationTooltip": "Seleccione el tipo de documento e ingrese el número de identificación de la paciente.",
+    "identificationTooltip": "Seleccione el tipo de documento e ingrese el número de identificación de la gestante.",
     "identificationLabel": "Identificación",
     "idTypeCpf": "CPF",
     "idTypeMedicalRecord": "Historia clínica",
@@ -3781,7 +3781,7 @@
     "idNumberPlaceholder": "Número (opcional)",
     "whatsappTooltip": "Opcional. Código de área + número, 10 u 11 dígitos. El código de país brasileño (+55) es fijo.",
     "whatsappLabel": "WhatsApp",
-    "locationTooltip": "Lugar de residencia de la paciente. La lista de estados y ciudades cambia según el país.",
+    "locationTooltip": "Lugar de residencia de la gestante. La lista de estados y ciudades cambia según el país.",
     "locationLabel": "Ubicación",
     "selectCity": "Seleccione la ciudad...",
     "selectStateFirst": "Seleccione primero el estado",
@@ -3790,20 +3790,20 @@
     "unknownLastPeriod": "No sé la fecha de la última menstruación",
     "consultationDateTooltip": "Fecha en que se realiza esta consulta. Predeterminado: hoy.",
     "consultationDateLabel": "Fecha de la consulta",
-    "clinicalNotesTooltip": "Notas adicionales sobre la paciente: antecedentes, comorbilidades, medicamentos en uso, etc.",
+    "clinicalNotesTooltip": "Notas adicionales sobre la gestante: antecedentes, comorbilidades, medicamentos en uso, etc.",
     "clinicalNotesLabel": "Observaciones clínicas",
     "optionalPlaceholder": "Opcional",
-    "previousDmgTooltip": "Marque si la paciente tuvo diagnóstico de Diabetes Mellitus Gestacional en un embarazo previo.",
+    "previousDmgTooltip": "Marque si la gestante tuvo diagnóstico de Diabetes Mellitus Gestacional en un embarazo previo.",
     "previousDmgLabel": "DMG en embarazo anterior",
     "saveConsultation": "Guardar consulta"
   },
   "appShell": {
-    "navPatients": "Pacientes",
-    "navNewPatient": "Nueva Paciente",
+    "navPatients": "Gestantes",
+    "navNewPatient": "Nueva Gestante",
     "navTutorial": "Tutorial",
     "navMyDashboard": "Mi Panel",
-    "breadcrumbNewPatient": "Nueva paciente",
-    "breadcrumbPatientFile": "Ficha de la paciente",
+    "breadcrumbNewPatient": "Nueva gestante",
+    "breadcrumbPatientFile": "Ficha de la gestante",
     "breadcrumbMyPlan": "Mi Plan",
     "breadcrumbMyProfile": "Mi Perfil",
     "breadcrumbMyDashboard": "Mi Panel",
@@ -3818,8 +3818,8 @@
     "userFallback": "Usuario",
     "reportsUsageTooltip": "{{used}} de {{limit}} informes este mes",
     "menuAria": "Menú",
-    "patientsUsageTooltip": "{{used}} de {{limit}} pacientes registrados",
-    "patientsUsageUnlimited": "Pacientes ilimitados",
+    "patientsUsageTooltip": "{{used}} de {{limit}} gestantes registradas",
+    "patientsUsageUnlimited": "Gestantes ilimitados",
     "unlimited": "Ilimitado"
   },
   "cidadeCombobox": {
@@ -3831,7 +3831,7 @@
     "viewPlans": "Ver planes"
   },
   "usgFlow": {
-    "jaFezPergunta": "¿La paciente ya se hizo la 1.ª ecografía?",
+    "jaFezPergunta": "¿La gestante ya se hizo la 1.ª ecografía?",
     "jaFezTooltip": "Si es así, registre la fecha del examen y la edad gestacional indicada en el informe. La 1.ª ecografía es la referencia más confiable.",
     "aindaNao": "Todavía no",
     "dadosTitulo": "Datos de la {{ordinal}}Ecografía",
@@ -3905,15 +3905,15 @@
     "preferredLanguage": "Idioma preferido",
     "languageTooltip": "Define el idioma de la interfaz y de los informes generados.",
     "defaultIdentifier": "Identificador predeterminado",
-    "identifierTooltip": "Define qué identificador usa para sus pacientes.",
+    "identifierTooltip": "Define qué identificador usa para sus gestantes.",
     "phone": "Teléfono",
     "phoneTooltip": "Opcional. Número de contacto profesional.",
     "phonePlaceholder": "(00) 00000-0000",
     "saveAndContinue": "Guardar y continuar"
   },
   "appSidebar": {
-    "patients": "Pacientes",
-    "newPatient": "Nueva paciente",
+    "patients": "Gestantes",
+    "newPatient": "Nueva gestante",
     "myCourses": "Mis cursos",
     "metrics": "Métricas",
     "plans": "Planes",
@@ -3942,7 +3942,7 @@
     "expand": "Expandir"
   },
   "fichaACResult": {
-    "patientNotFound": "Paciente no encontrada.",
+    "patientNotFound": "Gestante no encontrada.",
     "weightConfirmed": "Peso confirmado. Dosis calculada.",
     "weightSaveError": "Error al guardar el peso: {{error}}",
     "unknownError": "Error desconocido",
@@ -3954,9 +3954,9 @@
     "guidanceInsulin": "Conducta: iniciar insulina. Dosis y orientaciones en el informe completo a continuación.",
     "guidanceMev": "Conducta: reforzar dieta y ejercicio (cambios en el estilo de vida). Reevaluar manteniendo el perfil de 4 puntos.",
     "weightPromptTitle": "Control glucémico por debajo del objetivo — ingrese el peso para calcular la dosis",
-    "weightPromptDesc": "La conducta indicada por el protocolo es asociar insulina NPH subcutánea. Ingrese el peso actual de la paciente para que el sistema calcule la dosis inicial y libere los Bloques 2 y 3 del informe.",
+    "weightPromptDesc": "La conducta indicada por el protocolo es asociar insulina NPH subcutánea. Ingrese el peso actual de la gestante para que el sistema calcule la dosis inicial y libere los Bloques 2 y 3 del informe.",
     "currentWeightKg": "Peso actual (kg)",
-    "weightTooltip": "El peso es necesario para calcular la dosis inicial estándar de insulina: 0,5 UI/kg/día. Esta dosis está estandarizada mundialmente para el inicio de la insulinoterapia en DMG. Ej.: paciente de 70 kg → 35 UI/día en 2-3 tomas.",
+    "weightTooltip": "El peso es necesario para calcular la dosis inicial estándar de insulina: 0,5 UI/kg/día. Esta dosis está estandarizada mundialmente para el inicio de la insulinoterapia en DMG. Ej.: gestante de 70 kg → 35 UI/día en 2-3 tomas.",
     "weightPlaceholder": "Ej.: 70",
     "initialNphDose": "Dosis inicial de insulina NPH",
     "uiPerDay": "UI/día",
@@ -3978,10 +3978,10 @@
     "upgradeButton": "Mejorar plan"
   },
   "bannerUsoPacientes": {
-    "limitReached": "Su plan alcanzó el límite de pacientes.",
-    "remaining_one": "Queda {{count}} paciente en su plan actual.",
-    "remaining_other": "Quedan {{count}} pacientes en su plan actual.",
-    "usedOfLimit": "{{usados}} de {{limite}} pacientes registrados en este plan.",
+    "limitReached": "Su plan alcanzó el límite de gestantes.",
+    "remaining_one": "Queda {{count}} gestante en su plan actual.",
+    "remaining_other": "Quedan {{count}} gestantes en su plan actual.",
+    "usedOfLimit": "{{usados}} de {{limite}} gestantes registradas en este plan.",
     "upgradePlan": "Mejorar plan",
     "viewPlans": "Ver planes"
   }
