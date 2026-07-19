@@ -6,16 +6,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   UserCog, Loader2, Camera, Lock, MessageSquareHeart, Heart, Star,
-  AlertTriangle, Eye, EyeOff, Mail, Paperclip, ChevronDown, ChevronUp, Trash2, Building2,
+  AlertTriangle, Eye, EyeOff, Paperclip, ChevronDown, ChevronUp, Trash2, Building2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -142,7 +139,6 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
   const [zonaAberta, setZonaAberta] = useState(false);
   const [confirmSenha, setConfirmSenha] = useState('');
   const [excluindo, setExcluindo] = useState(false);
-  const [emailModal, setEmailModal] = useState(false);
   const [confirmRemoverFoto, setConfirmRemoverFoto] = useState(false);
   const [removendoFoto, setRemovendoFoto] = useState(false);
 
@@ -374,12 +370,10 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
           </div>
           <div>
             <Label>{t('common.email')}</Label>
-            <div className="flex gap-2">
-              <Input value={email} disabled className="bg-muted" />
-              <Button type="button" variant="outline" onClick={() => setEmailModal(true)}>
-                <Mail className="h-4 w-4" /> {t('profile.requestChange')}
-              </Button>
-            </div>
+            {/* E-mail é somente leitura: a troca é feita pelo suporte (mantém o
+                login e o cadastro de cobrança no Asaas em sincronia). O botão de
+                "solicitar alteração" foi removido — quem precisar troca via suporte. */}
+            <Input value={email} disabled className="bg-muted" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -569,23 +563,6 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
           )}
         </Card>
       )}
-
-      {/* Modal solicitar alteração de e-mail */}
-      <Dialog open={emailModal} onOpenChange={setEmailModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('profile.emailChangeTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('profile.emailChangeDescBefore')}{' '}
-              <a href="mailto:suporte@novodmg.com.br" className="text-primary underline">suporte@novodmg.com.br</a>{' '}
-              {t('profile.emailChangeDescAfter')}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setEmailModal(false)}>{t('profile.understood')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Confirmação — remover foto */}
       <AlertDialog open={confirmRemoverFoto} onOpenChange={setConfirmRemoverFoto}>
