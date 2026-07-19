@@ -192,11 +192,19 @@ export default function FichaACForm({
   // incompleto; acalma quando todos os campos estão preenchidos.
   const camposTopoCompletos = !!(dataInicio && dataFim && dataConsulta && igSemanas);
 
-  // Ajustes V3 item 4 — coluna Data na grade: cada dia = data de início + (N-1).
+  // Ajustes V3 item 4 — coluna Data na grade: cada dia = data de início + (N-1),
+  // preenchida SOMENTE dentro do período do perfil (início → encerramento).
+  // Dias além do encerramento (ou sem data de início) ficam em branco.
   const datasDias = useMemo(() => {
     const base = parseDateLocal(dataInicio);
-    return DAYS.map((_, idx) => (base ? format(addDays(base, idx), 'dd/MM/yyyy') : '—'));
-  }, [dataInicio]);
+    const fim = parseDateLocal(dataFim);
+    return DAYS.map((_, idx) => {
+      if (!base) return '';
+      const d = addDays(base, idx);
+      if (fim && d > fim) return '';
+      return format(d, 'dd/MM/yyyy');
+    });
+  }, [dataInicio, dataFim]);
 
   // Hypoglycemia alerts — qualquer valor < 70 em qualquer ponto
   const hypoAlerts = useMemo(() => {
