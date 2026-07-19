@@ -112,10 +112,10 @@ export default function ProfileForm({ initialData, onSubmit, isLoading, submitLa
       {/* Email (somente leitura) */}
       {initialData.email && (
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-foreground">
+          <Label htmlFor="email-readonly" className="text-sm font-medium text-foreground">
             {t('common.email')}
           </Label>
-          <Input value={initialData.email} disabled className="bg-muted" />
+          <Input id="email-readonly" value={initialData.email} disabled className="bg-muted" />
         </div>
       )}
 
