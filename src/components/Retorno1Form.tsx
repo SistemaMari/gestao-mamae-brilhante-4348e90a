@@ -141,7 +141,10 @@ export default function Retorno1Form({
   const { profissionalData } = useProfissionalData();
 
   const [valorGJ, setValorGJ] = useState(editingConsulta?.retorno1_valor_gj != null ? String(editingConsulta.retorno1_valor_gj) : '');
-  const [tipoExame, setTipoExame] = useState(editingConsulta?.retorno1_tipo_exame ?? '');
+  // Ajustes V3 item 11 — a GJ de diagnóstico é sempre plasmática (capilar é só para
+  // controle de tratamento). O seletor de tipo de exame foi removido; o valor fica
+  // fixo em 'plasmatica' para novos registros (mantém o diagnóstico aplicável).
+  const [tipoExame, setTipoExame] = useState(editingConsulta?.retorno1_tipo_exame ?? 'plasmatica');
   const [dataExame, setDataExame] = useState(editingConsulta?.retorno1_data_exame ?? todayISO());
   const [dataConsultaRetorno, setDataConsultaRetorno] = useState(editingConsulta?.data ?? todayISO());
   const [observacoes, setObservacoes] = useState('');
@@ -175,7 +178,6 @@ export default function Retorno1Form({
   const [editingResult, setEditingResult] = useState(false);
   const [showEditConfirm, setShowEditConfirm] = useState(false);
 
-  const isCapilar = tipoExame === 'capilar';
 
   const dateFnsLocale = i18n.language.startsWith('en')
     ? enUS
@@ -976,16 +978,6 @@ export default function Retorno1Form({
       {/* 34B.3 seção 3.9.4 — banner laranja de divergência IG (efêmero) */}
       <DivergenciaIgBanner ativo={alertaDivergenciaIg} />
 
-      {/* Capilar alert */}
-      {isCapilar && (
-        <div className="mt-4 rounded-lg border border-red-300 bg-[#FEE2E2] p-4 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
-          <p className="text-sm font-medium text-red-800">
-            {t('retorno1.capilarAlert')}
-          </p>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="mt-5 space-y-5">
         {/* Bloco 2: capturar USG e referência de IG quando ainda não definidas */}
         {precisaUsgRef && (
@@ -1029,22 +1021,8 @@ export default function Retorno1Form({
           {errorMsg(!valorGJ && !valorValido)}
         </div>
 
-        {/* Tipo de exame */}
-        <div className="space-y-2">
-          <FieldLabel required tooltip={t('retorno1.tipoExame.tooltip')}>
-            {t('retorno1.tipoExame.label')}
-          </FieldLabel>
-          <Select value={tipoExame} onValueChange={setTipoExame}>
-            <SelectTrigger className={fieldError(!!tipoExame)}>
-              <SelectValue placeholder={t('retorno1.tipoExame.placeholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="plasmatica">{t('retorno1.tipoExame.plasmatica')}</SelectItem>
-              <SelectItem value="capilar">{t('retorno1.tipoExame.capilar')}</SelectItem>
-            </SelectContent>
-          </Select>
-          {errorMsg(!!tipoExame)}
-        </div>
+        {/* Ajustes V3 item 11 — seletor de tipo de exame (plasmática/capilar)
+            removido. A GJ de diagnóstico é sempre plasmática. */}
 
         {/* Data do exame */}
         <div className="space-y-2">
@@ -1177,10 +1155,17 @@ function FieldLabel({
   required?: boolean;
   tooltip: string;
 }) {
+  const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5">
       <Label htmlFor={htmlFor}>
-        {children} {required && <span className="text-destructive">*</span>}
+        {children}
+        {/* Ajustes V3 item 9 — asterisco substituído por rótulo explícito com destaque. */}
+        {required && (
+          <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 align-middle">
+            {t('common.preenchimentoObrigatorio')}
+          </span>
+        )}
       </Label>
       <Tooltip>
         <TooltipTrigger asChild>

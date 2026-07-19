@@ -68,9 +68,11 @@ export interface PreviewPaciente {
   numero_identificacao: string | null;
   tipo_identificacao: string | null;
   dum: string | null;
-  pais: string | null;
-  estado: string | null;
-  cidade: string | null;
+  // Ajustes V3 item 8 — localização da paciente não é mais coletada no Caso Novo.
+  // Opcionais: pacientes antigos/preview ainda podem ter; novos não gravam.
+  pais?: string | null;
+  estado?: string | null;
+  cidade?: string | null;
   usg_data: string | null;
   usg_ig_semanas: number | null;
   usg_ig_dias: number | null;
