@@ -374,7 +374,7 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
                 login e o cadastro de cobrança no Asaas em sincronia). A tooltip
                 explica o MOTIVO sem oferecer o caminho — evita que o campo pareça
                 defeito, sem convidar pedidos de troca. */}
-            <div className="flex items-center gap-1.5">
+            <div className="mb-2 flex items-center gap-1.5">
               <Label>{t('common.email')}</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
