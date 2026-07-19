@@ -1530,7 +1530,10 @@
       "slotLabel": "Slot {{slot}} de 30",
       "active": "Ativa",
       "inactive": "Inativa",
-      "textPlaceholder": "Digite a frase que aparecerá no card 'Dica do dia'…"
+      "textPlaceholder": "Digite a frase que aparecerá no card 'Dica do dia'…",
+      "textEnLabel": "Tradução — Inglês (opcional)",
+      "textEsLabel": "Tradução — Espanhol (opcional)",
+      "textTranslationPlaceholder": "Se ficar vazio, mostra o texto em português."
     },
     "gestoresUnidade": {
       "inviteResent": "Convite reenviado para {{email}}.",

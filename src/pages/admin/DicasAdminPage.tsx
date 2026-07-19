@@ -11,6 +11,9 @@ interface Dica {
   id: string;
   slot: number;
   texto: string;
+  /** Item 19 — traduções opcionais. Vazio = o painel mostra o texto em português. */
+  texto_en?: string | null;
+  texto_es?: string | null;
   ativa: boolean;
 }
 
@@ -27,7 +30,9 @@ export default function DicasAdminPage() {
     (async () => {
       const { data, error } = await supabase
         .from("dicas_dashboard")
-        .select("id, slot, texto, ativa")
+        // Item 19 — select("*") para tolerar a ausência das colunas de tradução
+        // antes da migration ser aplicada.
+        .select("*")
         .order("slot", { ascending: true });
       if (error) {
         toast.error(t("admin.dicas.loadError", { error: error.message }));
@@ -66,16 +71,18 @@ export default function DicasAdminPage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const updates = alteradas.map((d) =>
-      supabase
-        .from("dicas_dashboard")
-        .update({
-          texto: d.texto.trim(),
-          ativa: d.ativa,
-          updated_by: user?.id ?? null,
-        })
-        .eq("id", d.id),
-    );
+    const updates = alteradas.map((d) => {
+      const payload: Record<string, unknown> = {
+        texto: d.texto.trim(),
+        ativa: d.ativa,
+        updated_by: user?.id ?? null,
+      };
+      // Item 19 — só envia as traduções se as colunas existirem no registro
+      // carregado (tolera o período antes da migration).
+      if ("texto_en" in d) payload.texto_en = (d.texto_en ?? "").trim() || null;
+      if ("texto_es" in d) payload.texto_es = (d.texto_es ?? "").trim() || null;
+      return supabase.from("dicas_dashboard").update(payload).eq("id", d.id);
+    });
     const results = await Promise.all(updates);
     const erros = results.filter((r) => r.error);
     setSaving(false);
@@ -188,6 +195,36 @@ export default function DicasAdminPage() {
                 maxLength={MAX_CHAR + 40}
                 className="resize-none"
               />
+
+              {/* Item 19 — traduções opcionais; vazio = mostra o texto em português. */}
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                    {t("admin.dicas.textEnLabel")}
+                  </label>
+                  <Textarea
+                    value={d.texto_en ?? ""}
+                    onChange={(e) => atualizar(d.id, { texto_en: e.target.value })}
+                    placeholder={t("admin.dicas.textTranslationPlaceholder")}
+                    rows={2}
+                    maxLength={MAX_CHAR + 40}
+                    className="resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                    {t("admin.dicas.textEsLabel")}
+                  </label>
+                  <Textarea
+                    value={d.texto_es ?? ""}
+                    onChange={(e) => atualizar(d.id, { texto_es: e.target.value })}
+                    placeholder={t("admin.dicas.textTranslationPlaceholder")}
+                    rows={2}
+                    maxLength={MAX_CHAR + 40}
+                    className="resize-none"
+                  />
+                </div>
+              </div>
               <div className="mt-1 flex justify-end">
                 <span
                   className={
