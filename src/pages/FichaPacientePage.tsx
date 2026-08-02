@@ -378,6 +378,9 @@ export default function FichaPacientePage() {
             .from('perfis_glicemicos' as any)
             .select('id, consulta_id, tipo_perfil, peso_paciente_kg, percentual_meta, decisao, dose_insulina_calculada, dose_insulina_manha, dose_insulina_noite, data_inicio, data_fim, proxima_ficha_recomendada, total_preenchidos, na_meta')
             .in('consulta_id', consultaIds)
+            // Determinístico se houver perfil duplicado (bug antigo): ordenado ASC,
+            // o Map por consulta_id fica com o MAIS RECENTE (última iteração vence).
+            .order('created_at', { ascending: true })
         : { data: [] as any[] };
 
       const perfilIds = ((perfis ?? []) as any[]).map((p: any) => p.id);
