@@ -387,11 +387,15 @@ export default function AppShellClinico() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="pointer-events-auto fixed top-3 left-3 z-50 md:hidden rounded-md bg-card/80 backdrop-blur p-2 text-muted-foreground hover:text-foreground shadow-sm print:hidden"
+        className="pointer-events-auto fixed top-3 left-3 z-50 md:hidden rounded-md p-2 shadow-md print:hidden"
+        style={{ backgroundColor: '#7E69AB' }}
         aria-label={t('appShell.menuAria')}
       >
-        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {mobileOpen
+          ? <X className="h-5 w-5" style={{ color: '#C4B5FD' }} />
+          : <Menu className="h-5 w-5" style={{ color: '#C4B5FD' }} />}
       </button>
+
 
 
       {/* Banners globais */}
