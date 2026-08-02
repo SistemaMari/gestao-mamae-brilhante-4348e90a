@@ -446,20 +446,6 @@ export default function DashboardPage() {
 
           <div className="mt-6 md:mt-8 border-b" style={{ borderColor: '#E2E8F0' }} />
 
-          {/* Mobile: ação rápida como botão flutuante fixo */}
-          <button
-            type="button"
-            onClick={handleNovaPaciente}
-            aria-label={t('dashboard.registerNewPatient')}
-            className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white md:hidden"
-            style={{
-              background: 'linear-gradient(135deg, #9b87f5 0%, #7E69AB 100%)',
-              boxShadow: '0 8px 24px -6px rgba(126, 105, 171, 0.6)',
-            }}
-          >
-            <Plus className="h-5 w-5" strokeWidth={2.5} />
-            {t('dashboard.newPatient')}
-          </button>
         </section>
       )}
 
