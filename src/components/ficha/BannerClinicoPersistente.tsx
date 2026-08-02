@@ -11,10 +11,10 @@ import { AlertTriangle, Info } from 'lucide-react';
  *
  * Genérico: a condição clínica e o texto vêm de fora; aqui mora só a apresentação.
  */
-type TomBannerClinico = 'alerta' | 'info';
+type TomBannerClinico = 'alerta' | 'info' | 'sucesso';
 
 interface BannerClinicoPersistenteProps {
-  /** 'alerta' = âmbar (situação que exige ação); 'info' = lilás (contexto a manter à vista). */
+  /** 'alerta' = âmbar (ação); 'info' = lilás (contexto); 'sucesso' = verde água (evolução positiva). */
   tom: TomBannerClinico;
   texto: string;
 }
@@ -25,6 +25,7 @@ const ESTILO: Record<
 > = {
   alerta: { border: '#F59E0B', bg: '#FEF3C7', icone: '#F59E0B', texto: '#92400E', Icone: AlertTriangle },
   info: { border: '#9b87f5', bg: '#E8E0FF', icone: '#7E69AB', texto: '#5B21B6', Icone: Info },
+  sucesso: { border: '#5EEAD4', bg: '#F0FDFA', icone: '#0D9488', texto: '#0F766E', Icone: Info },
 };
 
 export default function BannerClinicoPersistente({ tom, texto }: BannerClinicoPersistenteProps) {

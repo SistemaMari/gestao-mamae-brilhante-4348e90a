@@ -575,7 +575,9 @@ export default function FichaACForm({
         paciente_id: paciente.id,
         profissional_id: profId,
         tipo: fichaType,
-        numero_sequencial: nextSeq,
+        // V4 — ao editar, preserva o numero_sequencial existente (antes reescrevia
+        // para consultas.length+1, causando colisão de número entre consultas).
+        numero_sequencial: editingConsulta?.numero_sequencial ?? nextSeq,
         data: dataConsulta,
         ig_semanas: igS,
         ig_dias: igD,
