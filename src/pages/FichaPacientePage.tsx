@@ -66,6 +66,7 @@ import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import PlaceholderBlocoLaudo from '@/components/laudo/PlaceholderBlocoLaudo';
 import { mapearCenario, derivarDesfechoClinico, cenarioSemTextoLaudo, ehDesfechoInsulina } from '@/lib/laudoMapping';
 import { escolherDecisaoVigente } from '@/lib/proximoPasso';
+import { ordenarPorSequenciaClinica } from '@/lib/ordenarConsultas';
 import { getNotasLaudo } from '@/components/laudo/NotasTecnicasCard';
 import { type JanelaPosPrandial, normalizarJanela } from '@/lib/posPrandial';
 import { useLaudoTextos } from '@/hooks/useLaudoTextos';
@@ -438,8 +439,12 @@ export default function FichaPacientePage() {
         (perfisPos ?? []).map((pf) => [pf.consulta_id, normalizarJanela(pf.tipo_pos_prandial)]),
       );
 
+      // V4 — ordena o histórico por SEQUÊNCIA CLÍNICA (Caso Novo → Glicemia → GTT →
+      // perfis de acompanhamento), não pela data digitada. Evita inversões quando a
+      // data de uma consulta é preenchida fora da ordem clínica (ver ordenarConsultas.ts).
+      const consOrdenadas = ordenarPorSequenciaClinica((cons || []) as Array<{ tipo: string; created_at?: string | null }>);
       setConsultas(
-        (cons || []).map((c: any) => {
+        (consOrdenadas as any[]).map((c: any) => {
           const ex = exameByConsulta.get(c.id);
           const perfil = perfilByConsulta.get(c.id);
           const decisao = decisaoByConsulta.get(c.id);
