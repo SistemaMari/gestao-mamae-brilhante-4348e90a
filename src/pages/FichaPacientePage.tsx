@@ -1372,9 +1372,13 @@ export default function FichaPacientePage() {
           texto={t('fichaPaciente.bannerClinico.diagnosticoTardio')}
         />
       )}
-      {consultas.some((c) => c.proxima_ficha_recomendada === 'ficha_e') && (
+      {/* V4 — o card "Acompanhamento ampliado" só aparece no MOMENTO da indicação
+          dos 6 pontos (a Ficha A/C recomendou ficha_e) e some assim que a 1ª ficha de
+          6 pontos é preenchida. Cor verde água (evolução positiva). */}
+      {consultas.some((c) => c.proxima_ficha_recomendada === 'ficha_e')
+        && !consultas.some((c) => c.tipo === 'ficha_e') && (
         <BannerClinicoPersistente
-          tom="info"
+          tom="sucesso"
           texto={t('fichaPaciente.bannerClinico.acompanhamentoAmpliado')}
         />
       )}

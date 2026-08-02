@@ -413,7 +413,8 @@ export default function FichaBDForm({
         paciente_id: paciente.id,
         profissional_id: profId,
         tipo: fichaType,
-        numero_sequencial: nextSeq,
+        // V4 — ao editar, preserva o numero_sequencial existente (evita colisão).
+        numero_sequencial: editingConsulta?.numero_sequencial ?? nextSeq,
         data: dataConsulta,
         ig_semanas: igS,
         ig_dias: igD,
