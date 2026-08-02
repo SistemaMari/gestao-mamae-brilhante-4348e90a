@@ -422,7 +422,21 @@ export default function FichaEForm({
         proxima_ficha_recomendada: proxima,
       };
 
+      // Evita perfil duplicado ao editar/re-salvar uma ficha já persistida: fora do
+      // fluxo de rascunho o ref fica null, então sem isto a edição SEMPRE inseria um
+      // 2º perfil na mesma consulta. Resolve o perfil 1:1 da consulta antes de decidir
+      // INSERT vs UPDATE (espelha o backend salvar-ficha-retorno).
       let perfilId = draftPerfilIdRef.current;
+      if (!perfilId && consultaId) {
+        const { data: perfilExistente } = await supabase
+          .from('perfis_glicemicos' as any)
+          .select('id')
+          .eq('consulta_id', consultaId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (perfilExistente) perfilId = (perfilExistente as any).id;
+      }
       if (perfilId) {
         const { error } = await supabase
           .from('perfis_glicemicos' as any).update(perfilPayload as any).eq('id', perfilId);
@@ -433,6 +447,7 @@ export default function FichaEForm({
         if (perfErr || !newPerfil) throw perfErr || new Error(t('fichaE.errors.createPerfil'));
         perfilId = (newPerfil as any).id;
       }
+      draftPerfilIdRef.current = perfilId;
 
       await supabase.from('valores_perfil' as any).delete().eq('perfil_id', perfilId);
       const valores: any[] = [];
