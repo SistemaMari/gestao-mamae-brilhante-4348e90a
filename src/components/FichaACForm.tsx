@@ -206,6 +206,39 @@ export default function FichaACForm({
     });
   }, [dataInicio, dataFim]);
 
+  // V4 — período da medição anterior (referência) + validação de datas. O período de
+  // um perfil é uns poucos dias seguidos; início > fim (invertido) ou um início que
+  // retrocede em relação ao perfil anterior são quase sempre erro de digitação — ou,
+  // em teste, datas aleatórias que o usuário não lembra da ficha anterior.
+  const periodoAnterior = useMemo(() => {
+    const perfis = consultas.filter(
+      c => c.id !== editingConsulta?.id &&
+        ['ficha_a', 'ficha_c', 'ficha_b', 'ficha_d', 'ficha_e'].includes(c.tipo) &&
+        !!c.data_fim,
+    );
+    if (perfis.length === 0) return null;
+    const maisRecente = perfis.reduce((a, b) => {
+      const da = parseDateLocal(a.data_fim!);
+      const db = parseDateLocal(b.data_fim!);
+      if (!da) return b;
+      if (!db) return a;
+      return db > da ? b : a;
+    });
+    return { inicio: maisRecente.data_inicio ?? null, fim: maisRecente.data_fim ?? null };
+  }, [consultas, editingConsulta?.id]);
+
+  const periodoInvertido = useMemo(() => {
+    const ini = parseDateLocal(dataInicio);
+    const fim = parseDateLocal(dataFim);
+    return !!(ini && fim && ini > fim);
+  }, [dataInicio, dataFim]);
+
+  const periodoRetrocede = useMemo(() => {
+    const ini = parseDateLocal(dataInicio);
+    const antFim = periodoAnterior?.fim ? parseDateLocal(periodoAnterior.fim) : null;
+    return !!(ini && antFim && ini <= antFim);
+  }, [dataInicio, periodoAnterior]);
+
   // Hypoglycemia alerts — qualquer valor < 70 em qualquer ponto
   const hypoAlerts = useMemo(() => {
     const alerts: { day: number; point: string; value: number }[] = [];
@@ -391,6 +424,8 @@ export default function FichaACForm({
     if (totalPreenchidos === 0) return false;
     // Ajustes V3 item 3 — bloqueia salvar com menos de 7 dias preenchidos.
     if (!diasSuficientes) return false;
+    // V4 — período invertido (início depois do fim) é dado inválido: bloqueia.
+    if (periodoInvertido) return false;
     if (hasNegativeValues) return false;
     // 36B REV3 — Ficha A exige checklist completo + caminho clínico fechado (sem pendências de pactuação/memória)
     if (isFichaAC) {
@@ -398,7 +433,7 @@ export default function FichaACForm({
       if (decisaoFichaA && decisaoFichaA.pendencias.some(p => p === 'pactuacao_adesao' || p === 'memoria_glicosimetro')) return false;
     }
     return true;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, diasSuficientes, hasNegativeValues, isFichaAC, checklist, decisaoFichaA]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, diasSuficientes, periodoInvertido, hasNegativeValues, isFichaAC, checklist, decisaoFichaA]);
 
   // 34B.2 — status + pendentes (badge e banner).
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
@@ -878,6 +913,24 @@ export default function FichaACForm({
         </div>
         </div>
       </div>
+
+      {/* V4 — período da medição anterior (referência) + alertas de data */}
+      {(periodoAnterior?.inicio || periodoAnterior?.fim) && (
+        <p className="text-xs text-muted-foreground">
+          {t('fichaAC.periodoAnterior', {
+            inicio: periodoAnterior?.inicio ? format(parseDateLocal(periodoAnterior.inicio)!, 'dd/MM/yyyy') : '—',
+            fim: periodoAnterior?.fim ? format(parseDateLocal(periodoAnterior.fim)!, 'dd/MM/yyyy') : '—',
+          })}
+        </p>
+      )}
+      {periodoInvertido && (
+        <p className="text-xs font-medium text-red-600">{t('fichaAC.periodoInvertido')}</p>
+      )}
+      {!periodoInvertido && periodoRetrocede && periodoAnterior?.fim && (
+        <p className="text-xs font-medium text-amber-600">
+          {t('fichaAC.periodoRetrocede', { fim: format(parseDateLocal(periodoAnterior.fim)!, 'dd/MM/yyyy') })}
+        </p>
+      )}
 
       {/* Real-time percentage display */}
       <div className="rounded-xl border border-border bg-card p-4 text-center">
