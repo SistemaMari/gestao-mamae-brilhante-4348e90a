@@ -65,6 +65,7 @@ import { calcularDppISO, janelaRetestePuerperal } from '@/lib/dpp';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import PlaceholderBlocoLaudo from '@/components/laudo/PlaceholderBlocoLaudo';
 import { mapearCenario, derivarDesfechoClinico, cenarioSemTextoLaudo, ehDesfechoInsulina } from '@/lib/laudoMapping';
+import { escolherDecisaoVigente } from '@/lib/proximoPasso';
 import { getNotasLaudo } from '@/components/laudo/NotasTecnicasCard';
 import { type JanelaPosPrandial, normalizarJanela } from '@/lib/posPrandial';
 import { useLaudoTextos } from '@/hooks/useLaudoTextos';
@@ -198,11 +199,12 @@ function getNextStepInfo(
       const hasFichaBD = consultas.some(c => ['ficha_b', 'ficha_d'].includes(c.tipo));
       const nextRetornoNum = consultas.length;
 
-      // 36B REV3 / 36E-B — Roteamento por proxima_ficha_recomendada
-      // (motor da Ficha A ou da Ficha E, qualquer que seja a última com decisão).
-      const ultimaComDecisao = [...consultas].reverse().find(
-        c => ['ficha_a', 'ficha_c', 'ficha_e'].includes(c.tipo) && !!c.proxima_ficha_recomendada,
-      );
+      // 36B REV3 / 36E-B — Roteamento por proxima_ficha_recomendada.
+      // V4 blindagem: escolherDecisaoVigente garante a MÃO ÚNICA do fluxo — se a
+      // paciente já alcançou os 6 pontos (Ficha E), a decisão vigente é a da última
+      // Ficha E, nunca uma Ficha A/C anterior. Impede oferecer 4 pontos depois de 6
+      // mesmo com datas fora de ordem / edição (ver src/lib/proximoPasso.ts).
+      const ultimaComDecisao = escolherDecisaoVigente(consultas);
       const proxima = ultimaComDecisao?.proxima_ficha_recomendada ?? null;
 
       if (proxima === 'ficha_e') {

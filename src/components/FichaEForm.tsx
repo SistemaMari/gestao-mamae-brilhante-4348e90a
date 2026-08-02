@@ -198,6 +198,36 @@ export default function FichaEForm({
     });
   }, [dataInicio, dataFim]);
 
+  // V4 — período da medição anterior (referência) + validação de datas (ver FichaACForm).
+  const periodoAnterior = useMemo(() => {
+    const perfis = consultas.filter(
+      c => c.id !== editingConsulta?.id &&
+        ['ficha_a', 'ficha_c', 'ficha_b', 'ficha_d', 'ficha_e'].includes(c.tipo) &&
+        !!c.data_fim,
+    );
+    if (perfis.length === 0) return null;
+    const maisRecente = perfis.reduce((a, b) => {
+      const da = parseDateLocal(a.data_fim!);
+      const db = parseDateLocal(b.data_fim!);
+      if (!da) return b;
+      if (!db) return a;
+      return db > da ? b : a;
+    });
+    return { inicio: maisRecente.data_inicio ?? null, fim: maisRecente.data_fim ?? null };
+  }, [consultas, editingConsulta?.id]);
+
+  const periodoInvertido = useMemo(() => {
+    const ini = parseDateLocal(dataInicio);
+    const fim = parseDateLocal(dataFim);
+    return !!(ini && fim && ini > fim);
+  }, [dataInicio, dataFim]);
+
+  const periodoRetrocede = useMemo(() => {
+    const ini = parseDateLocal(dataInicio);
+    const antFim = periodoAnterior?.fim ? parseDateLocal(periodoAnterior.fim) : null;
+    return !!(ini && antFim && ini <= antFim);
+  }, [dataInicio, periodoAnterior]);
+
   const isAdequado = percentual !== null && percentual >= 70;
 
   const hypoAlerts = useMemo(() => {
@@ -272,9 +302,11 @@ export default function FichaEForm({
     if (totalPreenchidos === 0) return false;
     // Ajustes V3 item 3 — bloqueia salvar com menos de 7 dias preenchidos.
     if (!diasSuficientes) return false;
+    // V4 — período invertido (início depois do fim) é dado inválido: bloqueia.
+    if (periodoInvertido) return false;
     if (hasNegativeValues) return false;
     return true;
-  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, diasSuficientes, hasNegativeValues]);
+  }, [dataInicio, dataFim, dataConsulta, igSemanas, totalPreenchidos, diasSuficientes, periodoInvertido, hasNegativeValues]);
 
   const statusFichaLocal: string = editingConsulta?.status_ficha ?? 'rascunho';
   // Rascunho NÃO é sinalizado durante o preenchimento: badge "Rascunho" + banner de
@@ -592,6 +624,24 @@ export default function FichaEForm({
         </div>
       </div>
       </div>
+
+      {/* V4 — período da medição anterior (referência) + alertas de data */}
+      {(periodoAnterior?.inicio || periodoAnterior?.fim) && (
+        <p className="text-xs text-muted-foreground">
+          {t('fichaE.periodoAnterior', {
+            inicio: periodoAnterior?.inicio ? format(parseDateLocal(periodoAnterior.inicio)!, 'dd/MM/yyyy') : '—',
+            fim: periodoAnterior?.fim ? format(parseDateLocal(periodoAnterior.fim)!, 'dd/MM/yyyy') : '—',
+          })}
+        </p>
+      )}
+      {periodoInvertido && (
+        <p className="text-xs font-medium text-red-600">{t('fichaE.periodoInvertido')}</p>
+      )}
+      {!periodoInvertido && periodoRetrocede && periodoAnterior?.fim && (
+        <p className="text-xs font-medium text-amber-600">
+          {t('fichaE.periodoRetrocede', { fim: format(parseDateLocal(periodoAnterior.fim)!, 'dd/MM/yyyy') })}
+        </p>
+      )}
 
       <div className="rounded-xl border border-border bg-card p-4 text-center">
         {percentual !== null ? (
