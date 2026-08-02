@@ -201,7 +201,7 @@
     "reportsUsed": "Informes utilizados",
     "searchPlaceholder": "Buscar gestante por nombre...",
     "showClosedFiles": "Mostrar fichas cerradas",
-    "showClosedFilesTooltip": "Incluye gestantes con estado \"Resultado del parto\", \"DMG descartada\" y \"Derivar a endocrino\".",
+    "showClosedFilesTooltip": "Incluye gestantes con estado \"Resultado del parto\", \"DMG descartada\" y \"Cerrada por insulinización\".",
     "noPatientsHint": "Haz clic en \"+Nueva Gestante\" para comenzar.",
     "noResults": "No se encontró ninguna gestante para \"{{search}}\".",
     "attention": "Atención",
@@ -838,12 +838,14 @@
           "ficha_a": "Ficha A — Retorno 2",
           "ficha_c": "Ficha C — Retorno 2",
           "ficha_b": "Ficha B — seguimiento con insulina",
-          "ficha_d": "Ficha D — seguimiento con insulina"
+          "ficha_d": "Ficha D — seguimiento con insulina",
+          "ficha_e": "Ficha E — perfil de 6 puntos sin insulina"
         },
         "familia": {
           "retorno_1": "Retorno 1 (glucemia en ayunas)",
           "gtt": "PTOG 75g",
           "ficha_ac": "Retorno 2 — perfil de 4 puntos (sin insulina)",
+          "ficha_e": "Retorno — perfil de 6 puntos sin insulina (Ficha E)",
           "ficha_bd": "Seguimiento con insulina — perfil de 6 puntos",
           "encerramento": "Cierre del seguimiento"
         },
@@ -864,6 +866,8 @@
           "3": "Control inadecuado → insulina (respaldo)",
           "4": "mantener dosis de insulina",
           "7": "cerrar MARI",
+          "e_manter": "Control adecuado — mantiene 6 puntos sin insulina",
+          "e_insulina": "Control inadecuado (6 puntos) → iniciar insulina",
           "parto": "Parto — controló con dieta y ejercicio",
           "aborto": "Aborto — controló con dieta y ejercicio",
           "nao_retornou": "La gestante no regresó"
@@ -906,7 +910,9 @@
           "ficha_a__2": "Red de seguridad — control adecuado cuando el sistema no calculó la conducta detallada (mismo texto de la Regla 1 — mantener).",
           "ficha_a__3": "Red de seguridad — control inadecuado con insulina cuando el sistema no calculó la conducta detallada (mismo texto de la Regla 3 — insulina).",
           "ficha_b__4": "Seguimiento con insulina (perfil de 6 puntos) y al menos el 70% en la meta: mantener la dosis actual de insulina, la dieta y el ejercicio.",
-          "ficha_b__7": "Seguimiento con insulina (perfil de 6 puntos) y MENOS del 70% en la meta: la dosis de insulina es insuficiente y necesita reajustarse. MARI finaliza el soporte automatizado (no calcula el reajuste de dosis). El texto debe explicar el próximo paso — ajustar la dosis (por el obstetra, con endocrinólogo o mediante derivación a un servicio especializado) — y reforzar que las metas que valen siguen siendo las obstétricas de la DMG."
+          "ficha_b__7": "Seguimiento con insulina (perfil de 6 puntos) y MENOS del 70% en la meta: la dosis de insulina es insuficiente y necesita reajustarse. MARI finaliza el soporte automatizado (no calcula el reajuste de dosis). El texto debe explicar el próximo paso — ajustar la dosis (por el obstetra, con endocrinólogo o mediante derivación a un servicio especializado) — y reforzar que las metas que valen siguen siendo las obstétricas de la DMG.",
+          "ficha_e__e_manter": "Retorno en el perfil ampliado de 6 puntos (sin insulina), proveniente de la Regla 4 (la memoria confirmó el control), con al menos el 70% de las glucemias en la meta: el control está confirmado. Mantener dieta, ejercicio y el perfil de 6 puntos, sin insulina; reevaluar en 7 días. Nunca volver al perfil de 4 puntos.",
+          "ficha_e__e_insulina": "Retorno en el perfil de 6 puntos (sin insulina) con MENOS del 70% en la meta: aun ampliando la monitorización y manteniendo dieta y ejercicio, el control siguió inadecuado. Está indicada la introducción de insulina — lo que finaliza el seguimiento activo de MARI (misma conducta de cierre por insulinización)."
         }
       },
       "rascunhosPendentes": "{{count}} borrador(es) esperando publicación.",
@@ -2395,7 +2401,7 @@
       "dmg_afastado": "DMG descartada",
       "dmg_confirmado": "DMG confirmada",
       "resultado_parto": "Resultado del parto",
-      "encaminhada_endocrino": "Asociar endocrino",
+      "encaminhada_endocrino": "Cerrada por insulinización",
       "encerrada_insulinizacao": "Cerrada por insulinización"
     },
     "displayName": {
@@ -2406,18 +2412,18 @@
       "retorno1": "{{prefix}} — Hora de evaluar la Glucemia en Ayunas",
       "gtt": "{{prefix}} — SOG 75g (24-28 semanas)",
       "fichaACPrimeiro": "{{prefix}} — Hora de ver el resultado inicial del tratamiento (Perfil Glucémico de 4 puntos) y definir el siguiente paso",
-      "fichaACAcompanhamento": "{{prefix}} — Seguimiento sin insulina (Perfil Glucémico de 4 puntos × {{dias}} días)",
+      "fichaACAcompanhamento": "{{prefix}} — Análisis del perfil glucémico de 4 puntos y orientación MEV",
       "fichaBDPrimeiro": "{{prefix}} — Hora de ver el resultado de la insulina (Perfil Glucémico de 6 puntos) y definir el siguiente paso",
       "fichaBDAcompanhamento": "{{prefix}} — Seguimiento con insulina (Perfil Glucémico de 6 puntos × {{dias}} días)",
-      "fichaE": "{{prefix}} — Perfil de 6 puntos (sin insulina) × 7 a 10 días",
+      "fichaE": "{{prefix}} — Análisis del perfil glucémico de 6 puntos sin insulina y orientación MEV",
       "registroParto": "{{prefix}} — Registro del parto"
     },
     "nextStep": {
       "retorno1": "+ RETORNO 1 — Hora de evaluar la Glucemia en Ayunas",
       "gtt": "+ RETORNO SOG 75g (24-28 semanas)",
-      "fichaE": "+ Retorno — Perfil de 6 puntos (sin insulina) × 7 a 10 días",
+      "fichaE": "+ Retorno — Análisis del perfil glucémico de 6 puntos sin insulina y orientación MEV",
       "fichaACPrimeiro": "+ RETORNO {{num}} — Hora de ver el resultado inicial del tratamiento (Perfil Glucémico de 4 puntos) y definir el siguiente paso",
-      "fichaACAcompanhamento": "+ RETORNO {{num}} — Seguimiento sin insulina (Perfil Glucémico de 4 puntos × {{dias}} días)",
+      "fichaACAcompanhamento": "+ RETORNO {{num}} — Análisis del perfil glucémico de 4 puntos y orientación MEV",
       "fichaBDPrimeiro": "+ RETORNO {{num}} — Hora de ver el resultado de la insulina (Perfil Glucémico de 6 puntos) y definir el siguiente paso",
       "fichaBDAcompanhamento": "+ RETORNO {{num}} — Seguimiento con insulina (Perfil Glucémico de 6 puntos × {{dias}} días)"
     },
@@ -2536,7 +2542,7 @@
       "dmgConfirmed": "DMG confirmada",
       "dmgRuledOut": "DMG descartada",
       "deliveryResult": "Resultado del parto",
-      "associateEndo": "Asociar endocrino"
+      "associateEndo": "Cerrada por insulinización"
     },
     "diagnosis": {
       "totalPatients": "Total de gestantes",
@@ -3717,7 +3723,7 @@
       "createPerfil": "Error al crear el perfil",
       "saveGeneric": "Error al guardar: {{message}}"
     },
-    "headerTitle": "Retorno — Perfil de 6 puntos × 7 a 10 días (sin insulina)",
+    "headerTitle": "Análisis del perfil glucémico de 6 puntos sin insulina y orientación MEV",
     "headerSubtitle": "Reevaluación ampliada (la memoria del glucómetro confirma el control). Completa la cuadrícula con las glucemias capilares registradas por la gestante.",
     "headerBadge": "Perfil de 6 puntos — sin insulina — EG {{ig}} sem",
     "fillDaysHint": "Completa de 7 a 10 días de mediciones.",
@@ -3879,7 +3885,7 @@
     "openNextFicha": "Tras confirmar el peso y la dosis, abra la <strong>Ficha {{ficha}}</strong> con el botón \"+ Nueva consulta\".",
     "controleAdequadoTitle": "CONTROL ADECUADO — {{percentual}}% de las glucemias dentro del objetivo",
     "condutaLabel": "Conducta",
-    "condutaText": "Mantener dieta y ejercicio, perfil de 6 puntos, reevaluar en 7-10 días. Sin insulina. Permanece en la Ficha E.",
+    "condutaText": "Mantener dieta y ejercicio, perfil de 6 puntos, reevaluar en 7-10 días. Sin insulina. Permanece en el perfil glucémico de 6 puntos por 7 días hasta la próxima consulta.",
     "dentroMetaSummary": "{{dentroMeta}} de {{totalPreenchidos}} valores dentro del objetivo ({{percentual}}%)."
   },
   "localizacaoErrorBoundary": {

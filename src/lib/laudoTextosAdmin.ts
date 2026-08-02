@@ -46,6 +46,7 @@ const TIPO_LABEL: Record<string, string> = {
   ficha_c: 'Ficha C — Retorno 2',
   ficha_b: 'Ficha B — acompanhamento c/ insulina',
   ficha_d: 'Ficha D — acompanhamento c/ insulina',
+  ficha_e: 'Ficha E — perfil de 6 pontos sem insulina',
 };
 
 const DESFECHO_LABEL: Record<string, string> = {
@@ -65,6 +66,8 @@ const DESFECHO_LABEL: Record<string, string> = {
   '3': 'Controle inadequado → insulina (fallback)',
   '4': 'manter dose de insulina',
   '7': 'encerrar MARI',
+  e_manter: 'Controle adequado — mantém 6 pontos sem insulina',
+  e_insulina: 'Controle inadequado (6 pontos) → iniciar insulina',
   // Encerramento manual (conclusão exibida no card após o popup "Encerrar acompanhamento").
   parto: 'Parto — controlou com dieta e exercício',
   aborto: 'Aborto — controlou com dieta e exercício',
@@ -170,6 +173,10 @@ const AJUDA_CENARIO: Record<string, string> = {
     'Acompanhamento com insulina (perfil de 6 pontos) e pelo menos 70% na meta: manter a dose atual de insulina, a dieta e o exercício.',
   'ficha_b::7':
     'Acompanhamento com insulina (perfil de 6 pontos) e MENOS de 70% na meta: a dose de insulina está insuficiente e precisa ser reajustada. A MARI encerra o suporte automatizado (não calcula reajuste de dose). O texto deve explicar o próximo passo — ajustar a dose (pelo obstetra, com endocrinologista ou por referenciamento a serviço especializado) — e reforçar que as metas que valem seguem sendo as obstétricas do DMG.',
+  'ficha_e::e_manter':
+    'Retorno no perfil AMPLIADO de 6 pontos (sem insulina), vindo da Regra 4 (memória confirmou o controle), com pelo menos 70% das glicemias na meta: o controle está confirmado. Manter dieta, exercício e o perfil de 6 pontos, sem insulina; reavaliar em 7 dias. Nunca voltar ao perfil de 4 pontos.',
+  'ficha_e::e_insulina':
+    'Retorno no perfil de 6 pontos (sem insulina) com MENOS de 70% na meta: mesmo ampliando a monitorização e mantendo dieta e exercício, o controle permaneceu inadequado. Está indicada a introdução de insulina — o que encerra o acompanhamento ativo da MARI (mesma conduta de encerramento por insulinização).',
 };
 
 /** Ajuda contextual do cenário (tooltip). Ficha C↔A e Ficha D↔B compartilham. */
@@ -223,6 +230,7 @@ const FAMILIA_LABEL: Record<string, string> = {
   retorno_1: 'Retorno 1 (glicemia de jejum)',
   gtt: 'GTT 75g',
   ficha_ac: 'Retorno 2 — perfil de 4 pontos (sem insulina)',
+  ficha_e: 'Retorno — perfil de 6 pontos sem insulina (Ficha E)',
   ficha_bd: 'Acompanhamento com insulina — perfil de 6 pontos',
   encerramento: 'Encerramento do acompanhamento',
 };
@@ -245,7 +253,7 @@ export function notaFamilia(familia: string, tt?: RotuloTr): string | null {
   return null;
 }
 
-const FAMILIA_ORDEM: Record<string, number> = { retorno_1: 1, gtt: 2, ficha_ac: 3, ficha_bd: 4, encerramento: 5 };
+const FAMILIA_ORDEM: Record<string, number> = { retorno_1: 1, gtt: 2, ficha_ac: 3, ficha_e: 4, ficha_bd: 5, encerramento: 6 };
 export function ordemFamilia(familia: string): number {
   return FAMILIA_ORDEM[familia] ?? 99;
 }
@@ -253,6 +261,7 @@ export function ordemFamilia(familia: string): number {
 const DESFECHO_ORDEM = [
   'negativo', '1', '6', '6B', '8',
   'r1_manter', 'r2_reforcar', 'r2_insulina', 'r3_insulina', 'r4a_fichae', 'r4_reforcar', 'r4b_insulina',
+  'e_manter', 'e_insulina',
   '2', '3', '4', '7',
   'parto', 'aborto', 'nao_retornou',
 ];
@@ -267,7 +276,7 @@ function adequacaoDesfecho(desfecho: string, tt?: RotuloTr): string {
   let pt: string;
   if (
     desfecho === 'r2_reforcar' || desfecho === 'r2_insulina' || desfecho === 'r3_insulina' ||
-    desfecho === '3' || desfecho === '7'
+    desfecho === '3' || desfecho === '7' || desfecho === 'e_insulina'
   ) {
     chave = 'inadequado'; pt = 'inadequado';
   } else if (desfecho.startsWith('r4')) {
