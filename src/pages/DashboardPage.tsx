@@ -314,12 +314,12 @@ export default function DashboardPage() {
       {(ehInstitucional || profile === 'consultorio') && (
         <section className="mb-8">
           <div
-            className="pb-6 border-b"
+            className="-mx-4 rounded-b-3xl px-4 pt-14 pb-5 md:mx-0 md:rounded-none md:px-0 md:pt-0 md:pb-6 md:border-b md:bg-none"
             style={{
               borderColor: hojeAniversario ? '#E8E0FF' : '#E2E8F0',
-              background: hojeAniversario ? 'linear-gradient(90deg, #F5F0FF, #FFFFFF)' : undefined,
-              borderRadius: hojeAniversario ? 16 : undefined,
-              padding: hojeAniversario ? '20px 24px' : undefined,
+              background: hojeAniversario
+                ? 'linear-gradient(90deg, #F5F0FF, #FFFFFF)'
+                : 'linear-gradient(180deg, #E4F1F6 0%, #F2F9FB 100%)',
             }}
           >
             <h1
@@ -336,21 +336,38 @@ export default function DashboardPage() {
                 : t('dashboard.greetingSubtitle', { greeting: saudacaoHorario })}
             </p>
 
-            {/* Mobile: contexto compacto em uma única linha (unidade + data) */}
-            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs md:hidden" style={{ color: '#64748B' }}>
-              <span className="inline-flex min-w-0 items-center gap-1.5">
-                <Building2 className="h-3.5 w-3.5 shrink-0" style={{ color: '#9b87f5' }} />
+            {/* Mobile: unidade e data lado a lado */}
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs md:hidden">
+              <span
+                className="inline-flex min-w-0 items-center gap-1.5 rounded-xl bg-white/80 px-2.5 py-2"
+                style={{ color: '#1E293B' }}
+              >
+                <Building2 className="h-3.5 w-3.5 shrink-0" style={{ color: '#2F7E98' }} />
                 <span className="truncate">
                   {profissionalData?.unidade_id ? (unidadeNome ?? t('common.loading')) : t('dashboard.privateOffice')}
                 </span>
               </span>
-              <span aria-hidden style={{ color: '#CBD5E1' }}>•</span>
-              <span className="inline-flex items-center gap-1.5">
-                <CalendarDays className="h-3.5 w-3.5 shrink-0" style={{ color: '#9b87f5' }} />
-                <span className="capitalize">{dataExtenso}</span>
+              <span
+                className="inline-flex min-w-0 items-center gap-1.5 rounded-xl bg-white/80 px-2.5 py-2"
+                style={{ color: '#1E293B' }}
+              >
+                <CalendarDays className="h-3.5 w-3.5 shrink-0" style={{ color: '#2F7E98' }} />
+                <span className="truncate capitalize">{dataExtenso}</span>
               </span>
             </div>
+
+            {/* Mobile: ação principal em destaque */}
+            <button
+              type="button"
+              onClick={handleNovaPaciente}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-semibold text-white md:hidden"
+              style={{ background: '#2F7E98', boxShadow: '0 6px 18px -6px rgba(47, 126, 152, 0.7)' }}
+            >
+              <Plus className="h-5 w-5" strokeWidth={2.5} />
+              {t('dashboard.registerNewPatient')}
+            </button>
           </div>
+
 
           {/* Desktop: cards de contexto + ação rápida */}
           <div className="mt-8 hidden gap-4 md:grid md:grid-cols-3">
