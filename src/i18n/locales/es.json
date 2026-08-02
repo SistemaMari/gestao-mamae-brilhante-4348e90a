@@ -201,7 +201,7 @@
     "reportsUsed": "Informes utilizados",
     "searchPlaceholder": "Buscar gestante por nombre...",
     "showClosedFiles": "Mostrar fichas cerradas",
-    "showClosedFilesTooltip": "Incluye gestantes con estado \"Resultado del parto\", \"DMG descartada\" y \"Derivar a endocrino\".",
+    "showClosedFilesTooltip": "Incluye gestantes con estado \"Resultado del parto\", \"DMG descartada\" y \"Cerrada por insulinización\".",
     "noPatientsHint": "Haz clic en \"+Nueva Gestante\" para comenzar.",
     "noResults": "No se encontró ninguna gestante para \"{{search}}\".",
     "attention": "Atención",
@@ -2395,7 +2395,7 @@
       "dmg_afastado": "DMG descartada",
       "dmg_confirmado": "DMG confirmada",
       "resultado_parto": "Resultado del parto",
-      "encaminhada_endocrino": "Asociar endocrino",
+      "encaminhada_endocrino": "Cerrada por insulinización",
       "encerrada_insulinizacao": "Cerrada por insulinización"
     },
     "displayName": {
@@ -2406,18 +2406,18 @@
       "retorno1": "{{prefix}} — Hora de evaluar la Glucemia en Ayunas",
       "gtt": "{{prefix}} — SOG 75g (24-28 semanas)",
       "fichaACPrimeiro": "{{prefix}} — Hora de ver el resultado inicial del tratamiento (Perfil Glucémico de 4 puntos) y definir el siguiente paso",
-      "fichaACAcompanhamento": "{{prefix}} — Seguimiento sin insulina (Perfil Glucémico de 4 puntos × {{dias}} días)",
+      "fichaACAcompanhamento": "{{prefix}} — Análisis del perfil glucémico de 4 puntos y orientación MEV",
       "fichaBDPrimeiro": "{{prefix}} — Hora de ver el resultado de la insulina (Perfil Glucémico de 6 puntos) y definir el siguiente paso",
       "fichaBDAcompanhamento": "{{prefix}} — Seguimiento con insulina (Perfil Glucémico de 6 puntos × {{dias}} días)",
-      "fichaE": "{{prefix}} — Perfil de 6 puntos (sin insulina) × 7 a 10 días",
+      "fichaE": "{{prefix}} — Análisis del perfil glucémico de 6 puntos sin insulina y orientación MEV",
       "registroParto": "{{prefix}} — Registro del parto"
     },
     "nextStep": {
       "retorno1": "+ RETORNO 1 — Hora de evaluar la Glucemia en Ayunas",
       "gtt": "+ RETORNO SOG 75g (24-28 semanas)",
-      "fichaE": "+ Retorno — Perfil de 6 puntos (sin insulina) × 7 a 10 días",
+      "fichaE": "+ Retorno — Análisis del perfil glucémico de 6 puntos sin insulina y orientación MEV",
       "fichaACPrimeiro": "+ RETORNO {{num}} — Hora de ver el resultado inicial del tratamiento (Perfil Glucémico de 4 puntos) y definir el siguiente paso",
-      "fichaACAcompanhamento": "+ RETORNO {{num}} — Seguimiento sin insulina (Perfil Glucémico de 4 puntos × {{dias}} días)",
+      "fichaACAcompanhamento": "+ RETORNO {{num}} — Análisis del perfil glucémico de 4 puntos y orientación MEV",
       "fichaBDPrimeiro": "+ RETORNO {{num}} — Hora de ver el resultado de la insulina (Perfil Glucémico de 6 puntos) y definir el siguiente paso",
       "fichaBDAcompanhamento": "+ RETORNO {{num}} — Seguimiento con insulina (Perfil Glucémico de 6 puntos × {{dias}} días)"
     },
@@ -2536,7 +2536,7 @@
       "dmgConfirmed": "DMG confirmada",
       "dmgRuledOut": "DMG descartada",
       "deliveryResult": "Resultado del parto",
-      "associateEndo": "Asociar endocrino"
+      "associateEndo": "Cerrada por insulinización"
     },
     "diagnosis": {
       "totalPatients": "Total de gestantes",
@@ -3717,7 +3717,7 @@
       "createPerfil": "Error al crear el perfil",
       "saveGeneric": "Error al guardar: {{message}}"
     },
-    "headerTitle": "Retorno — Perfil de 6 puntos × 7 a 10 días (sin insulina)",
+    "headerTitle": "Análisis del perfil glucémico de 6 puntos sin insulina y orientación MEV",
     "headerSubtitle": "Reevaluación ampliada (la memoria del glucómetro confirma el control). Completa la cuadrícula con las glucemias capilares registradas por la gestante.",
     "headerBadge": "Perfil de 6 puntos — sin insulina — EG {{ig}} sem",
     "fillDaysHint": "Completa de 7 a 10 días de mediciones.",
@@ -3879,7 +3879,7 @@
     "openNextFicha": "Tras confirmar el peso y la dosis, abra la <strong>Ficha {{ficha}}</strong> con el botón \"+ Nueva consulta\".",
     "controleAdequadoTitle": "CONTROL ADECUADO — {{percentual}}% de las glucemias dentro del objetivo",
     "condutaLabel": "Conducta",
-    "condutaText": "Mantener dieta y ejercicio, perfil de 6 puntos, reevaluar en 7-10 días. Sin insulina. Permanece en la Ficha E.",
+    "condutaText": "Mantener dieta y ejercicio, perfil de 6 puntos, reevaluar en 7-10 días. Sin insulina. Permanece en el perfil glucémico de 6 puntos por 7 días hasta la próxima consulta.",
     "dentroMetaSummary": "{{dentroMeta}} de {{totalPreenchidos}} valores dentro del objetivo ({{percentual}}%)."
   },
   "localizacaoErrorBoundary": {

@@ -201,7 +201,7 @@
     "reportsUsed": "Reports used",
     "searchPlaceholder": "Search patient by name...",
     "showClosedFiles": "Show closed files",
-    "showClosedFilesTooltip": "Includes patients with status \"Delivery outcome\", \"GDM ruled out\" and \"Refer to endocrinologist\".",
+    "showClosedFilesTooltip": "Includes patients with status \"Delivery outcome\", \"GDM ruled out\" and \"Closed due to insulinization\".",
     "noPatientsHint": "Click \"+New Patient\" to get started.",
     "noResults": "No patients found for \"{{search}}\".",
     "attention": "Attention",
@@ -2395,7 +2395,7 @@
       "dmg_afastado": "GDM ruled out",
       "dmg_confirmado": "GDM confirmed",
       "resultado_parto": "Delivery outcome",
-      "encaminhada_endocrino": "Add endocrinologist",
+      "encaminhada_endocrino": "Closed due to insulinization",
       "encerrada_insulinizacao": "Closed due to insulinization"
     },
     "displayName": {
@@ -2406,18 +2406,18 @@
       "retorno1": "{{prefix}} — Time to assess the Fasting Glucose",
       "gtt": "{{prefix}} — 75g OGTT (24-28 weeks)",
       "fichaACPrimeiro": "{{prefix}} — Time to review the initial treatment result (4-point Glycemic Profile) and define the next step",
-      "fichaACAcompanhamento": "{{prefix}} — Follow-up without insulin (4-point Glycemic Profile × {{dias}} days)",
+      "fichaACAcompanhamento": "{{prefix}} — 4-point glycemic profile review and lifestyle guidance",
       "fichaBDPrimeiro": "{{prefix}} — Time to review the insulin result (6-point Glycemic Profile) and define the next step",
       "fichaBDAcompanhamento": "{{prefix}} — Follow-up with insulin (6-point Glycemic Profile × {{dias}} days)",
-      "fichaE": "{{prefix}} — 6-point Profile (without insulin) × 7 to 10 days",
+      "fichaE": "{{prefix}} — 6-point glycemic profile (no insulin) review and lifestyle guidance",
       "registroParto": "{{prefix}} — Delivery record"
     },
     "nextStep": {
       "retorno1": "+ FOLLOW-UP 1 — Time to assess the Fasting Glucose",
       "gtt": "+ FOLLOW-UP 75g OGTT (24-28 weeks)",
-      "fichaE": "+ Follow-up — 6-point Profile (without insulin) × 7 to 10 days",
+      "fichaE": "+ Follow-up — 6-point glycemic profile (no insulin) review and lifestyle guidance",
       "fichaACPrimeiro": "+ FOLLOW-UP {{num}} — Time to review the initial treatment result (4-point Glycemic Profile) and define the next step",
-      "fichaACAcompanhamento": "+ FOLLOW-UP {{num}} — Follow-up without insulin (4-point Glycemic Profile × {{dias}} days)",
+      "fichaACAcompanhamento": "+ FOLLOW-UP {{num}} — 4-point glycemic profile review and lifestyle guidance",
       "fichaBDPrimeiro": "+ FOLLOW-UP {{num}} — Time to review the insulin result (6-point Glycemic Profile) and define the next step",
       "fichaBDAcompanhamento": "+ FOLLOW-UP {{num}} — Follow-up with insulin (6-point Glycemic Profile × {{dias}} days)"
     },
@@ -2536,7 +2536,7 @@
       "dmgConfirmed": "GDM confirmed",
       "dmgRuledOut": "GDM ruled out",
       "deliveryResult": "Delivery outcome",
-      "associateEndo": "Add endocrinologist"
+      "associateEndo": "Closed due to insulinization"
     },
     "diagnosis": {
       "totalPatients": "Total patients",
@@ -3717,7 +3717,7 @@
       "createPerfil": "Failed to create profile",
       "saveGeneric": "Error saving: {{message}}"
     },
-    "headerTitle": "Follow-up — 6-point profile × 7 to 10 days (without insulin)",
+    "headerTitle": "6-point glycemic profile (no insulin) review and lifestyle guidance",
     "headerSubtitle": "Extended reassessment (glucometer memory confirms control). Fill in the grid with the capillary blood glucose values recorded by the patient.",
     "headerBadge": "6-point profile — without insulin — GA {{ig}} wks",
     "fillDaysHint": "Fill in 7 to 10 days of measurements.",
@@ -3879,7 +3879,7 @@
     "openNextFicha": "After confirming weight and dose, open <strong>Form {{ficha}}</strong> via the \"+ New consultation\" button.",
     "controleAdequadoTitle": "ADEQUATE CONTROL — {{percentual}}% of glucose readings within target",
     "condutaLabel": "Management",
-    "condutaText": "Maintain diet and exercise, 6-point profile, reassess in 7-10 days. No insulin. Stays on Form E.",
+    "condutaText": "Maintain diet and exercise, 6-point profile, reassess in 7-10 days. No insulin. Stays on the 6-point glycemic profile for 7 days until the next visit.",
     "dentroMetaSummary": "{{dentroMeta}} of {{totalPreenchidos}} values within target ({{percentual}}%)."
   },
   "localizacaoErrorBoundary": {

@@ -102,7 +102,7 @@ const STATUS_CONFIG: Record<string, { labelKey: string; color: string }> = {
   dmg_afastado: { labelKey: 'fichaPaciente.status.dmg_afastado', color: 'bg-emerald-500' },
   dmg_confirmado: { labelKey: 'fichaPaciente.status.dmg_confirmado', color: 'bg-orange-500' },
   resultado_parto: { labelKey: 'fichaPaciente.status.resultado_parto', color: 'bg-purple-500' },
-  encaminhada_endocrino: { labelKey: 'fichaPaciente.status.encaminhada_endocrino', color: 'bg-red-500' },
+  encaminhada_endocrino: { labelKey: 'fichaPaciente.status.encaminhada_endocrino', color: 'bg-violet-600' },
   // PROMPT 42B — encerramento por insulinização (Hipótese 3, ≤30 sem)
   encerrada_insulinizacao: { labelKey: 'fichaPaciente.status.encerrada_insulinizacao', color: 'bg-violet-600' },
 };

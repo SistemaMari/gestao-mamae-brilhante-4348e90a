@@ -29,9 +29,9 @@ export const STATUS_CONFIG: Record<string, { label: string; color: string; meani
     meaning: 'Parto realizado. Desfecho perinatal registrado.',
   },
   encaminhada_endocrino: {
-    label: 'Associar endocrino',
-    color: 'bg-red-500',
-    meaning: 'Cenário 7: controle inadequado com insulina. MARI encerrada. Acompanhamento compartilhado GO + endocrinologista.',
+    label: 'Encerrada por insulinização',
+    color: 'bg-indigo-500',
+    meaning: 'Jornada da MARI encerrada: iniciada a insulinização. Acompanhamento segue fora da ferramenta (GO + endocrinologista).',
   },
   // Ajustes V3 item 5 — a tag de encerramento por insulinização faltava nas listas,
   // fazendo a paciente cair no fallback "Aguardando GJ". Mantida igual ao rótulo

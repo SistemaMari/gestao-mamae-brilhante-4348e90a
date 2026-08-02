@@ -201,7 +201,7 @@
     "reportsUsed": "Laudos utilizados",
     "searchPlaceholder": "Buscar gestante por nome...",
     "showClosedFiles": "Mostrar fichas encerradas",
-    "showClosedFilesTooltip": "Inclui gestantes com status \"Resultado do parto\", \"DMG afastado\" e \"Associar endocrino\".",
+    "showClosedFilesTooltip": "Inclui gestantes com status \"Resultado do parto\", \"DMG afastado\" e \"Encerrada por insulinização\".",
     "noPatientsHint": "Clique em \"+Nova Gestante\" para começar.",
     "noResults": "Nenhuma gestante encontrada para \"{{search}}\".",
     "attention": "Atenção",
@@ -2395,7 +2395,7 @@
       "dmg_afastado": "DMG afastado",
       "dmg_confirmado": "DMG confirmado",
       "resultado_parto": "Resultado do parto",
-      "encaminhada_endocrino": "Associar endocrino",
+      "encaminhada_endocrino": "Encerrada por insulinização",
       "encerrada_insulinizacao": "Encerrada por insulinização"
     },
     "displayName": {
@@ -2406,18 +2406,18 @@
       "retorno1": "{{prefix}} — Hora de avaliar a Glicemia de Jejum",
       "gtt": "{{prefix}} — GTT 75g (24-28 semanas)",
       "fichaACPrimeiro": "{{prefix}} — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo",
-      "fichaACAcompanhamento": "{{prefix}} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × {{dias}} dias)",
+      "fichaACAcompanhamento": "{{prefix}} — Análise do perfil glicêmico de 4 pontos e orientação MEV",
       "fichaBDPrimeiro": "{{prefix}} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo",
       "fichaBDAcompanhamento": "{{prefix}} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × {{dias}} dias)",
-      "fichaE": "{{prefix}} — Perfil de 6 pontos (sem insulina) × 7 a 10 dias",
+      "fichaE": "{{prefix}} — Análise do perfil glicêmico de 6 pontos sem insulina e orientação MEV",
       "registroParto": "{{prefix}} — Registro do parto"
     },
     "nextStep": {
       "retorno1": "+ RETORNO 1 — Hora de avaliar a Glicemia de Jejum",
       "gtt": "+ RETORNO GTT 75g (24-28 semanas)",
-      "fichaE": "+ Retorno — Perfil de 6 pontos (sem insulina) × 7 a 10 dias",
+      "fichaE": "+ Retorno — Análise do perfil glicêmico de 6 pontos sem insulina e orientação MEV",
       "fichaACPrimeiro": "+ RETORNO {{num}} — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo",
-      "fichaACAcompanhamento": "+ RETORNO {{num}} — Acompanhamento sem insulina (Perfil Glicêmico de 4 pontos × {{dias}} dias)",
+      "fichaACAcompanhamento": "+ RETORNO {{num}} — Análise do perfil glicêmico de 4 pontos e orientação MEV",
       "fichaBDPrimeiro": "+ RETORNO {{num}} — Hora de ver o resultado da insulina (Perfil Glicêmico de 6 pontos) e definir próximo passo",
       "fichaBDAcompanhamento": "+ RETORNO {{num}} — Acompanhamento com insulina (Perfil Glicêmico de 6 pontos × {{dias}} dias)"
     },
@@ -2536,7 +2536,7 @@
       "dmgConfirmed": "DMG confirmado",
       "dmgRuledOut": "DMG afastado",
       "deliveryResult": "Resultado do parto",
-      "associateEndo": "Associar endocrino"
+      "associateEndo": "Encerrada por insulinização"
     },
     "diagnosis": {
       "totalPatients": "Total de gestantes",
@@ -3717,7 +3717,7 @@
       "createPerfil": "Falha ao criar perfil",
       "saveGeneric": "Erro ao salvar: {{message}}"
     },
-    "headerTitle": "Retorno — Perfil de 6 pontos × 7 a 10 dias (sem insulina)",
+    "headerTitle": "Análise do perfil glicêmico de 6 pontos sem insulina e orientação MEV",
     "headerSubtitle": "Reavaliação ampliada (memória do glicosímetro confirma o controle). Preencha a grade com as glicemias capilares registradas pela gestante.",
     "headerBadge": "Perfil de 6 pontos — sem insulina — IG {{ig}} sem",
     "fillDaysHint": "Preencha de 7 a 10 dias de medições.",
@@ -3879,7 +3879,7 @@
     "openNextFicha": "Após confirmar o peso e a dose, abra a <strong>Ficha {{ficha}}</strong> pelo botão \"+ Nova consulta\".",
     "controleAdequadoTitle": "CONTROLE ADEQUADO — {{percentual}}% das glicemias dentro da meta",
     "condutaLabel": "Conduta",
-    "condutaText": "Manter dieta e exercício, perfil de 6 pontos, reavaliar em 7-10 dias. Sem insulina. Permanece na Ficha E.",
+    "condutaText": "Manter dieta e exercício, perfil de 6 pontos, reavaliar em 7-10 dias. Sem insulina. Permanece no perfil glicêmico de 6 pontos por 7 dias até a próxima consulta.",
     "dentroMetaSummary": "{{dentroMeta}} de {{totalPreenchidos}} valores dentro da meta ({{percentual}}%)."
   },
   "localizacaoErrorBoundary": {
