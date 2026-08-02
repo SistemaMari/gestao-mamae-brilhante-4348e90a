@@ -851,6 +851,26 @@ export default function FichaACForm({
           )}
         </div>
 
+        {/* V4 — período da medição anterior (referência) + alertas, colados às datas */}
+        <div className="sm:col-span-2 space-y-1">
+          {(periodoAnterior?.inicio || periodoAnterior?.fim) && (
+            <p className="text-xs text-muted-foreground">
+              {t('fichaAC.periodoAnterior', {
+                inicio: periodoAnterior?.inicio ? format(parseDateLocal(periodoAnterior.inicio)!, 'dd/MM/yyyy') : '—',
+                fim: periodoAnterior?.fim ? format(parseDateLocal(periodoAnterior.fim)!, 'dd/MM/yyyy') : '—',
+              })}
+            </p>
+          )}
+          {periodoInvertido && (
+            <p className="text-xs font-medium text-red-600">{t('fichaAC.periodoInvertido')}</p>
+          )}
+          {!periodoInvertido && periodoRetrocede && periodoAnterior?.fim && (
+            <p className="text-xs font-medium text-amber-600">
+              {t('fichaAC.periodoRetrocede', { fim: format(parseDateLocal(periodoAnterior.fim)!, 'dd/MM/yyyy') })}
+            </p>
+          )}
+        </div>
+
         <div className="space-y-1">
           <div className="flex items-center gap-1">
             <label className="text-xs font-medium text-foreground">{t('fichaAC.fields.dataConsultaLabel')}</label>
@@ -913,24 +933,6 @@ export default function FichaACForm({
         </div>
         </div>
       </div>
-
-      {/* V4 — período da medição anterior (referência) + alertas de data */}
-      {(periodoAnterior?.inicio || periodoAnterior?.fim) && (
-        <p className="text-xs text-muted-foreground">
-          {t('fichaAC.periodoAnterior', {
-            inicio: periodoAnterior?.inicio ? format(parseDateLocal(periodoAnterior.inicio)!, 'dd/MM/yyyy') : '—',
-            fim: periodoAnterior?.fim ? format(parseDateLocal(periodoAnterior.fim)!, 'dd/MM/yyyy') : '—',
-          })}
-        </p>
-      )}
-      {periodoInvertido && (
-        <p className="text-xs font-medium text-red-600">{t('fichaAC.periodoInvertido')}</p>
-      )}
-      {!periodoInvertido && periodoRetrocede && periodoAnterior?.fim && (
-        <p className="text-xs font-medium text-amber-600">
-          {t('fichaAC.periodoRetrocede', { fim: format(parseDateLocal(periodoAnterior.fim)!, 'dd/MM/yyyy') })}
-        </p>
-      )}
 
       {/* Real-time percentage display */}
       <div className="rounded-xl border border-border bg-card p-4 text-center">
