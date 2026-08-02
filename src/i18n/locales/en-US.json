@@ -838,12 +838,14 @@
           "ficha_a": "Form A — Return 2",
           "ficha_c": "Form C — Return 2",
           "ficha_b": "Form B — insulin follow-up",
-          "ficha_d": "Form D — insulin follow-up"
+          "ficha_d": "Form D — insulin follow-up",
+          "ficha_e": "Form E — 6-point profile, no insulin"
         },
         "familia": {
           "retorno_1": "Return 1 (fasting glucose)",
           "gtt": "OGTT 75g",
           "ficha_ac": "Return 2 — 4-point profile (no insulin)",
+          "ficha_e": "Return — 6-point profile, no insulin (Form E)",
           "ficha_bd": "Insulin follow-up — 6-point profile",
           "encerramento": "End of follow-up"
         },
@@ -864,6 +866,8 @@
           "3": "Inadequate control → insulin (fallback)",
           "4": "maintain insulin dose",
           "7": "end MARI",
+          "e_manter": "Adequate control — keep 6-point, no insulin",
+          "e_insulina": "Inadequate control (6-point) → start insulin",
           "parto": "Delivery — controlled with diet and exercise",
           "aborto": "Miscarriage — controlled with diet and exercise",
           "nao_retornou": "Patient did not return"
@@ -906,7 +910,9 @@
           "ficha_a__2": "Safety net — adequate control when the system did not compute the detailed management (same text as Rule 1 — maintain).",
           "ficha_a__3": "Safety net — inadequate control with insulin when the system did not compute the detailed management (same text as Rule 3 — insulin).",
           "ficha_b__4": "Insulin follow-up (6-point profile) and at least 70% within target: maintain the current insulin dose, diet, and exercise.",
-          "ficha_b__7": "Insulin follow-up (6-point profile) and LESS than 70% within target: the insulin dose is insufficient and needs to be adjusted. MARI ends automated support (it does not calculate dose adjustments). The text should explain the next step — adjusting the dose (by the obstetrician, with an endocrinologist, or by referral to a specialized service) — and reinforce that the targets that apply remain the obstetric GDM targets."
+          "ficha_b__7": "Insulin follow-up (6-point profile) and LESS than 70% within target: the insulin dose is insufficient and needs to be adjusted. MARI ends automated support (it does not calculate dose adjustments). The text should explain the next step — adjusting the dose (by the obstetrician, with an endocrinologist, or by referral to a specialized service) — and reinforce that the targets that apply remain the obstetric GDM targets.",
+          "ficha_e__e_manter": "Return on the expanded 6-point profile (no insulin), coming from Rule 4 (meter memory confirmed control), with at least 70% of readings within target: control is confirmed. Maintain diet, exercise, and the 6-point profile, no insulin; reassess in 7 days. Never go back to the 4-point profile.",
+          "ficha_e__e_insulina": "Return on the 6-point profile (no insulin) with LESS than 70% within target: even after expanding monitoring and keeping diet and exercise, control remained inadequate. Insulin is indicated — which ends MARI's active follow-up (same closure-by-insulinization management)."
         }
       },
       "rascunhosPendentes": "{{count}} draft(s) awaiting publication.",

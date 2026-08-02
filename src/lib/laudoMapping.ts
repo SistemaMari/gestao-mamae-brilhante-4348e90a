@@ -115,6 +115,18 @@ export function derivarDesfechoClinico(
     if (chaveConduta) return chaveConduta;
   }
 
+  // Ficha E (perfil de 6 pontos sem insulina — caminho Regra 4a). A Ficha E não
+  // grava `cenario_clinico`; o desfecho vem da conduta persistida (perfil.decisao =
+  // 'manter_e' | 'insulina') e, na ausência dela, do percentual na meta. Sem dado
+  // suficiente → null (ficha incompleta → "Complete os dados clínicos", sem placeholder).
+  if (c.tipo === 'ficha_e') {
+    if (c.decisao === 'manter_e') return 'e_manter';
+    if (c.decisao === 'insulina') return 'e_insulina';
+    const pct = c.percentual_meta;
+    if (pct == null) return null;
+    return pct >= 70 ? 'e_manter' : 'e_insulina';
+  }
+
   const raw = (c.cenario_clinico ?? '').trim();
   if (raw) return raw;
 
@@ -136,10 +148,13 @@ export function derivarDesfechoClinico(
  * Desfechos de Ficha A/C em que a conduta é INICIAR INSULINA — e, no fluxo novo,
  * encerrar o acompanhamento da MARI. São as chaves cuja conduta traz a orientação
  * de urgência com o endocrinologista (banner vermelho no laudo). Espelha as chaves
- * que o Prompt 43 reescreveu (r2_insulina, r3_insulina, r4b_insulina).
+ * que o Prompt 43 reescreveu (r2_insulina, r3_insulina, r4b_insulina). Inclui
+ * também `e_insulina` — controle inadequado no perfil de 6 pontos sem insulina
+ * (Ficha E), que igualmente inicia insulinização e encerra o acompanhamento.
  */
 export function ehDesfechoInsulina(desfecho: string | null | undefined): boolean {
-  return desfecho === 'r2_insulina' || desfecho === 'r3_insulina' || desfecho === 'r4b_insulina';
+  return desfecho === 'r2_insulina' || desfecho === 'r3_insulina' ||
+    desfecho === 'r4b_insulina' || desfecho === 'e_insulina';
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cenarioSemTextoLaudo, ehDesfechoInsulina, laudoLeva4Notas } from './laudoMapping';
+import { cenarioSemTextoLaudo, ehDesfechoInsulina, laudoLeva4Notas, derivarDesfechoClinico } from './laudoMapping';
 
 describe('cenarioSemTextoLaudo', () => {
   it('Caso Novo (consulta_1) é card-only — inclusive DMG afastado', () => {
@@ -35,19 +35,43 @@ describe('cenarioSemTextoLaudo', () => {
 });
 
 describe('ehDesfechoInsulina (banner de urgência com endocrinologista)', () => {
-  it('true só para as 3 chaves de insulina que encerram (r2/r3/r4b)', () => {
+  it('true para as chaves de insulina que encerram (r2/r3/r4b + Ficha E e_insulina)', () => {
     expect(ehDesfechoInsulina('r2_insulina')).toBe(true);
     expect(ehDesfechoInsulina('r3_insulina')).toBe(true);
     expect(ehDesfechoInsulina('r4b_insulina')).toBe(true);
+    expect(ehDesfechoInsulina('e_insulina')).toBe(true); // Ficha E inadequada → insulina
   });
 
   it('false para condutas sem insulina, fallbacks e nulos', () => {
     expect(ehDesfechoInsulina('r1_manter')).toBe(false);
     expect(ehDesfechoInsulina('r2_reforcar')).toBe(false);
     expect(ehDesfechoInsulina('r4a_fichae')).toBe(false);
+    expect(ehDesfechoInsulina('e_manter')).toBe(false); // Ficha E adequada — sem insulina
     expect(ehDesfechoInsulina('3')).toBe(false); // fallback legado, não recebe o texto novo
     expect(ehDesfechoInsulina(null)).toBe(false);
     expect(ehDesfechoInsulina(undefined)).toBe(false);
+  });
+});
+
+describe('derivarDesfechoClinico — Ficha E (6 pontos sem insulina)', () => {
+  it('usa a conduta persistida (decisao) quando disponível', () => {
+    expect(derivarDesfechoClinico({ tipo: 'ficha_e', decisao: 'manter_e' })).toBe('e_manter');
+    expect(derivarDesfechoClinico({ tipo: 'ficha_e', decisao: 'insulina' })).toBe('e_insulina');
+  });
+
+  it('cai no percentual na meta quando não há conduta persistida', () => {
+    expect(derivarDesfechoClinico({ tipo: 'ficha_e', percentual_meta: 77 })).toBe('e_manter');
+    expect(derivarDesfechoClinico({ tipo: 'ficha_e', percentual_meta: 70 })).toBe('e_manter');
+    expect(derivarDesfechoClinico({ tipo: 'ficha_e', percentual_meta: 55 })).toBe('e_insulina');
+  });
+
+  it('ficha incompleta (sem conduta e sem percentual) → null (não vira "Texto pendente")', () => {
+    expect(derivarDesfechoClinico({ tipo: 'ficha_e' })).toBeNull();
+  });
+
+  it('Ficha E TEM texto no laudo — não é card-only', () => {
+    expect(cenarioSemTextoLaudo({ tipo: 'ficha_e', percentual_meta: 77 })).toBe(false);
+    expect(cenarioSemTextoLaudo({ tipo: 'ficha_e', percentual_meta: 55 })).toBe(false);
   });
 });
 

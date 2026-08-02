@@ -838,12 +838,14 @@
           "ficha_a": "Ficha A — Retorno 2",
           "ficha_c": "Ficha C — Retorno 2",
           "ficha_b": "Ficha B — seguimiento con insulina",
-          "ficha_d": "Ficha D — seguimiento con insulina"
+          "ficha_d": "Ficha D — seguimiento con insulina",
+          "ficha_e": "Ficha E — perfil de 6 puntos sin insulina"
         },
         "familia": {
           "retorno_1": "Retorno 1 (glucemia en ayunas)",
           "gtt": "PTOG 75g",
           "ficha_ac": "Retorno 2 — perfil de 4 puntos (sin insulina)",
+          "ficha_e": "Retorno — perfil de 6 puntos sin insulina (Ficha E)",
           "ficha_bd": "Seguimiento con insulina — perfil de 6 puntos",
           "encerramento": "Cierre del seguimiento"
         },
@@ -864,6 +866,8 @@
           "3": "Control inadecuado → insulina (respaldo)",
           "4": "mantener dosis de insulina",
           "7": "cerrar MARI",
+          "e_manter": "Control adecuado — mantiene 6 puntos sin insulina",
+          "e_insulina": "Control inadecuado (6 puntos) → iniciar insulina",
           "parto": "Parto — controló con dieta y ejercicio",
           "aborto": "Aborto — controló con dieta y ejercicio",
           "nao_retornou": "La gestante no regresó"
@@ -906,7 +910,9 @@
           "ficha_a__2": "Red de seguridad — control adecuado cuando el sistema no calculó la conducta detallada (mismo texto de la Regla 1 — mantener).",
           "ficha_a__3": "Red de seguridad — control inadecuado con insulina cuando el sistema no calculó la conducta detallada (mismo texto de la Regla 3 — insulina).",
           "ficha_b__4": "Seguimiento con insulina (perfil de 6 puntos) y al menos el 70% en la meta: mantener la dosis actual de insulina, la dieta y el ejercicio.",
-          "ficha_b__7": "Seguimiento con insulina (perfil de 6 puntos) y MENOS del 70% en la meta: la dosis de insulina es insuficiente y necesita reajustarse. MARI finaliza el soporte automatizado (no calcula el reajuste de dosis). El texto debe explicar el próximo paso — ajustar la dosis (por el obstetra, con endocrinólogo o mediante derivación a un servicio especializado) — y reforzar que las metas que valen siguen siendo las obstétricas de la DMG."
+          "ficha_b__7": "Seguimiento con insulina (perfil de 6 puntos) y MENOS del 70% en la meta: la dosis de insulina es insuficiente y necesita reajustarse. MARI finaliza el soporte automatizado (no calcula el reajuste de dosis). El texto debe explicar el próximo paso — ajustar la dosis (por el obstetra, con endocrinólogo o mediante derivación a un servicio especializado) — y reforzar que las metas que valen siguen siendo las obstétricas de la DMG.",
+          "ficha_e__e_manter": "Retorno en el perfil ampliado de 6 puntos (sin insulina), proveniente de la Regla 4 (la memoria confirmó el control), con al menos el 70% de las glucemias en la meta: el control está confirmado. Mantener dieta, ejercicio y el perfil de 6 puntos, sin insulina; reevaluar en 7 días. Nunca volver al perfil de 4 puntos.",
+          "ficha_e__e_insulina": "Retorno en el perfil de 6 puntos (sin insulina) con MENOS del 70% en la meta: aun ampliando la monitorización y manteniendo dieta y ejercicio, el control siguió inadecuado. Está indicada la introducción de insulina — lo que finaliza el seguimiento activo de MARI (misma conducta de cierre por insulinización)."
         }
       },
       "rascunhosPendentes": "{{count}} borrador(es) esperando publicación.",
