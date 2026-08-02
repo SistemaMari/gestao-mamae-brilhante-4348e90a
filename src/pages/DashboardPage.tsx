@@ -323,21 +323,37 @@ export default function DashboardPage() {
             }}
           >
             <h1
-              className="text-4xl md:text-5xl font-bold tracking-tight"
+              className="text-2xl md:text-5xl font-bold tracking-tight"
               style={{ color: hojeAniversario ? '#7E69AB' : '#1E293B', fontFamily: 'Sora, sans-serif' }}
             >
               {hojeAniversario
                 ? t('dashboard.birthdayTitle', { name: nomeExibicao })
                 : t('dashboard.greetingTitle', { name: nomeExibicao })}
             </h1>
-            <p className="mt-2 text-base" style={{ color: hojeAniversario ? '#7E69AB' : '#64748B' }}>
+            <p className="mt-1 md:mt-2 text-sm md:text-base" style={{ color: hojeAniversario ? '#7E69AB' : '#64748B' }}>
               {hojeAniversario
                 ? t('dashboard.birthdayMessage')
                 : t('dashboard.greetingSubtitle', { greeting: saudacaoHorario })}
             </p>
+
+            {/* Mobile: contexto compacto em uma única linha (unidade + data) */}
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs md:hidden" style={{ color: '#64748B' }}>
+              <span className="inline-flex min-w-0 items-center gap-1.5">
+                <Building2 className="h-3.5 w-3.5 shrink-0" style={{ color: '#9b87f5' }} />
+                <span className="truncate">
+                  {profissionalData?.unidade_id ? (unidadeNome ?? t('common.loading')) : t('dashboard.privateOffice')}
+                </span>
+              </span>
+              <span aria-hidden style={{ color: '#CBD5E1' }}>•</span>
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays className="h-3.5 w-3.5 shrink-0" style={{ color: '#9b87f5' }} />
+                <span className="capitalize">{dataExtenso}</span>
+              </span>
+            </div>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {/* Desktop: cards de contexto + ação rápida */}
+          <div className="mt-8 hidden gap-4 md:grid md:grid-cols-3">
             <div className="rounded-2xl border bg-white p-4 flex items-start gap-3" style={{ borderColor: '#E2E8F0' }}>
               <div className="rounded-xl p-2" style={{ background: '#F5F0FF' }}>
                 <Building2 className="h-5 w-5" style={{ color: '#9b87f5' }} />
@@ -381,16 +397,23 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <div
-            className="mt-6 rounded-2xl border p-4 flex items-start gap-3"
-            style={{ background: '#F5F0FF', borderColor: '#E9E3FA' }}
-          >
-            <Sparkles className="h-5 w-5 mt-0.5 shrink-0" style={{ color: '#7E69AB' }} />
-            <div>
-              <div className="text-xs uppercase tracking-wide font-semibold" style={{ color: '#7E69AB' }}>{t('dashboard.tipOfTheDay')}</div>
-              <div className="text-sm" style={{ color: '#1E293B' }}>{dicaHoje}</div>
+          {/* Dica do dia — colapsada no mobile, sempre aberta no desktop */}
+          <details className="group mt-4 md:mt-6 rounded-2xl border md:open" style={{ background: '#F5F0FF', borderColor: '#E9E3FA' }}>
+            <summary className="flex cursor-pointer list-none items-center gap-2 p-3 md:p-4 md:cursor-default [&::-webkit-details-marker]:hidden">
+              <Sparkles className="h-4 w-4 shrink-0" style={{ color: '#7E69AB' }} />
+              <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: '#7E69AB' }}>
+                {t('dashboard.tipOfTheDay')}
+              </span>
+              <ChevronDown
+                className="ml-auto h-4 w-4 shrink-0 transition-transform group-open:rotate-180 md:hidden"
+                style={{ color: '#7E69AB' }}
+              />
+            </summary>
+            <div className="px-3 pb-3 pl-9 md:px-4 md:pb-4 md:pl-11 text-sm" style={{ color: '#1E293B' }}>
+              {dicaHoje}
             </div>
-          </div>
+          </details>
+
 
           <div className="mt-8 border-b" style={{ borderColor: '#E2E8F0' }} />
         </section>
