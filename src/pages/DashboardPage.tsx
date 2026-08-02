@@ -398,7 +398,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Dica do dia — colapsada no mobile, sempre aberta no desktop */}
-          <details className="group mt-4 md:mt-6 rounded-2xl border md:open" style={{ background: '#F5F0FF', borderColor: '#E9E3FA' }}>
+          <details className="group mt-4 md:mt-6 rounded-2xl border" style={{ background: '#F5F0FF', borderColor: '#E9E3FA' }}>
             <summary className="flex cursor-pointer list-none items-center gap-2 p-3 md:p-4 md:cursor-default [&::-webkit-details-marker]:hidden">
               <Sparkles className="h-4 w-4 shrink-0" style={{ color: '#7E69AB' }} />
               <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: '#7E69AB' }}>
@@ -409,7 +409,7 @@ export default function DashboardPage() {
                 style={{ color: '#7E69AB' }}
               />
             </summary>
-            <div className="px-3 pb-3 pl-9 md:px-4 md:pb-4 md:pl-11 text-sm" style={{ color: '#1E293B' }}>
+            <div className="px-3 pb-3 pl-9 md:px-4 md:pb-4 md:pl-11 text-sm md:!block" style={{ color: '#1E293B' }}>
               {dicaHoje}
             </div>
           </details>
