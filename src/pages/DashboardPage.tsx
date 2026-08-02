@@ -397,22 +397,35 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Dica do dia — colapsada no mobile, sempre aberta no desktop */}
-          <details className="group mt-4 md:mt-6 rounded-2xl border" style={{ background: '#F5F0FF', borderColor: '#E9E3FA' }}>
-            <summary className="flex cursor-pointer list-none items-center gap-2 p-3 md:p-4 md:cursor-default [&::-webkit-details-marker]:hidden">
+          {/* Dica do dia — colapsável no mobile, sempre aberta no desktop */}
+          <details className="group mt-4 rounded-2xl border md:hidden" style={{ background: '#F5F0FF', borderColor: '#E9E3FA' }}>
+            <summary className="flex cursor-pointer list-none items-center gap-2 p-3 [&::-webkit-details-marker]:hidden">
               <Sparkles className="h-4 w-4 shrink-0" style={{ color: '#7E69AB' }} />
               <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: '#7E69AB' }}>
                 {t('dashboard.tipOfTheDay')}
               </span>
               <ChevronDown
-                className="ml-auto h-4 w-4 shrink-0 transition-transform group-open:rotate-180 md:hidden"
+                className="ml-auto h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
                 style={{ color: '#7E69AB' }}
               />
             </summary>
-            <div className="px-3 pb-3 pl-9 md:px-4 md:pb-4 md:pl-11 text-sm md:!block" style={{ color: '#1E293B' }}>
+            <div className="px-3 pb-3 pl-9 text-sm" style={{ color: '#1E293B' }}>
               {dicaHoje}
             </div>
           </details>
+
+          <div className="mt-6 hidden rounded-2xl border md:block" style={{ background: '#F5F0FF', borderColor: '#E9E3FA' }}>
+            <div className="flex items-center gap-2 p-4 pb-0">
+              <Sparkles className="h-4 w-4 shrink-0" style={{ color: '#7E69AB' }} />
+              <span className="text-xs uppercase tracking-wide font-semibold" style={{ color: '#7E69AB' }}>
+                {t('dashboard.tipOfTheDay')}
+              </span>
+            </div>
+            <div className="px-4 pb-4 pl-11 pt-2 text-sm" style={{ color: '#1E293B' }}>
+              {dicaHoje}
+            </div>
+          </div>
+
 
           <div className="mt-6 md:mt-8 border-b" style={{ borderColor: '#E2E8F0' }} />
 
