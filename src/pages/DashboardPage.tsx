@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { getPreviewPacientes, type PreviewPaciente } from '@/lib/previewPatients';
 import {
   Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
-  User, Info, Loader2, Building2, CalendarDays, UserPlus, Sparkles
+  User, Info, Loader2, Building2, CalendarDays, UserPlus, Sparkles, ChevronDown
 } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
