@@ -535,22 +535,33 @@ function FieldLabel({
   tooltip: string;
 }) {
   const { t } = useTranslation();
+  // Tooltip controlado: no mobile o hover não existe, então abrimos no toque/clique.
+  const [open, setOpen] = useState(false);
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <Label htmlFor={htmlFor}>
+    <div className="flex items-center gap-1.5 min-w-0">
+      <Label htmlFor={htmlFor} className="min-w-0">
         {children}
         {/* Ajustes V3 item 9 — asterisco substituído por rótulo explícito com destaque. */}
         {required && (
-          <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 align-middle">
+          <span className="ml-1.5 whitespace-nowrap rounded bg-amber-100 px-1 py-0.5 text-[8px] font-medium text-amber-700 align-middle">
             {t('common.preenchimentoObrigatorio')}
           </span>
         )}
       </Label>
-      <Tooltip>
+      <Tooltip open={open} onOpenChange={setOpen}>
         <TooltipTrigger asChild>
-          <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+          <button
+            type="button"
+            aria-label={tooltip}
+            onClick={(e) => { e.preventDefault(); setOpen((v) => !v); }}
+            className="shrink-0 text-muted-foreground"
+          >
+            <Info className="h-3.5 w-3.5 cursor-help" />
+          </button>
         </TooltipTrigger>
-        <TooltipContent className="max-w-xs">{tooltip}</TooltipContent>
+        <TooltipContent className="max-w-[260px]" onPointerDownOutside={() => setOpen(false)}>
+          {tooltip}
+        </TooltipContent>
       </Tooltip>
     </div>
   );
