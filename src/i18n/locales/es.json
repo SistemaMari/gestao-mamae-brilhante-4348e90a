@@ -219,7 +219,8 @@
     "next": "Siguiente",
     "pageOf": "{{page}} de {{total}}",
     "patientsUsed": "Gestantes registradas",
-    "reportsGeneratedInfo": "Informes generados"
+    "reportsGeneratedInfo": "Informes generados",
+    "newPatientShort": "Nueva gestante"
   },
   "management": {
     "title": "Panel de Gestión",
