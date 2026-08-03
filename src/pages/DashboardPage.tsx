@@ -314,14 +314,16 @@ export default function DashboardPage() {
       {(ehInstitucional || profile === 'consultorio') && (
         <section className="mb-8">
           <div
-            className="-mx-4 -mt-16 rounded-b-3xl px-4 pt-16 pb-5 md:mx-0 md:mt-0 md:rounded-none md:px-0 md:pt-0 md:pb-6 md:border-b md:bg-none"
+            className={`-mx-4 -mt-16 rounded-b-3xl px-4 pt-16 pb-5 md:mx-0 md:mt-0 md:rounded-none md:px-0 md:pt-0 md:pb-6 md:border-b ${
+              hojeAniversario
+                ? 'bg-[linear-gradient(90deg,#F5F0FF,#FFFFFF)]'
+                : 'bg-[linear-gradient(180deg,#E4F1F6_0%,#F2F9FB_100%)] md:bg-none'
+            }`}
             style={{
               borderColor: hojeAniversario ? '#E8E0FF' : '#E2E8F0',
-              background: hojeAniversario
-                ? 'linear-gradient(90deg, #F5F0FF, #FFFFFF)'
-                : 'linear-gradient(180deg, #E4F1F6 0%, #F2F9FB 100%)',
             }}
           >
+
             <h1
               className="text-2xl md:text-5xl font-bold tracking-tight"
               style={{ color: hojeAniversario ? '#7E69AB' : '#1E293B', fontFamily: 'Sora, sans-serif' }}
