@@ -219,7 +219,8 @@
     "next": "Próxima",
     "pageOf": "{{page}} de {{total}}",
     "patientsUsed": "Gestantes cadastradas",
-    "reportsGeneratedInfo": "Laudos gerados"
+    "reportsGeneratedInfo": "Laudos gerados",
+    "newPatientShort": "Nova gestante"
   },
   "management": {
     "title": "Painel de Gestão",
