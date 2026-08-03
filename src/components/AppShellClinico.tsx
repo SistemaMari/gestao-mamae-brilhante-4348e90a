@@ -424,9 +424,9 @@ export default function AppShellClinico() {
         )}
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto bg-background print:overflow-visible">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background print:overflow-visible">
 
-          <div className="mx-auto max-w-[1200px] px-4 py-6 md:px-6">
+          <div className="mx-auto w-full max-w-[1200px] px-4 pt-16 pb-6 md:px-6 md:pt-6">
             <Outlet />
           </div>
         </main>
