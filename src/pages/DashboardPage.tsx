@@ -314,7 +314,7 @@ export default function DashboardPage() {
       {(ehInstitucional || profile === 'consultorio') && (
         <section className="mb-8">
           <div
-            className="-mx-4 rounded-b-3xl px-4 pt-14 pb-5 md:mx-0 md:rounded-none md:px-0 md:pt-0 md:pb-6 md:border-b md:bg-none"
+            className="-mx-4 -mt-16 rounded-b-3xl px-4 pt-16 pb-5 md:mx-0 md:mt-0 md:rounded-none md:px-0 md:pt-0 md:pb-6 md:border-b md:bg-none"
             style={{
               borderColor: hojeAniversario ? '#E8E0FF' : '#E2E8F0',
               background: hojeAniversario

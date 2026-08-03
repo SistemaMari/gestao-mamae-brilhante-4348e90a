@@ -344,7 +344,7 @@ export default function AppShellClinico() {
 
 
   return (
-    <div className="flex h-screen flex-col print:block print:h-auto">
+    <div className="flex h-screen w-full flex-col overflow-x-hidden print:block print:h-auto">
       {/* Floating top-right controls (no header bar) */}
       <div className="pointer-events-none fixed top-3 right-4 z-50 flex items-center gap-3 print:hidden">
         {profissionalData && ehConsultorio && (
@@ -424,9 +424,9 @@ export default function AppShellClinico() {
         )}
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto bg-background print:overflow-visible">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background print:overflow-visible">
 
-          <div className="mx-auto max-w-[1200px] px-4 py-6 md:px-6">
+          <div className="mx-auto w-full max-w-[1200px] px-4 pt-16 pb-6 md:px-6 md:pt-6">
             <Outlet />
           </div>
         </main>
