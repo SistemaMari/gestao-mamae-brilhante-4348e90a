@@ -319,17 +319,17 @@ export default function Consulta1Form() {
             <FieldLabel htmlFor="data-nasc" required tooltip={t('consulta1.birthdateTooltip')}>
               {t('consulta1.birthdateLabel')}
             </FieldLabel>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <DateInput
                 id="data-nasc"
                 value={dataNascimento}
                 onChange={setDataNascimento}
                 onValidityChange={setDataNascValida}
-                wrapperClassName="flex-1"
+                wrapperClassName="min-w-0 flex-1 max-w-[190px]"
                 className={fieldError(!!dataNascimento)}
               />
               {idade !== null && (
-                <span className="whitespace-nowrap rounded-md bg-muted px-2.5 py-1 text-sm font-medium text-foreground">
+                <span className="whitespace-nowrap rounded-md bg-muted px-2 py-1 text-sm font-medium text-foreground">
                   {t('consulta1.yearsOld', { count: idade })}
                 </span>
               )}
