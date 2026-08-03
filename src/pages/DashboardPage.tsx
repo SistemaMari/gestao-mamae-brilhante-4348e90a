@@ -399,21 +399,16 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={handleNovaPaciente}
-              className="group rounded-2xl p-4 flex items-center gap-3 text-left transition-all hover:shadow-lg hover:-translate-y-0.5"
+              className="group rounded-2xl p-4 flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:shadow-lg hover:-translate-y-0.5"
               style={{
-                background: 'linear-gradient(135deg, #9b87f5 0%, #7E69AB 100%)',
-                boxShadow: '0 4px 14px -4px rgba(155, 135, 245, 0.5)',
+                background: '#2F7E98',
+                boxShadow: '0 6px 18px -6px rgba(47, 126, 152, 0.7)',
               }}
             >
-              <div className="rounded-xl bg-white/20 p-2.5 backdrop-blur-sm">
-                <Plus className="h-5 w-5 text-white" strokeWidth={2.5} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs uppercase tracking-wide font-semibold text-white/80">{t('dashboard.quickAction')}</div>
-                <div className="text-base font-semibold text-white">{t('dashboard.registerNewPatient')}</div>
-                <div className="text-xs text-white/80 mt-0.5">{t('dashboard.startNewFile')}</div>
-              </div>
+              <Plus className="h-5 w-5" strokeWidth={2.5} />
+              {t('dashboard.newPatientShort')}
             </button>
+
           </div>
 
           {/* Dica do dia — colapsável no mobile, sempre aberta no desktop */}
