@@ -2486,6 +2486,17 @@
       "diagnosticoTardio": "Late diagnosis (OGTT after 28 weeks). Immediate treatment start is critical.",
       "acompanhamentoAmpliado": "Follow-up expanded to a 6-point profile without insulin due to adequate control with adherence failure. Glucometer memory confirms the control."
     },
+    "excluir": {
+      "button": "Delete patient",
+      "title": "Delete this patient?",
+      "desc": "This PERMANENTLY deletes {{nome}} and her entire history — visits, glycemic profiles, reports, and tests. This action cannot be undone.",
+      "ackLabel": "I understand this action is permanent and cannot be undone.",
+      "confirm": "Delete permanently",
+      "excluindo": "Deleting…",
+      "cancel": "Cancel",
+      "sucesso": "{{nome}} was deleted.",
+      "erro": "Could not delete. Check whether you have permission to do this."
+    },
     "historico": {
       "titulo": "Consultation history ({{count}})",
       "periodoPerfil": "Profile period: {{inicio}} to {{fim}}",

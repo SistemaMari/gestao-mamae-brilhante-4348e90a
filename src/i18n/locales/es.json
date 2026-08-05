@@ -2486,6 +2486,17 @@
       "diagnosticoTardio": "Diagnóstico tardío (SOG después de las 28 semanas). El inicio inmediato del tratamiento es crítico.",
       "acompanhamentoAmpliado": "Seguimiento ampliado a perfil de 6 puntos sin insulina por control adecuado con fallo de adherencia. La memoria del glucómetro confirma el control."
     },
+    "excluir": {
+      "button": "Eliminar gestante",
+      "title": "¿Eliminar esta gestante?",
+      "desc": "Esto elimina PERMANENTEMENTE a {{nome}} y todo su historial — consultas, perfiles glucémicos, informes y exámenes. Esta acción no se puede deshacer.",
+      "ackLabel": "Entiendo que esta acción es permanente y no se puede deshacer.",
+      "confirm": "Eliminar permanentemente",
+      "excluindo": "Eliminando…",
+      "cancel": "Cancelar",
+      "sucesso": "{{nome}} fue eliminada.",
+      "erro": "No fue posible eliminar. Verifique si tiene permiso para ello."
+    },
     "historico": {
       "titulo": "Historial de consultas ({{count}})",
       "periodoPerfil": "Período del perfil: {{inicio}} a {{fim}}",
