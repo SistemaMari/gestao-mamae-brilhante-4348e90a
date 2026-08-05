@@ -21,8 +21,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  AlertTriangle, Calendar, Clock, FileText, Pencil, Plus, User, Loader2, MessageCircle, ChevronDown, XCircle,
+  AlertTriangle, Calendar, Clock, FileText, Pencil, Plus, User, Loader2, MessageCircle, ChevronDown, XCircle, Trash2,
 } from 'lucide-react';
+import ExcluirGestanteModal from '@/components/ExcluirGestanteModal';
 import {
   mascararWhatsappBR,
   validarWhatsappBR,
@@ -297,8 +298,18 @@ export default function FichaPacientePage() {
   const fichasBackPath = location.pathname.startsWith('/vitrine')
     ? '/vitrine/gestao/fichas'
     : '/gestao/fichas';
-  useAuth();
+  const { profile } = useAuth();
   useProfissionalData();
+
+  // V4 — exclusão de gestante (hard delete). Só consultório (dono), gestor de
+  // unidade e gestor geral. A permissão real é do RLS; aqui só gateia o botão.
+  const [showExcluir, setShowExcluir] = useState(false);
+  const [excluindoGestante, setExcluindoGestante] = useState(false);
+  // Sem !isReadOnly de propósito: o gestor de unidade vê as fichas em modo
+  // read-only (/gestao/fichas/) mas PODE excluir. Consultório nunca cai nesse modo.
+  const perfilPodeExcluir =
+    !isPreview &&
+    (profile === 'consultorio' || profile === 'gestor' || profile === 'gestor_geral');
 
   const [paciente, setPaciente] = useState<PreviewPaciente | null>(null);
   const [consultas, setConsultas] = useState<PreviewConsulta[]>([]);
@@ -708,6 +719,23 @@ export default function FichaPacientePage() {
     setShowRetorno1(false);
   };
 
+  // V4 — exclusão definitiva (hard delete). O RLS decide se pode; as tabelas-filhas
+  // saem por ON DELETE CASCADE. Ao concluir, volta para a lista.
+  const excluirGestante = async () => {
+    if (!paciente?.id || isPreview) return;
+    setExcluindoGestante(true);
+    const { error } = await supabase.from('pacientes').delete().eq('id', paciente.id);
+    setExcluindoGestante(false);
+    if (error) {
+      toast.error(t('fichaPaciente.excluir.erro'));
+      return;
+    }
+    setShowExcluir(false);
+    toast.success(t('fichaPaciente.excluir.sucesso', { nome: paciente.nome }));
+    if (isReadOnly) navigate(fichasBackPath, { replace: true });
+    else navigate(-1);
+  };
+
   // Atualiza o "Histórico de atendimentos" (e a autoria dos cards) assim que um
   // carimbo é gravado, sem depender de refresh. Como refetchOnWindowFocus está
   // desligado (34B.1, Bug B), invalidamos explicitamente as queries ao receber o
@@ -1102,8 +1130,29 @@ export default function FichaPacientePage() {
                 {t('common.edit')}
               </Button>
             )}
+            {perfilPodeExcluir && !editing && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowExcluir(true)}
+                className="border-red-300 text-red-600 hover:bg-red-50 gap-1.5 print:hidden"
+              >
+                <Trash2 className="h-4 w-4" />
+                {t('fichaPaciente.excluir.button')}
+              </Button>
+            )}
           </div>
         </div>
+
+        {paciente && (
+          <ExcluirGestanteModal
+            open={showExcluir}
+            onOpenChange={setShowExcluir}
+            nomeGestante={paciente.nome}
+            onConfirmar={excluirGestante}
+            excluindo={excluindoGestante}
+          />
+        )}
 
         {editing ? (
           <div className="space-y-4">

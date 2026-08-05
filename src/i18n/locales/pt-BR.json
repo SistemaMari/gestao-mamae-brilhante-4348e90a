@@ -2485,6 +2485,17 @@
       "diagnosticoTardio": "Diagnóstico tardio (GTT após 28 semanas). Início imediato do tratamento é crítico.",
       "acompanhamentoAmpliado": "Acompanhamento ampliado para perfil de 6 pontos sem insulina por controle adequado com falha de adesão. Memória do glicosímetro confirma o controle."
     },
+    "excluir": {
+      "button": "Excluir gestante",
+      "title": "Excluir esta gestante?",
+      "desc": "Isto apaga PERMANENTEMENTE {{nome}} e todo o histórico dela — consultas, perfis glicêmicos, laudos e exames. Esta ação não pode ser desfeita.",
+      "ackLabel": "Entendo que esta ação é permanente e não pode ser desfeita.",
+      "confirm": "Excluir permanentemente",
+      "excluindo": "Excluindo…",
+      "cancel": "Cancelar",
+      "sucesso": "{{nome}} foi excluída.",
+      "erro": "Não foi possível excluir. Verifique se você tem permissão para isso."
+    },
     "historico": {
       "titulo": "Histórico de consultas ({{count}})",
       "periodoPerfil": "Período do perfil: {{inicio}} a {{fim}}",
