@@ -983,6 +983,11 @@ export default function FichaPacientePage() {
       return;
     }
 
+    // A DUM pode ter mudado → invalida a IG (fonte única `calcular_ig`) para que o
+    // cabeçalho, as fichas e a JANELA DO GTT recalculem com a nova âncora na hora.
+    // (A troca de USG já faz isto no UsgManagerCard.)
+    void queryClient.invalidateQueries({ queryKey: ['ig', id] });
+
     const { carimbarAtendimento } = await import('@/lib/carimbar');
     await carimbarAtendimento({
       pacienteId: id!,
