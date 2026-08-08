@@ -263,22 +263,20 @@ export default function Retorno1Form({
     [paciente.id, editingResult, editingConsulta],
   );
 
-  // DUM-based GTT 75g window calc for negative result
-  const janelaGTT = useMemo(() => {
-    if (!paciente.dum) return null;
-    const dumDate = parseDateLocal(paciente.dum);
-    if (!dumDate) return null;
-    const inicio = addDays(dumDate, 24 * 7);
-    const fim = addDays(dumDate, 28 * 7);
-    return { inicio, fim };
-  }, [paciente.dum]);
-
-  // 34C-B2: "IG hoje" via fonte única (usada para igMaior24 — janela GTT 75g
-  // só faz sentido se a paciente já passou de 24 semanas HOJE). Cai para
-  // null se paciente sem âncora; igMaior24 = false nesse caso.
+  // 34C-B2: "IG hoje" via fonte única (respeita a âncora vigente — DUM OU USG).
   const hojeISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const igHojeQuery = useIg(paciente.id, hojeISO);
   const igHoje = igHojeQuery.data ?? null;
+
+  // Janela do GTT 75g = 24ª a 28ª semana de gestação. Deriva a data-âncora (IG 0)
+  // da IG de hoje da fonte única (respeita DUM OU USG). Antes vinha só da DUM →
+  // gestante ancorada em USG ficava com a janela "(não informado)".
+  const janelaGTT = useMemo(() => {
+    const base = parseDateLocal(hojeISO);
+    if (!igHoje || !base) return null;
+    const igZero = addDays(base, -(igHoje.semanas * 7 + igHoje.dias));
+    return { inicio: addDays(igZero, 24 * 7), fim: addDays(igZero, 28 * 7) };
+  }, [igHoje, hojeISO]);
 
   const igMaior24 = igHoje ? igHoje.semanas >= 24 : false;
 
