@@ -769,18 +769,16 @@ export default function FichaPacientePage() {
   const igAtualQuery = useIg(paciente?.id, hojeISO);
   const igAtual = igAtualQuery.data ?? null;
 
-  const dumDate = useMemo(() => {
-    if (!paciente?.dum) return null;
-    return parseDateLocal(paciente.dum);
-  }, [paciente?.dum]);
-
-  // GTT 75g window: 24-28 weeks from DUM
+  // Janela do GTT 75g = 24ª a 28ª semana de gestação. A data-âncora (IG 0) é
+  // derivada da IG de HOJE da fonte única (RPC calcular_ig), que respeita a âncora
+  // vigente — DUM OU USG. Antes a janela vinha só da DUM, então gestante ancorada
+  // em USG (sem DUM) ficava com a janela do GTT "(não informado)" no laudo.
   const janelaGTT = useMemo(() => {
-    if (!dumDate) return null;
-    const inicio = addDays(dumDate, 24 * 7);
-    const fim = addDays(dumDate, 28 * 7);
-    return { inicio, fim };
-  }, [dumDate]);
+    const base = parseDateLocal(hojeISO);
+    if (!igAtual || !base) return null;
+    const igZero = addDays(base, -(igAtual.semanas * 7 + igAtual.dias));
+    return { inicio: addDays(igZero, 24 * 7), fim: addDays(igZero, 28 * 7) };
+  }, [igAtual, hojeISO]);
 
   const igMaior24 = igAtual ? igAtual.semanas >= 24 : false;
 
@@ -984,6 +982,11 @@ export default function FichaPacientePage() {
       toast.error(t('fichaPaciente.toast.atualizarError'));
       return;
     }
+
+    // A DUM pode ter mudado → invalida a IG (fonte única `calcular_ig`) para que o
+    // cabeçalho, as fichas e a JANELA DO GTT recalculem com a nova âncora na hora.
+    // (A troca de USG já faz isto no UsgManagerCard.)
+    void queryClient.invalidateQueries({ queryKey: ['ig', id] });
 
     const { carimbarAtendimento } = await import('@/lib/carimbar');
     await carimbarAtendimento({
