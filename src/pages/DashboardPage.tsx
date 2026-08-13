@@ -16,8 +16,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { getPreviewPacientes, type PreviewPaciente } from '@/lib/previewPatients';
 import {
   Plus, Search, X, AlertTriangle, Clock, CalendarCheck,
-  User, Info, Loader2, Building2, CalendarDays, UserPlus, Sparkles, ChevronDown
+  User, Info, Loader2, Building2, CalendarDays, UserPlus, Sparkles, ChevronDown, Trash2
 } from 'lucide-react';
+import ExcluirGestanteModal from '@/components/ExcluirGestanteModal';
 import { differenceInDays } from 'date-fns';
 import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 import { getStatusPacienteChip, isPacienteEncerrada } from '@/lib/fichaUtils';
@@ -84,6 +85,11 @@ export default function DashboardPage() {
   const isPreview = location.pathname.startsWith('/vitrine');
 
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  // V4 — exclusão pela lista: SÓ consultório (o institucional que também usa esta
+  // tela NÃO vê a lixeira). RLS é a permissão real. Abre o modal (senha + delete).
+  const [excluirAlvo, setExcluirAlvo] = useState<{ id: string; nome: string } | null>(null);
+  const [showExcluir, setShowExcluir] = useState(false);
+  const podeExcluirNaLista = !isPreview && profile === 'consultorio';
   const [loadingPacientes, setLoadingPacientes] = useState(true);
   const [search, setSearch] = useState('');
   const [showEncerradas, setShowEncerradas] = useState(true);
@@ -590,6 +596,7 @@ export default function DashboardPage() {
                     <th className="border-l border-primary/15 px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colLastConsultation')}</th>
                     <th className="border-l border-primary/15 px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('common.status')}</th>
                     <th className="border-l border-primary/15 px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-foreground/80 whitespace-nowrap">{t('dashboard.colReturn')}</th>
+                    {podeExcluirNaLista && <th className="px-2 py-4" aria-label={t('fichaPaciente.excluir.button')} />}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -677,6 +684,23 @@ export default function DashboardPage() {
                             </Tooltip>
                           )}
                         </td>
+                        {podeExcluirNaLista && (
+                          <td className="border-t border-l border-border px-2 py-3 align-middle text-center">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  aria-label={t('fichaPaciente.excluir.button')}
+                                  onClick={(e) => { e.stopPropagation(); setExcluirAlvo({ id: pac.id, nome: pac.nome }); setShowExcluir(true); }}
+                                  className="rounded-md p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('fichaPaciente.excluir.button')}</TooltipContent>
+                            </Tooltip>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -691,10 +715,13 @@ export default function DashboardPage() {
                 const statusCfg = getStatusPacienteChip(pac);
 
                 return (
-                  <button
+                  <div
                     key={pac.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => navigate(`${isPreview ? '/vitrine' : ''}/paciente/${pac.id}`)}
-                    className="w-full rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/30"
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`${isPreview ? '/vitrine' : ''}/paciente/${pac.id}`); } }}
+                    className="w-full cursor-pointer rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/30"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
@@ -711,15 +738,27 @@ export default function DashboardPage() {
                           )}
                         </div>
                       </div>
-                      {overtIds.has(pac.id) ? (
-                        <span className="inline-flex shrink-0 items-center rounded-full bg-[#B91C1C] px-2 py-0.5 text-xs font-medium text-white">
-                          OVERT DM
-                        </span>
-                      ) : (
-                        <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium text-white ${statusCfg.color}`}>
-                          {statusCfg.label}
-                        </span>
-                      )}
+                      <div className="flex shrink-0 items-center gap-2">
+                        {overtIds.has(pac.id) ? (
+                          <span className="inline-flex shrink-0 items-center rounded-full bg-[#B91C1C] px-2 py-0.5 text-xs font-medium text-white">
+                            OVERT DM
+                          </span>
+                        ) : (
+                          <span className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium text-white ${statusCfg.color}`}>
+                            {statusCfg.label}
+                          </span>
+                        )}
+                        {podeExcluirNaLista && (
+                          <button
+                            type="button"
+                            aria-label={t('fichaPaciente.excluir.button')}
+                            onClick={(e) => { e.stopPropagation(); setExcluirAlvo({ id: pac.id, nome: pac.nome }); setShowExcluir(true); }}
+                            className="rounded-md p-1 text-red-500 hover:bg-red-50 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
                       <span>{t('dashboard.gaShort')}: {formatIg(igMap.get(pac.id) ?? null)}</span>
@@ -745,7 +784,7 @@ export default function DashboardPage() {
                         </span>
                       </div>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -784,6 +823,16 @@ export default function DashboardPage() {
         onClose={() => setShowBlockingModal(false)}
         planoNome={profissionalData?.planos?.nome}
       />
+
+      {excluirAlvo && (
+        <ExcluirGestanteModal
+          open={showExcluir}
+          onOpenChange={(o) => { setShowExcluir(o); if (!o) setExcluirAlvo(null); }}
+          pacienteId={excluirAlvo.id}
+          nomeGestante={excluirAlvo.nome}
+          onExcluida={fetchPacientes}
+        />
+      )}
     </div>
   );
 }

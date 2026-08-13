@@ -301,15 +301,13 @@ export default function FichaPacientePage() {
   const { profile } = useAuth();
   useProfissionalData();
 
-  // V4 — exclusão de gestante (hard delete). Só consultório (dono), gestor de
-  // unidade e gestor geral. A permissão real é do RLS; aqui só gateia o botão.
+  // V4 — exclusão de gestante (hard delete). NA FICHA, só gestor de unidade e
+  // gestor geral; o CONSULTÓRIO exclui pela lista do Dashboard (a pedido do cliente).
+  // Sem !isReadOnly de propósito: o gestor vê as fichas em modo read-only
+  // (/gestao/fichas/) mas PODE excluir. RLS é a permissão real.
   const [showExcluir, setShowExcluir] = useState(false);
-  const [excluindoGestante, setExcluindoGestante] = useState(false);
-  // Sem !isReadOnly de propósito: o gestor de unidade vê as fichas em modo
-  // read-only (/gestao/fichas/) mas PODE excluir. Consultório nunca cai nesse modo.
   const perfilPodeExcluir =
-    !isPreview &&
-    (profile === 'consultorio' || profile === 'gestor' || profile === 'gestor_geral');
+    !isPreview && (profile === 'gestor' || profile === 'gestor_geral');
 
   const [paciente, setPaciente] = useState<PreviewPaciente | null>(null);
   const [consultas, setConsultas] = useState<PreviewConsulta[]>([]);
@@ -717,23 +715,6 @@ export default function FichaPacientePage() {
     }
     setRetorno1Completed(true);
     setShowRetorno1(false);
-  };
-
-  // V4 — exclusão definitiva (hard delete). O RLS decide se pode; as tabelas-filhas
-  // saem por ON DELETE CASCADE. Ao concluir, volta para a lista.
-  const excluirGestante = async () => {
-    if (!paciente?.id || isPreview) return;
-    setExcluindoGestante(true);
-    const { error } = await supabase.from('pacientes').delete().eq('id', paciente.id);
-    setExcluindoGestante(false);
-    if (error) {
-      toast.error(t('fichaPaciente.excluir.erro'));
-      return;
-    }
-    setShowExcluir(false);
-    toast.success(t('fichaPaciente.excluir.sucesso', { nome: paciente.nome }));
-    if (isReadOnly) navigate(fichasBackPath, { replace: true });
-    else navigate(-1);
   };
 
   // Atualiza o "Histórico de atendimentos" (e a autoria dos cards) assim que um
@@ -1151,9 +1132,12 @@ export default function FichaPacientePage() {
           <ExcluirGestanteModal
             open={showExcluir}
             onOpenChange={setShowExcluir}
+            pacienteId={paciente.id}
             nomeGestante={paciente.nome}
-            onConfirmar={excluirGestante}
-            excluindo={excluindoGestante}
+            onExcluida={() => {
+              if (isReadOnly) navigate(fichasBackPath, { replace: true });
+              else navigate(-1);
+            }}
           />
         )}
 
