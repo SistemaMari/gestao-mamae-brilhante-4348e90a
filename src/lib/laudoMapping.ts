@@ -22,6 +22,35 @@ export interface ConsultaParaMapear {
   // 34D-C: usados só para Ficha A/C — desfecho por conduta (vêm de decisoes_ficha_a).
   regra_aplicada?: string | null;
   proxima_ficha_recomendada?: string | null;
+  // GTT — valores reais para RECOMPUTAR o desfecho do laudo (o cenario_clinico
+  // gravado pode estar obsoleto e contradizer o card, que já recomputa ao vivo).
+  gtt_jejum?: number | null;
+  gtt_1h?: number | null;
+  gtt_2h?: number | null;
+  ig_semanas?: number | null;
+}
+
+/**
+ * GTT — desfecho do laudo recomputado a partir das glicemias reais. Fonte única
+ * de verdade, para o TEXTO do laudo nunca contradizer o card (que já classifica
+ * ao vivo). Overt DM exige jejum ≥ 126 OU 2h ≥ 200; senão qualquer valor alterado
+ * (jejum ≥ 92, 1h ≥ 180, 2h ≥ 153) confirma DMG (6, ou 6B se IG > 28 sem);
+ * nada alterado = negativo. Mantém os mesmos cortes de calcularGttDiagnostico.
+ */
+function desfechoGttPorValores(c: ConsultaParaMapear): string | null {
+  const j = c.gtt_jejum;
+  if (j == null) return null; // sem valores → cai no cenario_clinico gravado (legado)
+  if (c.status_gerado === 'dmg_afastado') return 'negativo';
+  const h1 = c.gtt_1h ?? null;
+  const h2 = c.gtt_2h ?? null;
+  if (j >= 126 || (h2 != null && h2 >= 200)) return '8'; // Overt DM
+  const alterado = j >= 92 || (h1 != null && h1 >= 180) || (h2 != null && h2 >= 153);
+  if (alterado) {
+    // 6 vs 6B: preserva o 6B já roteado; senão decide pela IG no GTT (> 28 sem).
+    if ((c.cenario_clinico ?? '').trim() === '6B') return '6B';
+    return (c.ig_semanas ?? 0) > 28 ? '6B' : '6';
+  }
+  return 'negativo';
 }
 
 export function mapearCenario(c: ConsultaParaMapear): Cenario {
@@ -128,6 +157,14 @@ export function derivarDesfechoClinico(
     const pct = c.percentual_meta;
     if (pct == null) return null;
     return pct >= 70 ? 'e_manter' : 'e_insulina';
+  }
+
+  // GTT — recomputa dos valores reais ANTES de cair no cenario_clinico gravado.
+  // Corrige o caso em que o campo persistido ficou obsoleto (ex.: '8' Overt DM com
+  // glicemias que só configuram DMG), fazendo o texto contradizer o card do laudo.
+  if (c.tipo === 'gtt') {
+    const recomputado = desfechoGttPorValores(c);
+    if (recomputado) return recomputado;
   }
 
   const raw = (c.cenario_clinico ?? '').trim();
