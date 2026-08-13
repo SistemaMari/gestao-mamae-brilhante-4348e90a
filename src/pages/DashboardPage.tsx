@@ -502,6 +502,12 @@ export default function DashboardPage() {
             <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary/70 transition-colors group-focus-within:text-primary" />
             <Input
               placeholder={t('dashboard.searchPlaceholder')}
+              // Anti-autofill: nome não-padrão + off + ignores impedem o Chrome/gerenciadores
+              // de injetar o e-mail da conta aqui quando o modal de senha (exclusão) aparece.
+              name="mari-busca-gestante"
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               className="h-14 pl-12 pr-12 text-base bg-card border-2 border-border rounded-xl shadow-sm transition-all placeholder:text-muted-foreground/70 hover:border-primary/40 focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15 focus-visible:shadow-md"

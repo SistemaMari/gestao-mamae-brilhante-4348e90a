@@ -46,6 +46,10 @@ export default function ExcluirGestanteModal({
   const [reconhecido, setReconhecido] = useState(false);
   const [senha, setSenha] = useState('');
   const [excluindo, setExcluindo] = useState(false);
+  // Anti-autofill: o campo nasce readOnly; o Chrome não preenche credencial salva
+  // em campo readOnly. Vira editável só quando o usuário foca (clica) — aí não há
+  // mais janela de autofill de carregamento.
+  const [senhaEditavel, setSenhaEditavel] = useState(false);
 
   // Reseta o estado sempre que o modal abre/fecha — nunca vem pré-preenchido.
   useEffect(() => {
@@ -53,6 +57,7 @@ export default function ExcluirGestanteModal({
       setReconhecido(false);
       setSenha('');
       setExcluindo(false);
+      setSenhaEditavel(false);
     }
   }, [open]);
 
@@ -112,7 +117,16 @@ export default function ExcluirGestanteModal({
                 </label>
                 <Input
                   type="password"
-                  autoComplete="current-password"
+                  name="mari-reauth-senha"
+                  // Anti-autofill: 'new-password' impede o Chrome de pré-preencher a
+                  // senha salva (as "bolinhas" ao abrir) e de tratar isto como um
+                  // formulário de login — o que fazia ele jogar o e-mail da conta no
+                  // campo de busca do Dashboard. data-*-ignore silencia 1Password/LastPass.
+                  autoComplete="new-password"
+                  data-1p-ignore
+                  data-lpignore="true"
+                  readOnly={!senhaEditavel}
+                  onFocus={() => setSenhaEditavel(true)}
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder={t('fichaPaciente.excluir.senhaPlaceholder')}
