@@ -1874,6 +1874,15 @@
         "pbf": "[TEXTO PROVISÓRIO — pendente das especialistas] Perfil biofísico fetal alterado (< 8/10): recomenda-se avaliação obstétrica / propedêutica complementar."
       }
     },
+    "pedidoExames": {
+      "titulo": "Solicitar exames (conforme a idade gestacional)",
+      "morfologico": "Ultrassom morfológico de 2º trimestre (12–14 semanas).",
+      "crescimento2832": "Ultrassom obstétrico para avaliação do crescimento fetal (28–32 semanas).",
+      "crescimento36": "Ultrassom obstétrico para avaliação do crescimento fetal (36ª semana).",
+      "cmf": "Contagem diária de movimentos fetais (a partir de 28 semanas).",
+      "ctg": "Cardiotocografia anteparto semanal (a partir de 34 semanas).",
+      "pbf": "Perfil biofísico fetal semanal (a partir de 34 semanas)."
+    },
     "statusFichaBadge": {
       "rascunho": "Rascunho",
       "completa": "Completa",

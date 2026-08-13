@@ -1874,6 +1874,15 @@
         "pbf": "[PROVISIONAL TEXT — pending specialists] Abnormal fetal biophysical profile (< 8/10): obstetric evaluation / complementary workup recommended."
       }
     },
+    "pedidoExames": {
+      "titulo": "Order exams (according to gestational age)",
+      "morfologico": "Second-trimester morphology ultrasound (12–14 weeks).",
+      "crescimento2832": "Obstetric ultrasound for fetal growth assessment (28–32 weeks).",
+      "crescimento36": "Obstetric ultrasound for fetal growth assessment (36th week).",
+      "cmf": "Daily fetal movement count (from 28 weeks).",
+      "ctg": "Weekly antepartum cardiotocography (from 34 weeks).",
+      "pbf": "Weekly fetal biophysical profile (from 34 weeks)."
+    },
     "statusFichaBadge": {
       "rascunho": "Draft",
       "completa": "Complete",

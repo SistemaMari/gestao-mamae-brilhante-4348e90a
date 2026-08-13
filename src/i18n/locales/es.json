@@ -1874,6 +1874,15 @@
         "pbf": "[TEXTO PROVISIONAL — pendiente de las especialistas] Perfil biofísico fetal alterado (< 8/10): se recomienda evaluación obstétrica / propedéutica complementaria."
       }
     },
+    "pedidoExames": {
+      "titulo": "Solicitar exámenes (según la edad gestacional)",
+      "morfologico": "Ecografía morfológica de 2º trimestre (12–14 semanas).",
+      "crescimento2832": "Ecografía obstétrica para evaluación del crecimiento fetal (28–32 semanas).",
+      "crescimento36": "Ecografía obstétrica para evaluación del crecimiento fetal (36ª semana).",
+      "cmf": "Conteo diario de movimientos fetales (desde 28 semanas).",
+      "ctg": "Cardiotocografía anteparto semanal (desde 34 semanas).",
+      "pbf": "Perfil biofísico fetal semanal (desde 34 semanas)."
+    },
     "statusFichaBadge": {
       "rascunho": "Borrador",
       "completa": "Completa",
