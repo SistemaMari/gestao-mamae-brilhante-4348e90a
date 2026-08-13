@@ -1841,6 +1841,48 @@
       "tooltip": "Las 6 respuestas se envían al backend, que devuelve la conducta (mantener CEV / reforzar CEV / iniciar insulina / evaluar la memoria del glucómetro) y la siguiente ficha recomendada.",
       "noInfo": "Sin información"
     },
+    "examesFetais": {
+      "title": "Exámenes de crecimiento y vitalidad fetal",
+      "tooltip": "Registre los resultados cuando la gestante traiga los exámenes. Deje en \"Sin datos\" mientras la edad gestacional aún no lo permita.",
+      "semDados": "Sin datos",
+      "grupoUsg": "Ecografía",
+      "grupoVigilancia": "Vigilancia fetal",
+      "morfologico": { "label": "Eco morfológica (2º trimestre, 12–14 sem)" },
+      "pfe": { "label": "PFE-US < P90" },
+      "ca": { "label": "CA < P75" },
+      "la": { "label": "LA normal" },
+      "crescimento": { "label": "Crecimiento fetal" },
+      "cmf": { "label": "Movimiento fetal (CMF)" },
+      "ctg": { "label": "Cardiotocografía (CTG)" },
+      "pbf": { "label": "Perfil biofísico fetal (8/10)" },
+      "opt": {
+        "normal": "Normal",
+        "alterado": "Alterado",
+        "adequado": "Adecuado",
+        "restrito": "Restringido",
+        "excessivo": "Excesivo",
+        "diminuido": "Disminuido",
+        "tranquilizador": "Tranquilizador",
+        "naoTranquilizador": "No tranquilizador"
+      },
+      "alertaTitulo": "Atención — hallazgo que requiere evaluación obstétrica",
+      "alerta": {
+        "morfologico": "[TEXTO PROVISIONAL — pendiente de las especialistas] Eco morfológica alterada: derivar para evaluación obstétrica especializada.",
+        "crescimentoRestrito": "[TEXTO PROVISIONAL — pendiente de las especialistas] Restricción del crecimiento fetal: se recomienda evaluación obstétrica / seguimiento de vitalidad.",
+        "cmf": "[TEXTO PROVISIONAL — pendiente de las especialistas] Movimiento fetal disminuido: orientar evaluación obstétrica inmediata.",
+        "ctg": "[TEXTO PROVISIONAL — pendiente de las especialistas] Cardiotocografía no tranquilizadora: derivar para evaluación obstétrica urgente.",
+        "pbf": "[TEXTO PROVISIONAL — pendiente de las especialistas] Perfil biofísico fetal alterado (< 8/10): se recomienda evaluación obstétrica / propedéutica complementaria."
+      }
+    },
+    "pedidoExames": {
+      "titulo": "Solicitar exámenes (según la edad gestacional)",
+      "morfologico": "Ecografía morfológica de 2º trimestre (12–14 semanas).",
+      "crescimento2832": "Ecografía obstétrica para evaluación del crecimiento fetal (28–32 semanas).",
+      "crescimento36": "Ecografía obstétrica para evaluación del crecimiento fetal (36ª semana).",
+      "cmf": "Conteo diario de movimientos fetales (desde 28 semanas).",
+      "ctg": "Cardiotocografía anteparto semanal (desde 34 semanas).",
+      "pbf": "Perfil biofísico fetal semanal (desde 34 semanas)."
+    },
     "statusFichaBadge": {
       "rascunho": "Borrador",
       "completa": "Completa",

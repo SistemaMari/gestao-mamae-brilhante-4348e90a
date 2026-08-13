@@ -19,6 +19,8 @@ import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
+import ExamesFetaisCard from '@/components/ficha/ExamesFetaisCard';
+import { EXAMES_FETAIS_VAZIO, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
 import {
@@ -128,6 +130,20 @@ export default function FichaEForm({
 
   const [igSemanas, setIgSemanas] = useState(editingConsulta?.ig_semanas != null ? String(editingConsulta.ig_semanas) : '');
   const [igDias, setIgDias] = useState(editingConsulta?.ig_dias != null ? String(editingConsulta.ig_dias) : '');
+
+  // V4 — Resultados de exames de crescimento/vitalidade fetal (exames_fetais, 1:1 por
+  // consulta). Na Ficha E mostra todos os campos (não há checklist de PFE/CA/LA aqui).
+  const [examesFetais, setExamesFetais] = useState<ExamesFetaisState>(EXAMES_FETAIS_VAZIO);
+  useEffect(() => {
+    const cid = editingConsulta?.id;
+    if (!cid) return;
+    let ativo = true;
+    (async () => {
+      const { data } = await supabase.from('exames_fetais' as any).select('*').eq('consulta_id', cid).maybeSingle();
+      if (ativo) setExamesFetais(fromExamesFetaisRow(data as any));
+    })();
+    return () => { ativo = false; };
+  }, [editingConsulta?.id]);
 
   // 34D — pré-preenche a IG (ficha nova OU reabertura p/ editar) com o valor AO VIVO
   // na data da consulta, pela âncora ATUAL (não o congelado da época). Refaz só
@@ -497,6 +513,19 @@ export default function FichaEForm({
         if (valErr) throw valErr;
       }
 
+      // V4 — Resultados de exames de crescimento/vitalidade fetal (opcional; 1:1 por consulta).
+      if (consultaId) {
+        await supabase
+          .from('exames_fetais' as any)
+          .upsert({
+            consulta_id: consultaId,
+            paciente_id: paciente.id,
+            profissional_id: profId,
+            ...toExamesFetaisPayload(examesFetais),
+            updated_at: new Date().toISOString(),
+          } as any, { onConflict: 'consulta_id' });
+      }
+
       await supabase
         .from('pacientes')
         .update({
@@ -737,6 +766,9 @@ export default function FichaEForm({
           </tbody>
         </table>
       </div>
+
+      {/* V4 — Exames de crescimento/vitalidade fetal (todos os campos na Ficha E) */}
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} disabled={saving} />
 
       <div className="space-y-1">
         <div className="flex items-center gap-1">

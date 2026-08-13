@@ -35,6 +35,8 @@ import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
 import ChecklistRetorno2, { CHECKLIST_VAZIO, isChecklistCompleto, type ChecklistState } from '@/components/ficha/ChecklistRetorno2';
+import ExamesFetaisCard from '@/components/ficha/ExamesFetaisCard';
+import { EXAMES_FETAIS_VAZIO, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 import CondutaCard from '@/components/ficha/CondutaCard';
 import { aplicarRegrasFichaA, type DecisaoResultado } from '@/lib/fichaADecisao';
@@ -387,6 +389,21 @@ export default function FichaACForm({
     });
   }, [editingConsulta]);
 
+  // V4 — Resultados de exames de crescimento/vitalidade fetal (exames_fetais, 1:1 por
+  // consulta). Carregados sob demanda ao reabrir a ficha; null = "sem dados". Na Ficha
+  // A/C, PFE/CA/LA já vêm do checklist do Retorno 2 → o card os oculta (hidePfeCaLa).
+  const [examesFetais, setExamesFetais] = useState<ExamesFetaisState>(EXAMES_FETAIS_VAZIO);
+  useEffect(() => {
+    const cid = editingConsulta?.id;
+    if (!cid) return;
+    let ativo = true;
+    (async () => {
+      const { data } = await supabase.from('exames_fetais' as any).select('*').eq('consulta_id', cid).maybeSingle();
+      if (ativo) setExamesFetais(fromExamesFetaisRow(data as any));
+    })();
+    return () => { ativo = false; };
+  }, [editingConsulta?.id]);
+
   // 42F — teto de pactuação única: conta as pactuações de MEV aceitas ANTERIORES da
   // paciente (regra_2 + aceita), lidas do histórico persistido (consultas hidratadas
   // com decisoes_ficha_a), excluindo a ficha em edição. > 0 → o motor força insulina.
@@ -728,6 +745,19 @@ export default function FichaACForm({
           } as any, { onConflict: 'consulta_id' });
       }
 
+      // V4 — Resultados de exames de crescimento/vitalidade fetal (opcional; 1:1 por consulta).
+      if (consultaId) {
+        await supabase
+          .from('exames_fetais' as any)
+          .upsert({
+            consulta_id: consultaId,
+            paciente_id: paciente.id,
+            profissional_id: profId,
+            ...toExamesFetaisPayload(examesFetais),
+            updated_at: new Date().toISOString(),
+          } as any, { onConflict: 'consulta_id' });
+      }
+
       setSavedResult({ percentual: percentual!, adequado: isAdequado, proximaFicha: decisaoFichaA?.proxima_ficha_recomendada ?? null });
       setSaving(false);
       setShowImpact(true);
@@ -1045,6 +1075,9 @@ export default function FichaACForm({
       {isFichaAC && (
         <ChecklistRetorno2 value={checklist} onChange={setChecklist} disabled={saving} />
       )}
+
+      {/* V4 — Exames de crescimento/vitalidade fetal (PFE/CA/LA ocultos: já no checklist) */}
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} hidePfeCaLa disabled={saving} />
 
       {/* 36B REV3 — Conduta gerada pelo motor de decisão (apenas Ficha A) */}
       {isFichaAC && decisaoFichaA && (

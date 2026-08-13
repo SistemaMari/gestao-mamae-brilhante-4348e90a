@@ -33,6 +33,8 @@ import {
 } from '@/lib/whatsapp';
 import Retorno1Form from '@/components/Retorno1Form';
 import Consulta1ResultCard from '@/components/Consulta1ResultCard';
+import PedidoExamesFetaisCard from '@/components/laudo/PedidoExamesFetaisCard';
+import AlertaExamesFetaisLaudo from '@/components/laudo/AlertaExamesFetaisLaudo';
 import CarimboAtendimento from '@/components/clinico/CarimboAtendimento';
 import Retorno1ResultCard from '@/components/Retorno1ResultCard';
 import GttForm from '@/components/GttForm';
@@ -2028,6 +2030,10 @@ export default function FichaPacientePage() {
                               igMaior24={igMaior24}
                             >
                               {renderCardBloco1()}
+                              {/* V4 — alerta da Família 2 (vitalidade/morfologia) também no laudo */}
+                              <AlertaExamesFetaisLaudo tipo={c.tipo} consultaId={c.id} />
+                              {/* V4 — pedido dos exames de crescimento/vitalidade fetal por IG */}
+                              <PedidoExamesFetaisCard tipo={c.tipo} igSemanas={igLaudo?.semanas ?? null} />
                               <AutoriaRodape registro={autoriaConsulta} label={t('clinico.autoriaRodape.defaultLabel')} />
                             </LaudoCompleto>
                           );

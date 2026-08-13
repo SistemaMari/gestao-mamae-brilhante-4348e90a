@@ -1841,6 +1841,48 @@
       "tooltip": "The 6 answers are sent to the backend, which returns the recommended course of action (maintain lifestyle changes / reinforce lifestyle changes / start insulin / review glucometer memory) and the next recommended form.",
       "noInfo": "No information"
     },
+    "examesFetais": {
+      "title": "Fetal growth and wellbeing exams",
+      "tooltip": "Record the results when the patient brings the exams. Leave as \"No data\" while the gestational age does not yet allow them.",
+      "semDados": "No data",
+      "grupoUsg": "Ultrasound",
+      "grupoVigilancia": "Fetal surveillance",
+      "morfologico": { "label": "Morphology US (2nd trimester, 12–14 wk)" },
+      "pfe": { "label": "EFW-US < P90" },
+      "ca": { "label": "AC < P75" },
+      "la": { "label": "Amniotic fluid normal" },
+      "crescimento": { "label": "Fetal growth" },
+      "cmf": { "label": "Fetal movement count (FMC)" },
+      "ctg": { "label": "Cardiotocography (CTG)" },
+      "pbf": { "label": "Biophysical profile (8/10)" },
+      "opt": {
+        "normal": "Normal",
+        "alterado": "Abnormal",
+        "adequado": "Adequate",
+        "restrito": "Restricted",
+        "excessivo": "Excessive",
+        "diminuido": "Reduced",
+        "tranquilizador": "Reassuring",
+        "naoTranquilizador": "Non-reassuring"
+      },
+      "alertaTitulo": "Attention — finding that requires obstetric evaluation",
+      "alerta": {
+        "morfologico": "[PROVISIONAL TEXT — pending specialists] Abnormal morphology ultrasound: refer for specialized obstetric evaluation.",
+        "crescimentoRestrito": "[PROVISIONAL TEXT — pending specialists] Fetal growth restriction: obstetric evaluation / fetal wellbeing monitoring recommended.",
+        "cmf": "[PROVISIONAL TEXT — pending specialists] Reduced fetal movement: advise immediate obstetric evaluation.",
+        "ctg": "[PROVISIONAL TEXT — pending specialists] Non-reassuring cardiotocography: refer for urgent obstetric evaluation.",
+        "pbf": "[PROVISIONAL TEXT — pending specialists] Abnormal fetal biophysical profile (< 8/10): obstetric evaluation / complementary workup recommended."
+      }
+    },
+    "pedidoExames": {
+      "titulo": "Order exams (according to gestational age)",
+      "morfologico": "Second-trimester morphology ultrasound (12–14 weeks).",
+      "crescimento2832": "Obstetric ultrasound for fetal growth assessment (28–32 weeks).",
+      "crescimento36": "Obstetric ultrasound for fetal growth assessment (36th week).",
+      "cmf": "Daily fetal movement count (from 28 weeks).",
+      "ctg": "Weekly antepartum cardiotocography (from 34 weeks).",
+      "pbf": "Weekly fetal biophysical profile (from 34 weeks)."
+    },
     "statusFichaBadge": {
       "rascunho": "Draft",
       "completa": "Complete",

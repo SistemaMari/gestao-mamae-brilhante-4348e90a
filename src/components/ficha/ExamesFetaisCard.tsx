@@ -1,0 +1,104 @@
+/**
+ * V4 — Card de registro dos resultados de exames de crescimento e vitalidade fetal.
+ * Abre em todas as fichas de retorno; cada campo é opcional (null = "sem dados").
+ * O frontend NÃO decide conduta aqui — apenas coleta os resultados e exibe um
+ * ALERTA visual quando há achado da Família 2 (vitalidade/morfologia). O texto do
+ * alerta é placeholder até ratificação clínica das especialistas.
+ *
+ * `hidePfeCaLa`: na Ficha A/C, PFE/CA/LA já são coletados no checklist do Retorno 2
+ * (que dirige a insulina — regra_fetal); ali este card os oculta para não duplicar.
+ */
+import { AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { EXAMES_FETAIS_DEFS, alertasFamilia2, type ExamesFetaisState, type DefExameFetal } from './examesFetaisItems';
+
+interface Props {
+  value: ExamesFetaisState;
+  onChange: (next: ExamesFetaisState) => void;
+  hidePfeCaLa?: boolean;
+  disabled?: boolean;
+}
+
+function Pill({ active, onClick, children, disabled }: { active: boolean; onClick: () => void; children: React.ReactNode; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+        active
+          ? 'bg-[#7C4DBA] text-white border-[#7C4DBA]'
+          : 'bg-white text-[#5B21B6] border-[#D6BCFA] hover:bg-[#F1F0FB]'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, disabled }: Props) {
+  const { t } = useTranslation();
+  const set = <K extends keyof ExamesFetaisState>(k: K, v: ExamesFetaisState[K]) => onChange({ ...value, [k]: v });
+
+  const visiveis = EXAMES_FETAIS_DEFS.filter((d) => !(hidePfeCaLa && d.ocultaNaFichaAC));
+  const usg = visiveis.filter((d) => d.grupo === 'usg');
+  const vigilancia = visiveis.filter((d) => d.grupo === 'vigilancia');
+  const alertas = alertasFamilia2(value);
+
+  const renderLinha = (d: DefExameFetal) => {
+    const atual = value[d.key];
+    return (
+      <div key={d.key} className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-xs text-foreground">{t(d.labelKey)}</span>
+        <div className="flex flex-wrap gap-2">
+          {d.opcoes.map((op) => (
+            <Pill key={op.value} disabled={disabled} active={atual === op.value} onClick={() => set(d.key, op.value as ExamesFetaisState[typeof d.key])}>
+              {t(op.labelKey)}
+            </Pill>
+          ))}
+          {/* "Sem dados" = null (IG ainda não permite ou exame não trazido) */}
+          <Pill disabled={disabled} active={atual == null} onClick={() => set(d.key, null)}>
+            {t('ficha.examesFetais.semDados')}
+          </Pill>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="rounded-xl border border-[#D6BCFA] bg-[#FAFAFE] p-4 space-y-3">
+      <div>
+        <h3 className="text-sm font-bold text-[#5B21B6]">{t('ficha.examesFetais.title')}</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">{t('ficha.examesFetais.tooltip')}</p>
+      </div>
+
+      {usg.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-[#7E69AB]">{t('ficha.examesFetais.grupoUsg')}</p>
+          {usg.map(renderLinha)}
+        </div>
+      )}
+
+      {vigilancia.length > 0 && (
+        <div className="space-y-3 border-t border-[#E5E0F2] pt-3">
+          <p className="text-xs font-semibold text-[#7E69AB]">{t('ficha.examesFetais.grupoVigilancia')}</p>
+          {vigilancia.map(renderLinha)}
+        </div>
+      )}
+
+      {alertas.length > 0 && (
+        <div className="rounded-lg border-2 p-3 space-y-1" style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" style={{ color: '#92400E' }} />
+            <span className="text-xs font-bold" style={{ color: '#92400E' }}>{t('ficha.examesFetais.alertaTitulo')}</span>
+          </div>
+          <ul className="list-disc pl-6 space-y-0.5">
+            {alertas.map((a) => (
+              <li key={a.key} className="text-xs" style={{ color: '#B45309' }}>{t(a.alertaKey)}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
