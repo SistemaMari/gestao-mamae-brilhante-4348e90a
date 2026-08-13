@@ -84,6 +84,34 @@ describe('derivarDesfechoClinico — Ficha E (6 pontos sem insulina)', () => {
 });
 
 
+describe('derivarDesfechoClinico — GTT recomputa do valor real (não confia em cenário obsoleto)', () => {
+  it('Carla: cenário gravado 8 (Overt) mas valores só DMG (92/155/141) → 6', () => {
+    expect(derivarDesfechoClinico({ tipo: 'gtt', cenario_clinico: '8', gtt_jejum: 92, gtt_1h: 155, gtt_2h: 141, ig_semanas: 26 })).toBe('6');
+  });
+  it('Overt real por jejum ≥ 126 → 8', () => {
+    expect(derivarDesfechoClinico({ tipo: 'gtt', gtt_jejum: 130, gtt_1h: 150, gtt_2h: 160, ig_semanas: 26 })).toBe('8');
+  });
+  it('Overt real por 2h ≥ 200 → 8', () => {
+    expect(derivarDesfechoClinico({ tipo: 'gtt', gtt_jejum: 90, gtt_1h: 150, gtt_2h: 205, ig_semanas: 26 })).toBe('8');
+  });
+  it('DMG por 1h ≥ 180 com IG > 28 → 6B', () => {
+    expect(derivarDesfechoClinico({ tipo: 'gtt', gtt_jejum: 82, gtt_1h: 187, gtt_2h: 148, ig_semanas: 30 })).toBe('6B');
+  });
+  it('todos os valores normais → negativo', () => {
+    expect(derivarDesfechoClinico({ tipo: 'gtt', gtt_jejum: 79, gtt_1h: 138, gtt_2h: 120, ig_semanas: 26 })).toBe('negativo');
+  });
+  it('preserva 6B já roteado quando há valor alterado', () => {
+    expect(derivarDesfechoClinico({ tipo: 'gtt', cenario_clinico: '6B', gtt_jejum: 96, gtt_1h: 150, gtt_2h: 140, ig_semanas: 20 })).toBe('6B');
+  });
+  it('recurso limitado (só jejum 96) → DMG 6', () => {
+    expect(derivarDesfechoClinico({ tipo: 'gtt', gtt_jejum: 96, gtt_1h: null, gtt_2h: null, ig_semanas: 22 })).toBe('6');
+  });
+  it('legado sem valores → usa o cenário gravado (retrocompatível)', () => {
+    expect(derivarDesfechoClinico({ tipo: 'gtt', cenario_clinico: '6' })).toBe('6');
+    expect(derivarDesfechoClinico({ tipo: 'gtt', cenario_clinico: '8' })).toBe('8');
+  });
+});
+
 describe('laudoLeva4Notas (Ajustes V3 item 14)', () => {
   it('laudos que CONFIRMAM DMG pela glicemia levam as 4 notas', () => {
     expect(laudoLeva4Notas({ tipo: 'consulta_1', status_gerado: 'aguardando_gj' })).toBe(true); // Caso Novo (pedido de GJ)
