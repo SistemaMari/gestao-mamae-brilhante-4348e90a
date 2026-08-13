@@ -1867,11 +1867,11 @@
       },
       "alertaTitulo": "Atenção — achado que requer avaliação obstétrica",
       "alerta": {
-        "morfologico": "[TEXTO PROVISÓRIO — pendente das especialistas] USG morfológico alterado: encaminhar para avaliação obstétrica especializada.",
-        "crescimentoRestrito": "[TEXTO PROVISÓRIO — pendente das especialistas] Restrição de crescimento fetal: recomenda-se avaliação obstétrica / acompanhamento de vitalidade.",
-        "cmf": "[TEXTO PROVISÓRIO — pendente das especialistas] Movimentação fetal diminuída: orientar avaliação obstétrica imediata.",
-        "ctg": "[TEXTO PROVISÓRIO — pendente das especialistas] Cardiotocografia não tranquilizadora: encaminhar para avaliação obstétrica urgente.",
-        "pbf": "[TEXTO PROVISÓRIO — pendente das especialistas] Perfil biofísico fetal alterado (< 8/10): recomenda-se avaliação obstétrica / propedêutica complementar."
+        "morfologico": "USG morfológico alterado: encaminhar para avaliação obstétrica especializada.",
+        "crescimentoRestrito": "Restrição de crescimento fetal: recomenda-se avaliação obstétrica / acompanhamento de vitalidade.",
+        "cmf": "Movimentação fetal diminuída: orientar avaliação obstétrica imediata.",
+        "ctg": "Cardiotocografia não tranquilizadora: encaminhar para avaliação obstétrica urgente.",
+        "pbf": "Perfil biofísico fetal alterado (< 8/10): recomenda-se avaliação obstétrica / propedêutica complementar."
       }
     },
     "pedidoExames": {

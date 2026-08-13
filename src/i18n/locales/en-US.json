@@ -1867,11 +1867,11 @@
       },
       "alertaTitulo": "Attention — finding that requires obstetric evaluation",
       "alerta": {
-        "morfologico": "[PROVISIONAL TEXT — pending specialists] Abnormal morphology ultrasound: refer for specialized obstetric evaluation.",
-        "crescimentoRestrito": "[PROVISIONAL TEXT — pending specialists] Fetal growth restriction: obstetric evaluation / fetal wellbeing monitoring recommended.",
-        "cmf": "[PROVISIONAL TEXT — pending specialists] Reduced fetal movement: advise immediate obstetric evaluation.",
-        "ctg": "[PROVISIONAL TEXT — pending specialists] Non-reassuring cardiotocography: refer for urgent obstetric evaluation.",
-        "pbf": "[PROVISIONAL TEXT — pending specialists] Abnormal fetal biophysical profile (< 8/10): obstetric evaluation / complementary workup recommended."
+        "morfologico": "Abnormal morphology ultrasound: refer for specialized obstetric evaluation.",
+        "crescimentoRestrito": "Fetal growth restriction: obstetric evaluation / fetal wellbeing monitoring recommended.",
+        "cmf": "Reduced fetal movement: advise immediate obstetric evaluation.",
+        "ctg": "Non-reassuring cardiotocography: refer for urgent obstetric evaluation.",
+        "pbf": "Abnormal fetal biophysical profile (< 8/10): obstetric evaluation / complementary workup recommended."
       }
     },
     "pedidoExames": {

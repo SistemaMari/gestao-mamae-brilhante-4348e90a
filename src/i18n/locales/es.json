@@ -1867,11 +1867,11 @@
       },
       "alertaTitulo": "Atención — hallazgo que requiere evaluación obstétrica",
       "alerta": {
-        "morfologico": "[TEXTO PROVISIONAL — pendiente de las especialistas] Eco morfológica alterada: derivar para evaluación obstétrica especializada.",
-        "crescimentoRestrito": "[TEXTO PROVISIONAL — pendiente de las especialistas] Restricción del crecimiento fetal: se recomienda evaluación obstétrica / seguimiento de vitalidad.",
-        "cmf": "[TEXTO PROVISIONAL — pendiente de las especialistas] Movimiento fetal disminuido: orientar evaluación obstétrica inmediata.",
-        "ctg": "[TEXTO PROVISIONAL — pendiente de las especialistas] Cardiotocografía no tranquilizadora: derivar para evaluación obstétrica urgente.",
-        "pbf": "[TEXTO PROVISIONAL — pendiente de las especialistas] Perfil biofísico fetal alterado (< 8/10): se recomienda evaluación obstétrica / propedéutica complementaria."
+        "morfologico": "Eco morfológica alterada: derivar para evaluación obstétrica especializada.",
+        "crescimentoRestrito": "Restricción del crecimiento fetal: se recomienda evaluación obstétrica / seguimiento de vitalidad.",
+        "cmf": "Movimiento fetal disminuido: orientar evaluación obstétrica inmediata.",
+        "ctg": "Cardiotocografía no tranquilizadora: derivar para evaluación obstétrica urgente.",
+        "pbf": "Perfil biofísico fetal alterado (< 8/10): se recomienda evaluación obstétrica / propedéutica complementaria."
       }
     },
     "pedidoExames": {
