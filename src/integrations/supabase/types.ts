@@ -682,6 +682,100 @@ export type Database = {
         }
         Relationships: []
       }
+      exames_fetais: {
+        Row: {
+          ca: string | null
+          cmf: string | null
+          consulta_id: string
+          created_at: string
+          crescimento: string | null
+          ctg: string | null
+          id: string
+          la: string | null
+          morfologico: string | null
+          paciente_id: string
+          pbf: string | null
+          pfe_us: string | null
+          profissional_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          ca?: string | null
+          cmf?: string | null
+          consulta_id: string
+          created_at?: string
+          crescimento?: string | null
+          ctg?: string | null
+          id?: string
+          la?: string | null
+          morfologico?: string | null
+          paciente_id: string
+          pbf?: string | null
+          pfe_us?: string | null
+          profissional_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ca?: string | null
+          cmf?: string | null
+          consulta_id?: string
+          created_at?: string
+          crescimento?: string | null
+          ctg?: string | null
+          id?: string
+          la?: string | null
+          morfologico?: string | null
+          paciente_id?: string
+          pbf?: string | null
+          pfe_us?: string | null
+          profissional_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exames_fetais_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "consultas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exames_fetais_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "v_ficha_retorno_contexto"
+            referencedColumns: ["consulta_caso_novo_id"]
+          },
+          {
+            foreignKeyName: "exames_fetais_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "v_ficha_retorno_contexto"
+            referencedColumns: ["consulta_retorno_id"]
+          },
+          {
+            foreignKeyName: "exames_fetais_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exames_fetais_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "equipe_unidade_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exames_fetais_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exames_glicemia: {
         Row: {
           consulta_id: string
