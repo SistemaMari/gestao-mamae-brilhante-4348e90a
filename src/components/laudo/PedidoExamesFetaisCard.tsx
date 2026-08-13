@@ -22,7 +22,7 @@ export default function PedidoExamesFetaisCard({ tipo, igSemanas }: Props) {
   if (pedidos.length === 0) return null;
 
   return (
-    <div className="rounded-xl border p-4 space-y-2" style={{ backgroundColor: '#F5F3FF', borderColor: '#D6BCFA' }}>
+    <div className="rounded-xl border p-4 space-y-2 mt-4" style={{ backgroundColor: '#F5F3FF', borderColor: '#D6BCFA' }}>
       <div className="flex items-center gap-2">
         <ClipboardList className="h-4 w-4" style={{ color: '#5B21B6' }} />
         <h4 className="text-sm font-bold" style={{ color: '#5B21B6' }}>{t('ficha.pedidoExames.titulo')}</h4>
