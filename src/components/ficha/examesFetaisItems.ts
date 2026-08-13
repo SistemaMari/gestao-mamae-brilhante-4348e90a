@@ -44,10 +44,10 @@ export interface DefExameFetal {
   ocultaNaFichaAC?: boolean;
   labelKey: string;
   opcoes: OpcaoExame[];
-  /** Valor que caracteriza achado da Família 2 (dispara alerta de vitalidade). */
-  alertaFamilia2?: string;
-  /** Chave i18n do texto do alerta (placeholder até ratificação das Dras). */
-  alertaKey?: string;
+  /** Valores que disparam alerta de atenção → chave i18n do texto. Cobre achados de
+   *  vitalidade/morfologia (Família 2) e macrossomia (crescimento excessivo). Um mesmo
+   *  campo pode ter mais de um gatilho (ex.: crescimento restrito e excessivo). */
+  alertas?: Record<string, string>;
 }
 
 // common.yes / common.no reaproveitados para os campos Sim/Não.
@@ -59,7 +59,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
       { value: 'normal', labelKey: 'ficha.examesFetais.opt.normal' },
       { value: 'alterado', labelKey: 'ficha.examesFetais.opt.alterado' },
     ],
-    alertaFamilia2: 'alterado', alertaKey: 'ficha.examesFetais.alerta.morfologico',
+    alertas: { alterado: 'ficha.examesFetais.alerta.morfologico' },
   },
   {
     key: 'pfe_us', grupo: 'usg', ocultaNaFichaAC: true,
@@ -93,7 +93,10 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
       { value: 'restrito', labelKey: 'ficha.examesFetais.opt.restrito' },
       { value: 'excessivo', labelKey: 'ficha.examesFetais.opt.excessivo' },
     ],
-    alertaFamilia2: 'restrito', alertaKey: 'ficha.examesFetais.alerta.crescimentoRestrito',
+    alertas: {
+      restrito: 'ficha.examesFetais.alerta.crescimentoRestrito',
+      excessivo: 'ficha.examesFetais.alerta.crescimentoExcessivo',
+    },
   },
   {
     key: 'cmf', grupo: 'vigilancia',
@@ -102,7 +105,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
       { value: 'normal', labelKey: 'ficha.examesFetais.opt.normal' },
       { value: 'diminuido', labelKey: 'ficha.examesFetais.opt.diminuido' },
     ],
-    alertaFamilia2: 'diminuido', alertaKey: 'ficha.examesFetais.alerta.cmf',
+    alertas: { diminuido: 'ficha.examesFetais.alerta.cmf' },
   },
   {
     key: 'ctg', grupo: 'vigilancia',
@@ -111,7 +114,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
       { value: 'tranquilizador', labelKey: 'ficha.examesFetais.opt.tranquilizador' },
       { value: 'nao_tranquilizador', labelKey: 'ficha.examesFetais.opt.naoTranquilizador' },
     ],
-    alertaFamilia2: 'nao_tranquilizador', alertaKey: 'ficha.examesFetais.alerta.ctg',
+    alertas: { nao_tranquilizador: 'ficha.examesFetais.alerta.ctg' },
   },
   {
     key: 'pbf', grupo: 'vigilancia',
@@ -120,15 +123,20 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
       { value: 'sim', labelKey: 'common.yes' },
       { value: 'nao', labelKey: 'common.no' },
     ],
-    alertaFamilia2: 'nao', alertaKey: 'ficha.examesFetais.alerta.pbf',
+    alertas: { nao: 'ficha.examesFetais.alerta.pbf' },
   },
 ];
 
-/** Alertas da Família 2 ativos para um estado (usado no card e no laudo). */
+/** Alertas de atenção ativos para um estado (usado no card e no laudo). */
 export function alertasFamilia2(v: ExamesFetaisState): { key: ExameFetalCampo; alertaKey: string }[] {
-  return EXAMES_FETAIS_DEFS
-    .filter((d) => d.alertaFamilia2 != null && v[d.key] === d.alertaFamilia2)
-    .map((d) => ({ key: d.key, alertaKey: d.alertaKey! }));
+  const out: { key: ExameFetalCampo; alertaKey: string }[] = [];
+  for (const d of EXAMES_FETAIS_DEFS) {
+    const val = v[d.key];
+    if (d.alertas && val != null && d.alertas[val]) {
+      out.push({ key: d.key, alertaKey: d.alertas[val] });
+    }
+  }
+  return out;
 }
 
 /** Mapeia o estado da UI (null = sem dados) para o payload de `exames_fetais`. */

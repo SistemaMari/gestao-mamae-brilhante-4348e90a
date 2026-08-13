@@ -1869,6 +1869,7 @@
       "alerta": {
         "morfologico": "Ultrassom morfológico alterado. Encaminhar para avaliação obstétrica especializada.",
         "crescimentoRestrito": "Restrição de crescimento fetal identificada. Recomenda-se avaliação obstétrica / referência para acompanhamento de vitalidade fetal.",
+        "crescimentoExcessivo": "Crescimento fetal excessivo (macrossomia) identificado. Recomenda-se avaliação obstétrica e reavaliação da conduta.",
         "cmf": "Redução da movimentação fetal relatada. Orientar avaliação obstétrica imediata.",
         "ctg": "Traçado cardiotocográfico não tranquilizador. Encaminhar para avaliação obstétrica urgente.",
         "pbf": "Perfil biofísico fetal alterado (< 8/10). Recomenda-se avaliação obstétrica / propedêutica complementar."

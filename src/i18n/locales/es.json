@@ -1869,6 +1869,7 @@
       "alerta": {
         "morfologico": "Ecografía morfológica alterada. Derivar para evaluación obstétrica especializada.",
         "crescimentoRestrito": "Restricción del crecimiento fetal identificada. Se recomienda evaluación obstétrica / referencia para seguimiento de la vitalidad fetal.",
+        "crescimentoExcessivo": "Crecimiento fetal excesivo (macrosomía) identificado. Se recomienda evaluación obstétrica y reevaluación de la conducta.",
         "cmf": "Reducción de los movimientos fetales referida. Orientar evaluación obstétrica inmediata.",
         "ctg": "Trazado cardiotocográfico no tranquilizador. Derivar para evaluación obstétrica urgente.",
         "pbf": "Perfil biofísico fetal alterado (< 8/10). Se recomienda evaluación obstétrica / propedéutica complementaria."
