@@ -100,7 +100,7 @@ interface Payload {
 // ============================================================
 // 36A REV3 — Motor das 4 regras + roteamento
 // ============================================================
-type Regra = "regra_manter" | "regra_2" | "regra_3" | "regra_4";
+type Regra = "regra_manter" | "regra_2" | "regra_3" | "regra_4" | "regra_fetal";
 type Conduta = "manter_mev" | "reforcar_mev" | "insulina" | "avaliar_memoria";
 type ProximaFicha = "ficha_a" | "ficha_b" | "ficha_c" | "ficha_d" | "ficha_e";
 
@@ -132,7 +132,16 @@ function aplicarRegras(
   let regra: Regra | null = null;
   let conduta: Conduta | null = null;
 
-  if (pct >= 70 && adesao_ok && !fetal_nao) {
+  // V4 — Indicadores ultrassonográficos alterados encerram por insulina (OVERRIDE).
+  // Qualquer um de PFE-US ≥ P90 (4), CA ≥ P75 (5) ou LA anormal (6) = "nao" significa
+  // comprometimento fetal a partir de 28 semanas: já não há tempo de repactuar dieta,
+  // indica-se insulina e encerra-se a MARI — INDEPENDENTE do % de controle glicêmico
+  // e da adesão. Antes de 28 semanas os itens vêm "sem_info" (fetal_nao = false) e o
+  // fluxo segue pelas Regras abaixo, avaliando a memória do glicosímetro (Regra 4).
+  if (fetal_nao) {
+    regra = "regra_fetal";
+    conduta = "insulina";
+  } else if (pct >= 70 && adesao_ok) {
     regra = "regra_manter";
     conduta = "manter_mev";
   } else if (pct < 70 && adesao_falhou) {
@@ -142,7 +151,7 @@ function aplicarRegras(
   } else if (pct < 70 && adesao_ok) {
     regra = "regra_3";
     conduta = "insulina";
-  } else if (pct >= 70 && (adesao_falhou || fetal_nao)) {
+  } else if (pct >= 70 && adesao_falhou) {
     regra = "regra_4";
     conduta = "avaliar_memoria";
   }
@@ -153,6 +162,7 @@ function aplicarRegras(
   let dose_noite: number | null = null;
 
   const vaiParaInsulina =
+    regra === "regra_fetal" ||
     regra === "regra_3" ||
     (regra === "regra_2" && (pactuacoesPrevias > 0 || d.pactuacao_adesao === "recusa")) ||
     (regra === "regra_4" && d.memoria_glicosimetro === "nao_confirma" && d.pactuacao_adesao === "recusa");
@@ -173,7 +183,12 @@ function aplicarRegras(
 
   const pendencias: string[] = [];
 
-  if (regra === "regra_manter") {
+  if (regra === "regra_fetal") {
+    // Insulina terminal: roteia para ficha_b/ficha_d (por IG) — o mesmo sinal que
+    // o gate de encerramento 42B/42D consome. O acompanhamento encerra por
+    // insulinização; a "próxima ficha" é preservada só para o mapeamento de laudo.
+    proxima = bd();
+  } else if (regra === "regra_manter") {
     proxima = semInsulinaAC();
   } else if (regra === "regra_2") {
     // 42F — teto de pactuação única: histórico com pactuação aceita → insulina direto.

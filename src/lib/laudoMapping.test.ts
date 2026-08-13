@@ -40,6 +40,7 @@ describe('ehDesfechoInsulina (banner de urgência com endocrinologista)', () => 
     expect(ehDesfechoInsulina('r3_insulina')).toBe(true);
     expect(ehDesfechoInsulina('r4b_insulina')).toBe(true);
     expect(ehDesfechoInsulina('e_insulina')).toBe(true); // Ficha E inadequada → insulina
+    expect(ehDesfechoInsulina('rf_insulina')).toBe(true); // V4 — ultrassom alterado → insulina
   });
 
   it('false para condutas sem insulina, fallbacks e nulos', () => {
@@ -50,6 +51,13 @@ describe('ehDesfechoInsulina (banner de urgência com endocrinologista)', () => 
     expect(ehDesfechoInsulina('3')).toBe(false); // fallback legado, não recebe o texto novo
     expect(ehDesfechoInsulina(null)).toBe(false);
     expect(ehDesfechoInsulina(undefined)).toBe(false);
+  });
+});
+
+describe('derivarDesfechoClinico — Ficha A/C indicadores ultrassonográficos alterados (V4)', () => {
+  it('regra_fetal (PFE/CA/LA alterado) → rf_insulina, em ficha_a e ficha_c', () => {
+    expect(derivarDesfechoClinico({ tipo: 'ficha_a', regra_aplicada: 'regra_fetal', proxima_ficha_recomendada: 'ficha_b' })).toBe('rf_insulina');
+    expect(derivarDesfechoClinico({ tipo: 'ficha_c', regra_aplicada: 'regra_fetal', proxima_ficha_recomendada: 'ficha_d' })).toBe('rf_insulina');
   });
 });
 

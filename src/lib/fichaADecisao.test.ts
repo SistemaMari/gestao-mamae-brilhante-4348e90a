@@ -82,6 +82,51 @@ describe('aplicarRegrasFichaA — roteamento da próxima ficha', () => {
   });
 });
 
+describe('V4 — Indicadores ultrassonográficos alterados encerram por insulina (override)', () => {
+  it('BUG do print: <70% + adesão falhou + PFE(4) e LA(6) alterados → insulina (NÃO reforçar MEV)', () => {
+    // Reprodução do caso relatado pelas especialistas: 50% na meta, itens 1-3 = Não,
+    // item 4 (PFE) = Não e item 6 (LA) = Não → a ferramenta dava "reforçar MEV".
+    // Agora: ultrassom alterado = insulina + encerra.
+    const r = aplicarRegrasFichaA(
+      { ...base, checklist_dieta: false, checklist_exercicio: false, checklist_ganho_peso: false,
+        checklist_pfe_us: 'nao', checklist_la: 'nao' },
+      50, 70, 25,
+    );
+    expect(r.regra_aplicada).toBe('regra_fetal');
+    expect(r.conduta_gerada).toBe('insulina');
+    expect(r.proxima_ficha_recomendada).toBe('ficha_b'); // terminal → gate de encerramento
+    expect(r.dose_total).toBeGreaterThan(0);
+    expect(r.pendencias).toEqual([]);
+  });
+
+  it('override vence controle e adesão bons: ≥70% + adesão ok + só PFE(4) alterado → insulina', () => {
+    const r = aplicarRegrasFichaA({ ...base, checklist_pfe_us: 'nao' }, 90, 70, 25);
+    expect(r.regra_aplicada).toBe('regra_fetal');
+    expect(r.conduta_gerada).toBe('insulina');
+  });
+
+  it('basta um alterado: só CA(5) = Não já indica insulina', () => {
+    const r = aplicarRegrasFichaA({ ...base, checklist_ca: 'nao' }, 90, 70, 25);
+    expect(r.regra_aplicada).toBe('regra_fetal');
+  });
+
+  it('roteamento >30 semanas: regra_fetal → ficha_d', () => {
+    const r = aplicarRegrasFichaA({ ...base, checklist_la: 'nao' }, 50, 70, 32);
+    expect(r.regra_aplicada).toBe('regra_fetal');
+    expect(r.proxima_ficha_recomendada).toBe('ficha_d');
+  });
+
+  it('antes de 28 sem (sem_info) NÃO dispara o override: segue o fluxo normal (regra_4)', () => {
+    const r = aplicarRegrasFichaA(
+      { ...base, checklist_dieta: false, checklist_pfe_us: 'sem_info', checklist_ca: 'sem_info',
+        checklist_la: 'sem_info', memoria_glicosimetro: 'confirma' },
+      80, 70, 25,
+    );
+    expect(r.regra_aplicada).toBe('regra_4');
+    expect(r.proxima_ficha_recomendada).toBe('ficha_e');
+  });
+});
+
 // ════════════════════════════════════════════════════════════════════════════
 // 42T — Suíte de PARIDADE Ficha A (IG 25) ↔ Ficha C (IG 32)
 // Prova que cada cenário de decisão produz resultado IDÊNTICO nos dois regimes,

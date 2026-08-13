@@ -8,7 +8,7 @@ import { FileText, Heart, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
-export type Regra = 'regra_manter' | 'regra_2' | 'regra_3' | 'regra_4';
+export type Regra = 'regra_manter' | 'regra_2' | 'regra_3' | 'regra_4' | 'regra_fetal';
 export type Conduta = 'manter_mev' | 'reforcar_mev' | 'insulina' | 'avaliar_memoria';
 export type ProximaFicha = 'ficha_a' | 'ficha_b' | 'ficha_c' | 'ficha_d' | 'ficha_e';
 
