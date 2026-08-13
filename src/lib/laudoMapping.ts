@@ -79,6 +79,9 @@ function chaveCondutaFichaA(
 ): string | null {
   const insulina = proxima === 'ficha_b' || proxima === 'ficha_d';
   switch (regra) {
+    // V4 — indicadores ultrassonográficos alterados → insulina + encerra (desfecho
+    // próprio, com justificativa fetal distinta das demais chaves de insulina).
+    case 'regra_fetal':  return 'rf_insulina';
     case 'regra_manter': return 'r1_manter';
     case 'regra_2':      return insulina ? 'r2_insulina' : 'r2_reforcar';
     case 'regra_3':      return 'r3_insulina';
@@ -150,11 +153,14 @@ export function derivarDesfechoClinico(
  * de urgência com o endocrinologista (banner vermelho no laudo). Espelha as chaves
  * que o Prompt 43 reescreveu (r2_insulina, r3_insulina, r4b_insulina). Inclui
  * também `e_insulina` — controle inadequado no perfil de 6 pontos sem insulina
- * (Ficha E), que igualmente inicia insulinização e encerra o acompanhamento.
+ * (Ficha E), que igualmente inicia insulinização e encerra o acompanhamento — e
+ * `rf_insulina` (V4) — indicadores ultrassonográficos alterados (PFE/CA/LA), que
+ * indicam insulina e encerram o acompanhamento independentemente do controle.
  */
 export function ehDesfechoInsulina(desfecho: string | null | undefined): boolean {
   return desfecho === 'r2_insulina' || desfecho === 'r3_insulina' ||
-    desfecho === 'r4b_insulina' || desfecho === 'e_insulina';
+    desfecho === 'r4b_insulina' || desfecho === 'e_insulina' ||
+    desfecho === 'rf_insulina';
 }
 
 /**
