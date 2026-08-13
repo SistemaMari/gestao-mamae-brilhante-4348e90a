@@ -639,43 +639,6 @@ export default function GttForm({
           </div>
         </div>
 
-        {/* IG na data do GTT 75g */}
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-foreground">{t('gtt.ig.label')}</Label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs text-xs">
-                {t('gtt.ig.tooltipPre')} {descreverReferenciaIg(igCalculada)} {t('gtt.ig.tooltipPost')}
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              min={0}
-              max={45}
-              value={igSemanas}
-              onChange={(e) => setIgSemanas(e.target.value)}
-              placeholder={t('gtt.ig.weeksPlaceholder')}
-              className="w-20"
-            />
-            <span className="text-sm text-muted-foreground">{t('gtt.ig.weeks')}</span>
-            <Input
-              type="number"
-              min={0}
-              max={6}
-              value={igDias}
-              onChange={(e) => setIgDias(e.target.value)}
-              placeholder={t('gtt.ig.daysPlaceholder')}
-              className="w-20"
-            />
-            <span className="text-sm text-muted-foreground">{t('gtt.ig.days')}</span>
-          </div>
-        </div>
-
         {/* Glicemia de jejum */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
@@ -774,6 +737,44 @@ export default function GttForm({
             onValidityChange={setDataExameValida}
             className={fieldError(!!dataExame)}
           />
+        </div>
+
+        {/* IG na data do GTT 75g — calculada automaticamente a partir da data do exame */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Label className="text-sm font-medium text-foreground">{t('gtt.ig.label')}</Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs text-xs">
+                {t('gtt.ig.tooltipPre')} {descreverReferenciaIg(igCalculada)} {t('gtt.ig.tooltipPost')}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              min={0}
+              max={45}
+              value={igSemanas}
+              onChange={(e) => setIgSemanas(e.target.value)}
+              placeholder={t('gtt.ig.weeksPlaceholder')}
+              className="w-20"
+            />
+            <span className="text-sm text-muted-foreground">{t('gtt.ig.weeks')}</span>
+            <Input
+              type="number"
+              min={0}
+              max={6}
+              value={igDias}
+              onChange={(e) => setIgDias(e.target.value)}
+              placeholder={t('gtt.ig.daysPlaceholder')}
+              className="w-20"
+            />
+            <span className="text-sm text-muted-foreground">{t('gtt.ig.days')}</span>
+          </div>
+          <p className="text-xs text-muted-foreground">{t('gtt.ig.autoHint')}</p>
         </div>
 
         {/* Data da consulta de retorno */}

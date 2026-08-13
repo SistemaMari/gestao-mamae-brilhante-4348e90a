@@ -3356,7 +3356,8 @@
       "weeks": "semanas",
       "days": "dias",
       "weeksPlaceholder": "Sem",
-      "daysPlaceholder": "Dias"
+      "daysPlaceholder": "Dias",
+      "autoHint": "Calculada automaticamente pela ferramenta a partir da data do exame — não precisa preencher."
     },
     "jejum": {
       "label": "Glicemia de jejum no GTT 75g (mg/dL) *",

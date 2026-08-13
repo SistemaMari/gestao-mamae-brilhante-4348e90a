@@ -3356,7 +3356,8 @@
       "weeks": "semanas",
       "days": "días",
       "weeksPlaceholder": "Sem",
-      "daysPlaceholder": "Días"
+      "daysPlaceholder": "Días",
+      "autoHint": "Calculada automáticamente por la herramienta a partir de la fecha del examen — no es necesario completar."
     },
     "jejum": {
       "label": "Glucemia en ayunas en la PTOG 75g (mg/dL) *",

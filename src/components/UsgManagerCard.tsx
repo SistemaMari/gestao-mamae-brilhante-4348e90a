@@ -6,16 +6,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog';
-import { Activity, Plus, Pencil, Loader2, Trash2 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Activity, Plus, Pencil, Loader2 } from 'lucide-react';
 import UsgFlowSection, { emptyUsgFlow, UsgFlowValue } from '@/components/UsgFlowSection';
 import { formatDateBR } from '@/lib/dateUtils';
 import { toast } from 'sonner';
@@ -74,10 +65,10 @@ export default function UsgManagerCard({
   const [saving, setSaving] = useState(false);
   const [refDraft, setRefDraft] = useState<RefDraft>(null);
 
-  // CRUD de USGs: estado para edição inline (modal próprio) e exclusão (AlertDialog).
+  // Edição inline de USG (modal próprio). A exclusão de USG foi removida (V4):
+  // USG é editável, mas não excluível.
   const [openEditUsg, setOpenEditUsg] = useState<UsgRow | null>(null);
   const [editFlow, setEditFlow] = useState<UsgFlowValue>({ ...emptyUsgFlow, jaFezUsg: 'sim' });
-  const [confirmDelete, setConfirmDelete] = useState<UsgRow | null>(null);
 
   // 34C-B2: ao mudar a âncora (referência ou dados de USG), invalida a query única
   // de IG (['ig', pacienteId]) para TODAS as fichas rebuscarem o RPC calcular_ig e
@@ -299,51 +290,6 @@ export default function UsgManagerCard({
     onChanged?.();
   };
 
-  const handleDeleteUsg = async () => {
-    const alvo = confirmDelete;
-    if (!alvo) return;
-    setSaving(true);
-    // Se a USG sendo deletada é a referência ativa, decide o que vai virar referência.
-    // Regra: se houver outra USG, mantém ref='usg' apontando para a próxima de menor ordem
-    // (ordem=1 se existir, senão a primeira da lista ordenada); se não houver mais nenhuma
-    // USG, cai pra DUM quando a paciente tiver DUM, ou limpa para null.
-    const ehReferenciaAtiva = referenciaIg === 'usg' && referenciaUsgId === alvo.id;
-
-    const { error: delErr } = await supabase
-      .from('exames_usg' as any)
-      .delete()
-      .eq('id', alvo.id);
-    if (delErr) {
-      setSaving(false);
-      console.error(delErr);
-      toast.error(t('usg.errors.delete'));
-      return;
-    }
-
-    if (ehReferenciaAtiva) {
-      const remanescentes = usgs.filter((u) => u.id !== alvo.id);
-      const proxima = remanescentes.find((u) => u.ordem === 1) ?? remanescentes[0] ?? null;
-      const refUpdate: { referencia_ig: 'dum' | 'usg' | null; referencia_usg_id: string | null } = proxima
-        ? { referencia_ig: 'usg', referencia_usg_id: proxima.id }
-        : dum
-          ? { referencia_ig: 'dum', referencia_usg_id: null }
-          : { referencia_ig: null, referencia_usg_id: null };
-      const { error: refErr } = await supabase
-        .from('pacientes')
-        .update(refUpdate as any)
-        .eq('id', pacienteId);
-      if (refErr) console.error('[UsgManagerCard] falha ao realocar referência após exclusão:', refErr);
-      // 40B (3.3): a exclusão realocou a referência de IG → registra a troca.
-      else await carimbarAtendimento({ pacienteId, tipoOperacao: 'trocar_referencia_ig', recursoId: refUpdate.referencia_usg_id ?? undefined, recursoTipo: 'paciente' });
-    }
-
-    setSaving(false);
-    toast.success(t('usg.toasts.deleted'));
-    setConfirmDelete(null);
-    await load();
-    invalidarIg();
-    onChanged?.();
-  };
 
   const handleSaveRef = async () => {
     if (!refDraft) return;
@@ -462,15 +408,6 @@ export default function UsgManagerCard({
                     title={t('usg.editTitle')}
                   >
                     <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDelete(u)}
-                    className="rounded p-1 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400/40"
-                    aria-label={t('usg.deleteAria', { label: usgLabel(u.ordem) })}
-                    title={t('usg.deleteTitle')}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -660,43 +597,6 @@ export default function UsgManagerCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Confirmação de exclusão de USG */}
-      <AlertDialog
-        open={!!confirmDelete}
-        onOpenChange={(open) => { if (!open) setConfirmDelete(null); }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-red-600" />
-              {t('usg.deleteConfirmTitle', { label: confirmDelete ? usgLabel(confirmDelete.ordem) : '' })}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <span>
-                {t('usg.deleteConfirmDesc', { data: confirmDelete ? formatDateBR(confirmDelete.data_exame) : '' })}
-              </span>
-              {confirmDelete && referenciaIg === 'usg' && referenciaUsgId === confirmDelete.id && (
-                <span className="block rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                  {t('usg.deleteConfirmActiveRefWarning')}
-                </span>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setConfirmDelete(null)} disabled={saving}>
-              {t('common.cancel')}
-            </Button>
-            <AlertDialogAction
-              onClick={handleDeleteUsg}
-              className="bg-red-600 text-white hover:bg-red-700"
-            >
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t('common.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
