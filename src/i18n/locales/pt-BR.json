@@ -1841,6 +1841,39 @@
       "tooltip": "As 6 respostas são enviadas ao backend, que devolve a conduta (manter MEV / reforçar MEV / iniciar insulina / avaliar memória do glicosímetro) e a próxima ficha recomendada.",
       "noInfo": "Sem informação"
     },
+    "examesFetais": {
+      "title": "Exames de crescimento e vitalidade fetal",
+      "tooltip": "Registre os resultados quando a gestante trouxer os exames. Deixe em \"Sem dados\" enquanto a idade gestacional ainda não permitir.",
+      "semDados": "Sem dados",
+      "grupoUsg": "Ultrassonografia",
+      "grupoVigilancia": "Vigilância fetal",
+      "morfologico": { "label": "USG morfológico (2º trimestre, 12–14 sem)" },
+      "pfe": { "label": "PFE-US < P90" },
+      "ca": { "label": "CA < P75" },
+      "la": { "label": "LA normal" },
+      "crescimento": { "label": "Crescimento fetal" },
+      "cmf": { "label": "Movimentação fetal (CMF)" },
+      "ctg": { "label": "Cardiotocografia (CTG)" },
+      "pbf": { "label": "Perfil biofísico fetal (8/10)" },
+      "opt": {
+        "normal": "Normal",
+        "alterado": "Alterado",
+        "adequado": "Adequado",
+        "restrito": "Restrito",
+        "excessivo": "Excessivo",
+        "diminuido": "Diminuída",
+        "tranquilizador": "Tranquilizador",
+        "naoTranquilizador": "Não tranquilizador"
+      },
+      "alertaTitulo": "Atenção — achado que requer avaliação obstétrica",
+      "alerta": {
+        "morfologico": "[TEXTO PROVISÓRIO — pendente das especialistas] USG morfológico alterado: encaminhar para avaliação obstétrica especializada.",
+        "crescimentoRestrito": "[TEXTO PROVISÓRIO — pendente das especialistas] Restrição de crescimento fetal: recomenda-se avaliação obstétrica / acompanhamento de vitalidade.",
+        "cmf": "[TEXTO PROVISÓRIO — pendente das especialistas] Movimentação fetal diminuída: orientar avaliação obstétrica imediata.",
+        "ctg": "[TEXTO PROVISÓRIO — pendente das especialistas] Cardiotocografia não tranquilizadora: encaminhar para avaliação obstétrica urgente.",
+        "pbf": "[TEXTO PROVISÓRIO — pendente das especialistas] Perfil biofísico fetal alterado (< 8/10): recomenda-se avaliação obstétrica / propedêutica complementar."
+      }
+    },
     "statusFichaBadge": {
       "rascunho": "Rascunho",
       "completa": "Completa",

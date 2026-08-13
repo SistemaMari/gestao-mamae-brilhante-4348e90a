@@ -776,6 +776,72 @@ export type Database = {
           },
         ]
       }
+      exames_fetais: {
+        Row: {
+          ca: string | null
+          consulta_id: string
+          created_at: string
+          crescimento: string | null
+          cmf: string | null
+          ctg: string | null
+          id: string
+          la: string | null
+          morfologico: string | null
+          paciente_id: string
+          pbf: string | null
+          pfe_us: string | null
+          profissional_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          ca?: string | null
+          consulta_id: string
+          created_at?: string
+          crescimento?: string | null
+          cmf?: string | null
+          ctg?: string | null
+          id?: string
+          la?: string | null
+          morfologico?: string | null
+          paciente_id: string
+          pbf?: string | null
+          pfe_us?: string | null
+          profissional_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ca?: string | null
+          consulta_id?: string
+          created_at?: string
+          crescimento?: string | null
+          cmf?: string | null
+          ctg?: string | null
+          id?: string
+          la?: string | null
+          morfologico?: string | null
+          paciente_id?: string
+          pbf?: string | null
+          pfe_us?: string | null
+          profissional_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exames_fetais_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: true
+            referencedRelation: "consultas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exames_fetais_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exames_usg: {
         Row: {
           criado_em: string
