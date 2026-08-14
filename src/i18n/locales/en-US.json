@@ -3296,6 +3296,7 @@
     "impact": {
       "adequado": "ADEQUATE CONTROL",
       "inadequado": "INADEQUATE CONTROL",
+      "fetalTitulo": "ABNORMAL FETAL INDICATORS — INSULIN",
       "percentual": "{{percentual}}% of glucose values within target",
       "adequadoFichaE": "Adequate control — follow-up expanded to a 6-point profile, still without insulin.",
       "adequadoDefault": "Guidance in the full report below.",
@@ -4029,6 +4030,7 @@
     "weightSaveError": "Error saving weight: {{error}}",
     "unknownError": "Unknown error",
     "controlAdequate": "ADEQUATE CONTROL — {{percent}}% of blood glucose readings within target",
+    "controlAdequateInsulin": "ADEQUATE GLYCEMIC CONTROL — {{percent}}% · INSULIN INDICATED (fetal indicators)",
     "controlInadequate": "INADEQUATE CONTROL — {{percent}}% of blood glucose readings within target",
     "result": "Result",
     "valuesInTarget": "{{within}} of {{total}} values within target ({{percent}}%).",
