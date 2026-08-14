@@ -682,10 +682,15 @@ export default function Retorno1Form({
       await supabase.from('exames_glicemia' as any).insert(examePayload as any);
     }
 
-    await supabase.from('pacientes').update({
-      status_ficha: newStatus,
-      data_ultima_consulta: dataConsultaRetorno,
-    }).eq('id', paciente.id);
+    // Sincronia de status: só a consulta mais recente dita o status da paciente.
+    // Editar um Retorno 1 antigo não reverte o estado clínico atual (a UI já
+    // restringe a edição à última consulta; isto blinda a invariante no write).
+    if (isLastConsulta) {
+      await supabase.from('pacientes').update({
+        status_ficha: newStatus,
+        data_ultima_consulta: dataConsultaRetorno,
+      }).eq('id', paciente.id);
+    }
 
     // Bloco 2: salvar USG capturada agora + referência escolhida
     if (precisaUsgRef && usgFlow.jaFezUsg === 'sim' && usgFlow.dataExame && usgFlow.igSemanas !== '') {

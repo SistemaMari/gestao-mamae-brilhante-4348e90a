@@ -8,6 +8,7 @@ import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 import { vereditoControle } from '@/lib/vereditoControle';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { supabase } from '@/integrations/supabase/client';
+import { consultaDitaStatusPaciente } from '@/lib/statusSync';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
@@ -499,16 +500,20 @@ export default function FichaBDForm({
         if (valErr) throw valErr;
       }
 
-      await supabase
-        .from('pacientes')
-        .update({
-          status_ficha: newStatus,
-          data_ultima_consulta: dataConsulta,
-          data_proximo_retorno: isAdequado && dataConsultaLocal
-            ? format(addDays(dataConsultaLocal, retornoDias), 'yyyy-MM-dd')
-            : null,
-        })
-        .eq('id', paciente.id);
+      // Sincronia de status: só a consulta mais recente (ou nova) dita o status da
+      // paciente. Editar uma Ficha B/D antiga não reverte o estado clínico atual.
+      if (consultaDitaStatusPaciente(editingConsulta, consultas)) {
+        await supabase
+          .from('pacientes')
+          .update({
+            status_ficha: newStatus,
+            data_ultima_consulta: dataConsulta,
+            data_proximo_retorno: isAdequado && dataConsultaLocal
+              ? format(addDays(dataConsultaLocal, retornoDias), 'yyyy-MM-dd')
+              : null,
+          })
+          .eq('id', paciente.id);
+      }
 
       const { carimbarAtendimento } = await import('@/lib/carimbar');
       await carimbarAtendimento({

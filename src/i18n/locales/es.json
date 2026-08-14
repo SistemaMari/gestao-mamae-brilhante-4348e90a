@@ -2446,7 +2446,11 @@
       "dmg_confirmado": "DMG confirmada",
       "resultado_parto": "Resultado del parto",
       "encaminhada_endocrino": "Cerrada por insulinización",
-      "encerrada_insulinizacao": "Cerrada por insulinización"
+      "encerrada_insulinizacao": "Cerrada por insulinización",
+      "encerrada_parto": "Cerrada · Parto",
+      "encerrada_aborto": "Cerrada · Aborto",
+      "encerrada_nao_retornou": "Cerrada · No retornó",
+      "encerrada_outro": "Cerrada · Otro"
     },
     "displayName": {
       "registroPartoEvento": "REGISTRO DEL PARTO",

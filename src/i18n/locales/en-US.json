@@ -2446,7 +2446,11 @@
       "dmg_confirmado": "GDM confirmed",
       "resultado_parto": "Delivery outcome",
       "encaminhada_endocrino": "Closed due to insulinization",
-      "encerrada_insulinizacao": "Closed due to insulinization"
+      "encerrada_insulinizacao": "Closed due to insulinization",
+      "encerrada_parto": "Closed · Delivery",
+      "encerrada_aborto": "Closed · Miscarriage",
+      "encerrada_nao_retornou": "Closed · Did not return",
+      "encerrada_outro": "Closed · Other"
     },
     "displayName": {
       "registroPartoEvento": "DELIVERY RECORD",

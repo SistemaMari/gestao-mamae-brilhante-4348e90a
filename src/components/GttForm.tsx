@@ -34,6 +34,7 @@ import { Info, Loader2, AlertTriangle, CheckCircle2, XCircle, Printer } from 'lu
 // em `@/lib/getIg` (RPC calcular_ig).
 import { todayLocalISO } from '@/lib/dateUtils';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
+import { consultaDitaStatusPaciente } from '@/lib/statusSync';
 
 function todayISO() {
   return todayLocalISO();
@@ -401,10 +402,14 @@ export default function GttForm({
       }
     }
 
-    await supabase.from('pacientes').update({
-      status_ficha: diag.statusFicha,
-      data_ultima_consulta: dataConsulta,
-    }).eq('id', paciente.id);
+    // Sincronia de status: só a consulta mais recente (ou nova) dita o status da
+    // paciente. Editar um GTT antigo não reverte o estado clínico atual.
+    if (consultaDitaStatusPaciente(editingConsulta, consultas)) {
+      await supabase.from('pacientes').update({
+        status_ficha: diag.statusFicha,
+        data_ultima_consulta: dataConsulta,
+      }).eq('id', paciente.id);
+    }
 
     const { carimbarAtendimento } = await import('@/lib/carimbar');
     await carimbarAtendimento({

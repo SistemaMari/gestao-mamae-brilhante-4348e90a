@@ -35,6 +35,7 @@ import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
 import ChecklistRetorno2, { CHECKLIST_VAZIO, isChecklistCompleto, type ChecklistState } from '@/components/ficha/ChecklistRetorno2';
+import { consultaDitaStatusPaciente } from '@/lib/statusSync';
 import ExamesFetaisCard from '@/components/ficha/ExamesFetaisCard';
 import { EXAMES_FETAIS_VAZIO, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
@@ -686,19 +687,24 @@ export default function FichaACForm({
       // encerramento não persiste → sem próximo passo e sem card. Checar o erro
       // (como já se faz no insert de valores_perfil acima) transforma a falha
       // silenciosa em erro visível, evitando recriar o estado dessincronizado.
-      const { error: pacErr } = await supabase
-        .from('pacientes')
-        .update({
-          status_ficha: pacienteStatusFicha,
-          // 42H — encerramento por insulinização (espelha salvar-ficha-retorno:689-691).
-          ...(iniciaInsulina
-            ? { motivo_encerramento: 'insulinizacao', data_encerramento: dataConsulta }
-            : {}),
-          data_ultima_consulta: dataConsulta,
-          data_proximo_retorno: proximoRetornoISO,
-        })
-        .eq('id', paciente.id);
-      if (pacErr) throw pacErr;
+      // Sincronia de status: só a consulta mais recente (ou nova) dita o status da
+      // paciente. Editar uma Ficha A/C antiga não reverte o estado clínico atual
+      // (nem re-aplica o encerramento por insulinização se já houve consulta depois).
+      if (consultaDitaStatusPaciente(editingConsulta, consultas)) {
+        const { error: pacErr } = await supabase
+          .from('pacientes')
+          .update({
+            status_ficha: pacienteStatusFicha,
+            // 42H — encerramento por insulinização (espelha salvar-ficha-retorno:689-691).
+            ...(iniciaInsulina
+              ? { motivo_encerramento: 'insulinizacao', data_encerramento: dataConsulta }
+              : {}),
+            data_ultima_consulta: dataConsulta,
+            data_proximo_retorno: proximoRetornoISO,
+          })
+          .eq('id', paciente.id);
+        if (pacErr) throw pacErr;
+      }
 
       const { carimbarAtendimento } = await import('@/lib/carimbar');
       await carimbarAtendimento({
