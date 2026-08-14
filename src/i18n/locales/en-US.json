@@ -3360,7 +3360,8 @@
       "weeks": "weeks",
       "days": "days",
       "weeksPlaceholder": "Wk",
-      "daysPlaceholder": "Days"
+      "daysPlaceholder": "Days",
+      "autoHint": "Automatically calculated by the tool from the test date — no need to fill in."
     },
     "jejum": {
       "label": "Fasting glucose on the 75g OGTT (mg/dL) *",
