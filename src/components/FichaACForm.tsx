@@ -279,6 +279,9 @@ export default function FichaACForm({
     adequado: boolean;
     // 38B-B (#10): roteamento devolvido pelo motor — pop-up sensível ao desfecho.
     proximaFicha: string | null;
+    // V4 — regra aplicada: distingue insulina por indicadores fetais (regra_fetal)
+    // dos demais desfechos, para o pop-up explicar "adequado, mas insulina pelo feto".
+    regra: string | null;
   } | null>(null);
 
   // Cell value change
@@ -764,7 +767,7 @@ export default function FichaACForm({
           } as any, { onConflict: 'consulta_id' });
       }
 
-      setSavedResult({ percentual: percentual!, adequado: isAdequado, proximaFicha: decisaoFichaA?.proxima_ficha_recomendada ?? null });
+      setSavedResult({ percentual: percentual!, adequado: isAdequado, proximaFicha: decisaoFichaA?.proxima_ficha_recomendada ?? null, regra: decisaoFichaA?.regra_aplicada ?? null });
       setSaving(false);
       setShowImpact(true);
     } catch (err: any) {
@@ -1194,7 +1197,14 @@ export default function FichaACForm({
               <p className="text-base font-semibold">
                 {t('fichaAC.impact.percentual', { percentual: savedResult?.percentual?.toFixed(1) })}
               </p>
-              {savedResult?.adequado ? (
+              {savedResult?.regra === 'regra_fetal' ? (
+                // V4 — insulina por indicadores ultrassonográficos alterados, mesmo
+                // com controle glicêmico adequado. O verde é do controle glicêmico;
+                // a conduta é insulina por causa do feto.
+                <p className="text-sm">
+                  {t('fichaAC.impact.fetalInsulina')}
+                </p>
+              ) : savedResult?.adequado ? (
                 <p className="text-sm">
                   {savedResult?.proximaFicha === 'ficha_e'
                     ? t('fichaAC.impact.adequadoFichaE')

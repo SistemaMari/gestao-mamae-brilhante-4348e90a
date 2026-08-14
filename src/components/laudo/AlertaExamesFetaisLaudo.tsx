@@ -35,7 +35,7 @@ export default function AlertaExamesFetaisLaudo({ tipo, consultaId }: Props) {
   if (alertas.length === 0) return null;
 
   return (
-    <div className="rounded-xl border-2 p-4 space-y-1" style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}>
+    <div className="rounded-xl border-2 p-4 space-y-1 mt-4" style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}>
       <div className="flex items-center gap-2">
         <AlertTriangle className="h-4 w-4" style={{ color: '#92400E' }} />
         <span className="text-sm font-bold" style={{ color: '#92400E' }}>{t('ficha.examesFetais.alertaTitulo')}</span>
