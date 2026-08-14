@@ -43,10 +43,14 @@ export default function FichaACResultCard({
   pacienteId, consultaId, isPreview, isReadOnly, onWeightSaved,
 }: FichaACResultCardProps) {
   const { t } = useTranslation();
-  const bgColor = adequado ? '#DCFCE7' : '#FEF3C7';
-  const borderColor = adequado ? '#86EFAC' : '#FCD34D';
-  const titleColor = adequado ? '#166534' : '#92400E';
-  const textColor = adequado ? '#15803D' : '#B45309';
+  // V4 — verde SÓ quando tudo está adequado (controle glicêmico ok E sem insulina).
+  // Se a conduta é insulina (ex.: indicadores fetais alterados), o card é laranja,
+  // mesmo com o controle glicêmico adequado.
+  const verde = adequado && !condutaInsulina;
+  const bgColor = verde ? '#DCFCE7' : '#FEF3C7';
+  const borderColor = verde ? '#86EFAC' : '#FCD34D';
+  const titleColor = verde ? '#166534' : '#92400E';
+  const textColor = verde ? '#15803D' : '#B45309';
 
   // Estado local para captura de peso (apenas quando inadequado e ainda sem peso registrado)
   const [pesoInput, setPesoInput] = useState('');
@@ -119,9 +123,11 @@ export default function FichaACResultCard({
       >
         <h2 className="text-sm font-bold flex items-center gap-2" style={{ color: titleColor }}>
           <FileText className="h-4 w-4" />
-          {adequado
+          {verde
             ? t('fichaACResult.controlAdequate', { percent: percentual.toFixed(1) })
-            : t('fichaACResult.controlInadequate', { percent: percentual.toFixed(1) })}
+            : adequado
+              ? t('fichaACResult.controlAdequateInsulin', { percent: percentual.toFixed(1) })
+              : t('fichaACResult.controlInadequate', { percent: percentual.toFixed(1) })}
         </h2>
 
         <div className="rounded-lg bg-white/70 p-3">

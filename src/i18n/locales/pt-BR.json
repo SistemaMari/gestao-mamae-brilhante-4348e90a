@@ -3296,6 +3296,7 @@
     "impact": {
       "adequado": "CONTROLE ADEQUADO",
       "inadequado": "CONTROLE INADEQUADO",
+      "fetalTitulo": "INDICADORES FETAIS ALTERADOS — INSULINA",
       "percentual": "{{percentual}}% das glicemias dentro da meta",
       "adequadoFichaE": "Controle adequado — acompanhamento ampliado para perfil de 6 pontos ainda sem insulina.",
       "adequadoDefault": "Orientações no laudo completo abaixo.",
@@ -4029,6 +4030,7 @@
     "weightSaveError": "Erro ao salvar peso: {{error}}",
     "unknownError": "Erro desconhecido",
     "controlAdequate": "CONTROLE ADEQUADO — {{percent}}% das glicemias dentro da meta",
+    "controlAdequateInsulin": "CONTROLE GLICÊMICO ADEQUADO — {{percent}}% · INSULINA INDICADA (indicadores fetais)",
     "controlInadequate": "CONTROLE INADEQUADO — {{percent}}% das glicemias dentro da meta",
     "result": "Resultado",
     "valuesInTarget": "{{within}} de {{total}} valores dentro da meta ({{percent}}%).",

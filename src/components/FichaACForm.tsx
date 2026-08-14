@@ -1187,7 +1187,10 @@ export default function FichaACForm({
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-center text-lg">
-              {savedResult?.adequado ? (
+              {savedResult?.regra === 'regra_fetal' ? (
+                // Insulina por indicadores fetais → laranja, mesmo com glicemia adequada.
+                <span className="text-[#D97706]">{t('fichaAC.impact.fetalTitulo')}</span>
+              ) : savedResult?.adequado ? (
                 <span className="text-[#16A34A]">{t('fichaAC.impact.adequado')}</span>
               ) : (
                 <span className="text-[#D97706]">{t('fichaAC.impact.inadequado')}</span>

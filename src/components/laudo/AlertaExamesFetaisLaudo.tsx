@@ -1,14 +1,15 @@
 /**
- * V4 — Alerta da Família 2 (vitalidade/morfologia fetal) NO LAUDO. Espelha o alerta
- * que o ExamesFetaisCard já mostra na tela da ficha, para o achado também constar do
- * laudo. Auto-busca a linha de `exames_fetais` da consulta; renderiza nada quando não
- * há achado. Texto é placeholder até ratificação clínica (i18n ficha.examesFetais.alerta.*).
+ * V4 — Exames de crescimento e vitalidade fetal NO LAUDO. Auto-busca a linha de
+ * `exames_fetais` da consulta e renderiza (1) o REGISTRO read-only dos resultados
+ * respondidos (quadro lilás — espelho do card da ficha) e (2) o ALERTA da Família 2
+ * (vitalidade/morfologia) quando há achado. Renderiza nada quando não há dado algum.
  */
 import { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { alertasFamilia2, fromExamesFetaisRow, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
+import ExamesFetaisReadOnly from '@/components/ficha/ExamesFetaisReadOnly';
 import { fichaTemPedidoExames } from '@/lib/pedidosExamesFetais';
 
 interface Props {
@@ -31,20 +32,29 @@ export default function AlertaExamesFetaisLaudo({ tipo, consultaId }: Props) {
   }, [consultaId, tipo]);
 
   if (!estado) return null;
+  const temDados = Object.values(estado).some((v) => v != null);
+  if (!temDados) return null;
   const alertas = alertasFamilia2(estado);
-  if (alertas.length === 0) return null;
 
   return (
-    <div className="rounded-xl border-2 p-4 space-y-1 mt-4" style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}>
-      <div className="flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4" style={{ color: '#92400E' }} />
-        <span className="text-sm font-bold" style={{ color: '#92400E' }}>{t('ficha.examesFetais.alertaTitulo')}</span>
-      </div>
-      <ul className="list-disc pl-6 space-y-0.5">
-        {alertas.map((a) => (
-          <li key={a.key} className="text-xs" style={{ color: '#B45309' }}>{t(a.alertaKey)}</li>
-        ))}
-      </ul>
+    <div className="space-y-4 mt-4">
+      {/* Registro read-only dos resultados (quadro lilás) */}
+      <ExamesFetaisReadOnly value={estado} />
+
+      {/* Alerta da Família 2 (vitalidade/morfologia) */}
+      {alertas.length > 0 && (
+        <div className="rounded-xl border-2 p-4 space-y-1" style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" style={{ color: '#92400E' }} />
+            <span className="text-sm font-bold" style={{ color: '#92400E' }}>{t('ficha.examesFetais.alertaTitulo')}</span>
+          </div>
+          <ul className="list-disc pl-6 space-y-0.5">
+            {alertas.map((a) => (
+              <li key={a.key} className="text-xs" style={{ color: '#B45309' }}>{t(a.alertaKey)}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
