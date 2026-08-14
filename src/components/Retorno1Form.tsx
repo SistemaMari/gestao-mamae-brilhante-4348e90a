@@ -682,10 +682,13 @@ export default function Retorno1Form({
       await supabase.from('exames_glicemia' as any).insert(examePayload as any);
     }
 
-    // Sincronia de status: só a consulta mais recente dita o status da paciente.
-    // Editar um Retorno 1 antigo não reverte o estado clínico atual (a UI já
-    // restringe a edição à última consulta; isto blinda a invariante no write).
-    if (isLastConsulta) {
+    // Sincronia de status: preenchimento NOVO (sem editingConsulta) sempre dita o
+    // status — é a consulta mais recente. Na EDIÇÃO, só atualiza se for a última
+    // (blinda a invariante sem reverter o estado clínico ao editar um Retorno 1
+    // antigo). REGRESSÃO CORRIGIDA: `isLastConsulta` (retorno1IsLast) é false
+    // enquanto se preenche o 1º Retorno 1 (a última consulta ainda é o Caso Novo),
+    // então guardar só por ele deixava o status preso em "aguardando_gj".
+    if (!editingConsulta || isLastConsulta) {
       await supabase.from('pacientes').update({
         status_ficha: newStatus,
         data_ultima_consulta: dataConsultaRetorno,
