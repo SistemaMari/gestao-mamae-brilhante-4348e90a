@@ -17,6 +17,7 @@ import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { supabase } from '@/integrations/supabase/client';
+import { consultaDitaStatusPaciente } from '@/lib/statusSync';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
 import ExamesFetaisCard from '@/components/ficha/ExamesFetaisCard';
@@ -526,16 +527,20 @@ export default function FichaEForm({
           } as any, { onConflict: 'consulta_id' });
       }
 
-      await supabase
-        .from('pacientes')
-        .update({
-          status_ficha: newStatus,
-          data_ultima_consulta: dataConsulta,
-          data_proximo_retorno: conduta_e === 'manter_e' && dataConsultaLocal
-            ? format(addDays(dataConsultaLocal, RETORNO_DIAS), 'yyyy-MM-dd')
-            : null,
-        })
-        .eq('id', paciente.id);
+      // Sincronia de status: só a consulta mais recente (ou nova) dita o status da
+      // paciente. Editar uma Ficha E antiga não reverte o estado clínico atual.
+      if (consultaDitaStatusPaciente(editingConsulta, consultas)) {
+        await supabase
+          .from('pacientes')
+          .update({
+            status_ficha: newStatus,
+            data_ultima_consulta: dataConsulta,
+            data_proximo_retorno: conduta_e === 'manter_e' && dataConsultaLocal
+              ? format(addDays(dataConsultaLocal, RETORNO_DIAS), 'yyyy-MM-dd')
+              : null,
+          })
+          .eq('id', paciente.id);
+      }
 
       const { carimbarAtendimento } = await import('@/lib/carimbar');
       await carimbarAtendimento({

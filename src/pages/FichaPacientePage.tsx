@@ -112,6 +112,19 @@ const STATUS_CONFIG: Record<string, { labelKey: string; color: string }> = {
   encerrada_insulinizacao: { labelKey: 'fichaPaciente.status.encerrada_insulinizacao', color: 'bg-violet-600' },
 };
 
+// V4 — badge do cabeçalho por MOTIVO de encerramento (ponte igual à da lista:
+// getStatusPacienteChip). O encerramento manual grava só `motivo_encerramento`
+// (sem tocar `status_ficha`), então o badge precisa ler o motivo efetivo — senão
+// o topo da ficha mostra o status clínico anterior (ex.: "DMG confirmado") enquanto
+// a lista já mostra "Encerrada · Parto". Cores espelham ENCERRAMENTO_CHIP (fichaUtils).
+const ENCERRAMENTO_STATUS_CONFIG: Record<MotivoEncerramento, { labelKey: string; color: string }> = {
+  insulinizacao: { labelKey: 'fichaPaciente.status.encerrada_insulinizacao', color: 'bg-violet-600' },
+  parto: { labelKey: 'fichaPaciente.status.encerrada_parto', color: 'bg-purple-500' },
+  aborto: { labelKey: 'fichaPaciente.status.encerrada_aborto', color: 'bg-slate-500' },
+  nao_retornou: { labelKey: 'fichaPaciente.status.encerrada_nao_retornou', color: 'bg-gray-500' },
+  outro: { labelKey: 'fichaPaciente.status.encerrada_outro', color: 'bg-gray-500' },
+};
+
 // Dynamic display name based on chronological index
 function getDisplayName(
   c: PreviewConsulta,
@@ -765,8 +778,6 @@ export default function FichaPacientePage() {
 
   const igMaior24 = igAtual ? igAtual.semanas >= 24 : false;
 
-  const status = paciente ? STATUS_CONFIG[paciente.status_ficha] : null;
-
   // ── PROMPT 42E — encerramento manual in-app ──────────────────────────────
   // Os campos de encerramento vêm do select('*') sem tipagem no state; leitura
   // NARROW (sem `any`) para motivo/card/reteste não trabalharem no escuro.
@@ -788,6 +799,19 @@ export default function FichaPacientePage() {
       })
     : null;
   const isEncerrada = motivoEfetivo != null;
+
+  // V4 (Problema 2) — badge do cabeçalho alinhado à lista: encerramento (motivo
+  // efetivo) tem precedência sobre o status_ficha cru. Antes o topo da ficha lia
+  // só STATUS_CONFIG[status_ficha] e mostrava o status clínico anterior mesmo com
+  // a paciente já encerrada (parto/aborto/…). Agora usa a mesma ponte da lista.
+  const status = paciente
+    ? (motivoEfetivo
+        ? ENCERRAMENTO_STATUS_CONFIG[motivoEfetivo]
+        // 'resultado_parto' legado (sem motivo) → parto, igual a getStatusPacienteChip.
+        : paciente.status_ficha === 'resultado_parto'
+          ? ENCERRAMENTO_STATUS_CONFIG.parto
+          : STATUS_CONFIG[paciente.status_ficha] ?? null)
+    : null;
 
   // DMG confirmado (persistente): estados só alcançáveis pós-confirmação, ou o
   // próprio motivo de insulinização. Predicado baseado em status_ficha, que o
