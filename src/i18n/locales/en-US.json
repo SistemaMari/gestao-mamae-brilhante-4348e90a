@@ -3299,6 +3299,7 @@
       "percentual": "{{percentual}}% of glucose values within target",
       "adequadoFichaE": "Adequate control — follow-up expanded to a 6-point profile, still without insulin.",
       "adequadoDefault": "Guidance in the full report below.",
+      "fetalInsulina": "One or more ultrasound indicators (EFW/AC/AF) are abnormal. Regardless of glycemic control, insulin is indicated, closing MARI's active follow-up.",
       "inadequadoConduta": "Management: start insulin. Dose and guidance in the full report below.",
       "close": "Close and view full report"
     }
@@ -4032,6 +4033,7 @@
     "result": "Result",
     "valuesInTarget": "{{within}} of {{total}} values within target ({{percent}}%).",
     "guidanceAdequate": "Guidance in the full report below.",
+    "guidanceAdequateButInsulin": "Glycemic control is adequate, but the recommended conduct is to start insulin (fetal indicators). See the full report.",
     "guidanceInsulin": "Management: start insulin. Dose and guidance in the full report below.",
     "guidanceMev": "Management: reinforce diet and exercise (lifestyle changes). Reassess maintaining the 4-point profile.",
     "weightPromptTitle": "Glycemic control below target — enter the weight to calculate the dose",

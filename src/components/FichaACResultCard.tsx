@@ -133,7 +133,11 @@ export default function FichaACResultCard({
           </p>
           <p className="mt-2 text-xs italic" style={{ color: textColor }}>
             {adequado
-              ? t('fichaACResult.guidanceAdequate')
+              ? (condutaInsulina
+                  // Controle glicêmico adequado, MAS a conduta é insulina (ex.: indicadores
+                  // ultrassonográficos alterados) — não anunciar "está tudo ok".
+                  ? t('fichaACResult.guidanceAdequateButInsulin')
+                  : t('fichaACResult.guidanceAdequate'))
               : condutaInsulina
                 ? t('fichaACResult.guidanceInsulin')
                 : t('fichaACResult.guidanceMev')}

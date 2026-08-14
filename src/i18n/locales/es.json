@@ -3299,6 +3299,7 @@
       "percentual": "{{percentual}}% de las glucemias dentro de la meta",
       "adequadoFichaE": "Control adecuado — seguimiento ampliado a perfil de 6 puntos, aún sin insulina.",
       "adequadoDefault": "Orientaciones en el informe completo a continuación.",
+      "fetalInsulina": "Uno o más indicadores ecográficos (PFE/CA/LA) están alterados. Independientemente del control glucémico, se indica la introducción de insulina, cerrando el seguimiento activo de MARI.",
       "inadequadoConduta": "Conducta: iniciar insulina. Dosis y orientaciones en el informe completo a continuación.",
       "close": "Cerrar y ver el informe completo"
     }
@@ -4032,6 +4033,7 @@
     "result": "Resultado",
     "valuesInTarget": "{{within}} de {{total}} valores dentro del objetivo ({{percent}}%).",
     "guidanceAdequate": "Orientaciones en el informe completo a continuación.",
+    "guidanceAdequateButInsulin": "Control glucémico adecuado, pero la conducta indica introducción de insulina (indicadores fetales). Ver el informe completo.",
     "guidanceInsulin": "Conducta: iniciar insulina. Dosis y orientaciones en el informe completo a continuación.",
     "guidanceMev": "Conducta: reforzar dieta y ejercicio (cambios en el estilo de vida). Reevaluar manteniendo el perfil de 4 puntos.",
     "weightPromptTitle": "Control glucémico por debajo del objetivo — ingrese el peso para calcular la dosis",
