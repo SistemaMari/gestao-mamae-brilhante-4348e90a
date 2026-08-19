@@ -5,7 +5,7 @@
  * via EXAMES_FETAIS_DEFS. Renderiza nada quando nenhum campo foi preenchido.
  */
 import { useTranslation } from 'react-i18next';
-import { EXAMES_FETAIS_DEFS, type ExamesFetaisState } from './examesFetaisItems';
+import { EXAMES_FETAIS_DEFS, type ExamesFetaisState, type ExameFetalCampo } from './examesFetaisItems';
 
 export default function ExamesFetaisReadOnly({ value }: { value: ExamesFetaisState }) {
   const { t } = useTranslation();
