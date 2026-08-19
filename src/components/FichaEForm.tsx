@@ -21,7 +21,7 @@ import { consultaDitaStatusPaciente } from '@/lib/statusSync';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
 import ExamesFetaisCard from '@/components/ficha/ExamesFetaisCard';
-import { EXAMES_FETAIS_VAZIO, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
+import { EXAMES_FETAIS_VAZIO, EXAMES_UMA_VEZ, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
 import {
@@ -145,6 +145,24 @@ export default function FichaEForm({
     })();
     return () => { ativo = false; };
   }, [editingConsulta?.id]);
+
+  // V4 — exames de UMA VEZ (ex.: morfológico): se já registrados em OUTRA consulta
+  // da paciente, o card não pergunta de novo.
+  const [jaRegistrados, setJaRegistrados] = useState<string[]>([]);
+  useEffect(() => {
+    if (isPreview || EXAMES_UMA_VEZ.length === 0) return;
+    let ativo = true;
+    (async () => {
+      const cols = ['consulta_id', ...EXAMES_UMA_VEZ].join(',');
+      const { data } = await supabase.from('exames_fetais' as any).select(cols).eq('paciente_id', paciente.id);
+      if (!ativo || !data) return;
+      const registrados = EXAMES_UMA_VEZ.filter((k) =>
+        (data as any[]).some((r) => r[k] != null && r.consulta_id !== editingConsulta?.id),
+      );
+      setJaRegistrados(registrados);
+    })();
+    return () => { ativo = false; };
+  }, [paciente.id, editingConsulta?.id, isPreview]);
 
   // 34D — pré-preenche a IG (ficha nova OU reabertura p/ editar) com o valor AO VIVO
   // na data da consulta, pela âncora ATUAL (não o congelado da época). Refaz só
@@ -773,7 +791,7 @@ export default function FichaEForm({
       </div>
 
       {/* V4 — Exames de crescimento/vitalidade fetal (todos os campos na Ficha E) */}
-      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} igSemanas={igSemNum} disabled={saving} />
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} igSemanas={igSemNum} jaRegistrados={jaRegistrados} disabled={saving} />
 
       <div className="space-y-1">
         <div className="flex items-center gap-1">

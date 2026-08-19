@@ -37,7 +37,7 @@ import {
 import ChecklistRetorno2, { CHECKLIST_VAZIO, isChecklistCompleto, type ChecklistState } from '@/components/ficha/ChecklistRetorno2';
 import { consultaDitaStatusPaciente } from '@/lib/statusSync';
 import ExamesFetaisCard from '@/components/ficha/ExamesFetaisCard';
-import { EXAMES_FETAIS_VAZIO, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
+import { EXAMES_FETAIS_VAZIO, EXAMES_UMA_VEZ, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 import CondutaCard from '@/components/ficha/CondutaCard';
 import { aplicarRegrasFichaA, type DecisaoResultado } from '@/lib/fichaADecisao';
@@ -407,6 +407,24 @@ export default function FichaACForm({
     })();
     return () => { ativo = false; };
   }, [editingConsulta?.id]);
+
+  // V4 — exames de UMA VEZ (ex.: morfológico): se já registrados em OUTRA consulta
+  // da paciente, o card não pergunta de novo.
+  const [jaRegistrados, setJaRegistrados] = useState<string[]>([]);
+  useEffect(() => {
+    if (isPreview || EXAMES_UMA_VEZ.length === 0) return;
+    let ativo = true;
+    (async () => {
+      const cols = ['consulta_id', ...EXAMES_UMA_VEZ].join(',');
+      const { data } = await supabase.from('exames_fetais' as any).select(cols).eq('paciente_id', paciente.id);
+      if (!ativo || !data) return;
+      const registrados = EXAMES_UMA_VEZ.filter((k) =>
+        (data as any[]).some((r) => r[k] != null && r.consulta_id !== editingConsulta?.id),
+      );
+      setJaRegistrados(registrados);
+    })();
+    return () => { ativo = false; };
+  }, [paciente.id, editingConsulta?.id, isPreview]);
 
   // 42F — teto de pactuação única: conta as pactuações de MEV aceitas ANTERIORES da
   // paciente (regra_2 + aceita), lidas do histórico persistido (consultas hidratadas
@@ -1086,7 +1104,7 @@ export default function FichaACForm({
       )}
 
       {/* V4 — Exames de crescimento/vitalidade fetal (PFE/CA/LA ocultos: já no checklist) */}
-      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} hidePfeCaLa igSemanas={igSemNum} disabled={saving} />
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} hidePfeCaLa igSemanas={igSemNum} jaRegistrados={jaRegistrados} disabled={saving} />
 
       {/* 36B REV3 — Conduta gerada pelo motor de decisão (apenas Ficha A) */}
       {isFichaAC && decisaoFichaA && (

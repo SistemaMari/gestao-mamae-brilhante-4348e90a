@@ -51,6 +51,9 @@ export interface DefExameFetal {
   /** IG mínima (semanas) para o campo aparecer no card. Ex.: CMF a partir de 28 sem,
    *  CTG/PBF a partir de 32 sem. Sem igMinima → sempre visível. */
   igMinima?: number;
+  /** Exame de UMA VEZ só (ex.: USG morfológico 12-14 sem). Uma vez registrado em
+   *  qualquer consulta da paciente, não é mais perguntado nas fichas seguintes. */
+  umaVez?: boolean;
 }
 
 /** Filtra as definições visíveis na IG informada (respeita igMinima). Sem IG,
@@ -61,10 +64,14 @@ export function defsVisiveisNaIg(igSemanas: number | null | undefined): DefExame
   );
 }
 
+/** Campos de exame de UMA VEZ só (não repergunta uma vez registrados). */
+export const EXAMES_UMA_VEZ: ExameFetalCampo[] =
+  EXAMES_FETAIS_DEFS.filter((d) => d.umaVez).map((d) => d.key);
+
 // common.yes / common.no reaproveitados para os campos Sim/Não.
 export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
   {
-    key: 'morfologico', grupo: 'usg',
+    key: 'morfologico', grupo: 'usg', umaVez: true,
     labelKey: 'ficha.examesFetais.morfologico.label',
     opcoes: [
       { value: 'normal', labelKey: 'ficha.examesFetais.opt.normal' },
@@ -97,7 +104,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
     ],
   },
   {
-    key: 'crescimento', grupo: 'usg',
+    key: 'crescimento', grupo: 'usg', igMinima: 28,
     labelKey: 'ficha.examesFetais.crescimento.label',
     opcoes: [
       { value: 'adequado', labelKey: 'ficha.examesFetais.opt.adequado' },
