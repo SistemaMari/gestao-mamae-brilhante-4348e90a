@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
-import { useIg, descreverReferenciaIg } from '@/lib/getIg';
+import { useIg, useIgBatch, descreverReferenciaIg } from '@/lib/getIg';
+import { respostaVigenteDaJanela } from '@/lib/janelaCrescimentoFetal';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
@@ -407,6 +408,43 @@ export default function FichaACForm({
     })();
     return () => { ativo = false; };
   }, [editingConsulta?.id]);
+
+  // V4 — PFE/CA/LA são a leitura de UM ultrassom, feito duas vezes na gestação
+  // (janela 28–32 e 36ª sem) — não são perguntas de consulta. Se o exame desta
+  // janela já foi lido em outra consulta, o checklist exibe aquele resultado
+  // fechado em vez de reperguntar (evita retrabalho e o "Sim" repetido de memória,
+  // que desligaria a regra_fetal). Na janela seguinte volta a perguntar.
+  const { igs: igPorConsulta } = useIgBatch(
+    consultas.map((c) => ({ key: c.id, pacienteId: paciente.id, dataAlvo: c.data })),
+  );
+  const respostaVigenteFetal = useMemo(
+    () => respostaVigenteDaJanela(
+      igSemNum || null,
+      consultas.map((c) => ({
+        consultaId: c.id,
+        data: c.data,
+        igSemanas: igPorConsulta.get(c.id)?.semanas ?? null,
+        pfe_us: (c as any).checklist_pfe_us ?? null,
+        ca: (c as any).checklist_ca ?? null,
+        la: (c as any).checklist_la ?? null,
+      })),
+      editingConsulta?.id,
+    ),
+    [consultas, igPorConsulta, igSemNum, editingConsulta?.id],
+  );
+
+  // O resultado vigente da janela alimenta a decisão exatamente como se tivesse
+  // sido respondido aqui: o motor (front e backend) segue lendo o checklist da
+  // própria consulta, sem precisar conhecer janelas.
+  useEffect(() => {
+    if (!respostaVigenteFetal) return;
+    const { pfe_us, ca, la } = respostaVigenteFetal.valores;
+    setChecklist((c) => (
+      c.pfe_us === pfe_us && c.ca === ca && c.la === la
+        ? c
+        : { ...c, pfe_us: pfe_us as any, ca: ca as any, la: la as any }
+    ));
+  }, [respostaVigenteFetal]);
 
   // V4 — exames de UMA VEZ (ex.: morfológico): se já registrados em OUTRA consulta
   // da paciente, o card não pergunta de novo.
@@ -1104,7 +1142,7 @@ export default function FichaACForm({
 
       {/* 36B REV3 — Checklist clínico do Retorno 2 (apenas Ficha A, ≤30 sem) */}
       {isFichaAC && (
-        <ChecklistRetorno2 value={checklist} onChange={setChecklist} igSemanas={igSemNum} disabled={saving} />
+        <ChecklistRetorno2 value={checklist} onChange={setChecklist} igSemanas={igSemNum} respostaVigente={respostaVigenteFetal} disabled={saving} />
       )}
 
       {/* V4 — Exames de crescimento/vitalidade fetal (PFE/CA/LA ocultos: já no checklist) */}

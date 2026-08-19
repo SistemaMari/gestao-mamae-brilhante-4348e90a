@@ -1840,6 +1840,10 @@
       "title": "Lista de verificación clínica del Retorno 2",
       "tooltip": "Las 6 respuestas se envían al backend, que devuelve la conducta (mantener CEV / reforzar CEV / iniciar insulina / evaluar la memoria del glucómetro) y la siguiente ficha recomendada.",
       "subtituloFetais": "Parámetros del crecimiento fetal",
+      "janela2832": "Resultado de la 1ª ecografía de crecimiento (ventana de 28 a 32 semanas).",
+      "janela36": "Resultado de la 2ª ecografía de crecimiento (semana 36) — parámetros nuevos.",
+      "jaRespondido": "Este examen ya fue registrado en la consulta del {{data}} (EG {{ig}} semanas). Son los mismos parámetros — no es necesario responder de nuevo.",
+      "corrigirExame": "Corregir el registro o cargar un examen nuevo",
       "noInfo": "Sin información"
     },
     "examesFetais": {

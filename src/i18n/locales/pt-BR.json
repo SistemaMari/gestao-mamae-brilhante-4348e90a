@@ -1840,6 +1840,10 @@
       "title": "Checklist clínico do Retorno 2",
       "tooltip": "As 6 respostas são enviadas ao backend, que devolve a conduta (manter MEV / reforçar MEV / iniciar insulina / avaliar memória do glicosímetro) e a próxima ficha recomendada.",
       "subtituloFetais": "Parâmetros do crescimento fetal",
+      "janela2832": "Resultado do 1º ultrassom de crescimento (janela de 28 a 32 semanas).",
+      "janela36": "Resultado do 2º ultrassom de crescimento (36ª semana) — parâmetros novos.",
+      "jaRespondido": "Este exame já foi registrado na consulta de {{data}} (IG {{ig}} semanas). São os mesmos parâmetros — não é necessário responder de novo.",
+      "corrigirExame": "Corrigir o registro ou lançar um exame novo",
       "noInfo": "Sem informação"
     },
     "examesFetais": {

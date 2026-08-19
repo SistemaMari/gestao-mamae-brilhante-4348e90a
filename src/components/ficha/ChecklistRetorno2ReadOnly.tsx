@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { fetaisAplicaveis, type ChecklistState } from './ChecklistRetorno2';
 import { BOOL_ITEMS, FETAL_ITEMS } from './checklistRetorno2Items';
+import { janelaDaIg } from '@/lib/janelaCrescimentoFetal';
 
 /**
  * Versão read-only do "Checklist clínico do Retorno 2" — exibe as 6 respostas
@@ -21,6 +22,7 @@ function rotuloResposta(v: boolean | 'sim' | 'nao' | 'sem_info' | null): string 
 export default function ChecklistRetorno2ReadOnly({ value, igSemanas }: { value: ChecklistState; igSemanas?: number | null }) {
   const { t } = useTranslation();
   const mostrarFetais = fetaisAplicaveis(igSemanas);
+  const janela = janelaDaIg(igSemanas);
   const itens = [...BOOL_ITEMS, ...FETAL_ITEMS];
   const temResposta = itens.some(({ key }) => value[key] != null);
   if (!temResposta) return null;
@@ -42,6 +44,16 @@ export default function ChecklistRetorno2ReadOnly({ value, igSemanas }: { value:
       {mostrarFetais && (
         <>
           <p className="text-xs font-semibold text-[#7E69AB] pt-1">{t('ficha.checklistRetorno2.subtituloFetais')}</p>
+          {/* V4 — identifica de QUAL dos dois ultrassons do cronograma são estes
+              parâmetros. Sem isso, o mesmo resultado repetido nas consultas da
+              janela parece um exame novo a cada laudo. */}
+          {janela && (
+            <p className="text-[11px] italic text-[#7E69AB]">
+              {t(janela === 'j2832'
+                ? 'ficha.checklistRetorno2.janela2832'
+                : 'ficha.checklistRetorno2.janela36')}
+            </p>
+          )}
           <div className="divide-y divide-[#E5E0F2]">
             {FETAL_ITEMS.map(linha)}
           </div>
