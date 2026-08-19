@@ -597,7 +597,9 @@ export default function FichaACForm({
         percentual: percentual!,
         adequado: isAdequado,
         proximaFicha: decisaoFichaA?.proxima_ficha_recomendada ?? null,
+        regra: decisaoFichaA?.regra_aplicada ?? null,
       });
+
 
       setSaving(false);
       setShowImpact(true);

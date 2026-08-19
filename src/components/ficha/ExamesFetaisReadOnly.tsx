@@ -5,7 +5,7 @@
  * via EXAMES_FETAIS_DEFS. Renderiza nada quando nenhum campo foi preenchido.
  */
 import { useTranslation } from 'react-i18next';
-import { EXAMES_FETAIS_DEFS, type ExamesFetaisState } from './examesFetaisItems';
+import { EXAMES_FETAIS_DEFS, type ExamesFetaisState, type ExameFetalCampo } from './examesFetaisItems';
 
 export default function ExamesFetaisReadOnly({ value }: { value: ExamesFetaisState }) {
   const { t } = useTranslation();
@@ -17,7 +17,8 @@ export default function ExamesFetaisReadOnly({ value }: { value: ExamesFetaisSta
       const op = d.opcoes.find((o) => o.value === atual);
       return { key: d.key, grupo: d.grupo, label: t(d.labelKey), valor: op ? t(op.labelKey) : String(atual) };
     })
-    .filter((x): x is { key: string; grupo: 'usg' | 'vigilancia'; label: string; valor: string } => x != null);
+    .filter((x): x is { key: ExameFetalCampo; grupo: 'usg' | 'vigilancia'; label: string; valor: string } => x != null);
+
 
   if (respondidos.length === 0) return null;
 
