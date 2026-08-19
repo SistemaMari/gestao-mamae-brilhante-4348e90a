@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  janelaDaIg, respostaVigenteDaJanela, type ConsultaComCrescimento,
+  janelaDaIg, respostaVigenteDaJanela, chaveLegendaJanela, type ConsultaComCrescimento,
 } from './janelaCrescimentoFetal';
 
 const consulta = (
@@ -91,5 +91,16 @@ describe('respostaVigenteDaJanela', () => {
   it('consulta sem IG conhecida não pertence a janela nenhuma', () => {
     const historico = [consulta('c1', null, { pfe_us: 'sim', ca: 'sim', la: 'sim' })];
     expect(respostaVigenteDaJanela(30, historico, 'c2')).toBeNull();
+  });
+});
+
+describe('chaveLegendaJanela', () => {
+  it('ao COLETAR, a legenda da 36ª avisa que são parâmetros novos', () => {
+    expect(chaveLegendaJanela('j36', false)).toBe('ficha.checklistRetorno2.janela36');
+  });
+
+  it('ao EXIBIR resultado já lido, usa a forma neutra (sem "parâmetros novos")', () => {
+    expect(chaveLegendaJanela('j36', true)).toBe('ficha.checklistRetorno2.janelaRegistro36');
+    expect(chaveLegendaJanela('j2832', true)).toBe('ficha.checklistRetorno2.janelaRegistro2832');
   });
 });

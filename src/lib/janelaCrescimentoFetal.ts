@@ -32,6 +32,20 @@ export function janelaDaIg(igSemanas: number | null | undefined): JanelaCrescime
   return null;
 }
 
+/**
+ * Chave i18n da legenda que identifica QUAL dos dois ultrassons está em jogo.
+ *
+ * `registro = true` (resultado já lido, exibido fechado, ou registro no laudo) usa
+ * a forma NEUTRA — só identifica o exame. `registro = false` (campos abertos para
+ * responder) usa a forma que avisa que são parâmetros novos. Sem essa distinção, a
+ * tela dizia "parâmetros novos" logo acima de "não é necessário responder de novo".
+ */
+export function chaveLegendaJanela(janela: JanelaCrescimento, registro: boolean): string {
+  const base = 'ficha.checklistRetorno2.';
+  if (registro) return base + (janela === 'j2832' ? 'janelaRegistro2832' : 'janelaRegistro36');
+  return base + (janela === 'j2832' ? 'janela2832' : 'janela36');
+}
+
 /** Os parâmetros lidos do ultrassom de crescimento. */
 export interface ValoresCrescimento {
   pfe_us: string | null;

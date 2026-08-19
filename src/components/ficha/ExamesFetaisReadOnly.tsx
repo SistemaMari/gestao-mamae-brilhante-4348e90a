@@ -6,7 +6,7 @@
  */
 import { useTranslation } from 'react-i18next';
 import { EXAMES_FETAIS_DEFS, type ExamesFetaisState, type ExameFetalCampo } from './examesFetaisItems';
-import { janelaDaIg } from '@/lib/janelaCrescimentoFetal';
+import { janelaDaIg, chaveLegendaJanela } from '@/lib/janelaCrescimentoFetal';
 
 export default function ExamesFetaisReadOnly(
   { value, igSemanas }: { value: ExamesFetaisState; igSemanas?: number | null },
