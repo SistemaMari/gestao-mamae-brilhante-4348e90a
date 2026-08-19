@@ -6,18 +6,22 @@
  */
 import { useTranslation } from 'react-i18next';
 import { EXAMES_FETAIS_DEFS, type ExamesFetaisState, type ExameFetalCampo } from './examesFetaisItems';
+import { janelaDaIg } from '@/lib/janelaCrescimentoFetal';
 
-export default function ExamesFetaisReadOnly({ value }: { value: ExamesFetaisState }) {
+export default function ExamesFetaisReadOnly(
+  { value, igSemanas }: { value: ExamesFetaisState; igSemanas?: number | null },
+) {
   const { t } = useTranslation();
+  const janela = janelaDaIg(igSemanas);
 
   const respondidos = EXAMES_FETAIS_DEFS
     .map((d) => {
       const atual = value[d.key];
       if (atual == null) return null;
       const op = d.opcoes.find((o) => o.value === atual);
-      return { key: d.key, grupo: d.grupo, label: t(d.labelKey), valor: op ? t(op.labelKey) : String(atual) };
+      return { key: d.key, grupo: d.grupo, crescimento: !!d.exameCrescimento, label: t(d.labelKey), valor: op ? t(op.labelKey) : String(atual) };
     })
-    .filter((x): x is { key: ExameFetalCampo; grupo: 'usg' | 'vigilancia'; label: string; valor: string } => x != null);
+    .filter((x): x is { key: ExameFetalCampo; grupo: 'usg' | 'vigilancia'; crescimento: boolean; label: string; valor: string } => x != null);
 
 
   if (respondidos.length === 0) return null;
@@ -38,6 +42,16 @@ export default function ExamesFetaisReadOnly({ value }: { value: ExamesFetaisSta
       {usg.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-[#7E69AB]">{t('ficha.examesFetais.grupoUsg')}</p>
+          {/* Diz de QUAL dos dois ultrassons de crescimento vêm estes parâmetros —
+              sem isso o mesmo resultado, repetido nas consultas da janela, parece
+              exame novo a cada laudo. */}
+          {janela && usg.some((r) => r.crescimento) && (
+            <p className="text-[11px] italic text-[#7E69AB]">
+              {t(janela === 'j2832'
+                ? 'ficha.checklistRetorno2.janela2832'
+                : 'ficha.checklistRetorno2.janela36')}
+            </p>
+          )}
           {usg.map(linha)}
         </div>
       )}

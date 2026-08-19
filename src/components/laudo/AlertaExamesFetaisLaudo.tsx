@@ -58,7 +58,7 @@ export default function AlertaExamesFetaisLaudo({ tipo, consultaId, igSemanas, e
   return (
     <div className="space-y-4 mt-4">
       {/* 1) Registro read-only dos resultados (quadro lilás) */}
-      {estado && <ExamesFetaisReadOnly value={estado} />}
+      {estado && <ExamesFetaisReadOnly value={estado} igSemanas={igSemanas} />}
 
       {/* 2a) Exames PONTUAIS a solicitar (só os ainda não trazidos) */}
       {solicitar.length > 0 && (

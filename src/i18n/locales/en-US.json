@@ -1840,6 +1840,10 @@
       "title": "Clinical checklist for Follow-up 2",
       "tooltip": "The 6 answers are sent to the backend, which returns the recommended course of action (maintain lifestyle changes / reinforce lifestyle changes / start insulin / review glucometer memory) and the next recommended form.",
       "subtituloFetais": "Fetal growth parameters",
+      "janela2832": "Result of the 1st growth ultrasound (28 to 32 week window).",
+      "janela36": "Result of the 2nd growth ultrasound (36th week) — new parameters.",
+      "jaRespondido": "This exam was already recorded at the visit on {{data}} (GA {{ig}} weeks). These are the same parameters — no need to answer again.",
+      "corrigirExame": "Correct the record or enter a new exam",
       "noInfo": "No information"
     },
     "examesFetais": {

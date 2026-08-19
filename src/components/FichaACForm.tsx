@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
 import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
+import { useRespostaVigenteCrescimento } from '@/hooks/useRespostaVigenteCrescimento';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 // 34B.1 — useAutosave + AutosaveIndicator removidos (Bug A). Save explícito via botão.
@@ -407,6 +408,36 @@ export default function FichaACForm({
     })();
     return () => { ativo = false; };
   }, [editingConsulta?.id]);
+
+  // V4 — PFE/CA/LA são a leitura de UM ultrassom, feito duas vezes na gestação
+  // (janela 28–32 e 36ª sem) — não são perguntas de consulta. Se o exame desta
+  // janela já foi lido em outra consulta, o checklist exibe aquele resultado
+  // fechado em vez de reperguntar (evita retrabalho e o "Sim" repetido de memória,
+  // que desligaria a regra_fetal). Na janela seguinte volta a perguntar.
+  const respostaVigenteFetal = useRespostaVigenteCrescimento({
+    pacienteId: paciente.id,
+    consultas: consultas as any,
+    igSemanas: igSemNum || null,
+    consultaAtualId: editingConsulta?.id,
+    isPreview,
+  });
+
+  // O resultado vigente da janela alimenta a decisão exatamente como se tivesse
+  // sido respondido aqui: o motor (front e backend) segue lendo o checklist da
+  // própria consulta, sem precisar conhecer janelas. O `crescimento` acompanha,
+  // para o laudo desta consulta exibir o exame vigente junto com a legenda.
+  useEffect(() => {
+    if (!respostaVigenteFetal) return;
+    const { pfe_us, ca, la, crescimento } = respostaVigenteFetal.valores;
+    setChecklist((c) => (
+      c.pfe_us === pfe_us && c.ca === ca && c.la === la
+        ? c
+        : { ...c, pfe_us: pfe_us as any, ca: ca as any, la: la as any }
+    ));
+    if (crescimento != null) {
+      setExamesFetais((e) => (e.crescimento === crescimento ? e : { ...e, crescimento: crescimento as any }));
+    }
+  }, [respostaVigenteFetal]);
 
   // V4 — exames de UMA VEZ (ex.: morfológico): se já registrados em OUTRA consulta
   // da paciente, o card não pergunta de novo.
@@ -1104,11 +1135,11 @@ export default function FichaACForm({
 
       {/* 36B REV3 — Checklist clínico do Retorno 2 (apenas Ficha A, ≤30 sem) */}
       {isFichaAC && (
-        <ChecklistRetorno2 value={checklist} onChange={setChecklist} igSemanas={igSemNum} disabled={saving} />
+        <ChecklistRetorno2 value={checklist} onChange={setChecklist} igSemanas={igSemNum} respostaVigente={respostaVigenteFetal} disabled={saving} />
       )}
 
       {/* V4 — Exames de crescimento/vitalidade fetal (PFE/CA/LA ocultos: já no checklist) */}
-      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} hidePfeCaLa igSemanas={igSemNum} jaRegistrados={jaRegistrados} disabled={saving} />
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} hidePfeCaLa igSemanas={igSemNum} jaRegistrados={jaRegistrados} respostaVigente={respostaVigenteFetal} disabled={saving} />
 
       {/* 36B REV3 — Conduta gerada pelo motor de decisão (apenas Ficha A) */}
       {isFichaAC && decisaoFichaA && (
