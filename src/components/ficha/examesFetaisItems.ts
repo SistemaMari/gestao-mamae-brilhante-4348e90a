@@ -64,9 +64,8 @@ export function defsVisiveisNaIg(igSemanas: number | null | undefined): DefExame
   );
 }
 
-/** Campos de exame de UMA VEZ só (não repergunta uma vez registrados). */
-export const EXAMES_UMA_VEZ: ExameFetalCampo[] =
-  EXAMES_FETAIS_DEFS.filter((d) => d.umaVez).map((d) => d.key);
+
+
 
 // common.yes / common.no reaproveitados para os campos Sim/Não.
 export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
