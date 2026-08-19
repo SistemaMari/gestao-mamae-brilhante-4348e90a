@@ -54,6 +54,11 @@ export interface DefExameFetal {
   /** Exame de UMA VEZ só (ex.: USG morfológico 12-14 sem). Uma vez registrado em
    *  qualquer consulta da paciente, não é mais perguntado nas fichas seguintes. */
   umaVez?: boolean;
+  /** Campo lido do ULTRASSOM DE CRESCIMENTO, feito duas vezes na gestação (janela
+   *  de 28–32 sem e 36ª). É respondido uma vez POR JANELA: nas demais consultas
+   *  da mesma janela o card exibe o resultado registrado em vez de reperguntar.
+   *  Ver `janelaCrescimentoFetal`. */
+  exameCrescimento?: boolean;
 }
 
 /** Filtra as definições visíveis na IG informada (respeita igMinima). Sem IG,
@@ -79,7 +84,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
     alertas: { alterado: 'ficha.examesFetais.alerta.morfologico' },
   },
   {
-    key: 'pfe_us', grupo: 'usg', ocultaNaFichaAC: true,
+    key: 'pfe_us', grupo: 'usg', ocultaNaFichaAC: true, exameCrescimento: true,
     labelKey: 'ficha.examesFetais.pfe.label',
     opcoes: [
       { value: 'sim', labelKey: 'common.yes' },
@@ -87,7 +92,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
     ],
   },
   {
-    key: 'ca', grupo: 'usg', ocultaNaFichaAC: true,
+    key: 'ca', grupo: 'usg', ocultaNaFichaAC: true, exameCrescimento: true,
     labelKey: 'ficha.examesFetais.ca.label',
     opcoes: [
       { value: 'sim', labelKey: 'common.yes' },
@@ -95,7 +100,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
     ],
   },
   {
-    key: 'la', grupo: 'usg', ocultaNaFichaAC: true,
+    key: 'la', grupo: 'usg', ocultaNaFichaAC: true, exameCrescimento: true,
     labelKey: 'ficha.examesFetais.la.label',
     opcoes: [
       { value: 'sim', labelKey: 'common.yes' },
@@ -103,7 +108,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
     ],
   },
   {
-    key: 'crescimento', grupo: 'usg', igMinima: 28,
+    key: 'crescimento', grupo: 'usg', igMinima: 28, exameCrescimento: true,
     labelKey: 'ficha.examesFetais.crescimento.label',
     opcoes: [
       { value: 'adequado', labelKey: 'ficha.examesFetais.opt.adequado' },

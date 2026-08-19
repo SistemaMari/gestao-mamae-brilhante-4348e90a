@@ -21,6 +21,7 @@ import { consultaDitaStatusPaciente } from '@/lib/statusSync';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
 import ExamesFetaisCard from '@/components/ficha/ExamesFetaisCard';
+import { useRespostaVigenteCrescimento } from '@/hooks/useRespostaVigenteCrescimento';
 import { EXAMES_FETAIS_VAZIO, EXAMES_UMA_VEZ, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
@@ -178,6 +179,40 @@ export default function FichaEForm({
   }, [igAtual, dataConsulta]);
 
   const igSemNum = parseInt(igSemanas) || 0;
+
+  // V4 — PFE/CA/LA e o crescimento fetal são a leitura de UM ultrassom, feito duas
+  // vezes na gestação (janela 28–32 e 36ª sem): pertencem ao EXAME, não à consulta.
+  // Se o exame desta janela já foi lido em outra consulta — aqui ou no checklist do
+  // Retorno 2 da Ficha A/C —, o card exibe aquele resultado em vez de reperguntar.
+  const respostaVigenteFetal = useRespostaVigenteCrescimento({
+    pacienteId: paciente.id,
+    consultas: consultas as any,
+    igSemanas: igSemNum || null,
+    consultaAtualId: editingConsulta?.id,
+    isPreview,
+  });
+
+  // Copia o resultado vigente para esta consulta, para o laudo dela exibir o exame
+  // corrente junto com a legenda de qual dos dois ultrassons se trata.
+  useEffect(() => {
+    if (!respostaVigenteFetal) return;
+    const { pfe_us, ca, la, crescimento } = respostaVigenteFetal.valores;
+    // 'sem_info' existe no checklist do Retorno 2, mas NÃO é valor aceito pelo
+    // CHECK de `exames_fetais` — ali "não informado" é null.
+    const semInfoVira = (v?: string | null) => (v == null || v === 'sem_info' ? null : v);
+    setExamesFetais((e) => {
+      const next = {
+        ...e,
+        pfe_us: (semInfoVira(pfe_us) ?? e.pfe_us) as any,
+        ca: (semInfoVira(ca) ?? e.ca) as any,
+        la: (semInfoVira(la) ?? e.la) as any,
+        crescimento: (semInfoVira(crescimento) ?? e.crescimento) as any,
+      };
+      const igual = next.pfe_us === e.pfe_us && next.ca === e.ca
+        && next.la === e.la && next.crescimento === e.crescimento;
+      return igual ? e : next;
+    });
+  }, [respostaVigenteFetal]);
 
   const cellRefs = useRef<(HTMLInputElement | null)[][]>(
     DAYS.map(() => Array(POINTS_6.length).fill(null))
@@ -791,7 +826,7 @@ export default function FichaEForm({
       </div>
 
       {/* V4 — Exames de crescimento/vitalidade fetal (todos os campos na Ficha E) */}
-      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} igSemanas={igSemNum} jaRegistrados={jaRegistrados} disabled={saving} />
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} igSemanas={igSemNum} jaRegistrados={jaRegistrados} respostaVigente={respostaVigenteFetal} disabled={saving} />
 
       <div className="space-y-1">
         <div className="flex items-center gap-1">
