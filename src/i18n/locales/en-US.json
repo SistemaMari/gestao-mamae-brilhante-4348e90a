@@ -1892,6 +1892,7 @@
     },
     "pedidoExames": {
       "titulo": "Order exams (according to gestational age)",
+      "tituloVigilancia": "Ongoing fetal surveillance (at every visit)",
       "morfologico": "Second-trimester morphology ultrasound (12–14 weeks).",
       "crescimento2832": "Obstetric ultrasound for fetal growth assessment (28–32 weeks).",
       "crescimento36": "Obstetric ultrasound for fetal growth assessment (36th week).",
