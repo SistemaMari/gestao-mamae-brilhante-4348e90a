@@ -643,8 +643,11 @@ export default function DashboardPage() {
                         </td>
 
                         <td className="border-t border-l border-border px-3 py-3 align-middle">
-                          {/* 38B-C (#7): Overt lê o cenário do registro, não o status. */}
-                          {overtIds.has(pac.id) ? (
+                          {/* 38B-C (#7): Overt lê o cenário do registro, não o status.
+                              V4: mas NÃO sobrepõe encerramento — paciente encerrada
+                              (ex.: insulinização) mostra o status de encerramento, igual
+                              à ficha; senão a lista divergia da tag de dentro da ficha. */}
+                          {overtIds.has(pac.id) && !isPacienteEncerrada(pac) ? (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span className="inline-flex items-center gap-1 rounded-full bg-[#B91C1C] px-2.5 py-0.5 text-xs font-medium text-white whitespace-nowrap">
@@ -745,7 +748,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        {overtIds.has(pac.id) ? (
+                        {overtIds.has(pac.id) && !isPacienteEncerrada(pac) ? (
                           <span className="inline-flex shrink-0 items-center rounded-full bg-[#B91C1C] px-2 py-0.5 text-xs font-medium text-white">
                             OVERT DM
                           </span>
