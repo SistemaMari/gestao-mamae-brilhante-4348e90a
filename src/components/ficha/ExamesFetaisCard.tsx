@@ -10,12 +10,15 @@
  */
 import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { EXAMES_FETAIS_DEFS, alertasFamilia2, type ExamesFetaisState, type DefExameFetal } from './examesFetaisItems';
+import { defsVisiveisNaIg, alertasFamilia2, type ExamesFetaisState, type DefExameFetal } from './examesFetaisItems';
 
 interface Props {
   value: ExamesFetaisState;
   onChange: (next: ExamesFetaisState) => void;
   hidePfeCaLa?: boolean;
+  /** IG (semanas) na consulta — oculta campos com igMinima ainda não atingida
+   *  (CMF a partir de 28 sem; CTG/PBF a partir de 32 sem). */
+  igSemanas?: number | null;
   disabled?: boolean;
 }
 
@@ -36,11 +39,11 @@ function Pill({ active, onClick, children, disabled }: { active: boolean; onClic
   );
 }
 
-export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, disabled }: Props) {
+export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, igSemanas, disabled }: Props) {
   const { t } = useTranslation();
   const set = <K extends keyof ExamesFetaisState>(k: K, v: ExamesFetaisState[K]) => onChange({ ...value, [k]: v });
 
-  const visiveis = EXAMES_FETAIS_DEFS.filter((d) => !(hidePfeCaLa && d.ocultaNaFichaAC));
+  const visiveis = defsVisiveisNaIg(igSemanas).filter((d) => !(hidePfeCaLa && d.ocultaNaFichaAC));
   const usg = visiveis.filter((d) => d.grupo === 'usg');
   const vigilancia = visiveis.filter((d) => d.grupo === 'vigilancia');
   const alertas = alertasFamilia2(value);

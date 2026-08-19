@@ -24,16 +24,23 @@ export default function ChecklistRetorno2ReadOnly({ value }: { value: ChecklistS
   const temResposta = itens.some(({ key }) => value[key] != null);
   if (!temResposta) return null;
 
+  const linha = ({ key, label }: { key: keyof ChecklistState; label: string }) => (
+    <div key={key} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-xs">
+      <span className="text-foreground">{label}</span>
+      <span className="font-medium text-[#5B21B6] shrink-0">{rotuloResposta(value[key])}</span>
+    </div>
+  );
+
   return (
     <div className="rounded-xl border border-[#D6BCFA] bg-[#FAFAFE] p-4 space-y-2">
       <h3 className="text-sm font-bold text-[#5B21B6]">{t('ficha.checklistRetorno2ReadOnly.title')}</h3>
       <div className="divide-y divide-[#E5E0F2]">
-        {itens.map(({ key, label }) => (
-          <div key={key} className="flex flex-wrap items-center justify-between gap-2 py-1.5 text-xs">
-            <span className="text-foreground">{label}</span>
-            <span className="font-medium text-[#5B21B6] shrink-0">{rotuloResposta(value[key])}</span>
-          </div>
-        ))}
+        {BOOL_ITEMS.map(linha)}
+      </div>
+      {/* V4 — subtítulo dos indicadores de crescimento fetal (itens 4/5/6). */}
+      <p className="text-xs font-semibold text-[#7E69AB] pt-1">{t('ficha.checklistRetorno2.subtituloFetais')}</p>
+      <div className="divide-y divide-[#E5E0F2]">
+        {FETAL_ITEMS.map(linha)}
       </div>
     </div>
   );

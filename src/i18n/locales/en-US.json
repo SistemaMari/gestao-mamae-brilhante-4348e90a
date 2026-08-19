@@ -1839,14 +1839,16 @@
     "checklistRetorno2": {
       "title": "Clinical checklist for Follow-up 2",
       "tooltip": "The 6 answers are sent to the backend, which returns the recommended course of action (maintain lifestyle changes / reinforce lifestyle changes / start insulin / review glucometer memory) and the next recommended form.",
+      "subtituloFetais": "Fetal growth parameters",
       "noInfo": "No information"
     },
     "examesFetais": {
-      "title": "Fetal growth and wellbeing exams",
+      "title": "Fetal assessment exams",
       "tooltip": "Record the results when the patient brings the exams. Leave as \"No data\" while the gestational age does not yet allow them.",
       "semDados": "No data",
       "grupoUsg": "Ultrasound",
-      "grupoVigilancia": "Fetal surveillance",
+      "grupoVigilancia": "Fetal wellbeing surveillance",
+      "doppler": "Uterine and umbilical artery Doppler is not required for GDM follow-up under the Brazilian protocol.",
       "morfologico": { "label": "Morphology US (2nd trimester, 12–14 wk)" },
       "pfe": { "label": "EFW-US < P90" },
       "ca": { "label": "AC < P75" },
@@ -1875,14 +1877,28 @@
         "pbf": "Abnormal fetal biophysical profile (< 8/10). Obstetric evaluation / complementary workup is recommended."
       }
     },
+    "condutaFetal": {
+      "titulo": "Suggested management (fetal weight vs. fetal wellbeing)",
+      "item1": "Adequate fetal weight + preserved fetal vitality: continue the pregnancy.",
+      "item2": "Adequate fetal weight + compromised fetal vitality (per the service protocol): individualize management.",
+      "item3": "Large for gestational age + preserved fetal vitality: glycemic profile escape and check gestational age for delivery timing.",
+      "item4": "Large for gestational age + compromised fetal vitality (per the service protocol): individualize management."
+    },
+    "orientacoesGerais": {
+      "titulo": "General guidance",
+      "item1": "There is no gold-standard test to assess fetal vitality in GDM.",
+      "item2": "The best results come from combining all available technology: the more vitality exams performed, the closer to the best assessment.",
+      "item3": "Uterine and umbilical artery Doppler is not required under the Brazilian GDM protocol."
+    },
     "pedidoExames": {
       "titulo": "Order exams (according to gestational age)",
       "morfologico": "Second-trimester morphology ultrasound (12–14 weeks).",
       "crescimento2832": "Obstetric ultrasound for fetal growth assessment (28–32 weeks).",
       "crescimento36": "Obstetric ultrasound for fetal growth assessment (36th week).",
       "cmf": "Daily fetal movement count (from 28 weeks).",
-      "ctg": "Weekly antepartum cardiotocography (from 34 weeks).",
-      "pbf": "Weekly fetal biophysical profile (from 34 weeks)."
+      "ctg": "Weekly antepartum cardiotocography (from 32 weeks).",
+      "pbf": "Weekly fetal biophysical profile (from 32 weeks).",
+      "ctgPbfMedicamentoso": "From 34 weeks, under drug treatment (insulin), request weekly cardiotocography and fetal biophysical profile."
     },
     "statusFichaBadge": {
       "rascunho": "Draft",

@@ -48,6 +48,17 @@ export interface DefExameFetal {
    *  vitalidade/morfologia (Família 2) e macrossomia (crescimento excessivo). Um mesmo
    *  campo pode ter mais de um gatilho (ex.: crescimento restrito e excessivo). */
   alertas?: Record<string, string>;
+  /** IG mínima (semanas) para o campo aparecer no card. Ex.: CMF a partir de 28 sem,
+   *  CTG/PBF a partir de 32 sem. Sem igMinima → sempre visível. */
+  igMinima?: number;
+}
+
+/** Filtra as definições visíveis na IG informada (respeita igMinima). Sem IG,
+ *  mostra tudo (não some campo por falta de âncora). */
+export function defsVisiveisNaIg(igSemanas: number | null | undefined): DefExameFetal[] {
+  return EXAMES_FETAIS_DEFS.filter(
+    (d) => d.igMinima == null || igSemanas == null || igSemanas >= d.igMinima,
+  );
 }
 
 // common.yes / common.no reaproveitados para os campos Sim/Não.
@@ -99,7 +110,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
     },
   },
   {
-    key: 'cmf', grupo: 'vigilancia',
+    key: 'cmf', grupo: 'vigilancia', igMinima: 28,
     labelKey: 'ficha.examesFetais.cmf.label',
     opcoes: [
       { value: 'normal', labelKey: 'ficha.examesFetais.opt.normal' },
@@ -108,7 +119,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
     alertas: { diminuido: 'ficha.examesFetais.alerta.cmf' },
   },
   {
-    key: 'ctg', grupo: 'vigilancia',
+    key: 'ctg', grupo: 'vigilancia', igMinima: 32,
     labelKey: 'ficha.examesFetais.ctg.label',
     opcoes: [
       { value: 'tranquilizador', labelKey: 'ficha.examesFetais.opt.tranquilizador' },
@@ -117,7 +128,7 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
     alertas: { nao_tranquilizador: 'ficha.examesFetais.alerta.ctg' },
   },
   {
-    key: 'pbf', grupo: 'vigilancia',
+    key: 'pbf', grupo: 'vigilancia', igMinima: 32,
     labelKey: 'ficha.examesFetais.pbf.label',
     opcoes: [
       { value: 'sim', labelKey: 'common.yes' },

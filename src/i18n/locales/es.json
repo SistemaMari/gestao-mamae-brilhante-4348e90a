@@ -1839,14 +1839,16 @@
     "checklistRetorno2": {
       "title": "Lista de verificación clínica del Retorno 2",
       "tooltip": "Las 6 respuestas se envían al backend, que devuelve la conducta (mantener CEV / reforzar CEV / iniciar insulina / evaluar la memoria del glucómetro) y la siguiente ficha recomendada.",
+      "subtituloFetais": "Parámetros del crecimiento fetal",
       "noInfo": "Sin información"
     },
     "examesFetais": {
-      "title": "Exámenes de crecimiento y vitalidad fetal",
+      "title": "Exámenes de evaluación fetal",
       "tooltip": "Registre los resultados cuando la gestante traiga los exámenes. Deje en \"Sin datos\" mientras la edad gestacional aún no lo permita.",
       "semDados": "Sin datos",
       "grupoUsg": "Ecografía",
-      "grupoVigilancia": "Vigilancia fetal",
+      "grupoVigilancia": "Vigilancia del bienestar fetal",
+      "doppler": "El Doppler de arteria uterina y umbilical no es necesario para el seguimiento de la DMG según el protocolo brasileño.",
       "morfologico": { "label": "Eco morfológica (2º trimestre, 12–14 sem)" },
       "pfe": { "label": "PFE-US < P90" },
       "ca": { "label": "CA < P75" },
@@ -1875,14 +1877,28 @@
         "pbf": "Perfil biofísico fetal alterado (< 8/10). Se recomienda evaluación obstétrica / propedéutica complementaria."
       }
     },
+    "condutaFetal": {
+      "titulo": "Sugerencia de conducta (peso fetal vs. bienestar fetal)",
+      "item1": "Peso fetal adecuado + vitalidad fetal preservada: continuar el embarazo.",
+      "item2": "Peso fetal adecuado + vitalidad fetal comprometida (según el protocolo del servicio): individualizar la conducta.",
+      "item3": "Grande para la edad gestacional + vitalidad fetal preservada: escape del perfil glucémico y verificar la edad gestacional para la resolución del embarazo.",
+      "item4": "Grande para la edad gestacional + vitalidad fetal comprometida (según el protocolo del servicio): individualizar la conducta."
+    },
+    "orientacoesGerais": {
+      "titulo": "Orientaciones generales",
+      "item1": "No existe una prueba de referencia (gold standard) para evaluar la vitalidad fetal en la DMG.",
+      "item2": "Los mejores resultados provienen de la suma de toda la tecnología disponible: cuantos más exámenes de vitalidad se realicen, más cerca se estará de la mejor evaluación.",
+      "item3": "El Doppler de arteria uterina y umbilical no es necesario según el protocolo brasileño de DMG."
+    },
     "pedidoExames": {
       "titulo": "Solicitar exámenes (según la edad gestacional)",
       "morfologico": "Ecografía morfológica de 2º trimestre (12–14 semanas).",
       "crescimento2832": "Ecografía obstétrica para evaluación del crecimiento fetal (28–32 semanas).",
       "crescimento36": "Ecografía obstétrica para evaluación del crecimiento fetal (36ª semana).",
       "cmf": "Conteo diario de movimientos fetales (desde 28 semanas).",
-      "ctg": "Cardiotocografía anteparto semanal (desde 34 semanas).",
-      "pbf": "Perfil biofísico fetal semanal (desde 34 semanas)."
+      "ctg": "Cardiotocografía anteparto semanal (desde 32 semanas).",
+      "pbf": "Perfil biofísico fetal semanal (desde 32 semanas).",
+      "ctgPbfMedicamentoso": "A partir de 34 semanas, en tratamiento farmacológico (insulina), solicitar cardiotocografía y perfil biofísico fetal semanales."
     },
     "statusFichaBadge": {
       "rascunho": "Borrador",

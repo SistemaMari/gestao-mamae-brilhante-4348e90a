@@ -1086,7 +1086,7 @@ export default function FichaACForm({
       )}
 
       {/* V4 — Exames de crescimento/vitalidade fetal (PFE/CA/LA ocultos: já no checklist) */}
-      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} hidePfeCaLa disabled={saving} />
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} hidePfeCaLa igSemanas={igSemNum} disabled={saving} />
 
       {/* 36B REV3 — Conduta gerada pelo motor de decisão (apenas Ficha A) */}
       {isFichaAC && decisaoFichaA && (

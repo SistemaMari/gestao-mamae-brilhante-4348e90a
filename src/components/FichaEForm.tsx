@@ -773,7 +773,7 @@ export default function FichaEForm({
       </div>
 
       {/* V4 — Exames de crescimento/vitalidade fetal (todos os campos na Ficha E) */}
-      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} disabled={saving} />
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} igSemanas={igSemNum} disabled={saving} />
 
       <div className="space-y-1">
         <div className="flex items-center gap-1">
