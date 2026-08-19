@@ -144,6 +144,14 @@ export const EXAMES_FETAIS_DEFS: DefExameFetal[] = [
   },
 ];
 
+/** Campos de exame de UMA VEZ só (não repergunta uma vez registrados).
+ *  Declarado DEPOIS de EXAMES_FETAIS_DEFS: referenciá-lo antes causa TDZ
+ *  ("Cannot access before initialization") no bundle de produção. */
+export const EXAMES_UMA_VEZ: ExameFetalCampo[] =
+  EXAMES_FETAIS_DEFS.filter((d) => d.umaVez).map((d) => d.key);
+
+
+
 /** Alertas de atenção ativos para um estado (usado no card e no laudo). */
 export function alertasFamilia2(v: ExamesFetaisState): { key: ExameFetalCampo; alertaKey: string }[] {
   const out: { key: ExameFetalCampo; alertaKey: string }[] = [];
