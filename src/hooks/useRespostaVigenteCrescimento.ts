@@ -19,7 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIgBatch } from '@/lib/getIg';
 import {
-  respostaVigenteDaJanela, type RespostaVigenteCrescimento,
+  respostaVigenteDaJanela, ultimoRegistroCrescimento, type RespostaVigenteCrescimento,
 } from '@/lib/janelaCrescimentoFetal';
 
 interface ConsultaMinima {
@@ -41,9 +41,17 @@ interface Params {
   isPreview?: boolean;
 }
 
+export interface CrescimentoConhecido {
+  /** Resultado do exame da janela ATUAL — trava a coleta desta consulta. */
+  vigente: RespostaVigenteCrescimento | null;
+  /** Último resultado conhecido, de qualquer janela — exibido nas semanas em que
+   *  não há coleta (IG 33–35), onde não existe nada a preencher. */
+  ultimo: RespostaVigenteCrescimento | null;
+}
+
 export function useRespostaVigenteCrescimento({
   pacienteId, consultas, igSemanas, consultaAtualId, isPreview,
-}: Params): RespostaVigenteCrescimento | null {
+}: Params): CrescimentoConhecido {
   const { igs: igPorConsulta } = useIgBatch(
     consultas.map((c) => ({ key: c.id, pacienteId, dataAlvo: c.data ?? null })),
   );
@@ -63,9 +71,8 @@ export function useRespostaVigenteCrescimento({
     return () => { ativo = false; };
   }, [pacienteId, isPreview]);
 
-  return useMemo(() => respostaVigenteDaJanela(
-    igSemanas,
-    consultas.map((c) => {
+  return useMemo(() => {
+    const registros = consultas.map((c) => {
       const ex = examesPorConsulta.get(c.id);
       return {
         consultaId: c.id,
@@ -78,7 +85,10 @@ export function useRespostaVigenteCrescimento({
         la: ex?.la ?? c.checklist_la ?? null,
         crescimento: ex?.crescimento ?? null,
       };
-    }),
-    consultaAtualId,
-  ), [consultas, igPorConsulta, examesPorConsulta, igSemanas, consultaAtualId]);
+    });
+    return {
+      vigente: respostaVigenteDaJanela(igSemanas, registros, consultaAtualId),
+      ultimo: ultimoRegistroCrescimento(registros, consultaAtualId),
+    };
+  }, [consultas, igPorConsulta, examesPorConsulta, igSemanas, consultaAtualId]);
 }

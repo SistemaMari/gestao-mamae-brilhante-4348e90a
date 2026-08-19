@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import { BOOL_ITEMS, FETAL_ITEMS } from './checklistRetorno2Items';
 import {
-  janelaDaIg, type JanelaCrescimento, type RespostaVigenteCrescimento,
+  janelaDaIg, chaveLegendaJanela, type JanelaCrescimento, type RespostaVigenteCrescimento,
 } from '@/lib/janelaCrescimentoFetal';
 import { formatDateBR } from '@/lib/dateUtils';
 
@@ -31,12 +31,15 @@ export const CHECKLIST_VAZIO: ChecklistState = {
   pfe_us: null, ca: null, la: null,
 };
 
-/** Os indicadores de crescimento fetal (PFE/CA/LA — itens 4/5/6) vêm da US
- *  obstétrica de crescimento, feita a partir de 28 sem. Antes disso não aparecem
- *  no checklist e não são exigidos. IG desconhecida (null) → mostra (default seguro). */
+/** Os indicadores de crescimento fetal (PFE/CA/LA — itens 4/5/6) são a leitura da
+ *  US obstétrica de crescimento, e só são COLETADOS na janela do exame: 28–32 sem
+ *  (1º) e a partir de 36 sem (2º). Entre 33 e 35 não há exame a preencher — o 1º
+ *  já passou e o 2º ainda não aconteceu —, então não aparecem nem são exigidos.
+ *  IG desconhecida (null) → mostra (default seguro, comportamento antigo). */
 export const IG_MINIMA_FETAL = 28;
 export function fetaisAplicaveis(igSemanas: number | null | undefined): boolean {
-  return igSemanas == null || igSemanas >= IG_MINIMA_FETAL;
+  if (igSemanas == null) return true;
+  return janelaDaIg(igSemanas) != null;
 }
 
 export function isChecklistCompleto(c: ChecklistState, igSemanas?: number | null): boolean {
@@ -55,19 +58,20 @@ interface Props {
    *  Presente → os itens 4/5/6 aparecem fechados, sem repergunta: é o MESMO
    *  exame, lido na consulta de origem. Ver `janelaCrescimentoFetal`. */
   respostaVigente?: RespostaVigenteCrescimento | null;
+  /** Último resultado de crescimento conhecido, para as semanas SEM janela de
+   *  coleta (IG 33–35): não há o que preencher, mas o registro segue à vista. */
+  ultimoRegistro?: RespostaVigenteCrescimento | null;
   disabled?: boolean;
 }
 
-/** Rótulo de qual dos dois ultrassons do cronograma está sendo respondido —
- *  para o usuário saber que na 36ª semana são parâmetros NOVOS, não os mesmos. */
-function LegendaJanela({ janela }: { janela: JanelaCrescimento }) {
+/** Rótulo de qual dos dois ultrassons do cronograma está em jogo. Ao COLETAR avisa
+ *  que na 36ª semana são parâmetros NOVOS; ao apenas EXIBIR o resultado já lido,
+ *  usa a forma neutra (senão a tela diria "parâmetros novos" logo acima de "não é
+ *  necessário responder de novo"). */
+function LegendaJanela({ janela, registro }: { janela: JanelaCrescimento | null; registro: boolean }) {
   const { t } = useTranslation();
   return (
-    <p className="text-[11px] italic text-[#7E69AB]">
-      {t(janela === 'j2832'
-        ? 'ficha.checklistRetorno2.janela2832'
-        : 'ficha.checklistRetorno2.janela36')}
-    </p>
+    <p className="text-[11px] italic text-[#7E69AB]">{t(chaveLegendaJanela(janela, registro))}</p>
   );
 }
 
@@ -88,7 +92,7 @@ function Pill({ active, onClick, children, disabled }: { active: boolean; onClic
   );
 }
 
-export default function ChecklistRetorno2({ value, onChange, igSemanas, respostaVigente, disabled }: Props) {
+export default function ChecklistRetorno2({ value, onChange, igSemanas, respostaVigente, ultimoRegistro, disabled }: Props) {
   const { t } = useTranslation();
   const set = <K extends keyof ChecklistState>(k: K, v: ChecklistState[K]) => onChange({ ...value, [k]: v });
   const mostrarFetais = fetaisAplicaveis(igSemanas);
@@ -97,8 +101,15 @@ export default function ChecklistRetorno2({ value, onChange, igSemanas, resposta
   // sem ele, um registro errado ficaria travado até a janela seguinte — e são
   // esses parâmetros que indicam insulina (regra_fetal).
   const [corrigindo, setCorrigindo] = useState(false);
-  const travado = !!respostaVigente && !corrigindo;
-  const janela = respostaVigente?.janela ?? janelaDaIg(igSemanas);
+  // Três situações: (1) na janela do exame e ainda sem resultado → COLETA;
+  // (2) na janela e resultado já lido → exibe fechado, com opção de corrigir;
+  // (3) fora de janela (IG 33–35) → nada a preencher; se já existe resultado
+  //     conhecido, ele é exibido como registro, sem opção de responder.
+  const emJanela = fetaisAplicaveis(igSemanas);
+  const travado = emJanela && !!respostaVigente && !corrigindo;
+  const soRegistro = !emJanela && !!ultimoRegistro;
+  const exibido = travado ? respostaVigente! : soRegistro ? ultimoRegistro! : null;
+  const janela = exibido ? exibido.janela : janelaDaIg(igSemanas);
 
   return (
     <div className="rounded-xl border border-[#D6BCFA] bg-[#FAFAFE] p-4 space-y-3">
@@ -139,24 +150,27 @@ export default function ChecklistRetorno2({ value, onChange, igSemanas, resposta
           </div>
         ))}
 
-        {/* V4 — indicadores de crescimento fetal (4/5/6): só a partir de 28 sem
-            (vêm da US obstétrica de crescimento). Antes disso, ocultos. */}
-        {mostrarFetais && (
+        {/* V4 — indicadores de crescimento fetal (4/5/6): vêm da US obstétrica de
+            crescimento, então só são coletados na janela do exame (28–32 e ≥36).
+            Fora dela sobra, no máximo, o registro do resultado já conhecido. */}
+        {(mostrarFetais || soRegistro) && (
         <div className="border-t border-[#E5E0F2] pt-3 space-y-3">
           <p className="text-xs font-semibold text-[#7E69AB]">{t('ficha.checklistRetorno2.subtituloFetais')}</p>
-          {janela && <LegendaJanela janela={janela} />}
+          {(janela || exibido) && <LegendaJanela janela={janela} registro={!!exibido} />}
 
-          {travado ? (
+          {exibido ? (
             /* Mesmo exame já lido: mostra as respostas fechadas e de onde vieram. */
             <div className="rounded-lg border border-[#D6BCFA] bg-white/70 p-3 space-y-2">
               <p className="text-xs text-[#5B21B6]">
-                {t('ficha.checklistRetorno2.jaRespondido', {
-                  data: formatDateBR(respostaVigente!.data),
-                  ig: respostaVigente!.igSemanas ?? '—',
+                {t(soRegistro
+                  ? 'ficha.checklistRetorno2.semExameNestaSemana'
+                  : 'ficha.checklistRetorno2.jaRespondido', {
+                  data: formatDateBR(exibido.data),
+                  ig: exibido.igSemanas ?? '—',
                 })}
               </p>
               {FETAL_ITEMS.map(({ key, label }) => {
-                const v = respostaVigente!.valores[key];
+                const v = exibido.valores[key];
                 return (
                   <div key={key} className="flex flex-wrap items-center justify-between gap-3">
                     <span className="text-xs text-foreground">{label}</span>
@@ -166,7 +180,9 @@ export default function ChecklistRetorno2({ value, onChange, igSemanas, resposta
                   </div>
                 );
               })}
-              {!disabled && (
+              {/* Fora da janela do exame não há o que corrigir aqui: não existe
+                  resultado novo para esta consulta, só o registro do anterior. */}
+              {!disabled && travado && (
                 <button
                   type="button"
                   onClick={() => setCorrigindo(true)}

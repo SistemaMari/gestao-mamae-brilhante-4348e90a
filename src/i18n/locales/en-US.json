@@ -1842,6 +1842,10 @@
       "subtituloFetais": "Fetal growth parameters",
       "janela2832": "Result of the 1st growth ultrasound (28 to 32 week window).",
       "janela36": "Result of the 2nd growth ultrasound (36th week) — new parameters.",
+      "janelaRegistro2832": "Result of the 1st growth ultrasound (28 to 32 week window).",
+      "janelaRegistro36": "Result of the 2nd growth ultrasound (36th week).",
+      "janelaRegistroAvulso": "Result of the most recent growth ultrasound on record.",
+      "semExameNestaSemana": "There is no growth ultrasound to record this week. Below, the latest result on file, from the visit on {{data}} (GA {{ig}} weeks).",
       "jaRespondido": "This exam was already recorded at the visit on {{data}} (GA {{ig}} weeks). These are the same parameters — no need to answer again.",
       "corrigirExame": "Correct the record or enter a new exam",
       "noInfo": "No information"

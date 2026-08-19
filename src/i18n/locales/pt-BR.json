@@ -1842,6 +1842,10 @@
       "subtituloFetais": "Parâmetros do crescimento fetal",
       "janela2832": "Resultado do 1º ultrassom de crescimento (janela de 28 a 32 semanas).",
       "janela36": "Resultado do 2º ultrassom de crescimento (36ª semana) — parâmetros novos.",
+      "janelaRegistro2832": "Resultado do 1º ultrassom de crescimento (janela de 28 a 32 semanas).",
+      "janelaRegistro36": "Resultado do 2º ultrassom de crescimento (36ª semana).",
+      "janelaRegistroAvulso": "Resultado do último ultrassom de crescimento registrado.",
+      "semExameNestaSemana": "Não há ultrassom de crescimento a preencher nesta semana. Abaixo, o último resultado registrado, da consulta de {{data}} (IG {{ig}} semanas).",
       "jaRespondido": "Este exame já foi registrado na consulta de {{data}} (IG {{ig}} semanas). São os mesmos parâmetros — não é necessário responder de novo.",
       "corrigirExame": "Corrigir o registro ou lançar um exame novo",
       "noInfo": "Sem informação"

@@ -184,13 +184,15 @@ export default function FichaEForm({
   // vezes na gestação (janela 28–32 e 36ª sem): pertencem ao EXAME, não à consulta.
   // Se o exame desta janela já foi lido em outra consulta — aqui ou no checklist do
   // Retorno 2 da Ficha A/C —, o card exibe aquele resultado em vez de reperguntar.
-  const respostaVigenteFetal = useRespostaVigenteCrescimento({
+  const crescimentoConhecido = useRespostaVigenteCrescimento({
     pacienteId: paciente.id,
     consultas: consultas as any,
     igSemanas: igSemNum || null,
     consultaAtualId: editingConsulta?.id,
     isPreview,
   });
+  const respostaVigenteFetal = crescimentoConhecido.vigente;
+  const ultimoRegistroFetal = crescimentoConhecido.ultimo;
 
   // Copia o resultado vigente para esta consulta, para o laudo dela exibir o exame
   // corrente junto com a legenda de qual dos dois ultrassons se trata.
@@ -826,7 +828,7 @@ export default function FichaEForm({
       </div>
 
       {/* V4 — Exames de crescimento/vitalidade fetal (todos os campos na Ficha E) */}
-      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} igSemanas={igSemNum} jaRegistrados={jaRegistrados} respostaVigente={respostaVigenteFetal} disabled={saving} />
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} igSemanas={igSemNum} jaRegistrados={jaRegistrados} respostaVigente={respostaVigenteFetal} ultimoRegistro={ultimoRegistroFetal} disabled={saving} />
 
       <div className="space-y-1">
         <div className="flex items-center gap-1">
