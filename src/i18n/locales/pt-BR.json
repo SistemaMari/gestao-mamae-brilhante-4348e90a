@@ -1839,14 +1839,16 @@
     "checklistRetorno2": {
       "title": "Checklist clínico do Retorno 2",
       "tooltip": "As 6 respostas são enviadas ao backend, que devolve a conduta (manter MEV / reforçar MEV / iniciar insulina / avaliar memória do glicosímetro) e a próxima ficha recomendada.",
+      "subtituloFetais": "Parâmetros do crescimento fetal",
       "noInfo": "Sem informação"
     },
     "examesFetais": {
-      "title": "Exames de crescimento e vitalidade fetal",
+      "title": "Exames de avaliação fetal",
       "tooltip": "Registre os resultados quando a gestante trouxer os exames. Deixe em \"Sem dados\" enquanto a idade gestacional ainda não permitir.",
       "semDados": "Sem dados",
       "grupoUsg": "Ultrassonografia",
-      "grupoVigilancia": "Vigilância fetal",
+      "grupoVigilancia": "Vigilância do bem estar fetal",
+      "doppler": "Doppler de artéria uterina e umbilical não é necessário para acompanhamento do DMG pelo protocolo brasileiro.",
       "morfologico": { "label": "USG morfológico (2º trimestre, 12–14 sem)" },
       "pfe": { "label": "PFE-US < P90" },
       "ca": { "label": "CA < P75" },
@@ -1875,14 +1877,28 @@
         "pbf": "Perfil biofísico fetal alterado (< 8/10). Recomenda-se avaliação obstétrica / propedêutica complementar."
       }
     },
+    "condutaFetal": {
+      "titulo": "Sugestão de conduta (peso fetal × bem-estar fetal)",
+      "item1": "Peso fetal adequado + vitalidade fetal preservada: continuar a gestação.",
+      "item2": "Peso fetal adequado + vitalidade fetal comprometida (pelo protocolo do serviço): individualizar a conduta.",
+      "item3": "Peso grande para a idade gestacional + vitalidade fetal preservada: escape do perfil glicêmico e verificar idade gestacional para resolução da gestação.",
+      "item4": "Peso grande para a idade gestacional + vitalidade fetal comprometida (pelo protocolo do serviço): individualizar a conduta."
+    },
+    "orientacoesGerais": {
+      "titulo": "Orientações gerais",
+      "item1": "Não existe teste padrão-ouro para avaliar a vitalidade fetal no DMG.",
+      "item2": "Os melhores resultados vêm da somatória de toda a tecnologia disponível: quanto mais exames de vitalidade realizados, mais próxima a melhor avaliação.",
+      "item3": "Doppler de artéria uterina e umbilical não é necessário pelo protocolo brasileiro de DMG."
+    },
     "pedidoExames": {
       "titulo": "Solicitar exames (conforme a idade gestacional)",
       "morfologico": "Ultrassom morfológico de 2º trimestre (12–14 semanas).",
       "crescimento2832": "Ultrassom obstétrico para avaliação do crescimento fetal (28–32 semanas).",
       "crescimento36": "Ultrassom obstétrico para avaliação do crescimento fetal (36ª semana).",
       "cmf": "Contagem diária de movimentos fetais (a partir de 28 semanas).",
-      "ctg": "Cardiotocografia anteparto semanal (a partir de 34 semanas).",
-      "pbf": "Perfil biofísico fetal semanal (a partir de 34 semanas)."
+      "ctg": "Cardiotocografia anteparto semanal (a partir de 32 semanas).",
+      "pbf": "Perfil biofísico fetal semanal (a partir de 32 semanas).",
+      "ctgPbfMedicamentoso": "A partir de 34 semanas, em tratamento medicamentoso (insulina), solicitar cardiotocografia e perfil biofísico fetal semanais."
     },
     "statusFichaBadge": {
       "rascunho": "Rascunho",

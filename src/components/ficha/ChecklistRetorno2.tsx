@@ -98,6 +98,8 @@ export default function ChecklistRetorno2({ value, onChange, disabled }: Props) 
         ))}
 
         <div className="border-t border-[#E5E0F2] pt-3 space-y-3">
+          {/* V4 — subtítulo dos indicadores de crescimento fetal (itens 4/5/6). */}
+          <p className="text-xs font-semibold text-[#7E69AB]">{t('ficha.checklistRetorno2.subtituloFetais')}</p>
           {FETAL_ITEMS.map(({ key, label, tooltip }) => (
             <div key={key} className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-1">

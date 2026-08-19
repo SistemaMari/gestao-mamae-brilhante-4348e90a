@@ -22,7 +22,23 @@ describe('pedidosExamesFetais — cronograma por IG', () => {
     ]);
   });
 
-  it('34 sem → crescimento 36 + CMF + CTG + PBF (semanais desde 34)', () => {
+  it('30 sem → crescimento 28-32 + CMF (CTG/PBF só a partir de 32)', () => {
+    expect(pedidosExamesFetais(30)).toEqual([
+      'ficha.pedidoExames.crescimento2832',
+      'ficha.pedidoExames.cmf',
+    ]);
+  });
+
+  it('32 sem (não medicamentoso) → crescimento 28-32 + CMF + CTG + PBF', () => {
+    expect(pedidosExamesFetais(32)).toEqual([
+      'ficha.pedidoExames.crescimento2832',
+      'ficha.pedidoExames.cmf',
+      'ficha.pedidoExames.ctg',
+      'ficha.pedidoExames.pbf',
+    ]);
+  });
+
+  it('34 sem (não medicamentoso) → crescimento 36 + CMF + CTG + PBF', () => {
     expect(pedidosExamesFetais(34)).toEqual([
       'ficha.pedidoExames.crescimento36',
       'ficha.pedidoExames.cmf',
@@ -34,6 +50,17 @@ describe('pedidosExamesFetais — cronograma por IG', () => {
   it('limite 33 sem → crescimento vira o da 36ª (não o 28-32)', () => {
     expect(pedidosExamesFetais(33)).toContain('ficha.pedidoExames.crescimento36');
     expect(pedidosExamesFetais(33)).not.toContain('ficha.pedidoExames.crescimento2832');
+  });
+
+  it('em insulina (MARI encerra): CTG/PBF viram a mensagem de 34 sem medicamentoso', () => {
+    const p = pedidosExamesFetais(34, true);
+    expect(p).toContain('ficha.pedidoExames.ctgPbfMedicamentoso');
+    expect(p).not.toContain('ficha.pedidoExames.ctg');
+    expect(p).not.toContain('ficha.pedidoExames.pbf');
+  });
+
+  it('em insulina sem IG → só a mensagem forward', () => {
+    expect(pedidosExamesFetais(null, true)).toEqual(['ficha.pedidoExames.ctgPbfMedicamentoso']);
   });
 });
 
