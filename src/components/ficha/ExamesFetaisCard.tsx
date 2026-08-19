@@ -28,6 +28,9 @@ interface Props {
   /** Resultado do ultrassom de crescimento JÁ lido nesta janela (28–32 ou 36ª).
    *  Presente → os campos desse exame aparecem fechados, sem repergunta. */
   respostaVigente?: RespostaVigenteCrescimento | null;
+  /** Último resultado de crescimento conhecido, para as semanas SEM janela de
+   *  coleta (IG 33–35): não há o que preencher, mas o registro segue à vista. */
+  ultimoRegistro?: RespostaVigenteCrescimento | null;
   disabled?: boolean;
 }
 
@@ -48,7 +51,7 @@ function Pill({ active, onClick, children, disabled }: { active: boolean; onClic
   );
 }
 
-export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, igSemanas, jaRegistrados, respostaVigente, disabled }: Props) {
+export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, igSemanas, jaRegistrados, respostaVigente, ultimoRegistro, disabled }: Props) {
   const { t } = useTranslation();
   const set = <K extends keyof ExamesFetaisState>(k: K, v: ExamesFetaisState[K]) => onChange({ ...value, [k]: v });
 
@@ -57,16 +60,24 @@ export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, igSeman
     // exame de uma vez já registrado antes → não repergunta
     .filter((d) => !(d.umaVez && jaRegistrados?.includes(d.key)));
   const usg = visiveis.filter((d) => d.grupo === 'usg');
-  const usgCrescimento = usg.filter((d) => d.exameCrescimento);
   const usgOutros = usg.filter((d) => !d.exameCrescimento);
   const vigilancia = visiveis.filter((d) => d.grupo === 'vigilancia');
   const alertas = alertasFamilia2(value);
-  // Resultado do ultrassom de crescimento desta janela já lido em outra consulta.
-  // O botão de corrigir existe porque a UI só edita a consulta MAIS RECENTE: sem
-  // ele, um registro errado ficaria preso até a janela seguinte.
+
+  // Os campos do ultrassom de crescimento só são COLETADOS na janela do exame
+  // (28–32 e ≥36). Entre 33 e 35 não há o que preencher — sobra, no máximo, o
+  // registro do resultado já conhecido. O botão de corrigir só aparece dentro da
+  // janela, e existe porque a UI só edita a consulta MAIS RECENTE: sem ele um
+  // registro errado ficaria preso até a janela seguinte.
   const [corrigindo, setCorrigindo] = useState(false);
-  const travado = !!respostaVigente && !corrigindo;
-  const janela = respostaVigente?.janela ?? janelaDaIg(igSemanas);
+  const emJanela = janelaDaIg(igSemanas) != null || igSemanas == null;
+  const travado = emJanela && !!respostaVigente && !corrigindo;
+  const soRegistro = !emJanela && !!ultimoRegistro;
+  const exibido = travado ? respostaVigente! : soRegistro ? ultimoRegistro! : null;
+  const janela = exibido ? exibido.janela : janelaDaIg(igSemanas);
+  const usgCrescimento = emJanela || soRegistro
+    ? usg.filter((d) => d.exameCrescimento)
+    : [];
 
   const renderLinha = (d: DefExameFetal) => {
     const atual = value[d.key];
@@ -105,28 +116,28 @@ export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, igSeman
               volta a perguntar, com a legenda avisando que são parâmetros novos. */}
           {usgCrescimento.length > 0 && (
             <div className="space-y-3">
-              {janela && (
+              {(janela || exibido) && (
                 <p className="text-[11px] italic text-[#7E69AB]">
-                  {t(janela === 'j2832'
-                    ? 'ficha.checklistRetorno2.janela2832'
-                    : 'ficha.checklistRetorno2.janela36')}
+                  {t(chaveLegendaJanela(janela, !!exibido))}
                 </p>
               )}
-              {travado ? (
+              {exibido ? (
                 <div className="rounded-lg border border-[#D6BCFA] bg-white/70 p-3 space-y-2">
                   {/* Na Ficha A/C o checklist do Retorno 2 aparece logo acima e já
                       traz esta mesma frase, para o MESMO exame — repetir aqui só
                       polui. A legenda acima já identifica de qual ultrassom é. */}
                   {!hidePfeCaLa && (
                     <p className="text-xs text-[#5B21B6]">
-                      {t('ficha.checklistRetorno2.jaRespondido', {
-                        data: formatDateBR(respostaVigente!.data),
-                        ig: respostaVigente!.igSemanas ?? '—',
+                      {t(soRegistro
+                        ? 'ficha.checklistRetorno2.semExameNestaSemana'
+                        : 'ficha.checklistRetorno2.jaRespondido', {
+                        data: formatDateBR(exibido.data),
+                        ig: exibido.igSemanas ?? '—',
                       })}
                     </p>
                   )}
                   {usgCrescimento.map((d) => {
-                    const v = (respostaVigente!.valores as Record<string, string | null | undefined>)[d.key] ?? null;
+                    const v = (exibido.valores as Record<string, string | null | undefined>)[d.key] ?? null;
                     const op = d.opcoes.find((o) => o.value === v);
                     return (
                       <div key={d.key} className="flex flex-wrap items-center justify-between gap-3">
@@ -137,7 +148,8 @@ export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, igSeman
                       </div>
                     );
                   })}
-                  {!disabled && (
+                  {/* Fora da janela não há resultado novo a lançar nesta consulta. */}
+                  {!disabled && travado && (
                     <button
                       type="button"
                       onClick={() => setCorrigindo(true)}

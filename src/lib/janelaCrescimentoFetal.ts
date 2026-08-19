@@ -23,12 +23,25 @@
 
 export type JanelaCrescimento = 'j2832' | 'j36';
 
-/** Janela do cronograma a que uma IG pertence. Antes de 28 sem não há exame de
- *  crescimento (não é mensurável) → null. */
+/**
+ * JANELA DE COLETA — quando o espaço para PREENCHER o resultado fica aberto.
+ *
+ * Não confundir com a antecedência do PEDIDO (ver `pedidosExamesFetais`): o pedido
+ * sai antes, para a gestante ter tempo de agendar; o campo de resultado só abre na
+ * semana em que o exame é feito. São dois números diferentes, de propósito.
+ *
+ *   IG 28–32  → 1º ultrassom de crescimento (coleta aberta)
+ *   IG 33–35  → NADA a preencher: o 1º já passou e o 2º ainda não aconteceu
+ *   IG ≥ 36   → 2º ultrassom de crescimento (coleta aberta)
+ *
+ * Antes de 28 sem não há exame de crescimento (não é mensurável) → null.
+ */
+export const IG_EXAME_36 = 36;
+
 export function janelaDaIg(igSemanas: number | null | undefined): JanelaCrescimento | null {
   if (igSemanas == null) return null;
   if (igSemanas >= 28 && igSemanas < 33) return 'j2832';
-  if (igSemanas >= 33) return 'j36';
+  if (igSemanas >= IG_EXAME_36) return 'j36';
   return null;
 }
 
@@ -40,8 +53,11 @@ export function janelaDaIg(igSemanas: number | null | undefined): JanelaCrescime
  * responder) usa a forma que avisa que são parâmetros novos. Sem essa distinção, a
  * tela dizia "parâmetros novos" logo acima de "não é necessário responder de novo".
  */
-export function chaveLegendaJanela(janela: JanelaCrescimento, registro: boolean): string {
+export function chaveLegendaJanela(janela: JanelaCrescimento | null, registro: boolean): string {
   const base = 'ficha.checklistRetorno2.';
+  // Registro de um exame que não caiu em nenhuma janela de coleta (ex.: dado antigo,
+  // gravado quando a fronteira era outra): não afirma qual dos dois exames foi.
+  if (janela == null) return base + 'janelaRegistroAvulso';
   if (registro) return base + (janela === 'j2832' ? 'janelaRegistro2832' : 'janelaRegistro36');
   return base + (janela === 'j2832' ? 'janela2832' : 'janela36');
 }
@@ -64,7 +80,9 @@ export interface ConsultaComCrescimento extends ValoresCrescimento {
 
 /** A resposta vigente de uma janela e de qual consulta ela veio. */
 export interface RespostaVigenteCrescimento {
-  janela: JanelaCrescimento;
+  /** Janela de coleta a que o registro pertence; null = exame fora das janelas
+   *  (dado antigo, gravado quando a fronteira era outra). */
+  janela: JanelaCrescimento | null;
   consultaId: string;
   data?: string | null;
   igSemanas: number | null | undefined;
@@ -88,6 +106,35 @@ function temResposta(v: ValoresCrescimento): boolean {
  * consulta em que o exame foi efetivamente trazido. A própria consulta atual é
  * excluída (senão ela travaria a si mesma enquanto está sendo preenchida).
  */
+/**
+ * O último resultado de crescimento conhecido da paciente, independentemente de
+ * janela. Usado nas semanas em que NÃO há coleta (IG 33–35): não há o que
+ * preencher, mas o resultado já conhecido segue sendo exibido como registro.
+ */
+export function ultimoRegistroCrescimento(
+  registros: readonly ConsultaComCrescimento[],
+  consultaAtualId?: string | null,
+): RespostaVigenteCrescimento | null {
+  let achado: RespostaVigenteCrescimento | null = null;
+  for (const r of registros) {
+    if (consultaAtualId && r.consultaId === consultaAtualId) continue;
+    if (!temResposta(r)) continue;
+    achado = {
+      janela: janelaDaIg(r.igSemanas),
+      consultaId: r.consultaId,
+      data: r.data ?? null,
+      igSemanas: r.igSemanas,
+      valores: {
+        pfe_us: r.pfe_us ?? null,
+        ca: r.ca ?? null,
+        la: r.la ?? null,
+        crescimento: r.crescimento ?? null,
+      },
+    };
+  }
+  return achado;
+}
+
 export function respostaVigenteDaJanela(
   igAtual: number | null | undefined,
   registros: readonly ConsultaComCrescimento[],
