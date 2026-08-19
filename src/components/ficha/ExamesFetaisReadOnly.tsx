@@ -19,6 +19,7 @@ export default function ExamesFetaisReadOnly({ value }: { value: ExamesFetaisSta
     })
     .filter((x): x is { key: string; grupo: 'usg' | 'vigilancia'; label: string; valor: string } => x != null);
 
+
   if (respondidos.length === 0) return null;
 
   const usg = respondidos.filter((r) => r.grupo === 'usg');
