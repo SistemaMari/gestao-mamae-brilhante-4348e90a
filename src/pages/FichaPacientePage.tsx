@@ -34,6 +34,7 @@ import {
 import Retorno1Form from '@/components/Retorno1Form';
 import Consulta1ResultCard from '@/components/Consulta1ResultCard';
 import AlertaExamesFetaisLaudo from '@/components/laudo/AlertaExamesFetaisLaudo';
+import { pedidosJaAtendidos, type RegistroFetalConsulta } from '@/lib/pedidosExamesFetais';
 import CarimboAtendimento from '@/components/clinico/CarimboAtendimento';
 import Retorno1ResultCard from '@/components/Retorno1ResultCard';
 import GttForm from '@/components/GttForm';
@@ -326,6 +327,9 @@ export default function FichaPacientePage() {
   const [paciente, setPaciente] = useState<PreviewPaciente | null>(null);
   const [consultas, setConsultas] = useState<PreviewConsulta[]>([]);
   const [usgs, setUsgs] = useState<UsgRefInput[]>([]);
+  // V4 — resultados de exames fetais de TODAS as consultas da paciente. Servem
+  // para o laudo parar de pedir exame pontual que a gestante já trouxe.
+  const [examesFetaisPaciente, setExamesFetaisPaciente] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showRetorno1, setShowRetorno1] = useState(false);
   const [retorno1Completed, setRetorno1Completed] = useState(false);
@@ -431,6 +435,14 @@ export default function FichaPacientePage() {
         .eq('paciente_id', id)
         .order('ordem', { ascending: true });
       setUsgs((usgsData ?? []) as unknown as UsgRefInput[]);
+
+      // V4 — exames fetais registrados pela paciente (todas as consultas), para
+      // suprimir no laudo o pedido de exame pontual já atendido.
+      const { data: fetaisData } = await supabase
+        .from('exames_fetais' as any)
+        .select('consulta_id, morfologico, crescimento, pfe_us, ca, la')
+        .eq('paciente_id', id);
+      setExamesFetaisPaciente((fetaisData ?? []) as any[]);
 
       const exameByConsulta = new Map<string, any>(
         (exames ?? []).map((e: any) => [e.consulta_id, e]),
@@ -647,6 +659,32 @@ export default function FichaPacientePage() {
   const { igs: igConsultaMap } = useIgBatch(
     consultas.map(c => ({ key: c.id, pacienteId: paciente?.id, dataAlvo: c.data })),
   );
+
+  // V4 — pedidos PONTUAIS de exame fetal já atendidos ATÉ CADA consulta, acumulados
+  // na ordem clínica do histórico. O laudo de uma consulta considera os exames
+  // trazidos até ela (inclusive): um exame trazido só na consulta seguinte não pode
+  // alterar retroativamente um laudo já emitido. A US de crescimento conta tanto
+  // pelo card (`exames_fetais`) quanto pelos itens 4/5/6 do checklist do Retorno 2.
+  const atendidosPorConsulta = useMemo(() => {
+    const fetaisByConsulta = new Map<string, any>(
+      examesFetaisPaciente.map((r: any) => [r.consulta_id, r]),
+    );
+    const acumulado: RegistroFetalConsulta[] = [];
+    const out = new Map<string, string[]>();
+    for (const c of consultas) {
+      const row = fetaisByConsulta.get(c.id);
+      acumulado.push({
+        igSemanas: igConsultaMap.get(c.id)?.semanas ?? null,
+        morfologico: row?.morfologico ?? null,
+        crescimento: row?.crescimento ?? null,
+        pfe_us: row?.pfe_us ?? c.checklist_pfe_us ?? null,
+        ca: row?.ca ?? c.checklist_ca ?? null,
+        la: row?.la ?? c.checklist_la ?? null,
+      });
+      out.set(c.id, pedidosJaAtendidos(acumulado));
+    }
+    return out;
+  }, [consultas, examesFetaisPaciente, igConsultaMap]);
 
   // === Textos fixos do laudo (34D-B) — lidos de `obter-textos-laudo` ===
   const laudoTextos = useLaudoTextos({ isPreview });
@@ -2061,6 +2099,7 @@ export default function FichaPacientePage() {
                                 consultaId={c.id}
                                 igSemanas={igLaudo?.semanas ?? null}
                                 emInsulina={ehDesfechoInsulina(desfechoC)}
+                                jaAtendidos={atendidosPorConsulta.get(c.id) ?? []}
                               />
                               <AutoriaRodape registro={autoriaConsulta} label={t('clinico.autoriaRodape.defaultLabel')} />
                             </LaudoCompleto>

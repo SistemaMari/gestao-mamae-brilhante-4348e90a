@@ -7,8 +7,9 @@
  *  4) SUGESTÃO DE CONDUTA (peso fetal × bem-estar fetal — 4 cenários);
  *  5) ORIENTAÇÕES GERAIS.
  * Doppler/conduta/orientações aparecem em toda ficha de acompanhamento; registro e
- * achados dependem do que foi preenchido; o pedido depende da IG. Auto-busca a linha
- * de `exames_fetais` da consulta.
+ * achados dependem do que foi preenchido; o pedido depende da IG E do que já foi
+ * trazido (exame pontual já registrado sai do pedido — ver pedidosExamesFetais).
+ * Auto-busca a linha de `exames_fetais` da consulta.
  */
 import { useEffect, useState } from 'react';
 import { AlertTriangle, ClipboardList, Stethoscope, Info } from 'lucide-react';
@@ -24,9 +25,12 @@ interface Props {
   igSemanas: number | null | undefined;
   /** Ficha que decidiu insulina (MARI encerra) — muda o pedido de CTG/PBF. */
   emInsulina?: boolean;
+  /** Pedidos PONTUAIS já atendidos até esta consulta (`pedidosJaAtendidos`).
+   *  Sem isso o laudo repete exame que a gestante já trouxe. */
+  jaAtendidos?: readonly string[];
 }
 
-export default function AlertaExamesFetaisLaudo({ tipo, consultaId, igSemanas, emInsulina }: Props) {
+export default function AlertaExamesFetaisLaudo({ tipo, consultaId, igSemanas, emInsulina, jaAtendidos }: Props) {
   const { t } = useTranslation();
   const [estado, setEstado] = useState<ExamesFetaisState | null>(null);
 
@@ -44,7 +48,7 @@ export default function AlertaExamesFetaisLaudo({ tipo, consultaId, igSemanas, e
   if (!fichaTemPedidoExames(tipo)) return null;
 
   const alertas = estado ? alertasFamilia2(estado) : [];
-  const pedidos = pedidosExamesFetais(igSemanas, !!emInsulina);
+  const pedidos = pedidosExamesFetais(igSemanas, !!emInsulina, jaAtendidos ?? []);
   const condutaItens = ['item1', 'item2', 'item3', 'item4'];
   const orientacoesItens = ['item1', 'item2', 'item3'];
 

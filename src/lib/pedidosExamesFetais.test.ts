@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { pedidosExamesFetais, fichaTemPedidoExames } from './pedidosExamesFetais';
+import {
+  pedidosExamesFetais, fichaTemPedidoExames, pedidosJaAtendidos,
+  PEDIDO_MORFOLOGICO, PEDIDO_CRESCIMENTO_2832, PEDIDO_CRESCIMENTO_36,
+} from './pedidosExamesFetais';
 
 describe('pedidosExamesFetais — cronograma por IG', () => {
   it('IG nula → nenhum pedido', () => {
@@ -74,5 +77,90 @@ describe('fichaTemPedidoExames', () => {
     for (const t of ['consulta_1', 'retorno_1', 'gtt', 'registro_parto', null, undefined]) {
       expect(fichaTemPedidoExames(t)).toBe(false);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// V4 — pedido não se repete quando o exame PONTUAL já foi trazido.
+// Bug do print da Carla: com "Crescimento fetal: Adequado" registrado na PRÓPRIA
+// consulta (28s2d), o laudo ainda pedia a US de crescimento 28–32 — e repetia o
+// pedido na consulta seguinte (31s5d).
+// ---------------------------------------------------------------------------
+describe('pedidosJaAtendidos — o que já foi trazido', () => {
+  it('sem registro nenhum → nada atendido', () => {
+    expect(pedidosJaAtendidos([])).toEqual([]);
+    expect(pedidosJaAtendidos([{ igSemanas: 28 }])).toEqual([]);
+  });
+
+  it('crescimento registrado com 28 sem atende o pedido 28-32', () => {
+    expect(pedidosJaAtendidos([{ igSemanas: 28, crescimento: 'adequado' }]))
+      .toEqual([PEDIDO_CRESCIMENTO_2832]);
+  });
+
+  it('itens 4/5/6 do checklist do Retorno 2 também atendem a US de crescimento', () => {
+    expect(pedidosJaAtendidos([{ igSemanas: 29, pfe_us: 'sim', ca: 'sim', la: 'sim' }]))
+      .toEqual([PEDIDO_CRESCIMENTO_2832]);
+  });
+
+  it('"sem_info" no checklist NÃO atende (a gestante não trouxe o exame)', () => {
+    expect(pedidosJaAtendidos([
+      { igSemanas: 29, pfe_us: 'sem_info', ca: 'sem_info', la: 'sem_info' },
+    ])).toEqual([]);
+  });
+
+  it('US feita aos 28-32 NÃO atende o pedido da 36ª semana (são dois exames)', () => {
+    const feitos = pedidosJaAtendidos([{ igSemanas: 30, crescimento: 'adequado' }]);
+    expect(feitos).toContain(PEDIDO_CRESCIMENTO_2832);
+    expect(feitos).not.toContain(PEDIDO_CRESCIMENTO_36);
+  });
+
+  it('US feita a partir de 33 sem atende o pedido da 36ª semana', () => {
+    expect(pedidosJaAtendidos([{ igSemanas: 36, crescimento: 'adequado' }]))
+      .toEqual([PEDIDO_CRESCIMENTO_36]);
+  });
+
+  it('morfológico registrado atende para sempre (janela única na gestação)', () => {
+    expect(pedidosJaAtendidos([{ igSemanas: 31, morfologico: 'normal' }]))
+      .toEqual([PEDIDO_MORFOLOGICO]);
+  });
+
+  it('registro sem IG conhecida não atende janela nenhuma de crescimento', () => {
+    expect(pedidosJaAtendidos([{ igSemanas: null, crescimento: 'adequado' }])).toEqual([]);
+  });
+});
+
+describe('pedidosExamesFetais — suprime pedido pontual já atendido', () => {
+  it('Carla 28s2d: crescimento registrado na própria consulta → some o pedido 28-32, fica o CMF', () => {
+    const feitos = pedidosJaAtendidos([{ igSemanas: 28, crescimento: 'adequado' }]);
+    expect(pedidosExamesFetais(28, false, feitos)).toEqual(['ficha.pedidoExames.cmf']);
+  });
+
+  it('Carla 31s5d: exame já trazido antes → segue sem repetir o pedido', () => {
+    const feitos = pedidosJaAtendidos([
+      { igSemanas: 28, crescimento: 'adequado' },
+      { igSemanas: 31, morfologico: 'normal' },
+    ]);
+    expect(pedidosExamesFetais(31, false, feitos)).toEqual(['ficha.pedidoExames.cmf']);
+  });
+
+  it('vigilância CONTÍNUA não é suprimida por registro (CMF/CTG/PBF seguem toda consulta)', () => {
+    const feitos = pedidosJaAtendidos([{ igSemanas: 32, crescimento: 'adequado' }]);
+    expect(pedidosExamesFetais(32, false, feitos)).toEqual([
+      'ficha.pedidoExames.cmf',
+      'ficha.pedidoExames.ctg',
+      'ficha.pedidoExames.pbf',
+    ]);
+  });
+
+  it('a partir de 33 sem o pedido da 36ª volta, mesmo com a US de 28-32 feita', () => {
+    const feitos = pedidosJaAtendidos([{ igSemanas: 30, crescimento: 'adequado' }]);
+    expect(pedidosExamesFetais(34, false, feitos)).toContain('ficha.pedidoExames.crescimento36');
+  });
+
+  it('sem lista de atendidos, o comportamento é o de antes (retrocompatível)', () => {
+    expect(pedidosExamesFetais(28)).toEqual([
+      'ficha.pedidoExames.crescimento2832',
+      'ficha.pedidoExames.cmf',
+    ]);
   });
 });
