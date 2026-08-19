@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
-import { type ChecklistState } from './ChecklistRetorno2';
+import { fetaisAplicaveis, type ChecklistState } from './ChecklistRetorno2';
 import { BOOL_ITEMS, FETAL_ITEMS } from './checklistRetorno2Items';
 
 /**
@@ -18,8 +18,9 @@ function rotuloResposta(v: boolean | 'sim' | 'nao' | 'sem_info' | null): string 
   return '—';
 }
 
-export default function ChecklistRetorno2ReadOnly({ value }: { value: ChecklistState }) {
+export default function ChecklistRetorno2ReadOnly({ value, igSemanas }: { value: ChecklistState; igSemanas?: number | null }) {
   const { t } = useTranslation();
+  const mostrarFetais = fetaisAplicaveis(igSemanas);
   const itens = [...BOOL_ITEMS, ...FETAL_ITEMS];
   const temResposta = itens.some(({ key }) => value[key] != null);
   if (!temResposta) return null;
@@ -37,11 +38,15 @@ export default function ChecklistRetorno2ReadOnly({ value }: { value: ChecklistS
       <div className="divide-y divide-[#E5E0F2]">
         {BOOL_ITEMS.map(linha)}
       </div>
-      {/* V4 — subtítulo dos indicadores de crescimento fetal (itens 4/5/6). */}
-      <p className="text-xs font-semibold text-[#7E69AB] pt-1">{t('ficha.checklistRetorno2.subtituloFetais')}</p>
-      <div className="divide-y divide-[#E5E0F2]">
-        {FETAL_ITEMS.map(linha)}
-      </div>
+      {/* V4 — indicadores de crescimento fetal (4/5/6): só a partir de 28 sem. */}
+      {mostrarFetais && (
+        <>
+          <p className="text-xs font-semibold text-[#7E69AB] pt-1">{t('ficha.checklistRetorno2.subtituloFetais')}</p>
+          <div className="divide-y divide-[#E5E0F2]">
+            {FETAL_ITEMS.map(linha)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
