@@ -24,6 +24,8 @@
  * Retorna chaves i18n (ficha.pedidoExames.*) na ordem clínica de exibição.
  */
 
+import { janelaDaIg } from './janelaCrescimentoFetal';
+
 export const PEDIDO_MORFOLOGICO = 'ficha.pedidoExames.morfologico';
 export const PEDIDO_CRESCIMENTO_2832 = 'ficha.pedidoExames.crescimento2832';
 export const PEDIDO_CRESCIMENTO_36 = 'ficha.pedidoExames.crescimento36';
@@ -58,6 +60,10 @@ export function pedidosExamesFetais(
 ): string[] {
   if (igSemanas == null) return emInsulina ? ['ficha.pedidoExames.ctgPbfMedicamentoso'] : [];
   const p: string[] = [];
+  // ATENÇÃO: aqui são as janelas do PEDIDO, deliberadamente ANTECIPADAS em relação
+  // às da coleta — o exame precisa ser pedido a tempo de a gestante agendar. O
+  // espaço para preencher o RESULTADO abre depois, na semana do exame
+  // (janelaCrescimentoFetal). São dois números diferentes de propósito.
   if (igSemanas < 15) p.push(PEDIDO_MORFOLOGICO);
   if (igSemanas >= 24 && igSemanas < 33) p.push(PEDIDO_CRESCIMENTO_2832);
   if (igSemanas >= 33) p.push(PEDIDO_CRESCIMENTO_36);
@@ -106,20 +112,23 @@ function temUsgCrescimento(r: RegistroFetalConsulta): boolean {
  * Passe apenas os registros até a consulta sendo laudada (inclusive) — o laudo de
  * uma consulta não deve mudar por causa de um exame trazido depois dela.
  *
- * Janelas: a US de crescimento feita entre 28 e 32 sem atende o pedido "28–32";
- * a feita a partir de 33 sem atende o da "36ª semana". Uma NÃO cancela a outra —
- * são dois exames diferentes do cronograma. Registro sem IG conhecida não atende
- * janela nenhuma (não dá para saber qual exame foi), então o pedido continua.
+ * Janelas: as MESMAS da coleta (`janelaCrescimentoFetal`) — a US feita entre 28 e
+ * 32 sem atende o pedido "28–32"; a feita a partir de 36 sem atende o da "36ª
+ * semana". Uma NÃO cancela a outra: são dois exames do cronograma. Uma US feita
+ * entre 33 e 35 sem não atende nenhum dos dois — o pedido da 36ª continua de pé.
+ * Registro sem IG conhecida também não atende janela alguma.
  */
 export function pedidosJaAtendidos(registros: readonly RegistroFetalConsulta[]): string[] {
   const feitos = new Set<string>();
   for (const r of registros) {
     // Morfológico é de janela única na gestação: registrado uma vez, nunca mais pedido.
     if (respondido(r.morfologico)) feitos.add(PEDIDO_MORFOLOGICO);
-    const ig = r.igSemanas;
-    if (ig == null || !temUsgCrescimento(r)) continue;
-    if (ig >= 28 && ig < 33) feitos.add(PEDIDO_CRESCIMENTO_2832);
-    if (ig >= 33) feitos.add(PEDIDO_CRESCIMENTO_36);
+    if (!temUsgCrescimento(r)) continue;
+    // A janela de COLETA é a fonte única de "qual exame foi este" — um ultrassom
+    // feito entre 33 e 35 sem não é o da 36ª, então não atende aquele pedido.
+    const janela = janelaDaIg(r.igSemanas);
+    if (janela === 'j2832') feitos.add(PEDIDO_CRESCIMENTO_2832);
+    if (janela === 'j36') feitos.add(PEDIDO_CRESCIMENTO_36);
   }
   return [...feitos];
 }

@@ -414,13 +414,15 @@ export default function FichaACForm({
   // janela já foi lido em outra consulta, o checklist exibe aquele resultado
   // fechado em vez de reperguntar (evita retrabalho e o "Sim" repetido de memória,
   // que desligaria a regra_fetal). Na janela seguinte volta a perguntar.
-  const respostaVigenteFetal = useRespostaVigenteCrescimento({
+  const crescimentoConhecido = useRespostaVigenteCrescimento({
     pacienteId: paciente.id,
     consultas: consultas as any,
     igSemanas: igSemNum || null,
     consultaAtualId: editingConsulta?.id,
     isPreview,
   });
+  const respostaVigenteFetal = crescimentoConhecido.vigente;
+  const ultimoRegistroFetal = crescimentoConhecido.ultimo;
 
   // O resultado vigente da janela alimenta a decisão exatamente como se tivesse
   // sido respondido aqui: o motor (front e backend) segue lendo o checklist da
@@ -1135,11 +1137,11 @@ export default function FichaACForm({
 
       {/* 36B REV3 — Checklist clínico do Retorno 2 (apenas Ficha A, ≤30 sem) */}
       {isFichaAC && (
-        <ChecklistRetorno2 value={checklist} onChange={setChecklist} igSemanas={igSemNum} respostaVigente={respostaVigenteFetal} disabled={saving} />
+        <ChecklistRetorno2 value={checklist} onChange={setChecklist} igSemanas={igSemNum} respostaVigente={respostaVigenteFetal} ultimoRegistro={ultimoRegistroFetal} disabled={saving} />
       )}
 
       {/* V4 — Exames de crescimento/vitalidade fetal (PFE/CA/LA ocultos: já no checklist) */}
-      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} hidePfeCaLa igSemanas={igSemNum} jaRegistrados={jaRegistrados} respostaVigente={respostaVigenteFetal} disabled={saving} />
+      <ExamesFetaisCard value={examesFetais} onChange={setExamesFetais} hidePfeCaLa igSemanas={igSemNum} jaRegistrados={jaRegistrados} respostaVigente={respostaVigenteFetal} ultimoRegistro={ultimoRegistroFetal} disabled={saving} />
 
       {/* 36B REV3 — Conduta gerada pelo motor de decisão (apenas Ficha A) */}
       {isFichaAC && decisaoFichaA && (

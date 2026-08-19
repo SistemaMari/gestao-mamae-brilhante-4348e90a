@@ -205,3 +205,20 @@ describe('separarPedidos — solicitar × vigilância contínua', () => {
     });
   });
 });
+
+describe('exame feito entre 33 e 35 sem não atende o pedido da 36ª', () => {
+  it('US aos 34 sem: o pedido da 36ª continua no laudo', () => {
+    const feitos = pedidosJaAtendidos([{ igSemanas: 34, crescimento: 'adequado' }]);
+    expect(feitos).not.toContain(PEDIDO_CRESCIMENTO_36);
+    expect(pedidosExamesFetais(34, false, feitos)).toContain(PEDIDO_CRESCIMENTO_36);
+  });
+
+  it('US aos 36 sem: aí sim o pedido da 36ª sai', () => {
+    const feitos = pedidosJaAtendidos([{ igSemanas: 36, crescimento: 'adequado' }]);
+    expect(pedidosExamesFetais(36, false, feitos)).not.toContain(PEDIDO_CRESCIMENTO_36);
+  });
+
+  it('o PEDIDO segue antecipado: aos 33 sem já se pede o exame da 36ª', () => {
+    expect(pedidosExamesFetais(33)).toContain(PEDIDO_CRESCIMENTO_36);
+  });
+});

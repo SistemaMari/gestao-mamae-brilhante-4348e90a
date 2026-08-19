@@ -1844,6 +1844,8 @@
       "janela36": "Resultado de la 2ª ecografía de crecimiento (semana 36) — parámetros nuevos.",
       "janelaRegistro2832": "Resultado de la 1ª ecografía de crecimiento (ventana de 28 a 32 semanas).",
       "janelaRegistro36": "Resultado de la 2ª ecografía de crecimiento (semana 36).",
+      "janelaRegistroAvulso": "Resultado de la última ecografía de crecimiento registrada.",
+      "semExameNestaSemana": "No hay ecografía de crecimiento para completar esta semana. Abajo, el último resultado registrado, de la consulta del {{data}} (EG {{ig}} semanas).",
       "jaRespondido": "Este examen ya fue registrado en la consulta del {{data}} (EG {{ig}} semanas). Son los mismos parámetros — no es necesario responder de nuevo.",
       "corrigirExame": "Corregir el registro o cargar un examen nuevo",
       "noInfo": "Sin información"
