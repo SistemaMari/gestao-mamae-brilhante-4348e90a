@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { defsVisiveisNaIg, alertasFamilia2, type ExamesFetaisState, type DefExameFetal } from './examesFetaisItems';
-import { janelaDaIg, type RespostaVigenteCrescimento } from '@/lib/janelaCrescimentoFetal';
+import { janelaDaIg, chaveLegendaJanela, type RespostaVigenteCrescimento } from '@/lib/janelaCrescimentoFetal';
 import { formatDateBR } from '@/lib/dateUtils';
 
 interface Props {
@@ -114,12 +114,17 @@ export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, igSeman
               )}
               {travado ? (
                 <div className="rounded-lg border border-[#D6BCFA] bg-white/70 p-3 space-y-2">
-                  <p className="text-xs text-[#5B21B6]">
-                    {t('ficha.checklistRetorno2.jaRespondido', {
-                      data: formatDateBR(respostaVigente!.data),
-                      ig: respostaVigente!.igSemanas ?? '—',
-                    })}
-                  </p>
+                  {/* Na Ficha A/C o checklist do Retorno 2 aparece logo acima e já
+                      traz esta mesma frase, para o MESMO exame — repetir aqui só
+                      polui. A legenda acima já identifica de qual ultrassom é. */}
+                  {!hidePfeCaLa && (
+                    <p className="text-xs text-[#5B21B6]">
+                      {t('ficha.checklistRetorno2.jaRespondido', {
+                        data: formatDateBR(respostaVigente!.data),
+                        ig: respostaVigente!.igSemanas ?? '—',
+                      })}
+                    </p>
+                  )}
                   {usgCrescimento.map((d) => {
                     const v = (respostaVigente!.valores as Record<string, string | null | undefined>)[d.key] ?? null;
                     const op = d.opcoes.find((o) => o.value === v);

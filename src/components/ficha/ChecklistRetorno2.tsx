@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import { BOOL_ITEMS, FETAL_ITEMS } from './checklistRetorno2Items';
 import {
-  janelaDaIg, type JanelaCrescimento, type RespostaVigenteCrescimento,
+  janelaDaIg, chaveLegendaJanela, type JanelaCrescimento, type RespostaVigenteCrescimento,
 } from '@/lib/janelaCrescimentoFetal';
 import { formatDateBR } from '@/lib/dateUtils';
 
@@ -58,16 +58,14 @@ interface Props {
   disabled?: boolean;
 }
 
-/** Rótulo de qual dos dois ultrassons do cronograma está sendo respondido —
- *  para o usuário saber que na 36ª semana são parâmetros NOVOS, não os mesmos. */
-function LegendaJanela({ janela }: { janela: JanelaCrescimento }) {
+/** Rótulo de qual dos dois ultrassons do cronograma está em jogo. Ao COLETAR avisa
+ *  que na 36ª semana são parâmetros NOVOS; ao apenas EXIBIR o resultado já lido,
+ *  usa a forma neutra (senão a tela diria "parâmetros novos" logo acima de "não é
+ *  necessário responder de novo"). */
+function LegendaJanela({ janela, registro }: { janela: JanelaCrescimento; registro: boolean }) {
   const { t } = useTranslation();
   return (
-    <p className="text-[11px] italic text-[#7E69AB]">
-      {t(janela === 'j2832'
-        ? 'ficha.checklistRetorno2.janela2832'
-        : 'ficha.checklistRetorno2.janela36')}
-    </p>
+    <p className="text-[11px] italic text-[#7E69AB]">{t(chaveLegendaJanela(janela, registro))}</p>
   );
 }
 
@@ -144,7 +142,7 @@ export default function ChecklistRetorno2({ value, onChange, igSemanas, resposta
         {mostrarFetais && (
         <div className="border-t border-[#E5E0F2] pt-3 space-y-3">
           <p className="text-xs font-semibold text-[#7E69AB]">{t('ficha.checklistRetorno2.subtituloFetais')}</p>
-          {janela && <LegendaJanela janela={janela} />}
+          {janela && <LegendaJanela janela={janela} registro={travado} />}
 
           {travado ? (
             /* Mesmo exame já lido: mostra as respostas fechadas e de onde vieram. */
