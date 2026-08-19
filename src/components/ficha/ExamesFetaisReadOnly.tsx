@@ -17,7 +17,7 @@ export default function ExamesFetaisReadOnly({ value }: { value: ExamesFetaisSta
       const op = d.opcoes.find((o) => o.value === atual);
       return { key: d.key, grupo: d.grupo, label: t(d.labelKey), valor: op ? t(op.labelKey) : String(atual) };
     })
-    .filter((x): x is { key: string; grupo: 'usg' | 'vigilancia'; label: string; valor: string } => x != null);
+    .filter((x): x is { key: ExameFetalCampo; grupo: 'usg' | 'vigilancia'; label: string; valor: string } => x != null);
 
 
   if (respondidos.length === 0) return null;
