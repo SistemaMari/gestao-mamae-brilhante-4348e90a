@@ -26,14 +26,26 @@ export const CHECKLIST_VAZIO: ChecklistState = {
   pfe_us: null, ca: null, la: null,
 };
 
-export function isChecklistCompleto(c: ChecklistState): boolean {
-  return c.dieta !== null && c.exercicio !== null && c.ganho_peso !== null
-    && c.pfe_us !== null && c.ca !== null && c.la !== null;
+/** Os indicadores de crescimento fetal (PFE/CA/LA — itens 4/5/6) vêm da US
+ *  obstétrica de crescimento, feita a partir de 28 sem. Antes disso não aparecem
+ *  no checklist e não são exigidos. IG desconhecida (null) → mostra (default seguro). */
+export const IG_MINIMA_FETAL = 28;
+export function fetaisAplicaveis(igSemanas: number | null | undefined): boolean {
+  return igSemanas == null || igSemanas >= IG_MINIMA_FETAL;
+}
+
+export function isChecklistCompleto(c: ChecklistState, igSemanas?: number | null): boolean {
+  const base = c.dieta !== null && c.exercicio !== null && c.ganho_peso !== null;
+  // Antes de 28 sem os itens fetais não são coletados → não entram no "completo".
+  if (!fetaisAplicaveis(igSemanas)) return base;
+  return base && c.pfe_us !== null && c.ca !== null && c.la !== null;
 }
 
 interface Props {
   value: ChecklistState;
   onChange: (next: ChecklistState) => void;
+  /** IG (semanas) na consulta — abaixo de 28 os itens fetais (4/5/6) somem. */
+  igSemanas?: number | null;
   disabled?: boolean;
 }
 
@@ -54,9 +66,10 @@ function Pill({ active, onClick, children, disabled }: { active: boolean; onClic
   );
 }
 
-export default function ChecklistRetorno2({ value, onChange, disabled }: Props) {
+export default function ChecklistRetorno2({ value, onChange, igSemanas, disabled }: Props) {
   const { t } = useTranslation();
   const set = <K extends keyof ChecklistState>(k: K, v: ChecklistState[K]) => onChange({ ...value, [k]: v });
+  const mostrarFetais = fetaisAplicaveis(igSemanas);
 
   return (
     <div className="rounded-xl border border-[#D6BCFA] bg-[#FAFAFE] p-4 space-y-3">
@@ -97,8 +110,10 @@ export default function ChecklistRetorno2({ value, onChange, disabled }: Props) 
           </div>
         ))}
 
+        {/* V4 — indicadores de crescimento fetal (4/5/6): só a partir de 28 sem
+            (vêm da US obstétrica de crescimento). Antes disso, ocultos. */}
+        {mostrarFetais && (
         <div className="border-t border-[#E5E0F2] pt-3 space-y-3">
-          {/* V4 — subtítulo dos indicadores de crescimento fetal (itens 4/5/6). */}
           <p className="text-xs font-semibold text-[#7E69AB]">{t('ficha.checklistRetorno2.subtituloFetais')}</p>
           {FETAL_ITEMS.map(({ key, label, tooltip }) => (
             <div key={key} className="flex flex-wrap items-center justify-between gap-3">
@@ -121,6 +136,7 @@ export default function ChecklistRetorno2({ value, onChange, disabled }: Props) 
             </div>
           ))}
         </div>
+        )}
       </div>
     </div>
   );

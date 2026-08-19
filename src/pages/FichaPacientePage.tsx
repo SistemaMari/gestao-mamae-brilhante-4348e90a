@@ -1851,6 +1851,7 @@ export default function FichaPacientePage() {
                                 já vem hidratado em c.checklist_* pelo fetchPaciente. */}
                             <div className="mb-4 space-y-3">
                               <ChecklistRetorno2ReadOnly
+                                igSemanas={c.ig_semanas ?? null}
                                 value={{
                                   dieta: c.checklist_dieta ?? null,
                                   exercicio: c.checklist_exercicio ?? null,

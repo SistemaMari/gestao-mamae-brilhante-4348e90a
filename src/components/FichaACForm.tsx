@@ -34,7 +34,7 @@ import {
 import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
-import ChecklistRetorno2, { CHECKLIST_VAZIO, isChecklistCompleto, type ChecklistState } from '@/components/ficha/ChecklistRetorno2';
+import ChecklistRetorno2, { CHECKLIST_VAZIO, isChecklistCompleto, fetaisAplicaveis, type ChecklistState } from '@/components/ficha/ChecklistRetorno2';
 import { consultaDitaStatusPaciente } from '@/lib/statusSync';
 import ExamesFetaisCard from '@/components/ficha/ExamesFetaisCard';
 import { EXAMES_FETAIS_VAZIO, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
@@ -419,15 +419,16 @@ export default function FichaACForm({
   );
 
   const decisaoFichaA = useMemo<DecisaoResultado | null>(() => {
-    if (!isFichaAC || !isChecklistCompleto(checklist) || percentual == null) return null;
+    if (!isFichaAC || !isChecklistCompleto(checklist, igSemNum) || percentual == null) return null;
     return aplicarRegrasFichaA(
       {
         checklist_dieta: checklist.dieta,
         checklist_exercicio: checklist.exercicio,
         checklist_ganho_peso: checklist.ganho_peso,
-        checklist_pfe_us: checklist.pfe_us,
-        checklist_ca: checklist.ca,
-        checklist_la: checklist.la,
+        // Antes de 28 sem os itens fetais não são coletados → não entram na decisão.
+        checklist_pfe_us: fetaisAplicaveis(igSemNum) ? checklist.pfe_us : null,
+        checklist_ca: fetaisAplicaveis(igSemNum) ? checklist.ca : null,
+        checklist_la: fetaisAplicaveis(igSemNum) ? checklist.la : null,
         memoria_glicosimetro: memoria,
         pactuacao_adesao: pactuacao,
       },
@@ -450,7 +451,7 @@ export default function FichaACForm({
     if (hasNegativeValues) return false;
     // 36B REV3 — Ficha A exige checklist completo + caminho clínico fechado (sem pendências de pactuação/memória)
     if (isFichaAC) {
-      if (!isChecklistCompleto(checklist)) return false;
+      if (!isChecklistCompleto(checklist, igSemNum)) return false;
       if (decisaoFichaA && decisaoFichaA.pendencias.some(p => p === 'pactuacao_adesao' || p === 'memoria_glicosimetro')) return false;
     }
     return true;
@@ -470,7 +471,7 @@ export default function FichaACForm({
     if (!igSemanas) f.push(t('fichaAC.pendentes.igSemanas'));
     if (totalPreenchidos === 0) f.push(t('fichaAC.pendentes.aoMenosUmValor'));
     if (hasNegativeValues) f.push(t('fichaAC.pendentes.valoresNegativos'));
-    if (isFichaAC && !isChecklistCompleto(checklist)) f.push(t('fichaAC.pendentes.checklist'));
+    if (isFichaAC && !isChecklistCompleto(checklist, igSemNum)) f.push(t('fichaAC.pendentes.checklist'));
     if (isFichaAC && decisaoFichaA?.pendencias.includes("pactuacao_adesao")) f.push(t('fichaAC.pendentes.pactuacao'));
     if (isFichaAC && decisaoFichaA?.pendencias.includes("memoria_glicosimetro")) f.push(t('fichaAC.pendentes.memoria'));
     return f;
@@ -738,9 +739,10 @@ export default function FichaACForm({
             checklist_dieta: checklist.dieta,
             checklist_exercicio: checklist.exercicio,
             checklist_ganho_peso: checklist.ganho_peso,
-            checklist_pfe_us: checklist.pfe_us,
-            checklist_ca: checklist.ca,
-            checklist_la: checklist.la,
+            // Antes de 28 sem os itens fetais não são coletados → grava null.
+            checklist_pfe_us: fetaisAplicaveis(igSemNum) ? checklist.pfe_us : null,
+            checklist_ca: fetaisAplicaveis(igSemNum) ? checklist.ca : null,
+            checklist_la: fetaisAplicaveis(igSemNum) ? checklist.la : null,
             percentual_meta: percentual,
             regra_aplicada: decisaoFichaA.regra_aplicada,
             conduta_gerada: decisaoFichaA.conduta_gerada,
@@ -1082,7 +1084,7 @@ export default function FichaACForm({
 
       {/* 36B REV3 — Checklist clínico do Retorno 2 (apenas Ficha A, ≤30 sem) */}
       {isFichaAC && (
-        <ChecklistRetorno2 value={checklist} onChange={setChecklist} disabled={saving} />
+        <ChecklistRetorno2 value={checklist} onChange={setChecklist} igSemanas={igSemNum} disabled={saving} />
       )}
 
       {/* V4 — Exames de crescimento/vitalidade fetal (PFE/CA/LA ocultos: já no checklist) */}
