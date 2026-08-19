@@ -33,6 +33,23 @@ export const PEDIDOS_PONTUAIS: readonly string[] = [
   PEDIDO_MORFOLOGICO, PEDIDO_CRESCIMENTO_2832, PEDIDO_CRESCIMENTO_36,
 ];
 
+/**
+ * Separa a lista em dois blocos de exibição no laudo, para que a repetição da
+ * vigilância a cada consulta não seja lida como pedido repetido indevidamente:
+ *  - `solicitar`: exames PONTUAIS ainda pendentes (agendar e trazer o resultado);
+ *  - `vigilancia`: rotina CONTÍNUA (CMF diário, CTG/PBF semanais), que por
+ *    definição reaparece em toda consulta enquanto a IG a mantiver indicada.
+ */
+export function separarPedidos(pedidos: readonly string[]): {
+  solicitar: string[];
+  vigilancia: string[];
+} {
+  return {
+    solicitar: pedidos.filter((k) => PEDIDOS_PONTUAIS.includes(k)),
+    vigilancia: pedidos.filter((k) => !PEDIDOS_PONTUAIS.includes(k)),
+  };
+}
+
 export function pedidosExamesFetais(
   igSemanas: number | null | undefined,
   emInsulina = false,

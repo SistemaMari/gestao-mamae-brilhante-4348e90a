@@ -1892,6 +1892,7 @@
     },
     "pedidoExames": {
       "titulo": "Solicitar exámenes (según la edad gestacional)",
+      "tituloVigilancia": "Vigilancia fetal continua (en cada consulta)",
       "morfologico": "Ecografía morfológica de 2º trimestre (12–14 semanas).",
       "crescimento2832": "Ecografía obstétrica para evaluación del crecimiento fetal (28–32 semanas).",
       "crescimento36": "Ecografía obstétrica para evaluación del crecimiento fetal (36ª semana).",

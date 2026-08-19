@@ -2,7 +2,8 @@
  * V4 — Seção de avaliação fetal NO LAUDO (fichas de acompanhamento). Renderiza, em
  * ordem:
  *  1) REGISTRO read-only dos resultados respondidos (quadro lilás);
- *  2) PEDIDO dos exames devidos pela IG (e mensagem de CTG/PBF quando em insulina);
+ *  2) PEDIDO, em dois blocos: exames PONTUAIS a solicitar (só os ainda não
+ *     trazidos) e VIGILÂNCIA contínua (CMF/CTG/PBF, que reaparece a cada consulta);
  *  3) quadro AMARELO — Doppler (item 1, sempre) + achados da Família 2 (quando há);
  *  4) SUGESTÃO DE CONDUTA (peso fetal × bem-estar fetal — 4 cenários);
  *  5) ORIENTAÇÕES GERAIS.
@@ -12,12 +13,12 @@
  * Auto-busca a linha de `exames_fetais` da consulta.
  */
 import { useEffect, useState } from 'react';
-import { AlertTriangle, ClipboardList, Stethoscope, Info } from 'lucide-react';
+import { AlertTriangle, ClipboardList, Stethoscope, Info, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { alertasFamilia2, fromExamesFetaisRow, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import ExamesFetaisReadOnly from '@/components/ficha/ExamesFetaisReadOnly';
-import { pedidosExamesFetais, fichaTemPedidoExames } from '@/lib/pedidosExamesFetais';
+import { pedidosExamesFetais, fichaTemPedidoExames, separarPedidos } from '@/lib/pedidosExamesFetais';
 
 interface Props {
   tipo: string | null | undefined;
@@ -48,7 +49,9 @@ export default function AlertaExamesFetaisLaudo({ tipo, consultaId, igSemanas, e
   if (!fichaTemPedidoExames(tipo)) return null;
 
   const alertas = estado ? alertasFamilia2(estado) : [];
-  const pedidos = pedidosExamesFetais(igSemanas, !!emInsulina, jaAtendidos ?? []);
+  const { solicitar, vigilancia } = separarPedidos(
+    pedidosExamesFetais(igSemanas, !!emInsulina, jaAtendidos ?? []),
+  );
   const condutaItens = ['item1', 'item2', 'item3', 'item4'];
   const orientacoesItens = ['item1', 'item2', 'item3'];
 
@@ -57,15 +60,31 @@ export default function AlertaExamesFetaisLaudo({ tipo, consultaId, igSemanas, e
       {/* 1) Registro read-only dos resultados (quadro lilás) */}
       {estado && <ExamesFetaisReadOnly value={estado} />}
 
-      {/* 2) Pedido dos exames por IG */}
-      {pedidos.length > 0 && (
+      {/* 2a) Exames PONTUAIS a solicitar (só os ainda não trazidos) */}
+      {solicitar.length > 0 && (
         <div className="rounded-xl border p-4 space-y-2" style={{ backgroundColor: '#F5F3FF', borderColor: '#D6BCFA' }}>
           <div className="flex items-center gap-2">
             <ClipboardList className="h-4 w-4" style={{ color: '#5B21B6' }} />
             <h4 className="text-sm font-bold" style={{ color: '#5B21B6' }}>{t('ficha.pedidoExames.titulo')}</h4>
           </div>
           <ul className="list-disc pl-6 space-y-0.5">
-            {pedidos.map((k) => (
+            {solicitar.map((k) => (
+              <li key={k} className="text-xs" style={{ color: '#4C1D95' }}>{t(k)}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 2b) Vigilância CONTÍNUA — reaparece a cada consulta por definição (não é
+          pedido repetido): CMF diário, CTG/PBF semanais. */}
+      {vigilancia.length > 0 && (
+        <div className="rounded-xl border p-4 space-y-2" style={{ backgroundColor: '#F5F3FF', borderColor: '#D6BCFA' }}>
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4" style={{ color: '#5B21B6' }} />
+            <h4 className="text-sm font-bold" style={{ color: '#5B21B6' }}>{t('ficha.pedidoExames.tituloVigilancia')}</h4>
+          </div>
+          <ul className="list-disc pl-6 space-y-0.5">
+            {vigilancia.map((k) => (
               <li key={k} className="text-xs" style={{ color: '#4C1D95' }}>{t(k)}</li>
             ))}
           </ul>

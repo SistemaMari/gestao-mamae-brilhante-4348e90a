@@ -1892,6 +1892,7 @@
     },
     "pedidoExames": {
       "titulo": "Solicitar exames (conforme a idade gestacional)",
+      "tituloVigilancia": "Vigilância fetal contínua (a cada consulta)",
       "morfologico": "Ultrassom morfológico de 2º trimestre (12–14 semanas).",
       "crescimento2832": "Ultrassom obstétrico para avaliação do crescimento fetal (28–32 semanas).",
       "crescimento36": "Ultrassom obstétrico para avaliação do crescimento fetal (36ª semana).",

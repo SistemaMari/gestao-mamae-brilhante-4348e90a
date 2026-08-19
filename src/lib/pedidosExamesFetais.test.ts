@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   pedidosExamesFetais, fichaTemPedidoExames, pedidosJaAtendidos,
-  PEDIDO_MORFOLOGICO, PEDIDO_CRESCIMENTO_2832, PEDIDO_CRESCIMENTO_36,
+  PEDIDO_MORFOLOGICO, PEDIDO_CRESCIMENTO_2832, PEDIDO_CRESCIMENTO_36, separarPedidos,
 } from './pedidosExamesFetais';
 
 describe('pedidosExamesFetais — cronograma por IG', () => {
@@ -162,5 +162,46 @@ describe('pedidosExamesFetais — suprime pedido pontual já atendido', () => {
       'ficha.pedidoExames.crescimento2832',
       'ficha.pedidoExames.cmf',
     ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// V4 — dois blocos no laudo: "Solicitar exames" (pontuais pendentes) e
+// "Vigilância fetal contínua" (CMF/CTG/PBF, que reaparece a cada consulta).
+// ---------------------------------------------------------------------------
+describe('separarPedidos — solicitar × vigilância contínua', () => {
+  it('28 sem sem nada trazido: US de crescimento em Solicitar, CMF em Vigilância', () => {
+    expect(separarPedidos(pedidosExamesFetais(28))).toEqual({
+      solicitar: [PEDIDO_CRESCIMENTO_2832],
+      vigilancia: ['ficha.pedidoExames.cmf'],
+    });
+  });
+
+  it('Carla 28s2d com o exame já trazido: Solicitar fica VAZIO, sobra a vigilância', () => {
+    const feitos = pedidosJaAtendidos([{ igSemanas: 28, crescimento: 'adequado' }]);
+    expect(separarPedidos(pedidosExamesFetais(28, false, feitos))).toEqual({
+      solicitar: [],
+      vigilancia: ['ficha.pedidoExames.cmf'],
+    });
+  });
+
+  it('32 sem: CTG e PBF entram na vigilância, não em Solicitar', () => {
+    const { solicitar, vigilancia } = separarPedidos(pedidosExamesFetais(32));
+    expect(solicitar).toEqual([PEDIDO_CRESCIMENTO_2832]);
+    expect(vigilancia).toEqual([
+      'ficha.pedidoExames.cmf', 'ficha.pedidoExames.ctg', 'ficha.pedidoExames.pbf',
+    ]);
+  });
+
+  it('em insulina: a mensagem de CTG/PBF (34 sem) é vigilância', () => {
+    const { vigilancia } = separarPedidos(pedidosExamesFetais(34, true));
+    expect(vigilancia).toContain('ficha.pedidoExames.ctgPbfMedicamentoso');
+  });
+
+  it('13 sem: só o morfológico, e nada de vigilância', () => {
+    expect(separarPedidos(pedidosExamesFetais(13))).toEqual({
+      solicitar: [PEDIDO_MORFOLOGICO],
+      vigilancia: [],
+    });
   });
 });
