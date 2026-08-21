@@ -63,6 +63,7 @@ import PreviewAppShell from "./components/PreviewAppShell";
 import VitrineGuard from "./components/VitrineGuard";
 import PreviewAdminLayout from "./pages/admin/PreviewAdminLayout";
 import ComponentesDemoPage from "./pages/_dev/ComponentesDemoPage";
+import DemoPerfilPorFoto from "./pages/DemoPerfilPorFoto";
 import FichaCarimbadaDemo from "./pages/_dev/FichaCarimbadaDemo";
 import PocPdfGraficoPage from "./pages/_dev/PocPdfGraficoPage";
 import PreviewEncerramentoParto from "./pages/_dev/PreviewEncerramentoParto";
@@ -104,6 +105,10 @@ const App = () => (
             {/* Compat: links antigos de email apontam para /cadastro-convite/:token */}
             <Route path="/cadastro-convite/:token" element={<CadastroConvitePage />} />
             <Route path="/checkout/:slug" element={<CheckoutPage />} />
+
+            {/* Maquete de demonstração (sem link em menus) */}
+            <Route path="/demo/perfil-por-foto" element={<DemoPerfilPorFoto />} />
+
 
             {/* Vitrine pública (sem login) — bloqueada em domínios comerciais */}
             <Route element={<VitrineGuard />}>
