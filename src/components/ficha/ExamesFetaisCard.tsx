@@ -137,7 +137,7 @@ export default function ExamesFetaisCard({ value, onChange, hidePfeCaLa, igSeman
                     </p>
                   )}
                   {usgCrescimento.map((d) => {
-                    const v = (exibido.valores as Record<string, string | null | undefined>)[d.key] ?? null;
+                    const v = (exibido.valores as unknown as Record<string, string | null | undefined>)[d.key] ?? null;
                     const op = d.opcoes.find((o) => o.value === v);
                     return (
                       <div key={d.key} className="flex flex-wrap items-center justify-between gap-3">
