@@ -23,7 +23,32 @@ export const USAR_SIMULACAO = true;
  * Trava de produto: enquanto false, o botão de foto não aparece para ninguém.
  * Serve para mergear e publicar sem expor a funcionalidade pela metade.
  */
-export const PERFIL_POR_FOTO_ATIVO = false;
+export const PERFIL_POR_FOTO_ATIVO = true;
+
+/**
+ * Guarda de segurança clínica.
+ *
+ * Enquanto a leitura é SIMULADA, os números são inventados aqui dentro. Se o
+ * botão aparecesse numa ficha real, um profissional apressado poderia gravar
+ * glicemia falsa numa gestante de verdade — e é o percentual na meta que decide
+ * insulina. Por isso, em modo simulado a funcionalidade fica restrita à VITRINE
+ * (`/vitrine`), onde as pacientes são fictícias e nada toca o banco.
+ *
+ * Quando a edge function estiver no ar e `USAR_SIMULACAO` virar false, a
+ * funcionalidade libera para as fichas reais.
+ */
+export function podeUsarPerfilPorFoto(isPreview: boolean): boolean {
+  if (!PERFIL_POR_FOTO_ATIVO) return false;
+  if (USAR_SIMULACAO) return isPreview;
+  return true;
+}
+
+/**
+ * Enquanto a leitura é simulada não há nada de verdade para guardar, e o bucket
+ * `controles-glicemia` pode nem existir ainda — então a foto não sobe. Ela
+ * continua visível na tela, a partir do arquivo local.
+ */
+export const SALVAR_FOTO_NO_SERVIDOR = !USAR_SIMULACAO;
 
 export interface ParametrosExtracao {
   pacienteId: string;
