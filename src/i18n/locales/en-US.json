@@ -3232,6 +3232,35 @@
     "btnFinalizarTitle": "Fill in all required fields to finish"
   },
   "fichaAC": {
+    "perfilFoto": {
+      "tirarFoto": "Take a photo of the log",
+      "enviarArquivo": "Upload from device",
+      "lendo": "Reading the log...",
+      "ajuda": "Photograph the sheet where the patient wrote her readings. You review everything before saving — and can type by hand at any time.",
+      "faltaData": "Enter the period start date to use a photo.",
+      "simulacao": "Simulated reading: the reading service is not connected yet.",
+      "confiraTitulo": "Review before saving",
+      "confiraTexto": "Compare the photo with the values in the grid. Fields in yellow came from the automatic reading and have not been reviewed by you yet.",
+      "avisoIncertas": "{{n}} value(s) could not be read and are marked in amber — fill them in by hand.",
+      "avisoPreservadas": "{{n}} value(s) you had already typed were kept.",
+      "avisoForaPeriodo": "{{n}} day(s) on the sheet fall outside this profile period and were ignored.",
+      "tudoCorreto": "Reviewed, it is correct",
+      "descartar": "Discard reading",
+      "fotoDaPaciente": "Photo of the patient's log",
+      "toqueAmpliar": "Tap the image to enlarge.",
+      "verOriginal": "View the patient's original photo",
+      "confirmado": "Reading reviewed. Complete the record and save as usual.",
+      "naoLido": "not read",
+      "erro": {
+        "falha_upload": "The photo could not be uploaded. Check your connection and try again.",
+        "falha_servico": "Automatic reading failed. You can type the values by hand.",
+        "imagem_ilegivel": "No table could be identified in this photo. Try another photo or type by hand.",
+        "limite_diario": "Daily reading limit reached. Type the values by hand.",
+        "modelo_indisponivel": "The reading service is unavailable right now. Type the values by hand.",
+        "paciente_nao_vinculada": "You do not have access to this patient.",
+        "desconhecido": "The photo could not be read. You can type the values by hand."
+      }
+    },
     "pontos": {
       "jejum": "Fasting",
       "jejumTooltip": "Collected before any meal, after at least 8 hours without eating. Target: < 95 mg/dL. Use a capillary glucometer for follow-up — unlike diagnosis, which requires venous plasma. ATTENTION: values < 70 mg/dL indicate hypoglycemia — assess immediately and inform the specialist."

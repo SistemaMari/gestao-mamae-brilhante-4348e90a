@@ -42,6 +42,19 @@ import { EXAMES_FETAIS_VAZIO, EXAMES_UMA_VEZ, fromExamesFetaisRow, toExamesFetai
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
 import CondutaCard from '@/components/ficha/CondutaCard';
 import { aplicarRegrasFichaA, type DecisaoResultado } from '@/lib/fichaADecisao';
+import PerfilPorFotoCard from '@/components/ficha/PerfilPorFotoCard';
+import {
+  aplicarLeituraNaGrade, chaveCelula,
+  type ResultadoExtracao,
+} from '@/lib/perfilPorFoto';
+import { PERFIL_POR_FOTO_ATIVO } from '@/lib/extrairPerfilFoto';
+
+/** Remove uma chave de um Set sem mutar o original (marcas de origem da foto). */
+function remover(conjunto: Set<string>, chave: string): Set<string> {
+  const copia = new Set(conjunto);
+  copia.delete(chave);
+  return copia;
+}
 
 const POINTS = ['jejum', 'pos_cafe', 'pos_almoco', 'pos_jantar'] as const;
 type Point = typeof POINTS[number];
@@ -139,6 +152,12 @@ export default function FichaACForm({
 
   const igSemNum = parseInt(igSemanas) || 0;
 
+  // V4 — leitura por foto. `celulasFoto` são as células que a foto preencheu (a
+  // marcação some quando o profissional confirma); `celulasIncertas` são as que
+  // o serviço não conseguiu ler e pedem preenchimento à mão. Chave: "dia:ponto".
+  const [celulasFoto, setCelulasFoto] = useState<Set<string>>(new Set());
+  const [celulasIncertas, setCelulasIncertas] = useState<Set<string>>(new Set());
+
   // Determine if this is the first Ficha A (no prior ficha_a/ficha_c consultations)
   const isFirstFichaA = !consultas.some(c => ['ficha_a', 'ficha_c'].includes(c.tipo));
 
@@ -209,6 +228,33 @@ export default function FichaACForm({
       return format(d, 'dd/MM/yyyy');
     });
   }, [dataInicio, dataFim]);
+
+  // V4 — a foto preenche a grade e devolve o relatório para a tela de conferência.
+  // Só encosta em célula VAZIA: o que o profissional digitou antes prevalece.
+  const aplicarLeituraDaFoto = (resultado: ResultadoExtracao) => {
+    const { grid: novaGrade, relatorio } = aplicarLeituraNaGrade(
+      grid, datasDias, resultado, POINTS,
+    );
+    setGrid(novaGrade);
+    setCelulasFoto(new Set(relatorio.daFoto));
+    setCelulasIncertas(new Set(relatorio.incertas));
+    return relatorio;
+  };
+
+  // Descartar a leitura apaga apenas o que a foto escreveu — o que já estava
+  // digitado antes de fotografar continua onde estava.
+  const limparLeituraDaFoto = () => {
+    setGrid((prev) => {
+      const copia = prev.map((l) => ({ ...l }));
+      celulasFoto.forEach((chave) => {
+        const [dia, ponto] = chave.split(':');
+        if (copia[Number(dia)]) copia[Number(dia)][ponto] = '';
+      });
+      return copia;
+    });
+    setCelulasFoto(new Set());
+    setCelulasIncertas(new Set());
+  };
 
   // V4 — período da medição anterior (referência) + validação de datas. O período de
   // um perfil é uns poucos dias seguidos; início > fim (invertido) ou um início que
@@ -294,6 +340,11 @@ export default function FichaACForm({
       next[dayIdx] = { ...next[dayIdx], [point]: cleaned };
       return next;
     });
+    // V4 — mão humana no valor tira as marcas da foto: a partir daqui o dado é
+    // do profissional, não da leitura automática.
+    const chave = chaveCelula(dayIdx, point);
+    setCelulasFoto(prev => (prev.has(chave) ? remover(prev, chave) : prev));
+    setCelulasIncertas(prev => (prev.has(chave) ? remover(prev, chave) : prev));
   };
 
   // Get cell color based on value
@@ -1054,6 +1105,26 @@ export default function FichaACForm({
         )}
       </div>
 
+      {/* V4 — preenchimento por foto do controle da gestante. Atalho para a
+          digitação, nunca substituto: tudo abaixo continua funcionando igual
+          quando o profissional prefere digitar. */}
+      {PERFIL_POR_FOTO_ATIVO && (
+        <PerfilPorFotoCard
+          pacienteId={paciente.id}
+          consultaId={editingConsulta?.id ?? null}
+          isPreview={isPreview}
+          tipoPerfil="4_pontos"
+          janelaPos={janela}
+          dataInicio={dataInicio}
+          dias={DAYS.length}
+          datasDias={datasDias}
+          habilitado={!!dataInicio && !saving}
+          onLeitura={aplicarLeituraDaFoto}
+          onConfirmar={() => { setCelulasFoto(new Set()); setCelulasIncertas(new Set()); }}
+          onDescartar={limparLeituraDaFoto}
+        />
+      )}
+
       {/* 4-point × 15-day grid */}
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full min-w-[580px]">
@@ -1094,6 +1165,11 @@ export default function FichaACForm({
                   const isNeg = !isNaN(numVal) && numVal < 0;
                   const isHigh = !isNaN(numVal) && numVal > 400;
                   const isHypo = !isNaN(numVal) && isHypoglycemia(numVal);
+                  // V4 — origem do valor: amarelo claro = veio da foto e aguarda
+                  // conferência; âmbar = a foto não conseguiu ler, preencher à mão.
+                  const chaveCel = chaveCelula(dayIdx, p);
+                  const vindoDaFoto = celulasFoto.has(chaveCel);
+                  const incerta = celulasIncertas.has(chaveCel);
 
                   return (
                     <td key={p} className="px-1 py-1">
@@ -1109,8 +1185,10 @@ export default function FichaACForm({
                           ${isNeg ? 'bg-red-100 border-red-400 text-red-700' : ''}
                           ${isHigh ? 'bg-amber-50 border-amber-400' : ''}
                           ${isHypo ? 'bg-[#FEE2E2] border-red-400' : ''}
-                          ${!isNeg && !isHigh && !isHypo ? getCellBg(p, val) : ''}
-                          ${!val ? 'border-border' : ''}
+                          ${!isNeg && !isHigh && !isHypo && !vindoDaFoto ? getCellBg(p, val) : ''}
+                          ${!val && !incerta ? 'border-border' : ''}
+                          ${vindoDaFoto && !isNeg && !isHypo ? 'bg-[#FEF9E7] border-[#F0C36D]' : ''}
+                          ${incerta ? 'bg-[#FEF3C7] border-2 border-[#F59E0B]' : ''}
                         `}
                         placeholder="—"
                         aria-label={t('fichaAC.grid.cellAria', { day, point: pointLabel(p, janela, t) })}
@@ -1123,6 +1201,11 @@ export default function FichaACForm({
                       )}
                       {isHypo && (
                         <span className="text-[9px] text-red-600 block text-center">{t('fichaAC.grid.hypo')}</span>
+                      )}
+                      {incerta && !val && (
+                        <span className="text-[9px] block text-center" style={{ color: '#92400E' }}>
+                          {t('fichaAC.perfilFoto.naoLido')}
+                        </span>
                       )}
                     </td>
                   );
