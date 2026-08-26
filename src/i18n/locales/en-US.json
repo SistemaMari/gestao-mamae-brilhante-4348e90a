@@ -3232,6 +3232,31 @@
     "btnFinalizarTitle": "Fill in all required fields to finish"
   },
   "fichaAC": {
+    "papelControle": {
+      "botao": "Print log sheet for the patient",
+      "ajuda": "Blank sheet with the dates of the next period already printed, for the patient to take home.",
+      "titulo": "Daily blood glucose log",
+      "instrucao": "Write the value right after measuring. One digit per box, starting from the left.",
+      "gestante": "Patient:",
+      "periodo": "Period:",
+      "data": "Date",
+      "rodape": "If you feel tremor, cold sweat, dizziness or intense hunger, measure right away, note it on the back and tell your team. Bring this sheet to every visit. · MARI",
+      "arquivo": "blood-glucose-log.pdf",
+      "faltaData": "Enter the visit date to print the log sheet.",
+      "ponto": {
+        "jejum": "Fasting",
+        "pos_cafe": "After breakfast",
+        "pre_almoco": "Before lunch",
+        "pos_almoco": "After lunch",
+        "pre_jantar": "Before dinner",
+        "pos_jantar": "After dinner"
+      },
+      "sub": {
+        "jejum": "on waking",
+        "pos": "1 hour later",
+        "pre": "before eating"
+      }
+    },
     "perfilFoto": {
       "tirarFoto": "Take a photo of the log",
       "enviarArquivo": "Upload from device",

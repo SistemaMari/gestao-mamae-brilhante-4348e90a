@@ -48,6 +48,7 @@ import {
   type ResultadoExtracao,
 } from '@/lib/perfilPorFoto';
 import { podeUsarPerfilPorFoto } from '@/lib/extrairPerfilFoto';
+import PapelControleBotao from '@/components/ficha/PapelControleBotao';
 
 /** Remove uma chave de um Set sem mutar o original (marcas de origem da foto). */
 function remover(conjunto: Set<string>, chave: string): Set<string> {
@@ -1104,6 +1105,17 @@ export default function FichaACForm({
           </>
         )}
       </div>
+
+      {/* V4 — papel em branco para a gestante levar, com as datas do próximo
+          período já impressas. Não depende de nada do servidor. */}
+      <PapelControleBotao
+        nomeGestante={paciente.nome}
+        dataConsulta={dataConsulta}
+        dias={DAYS.length}
+        colunas={POINTS.map((p) => `fichaAC.papelControle.ponto.${p}`)}
+        subColunas={POINTS.map((p) => (p === 'jejum' ? 'fichaAC.papelControle.sub.jejum' : 'fichaAC.papelControle.sub.pos'))}
+        disabled={saving}
+      />
 
       {/* V4 — preenchimento por foto do controle da gestante. Atalho para a
           digitação, nunca substituto: tudo abaixo continua funcionando igual

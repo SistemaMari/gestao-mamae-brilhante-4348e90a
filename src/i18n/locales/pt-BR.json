@@ -3232,6 +3232,31 @@
     "btnFinalizarTitle": "Preencha todos os campos obrigatórios para finalizar"
   },
   "fichaAC": {
+    "papelControle": {
+      "botao": "Imprimir controle para a gestante",
+      "ajuda": "Papel em branco, com as datas do próximo período já impressas, para a gestante levar para casa.",
+      "titulo": "Controle diário de glicemia",
+      "instrucao": "Anote o valor logo depois de medir. Um número em cada quadradinho, começando pela esquerda.",
+      "gestante": "Gestante:",
+      "periodo": "Período:",
+      "data": "Data",
+      "rodape": "Se sentir tremor, suor frio, tontura ou fome intensa, meça na hora, anote no verso e avise sua equipe. Leve este papel em todas as consultas. · MARI",
+      "arquivo": "controle-glicemia.pdf",
+      "faltaData": "Informe a data da consulta para imprimir o controle.",
+      "ponto": {
+        "jejum": "Jejum",
+        "pos_cafe": "Após o café",
+        "pre_almoco": "Antes do almoço",
+        "pos_almoco": "Após o almoço",
+        "pre_jantar": "Antes do jantar",
+        "pos_jantar": "Após o jantar"
+      },
+      "sub": {
+        "jejum": "ao acordar",
+        "pos": "1 hora depois",
+        "pre": "antes de comer"
+      }
+    },
     "perfilFoto": {
       "tirarFoto": "Tirar foto do controle",
       "enviarArquivo": "Enviar do aparelho",

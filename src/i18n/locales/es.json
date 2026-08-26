@@ -3232,6 +3232,31 @@
     "btnFinalizarTitle": "Complete todos los campos obligatorios para finalizar"
   },
   "fichaAC": {
+    "papelControle": {
+      "botao": "Imprimir control para la gestante",
+      "ajuda": "Hoja en blanco, con las fechas del próximo período ya impresas, para que la gestante lleve a casa.",
+      "titulo": "Control diario de glucemia",
+      "instrucao": "Anote el valor justo después de medir. Un número en cada cuadradito, empezando por la izquierda.",
+      "gestante": "Gestante:",
+      "periodo": "Período:",
+      "data": "Fecha",
+      "rodape": "Si siente temblor, sudor frío, mareo o hambre intensa, mida en el momento, anótelo al dorso y avise a su equipo. Lleve esta hoja a todas las consultas. · MARI",
+      "arquivo": "control-glucemia.pdf",
+      "faltaData": "Indique la fecha de la consulta para imprimir el control.",
+      "ponto": {
+        "jejum": "Ayunas",
+        "pos_cafe": "Después del desayuno",
+        "pre_almoco": "Antes del almuerzo",
+        "pos_almoco": "Después del almuerzo",
+        "pre_jantar": "Antes de la cena",
+        "pos_jantar": "Después de la cena"
+      },
+      "sub": {
+        "jejum": "al despertar",
+        "pos": "1 hora después",
+        "pre": "antes de comer"
+      }
+    },
     "perfilFoto": {
       "tirarFoto": "Tomar foto del control",
       "enviarArquivo": "Subir desde el dispositivo",
