@@ -3232,6 +3232,35 @@
     "btnFinalizarTitle": "Preencha todos os campos obrigatórios para finalizar"
   },
   "fichaAC": {
+    "perfilFoto": {
+      "tirarFoto": "Tirar foto do controle",
+      "enviarArquivo": "Enviar do aparelho",
+      "lendo": "Lendo o controle...",
+      "ajuda": "Fotografe o papel onde a gestante anotou as glicemias. Você confere tudo antes de salvar — e pode digitar à mão a qualquer momento.",
+      "faltaData": "Informe a data de início do período para usar a foto.",
+      "simulacao": "Leitura simulada: o serviço de leitura ainda não está ligado.",
+      "confiraTitulo": "Confira antes de salvar",
+      "confiraTexto": "Compare a foto com os valores da grade. Os campos em amarelo vieram da leitura automática e ainda não foram conferidos por você.",
+      "avisoIncertas": "{{n}} valor(es) não puderam ser lidos e estão marcados em âmbar — preencha à mão.",
+      "avisoPreservadas": "{{n}} valor(es) que você já havia digitado foram mantidos.",
+      "avisoForaPeriodo": "{{n}} dia(s) do papel estão fora do período deste perfil e foram ignorados.",
+      "tudoCorreto": "Conferi, está correto",
+      "descartar": "Descartar leitura",
+      "fotoDaPaciente": "Foto do controle da gestante",
+      "toqueAmpliar": "Toque na imagem para ampliar.",
+      "verOriginal": "Ver foto original da gestante",
+      "confirmado": "Leitura conferida. Complete a ficha e salve normalmente.",
+      "naoLido": "não lido",
+      "erro": {
+        "falha_upload": "Não foi possível enviar a foto. Verifique a conexão e tente de novo.",
+        "falha_servico": "A leitura automática falhou. Você pode digitar os valores à mão.",
+        "imagem_ilegivel": "Não foi possível identificar uma tabela nesta foto. Tente outra foto ou digite à mão.",
+        "limite_diario": "Limite diário de leituras atingido. Digite os valores à mão.",
+        "modelo_indisponivel": "O serviço de leitura está indisponível agora. Digite os valores à mão.",
+        "paciente_nao_vinculada": "Você não tem acesso a esta gestante.",
+        "desconhecido": "Não foi possível ler a foto. Você pode digitar os valores à mão."
+      }
+    },
     "pontos": {
       "jejum": "Jejum",
       "jejumTooltip": "Coleta antes de qualquer refeição, após pelo menos 8 horas sem comer. Meta: < 95 mg/dL. Usar glicômetro capilar para acompanhamento — diferente do diagnóstico, onde é obrigatório plasma venoso. ATENÇÃO: valores < 70 mg/dL indicam hipoglicemia — avaliar imediatamente e informar ao especialista."
