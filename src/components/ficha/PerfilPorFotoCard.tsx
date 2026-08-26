@@ -22,7 +22,9 @@ import {
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { comprimirImagem } from '@/lib/comprimirImagem';
-import { extrairPerfilFoto, ErroExtracao, USAR_SIMULACAO } from '@/lib/extrairPerfilFoto';
+import {
+  extrairPerfilFoto, ErroExtracao, USAR_SIMULACAO, SALVAR_FOTO_NO_SERVIDOR,
+} from '@/lib/extrairPerfilFoto';
 import type { ResultadoExtracao, RelatorioAplicacao } from '@/lib/perfilPorFoto';
 
 const BUCKET = 'controles-glicemia';
@@ -75,9 +77,10 @@ export default function PerfilPorFotoCard({
       urlLocal = imagem.previewUrl;
       setPreviewUrl(imagem.previewUrl);
 
-      // Pacientes de demonstração vivem no navegador — nada sobe ao servidor.
+      // Vitrine e modo simulado não sobem nada: paciente fictícia não tem
+      // prontuário, e leitura inventada não é registro clínico.
       let caminho: string | null = null;
-      if (!isPreview) {
+      if (!isPreview && SALVAR_FOTO_NO_SERVIDOR) {
         caminho = `${pacienteId}/${crypto.randomUUID()}.jpg`;
         const { error } = await supabase.storage
           .from(BUCKET)

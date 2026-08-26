@@ -47,7 +47,7 @@ import {
   aplicarLeituraNaGrade, chaveCelula,
   type ResultadoExtracao,
 } from '@/lib/perfilPorFoto';
-import { PERFIL_POR_FOTO_ATIVO } from '@/lib/extrairPerfilFoto';
+import { podeUsarPerfilPorFoto } from '@/lib/extrairPerfilFoto';
 
 /** Remove uma chave de um Set sem mutar o original (marcas de origem da foto). */
 function remover(conjunto: Set<string>, chave: string): Set<string> {
@@ -1108,7 +1108,7 @@ export default function FichaACForm({
       {/* V4 — preenchimento por foto do controle da gestante. Atalho para a
           digitação, nunca substituto: tudo abaixo continua funcionando igual
           quando o profissional prefere digitar. */}
-      {PERFIL_POR_FOTO_ATIVO && (
+      {podeUsarPerfilPorFoto(isPreview) && (
         <PerfilPorFotoCard
           pacienteId={paciente.id}
           consultaId={editingConsulta?.id ?? null}
