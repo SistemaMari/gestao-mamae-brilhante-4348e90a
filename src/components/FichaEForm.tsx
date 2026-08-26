@@ -28,13 +28,8 @@ import {
   type ResultadoExtracao,
 } from '@/lib/perfilPorFoto';
 import { podeUsarPerfilPorFoto } from '@/lib/extrairPerfilFoto';
+import PapelControleBotao from '@/components/ficha/PapelControleBotao';
 
-/** Remove uma chave de um Set sem mutar o original (marcas de origem da foto). */
-function remover(conjunto: Set<string>, chave: string): Set<string> {
-  const copia = new Set(conjunto);
-  copia.delete(chave);
-  return copia;
-}
 import { EXAMES_FETAIS_VAZIO, EXAMES_UMA_VEZ, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
@@ -57,6 +52,13 @@ import {
 import {
   Info, Loader2, FileText, AlertTriangle,
 } from 'lucide-react';
+
+/** Remove uma chave de um Set sem mutar o original (marcas de origem da foto). */
+function remover(conjunto: Set<string>, chave: string): Set<string> {
+  const copia = new Set(conjunto);
+  copia.delete(chave);
+  return copia;
+}
 
 const POINTS_6 = ['jejum', 'pos_cafe', 'pre_almoco', 'pos_almoco', 'pre_jantar', 'pos_jantar'] as const;
 type Point6 = typeof POINTS_6[number];
@@ -803,6 +805,21 @@ export default function FichaEForm({
           </>
         )}
       </div>
+
+      {/* V4 — papel em branco para a gestante levar, com as datas do próximo
+          período já impressas. Não depende de nada do servidor. */}
+      <PapelControleBotao
+        nomeGestante={paciente.nome}
+        dataConsulta={dataConsulta}
+        dias={DAYS.length}
+        colunas={POINTS_6.map((p) => `fichaAC.papelControle.ponto.${p}`)}
+        subColunas={POINTS_6.map((p) => (
+          p === 'jejum' ? 'fichaAC.papelControle.sub.jejum'
+            : p.startsWith('pre_') ? 'fichaAC.papelControle.sub.pre'
+            : 'fichaAC.papelControle.sub.pos'
+        ))}
+        disabled={saving}
+      />
 
       {/* V4 — preenchimento por foto. Atalho para a digitação, nunca substituto. */}
       {podeUsarPerfilPorFoto(isPreview) && (
