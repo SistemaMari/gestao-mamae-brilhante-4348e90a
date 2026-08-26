@@ -3251,6 +3251,9 @@
       "verOriginal": "View the patient's original photo",
       "confirmado": "Reading reviewed. Complete the record and save as usual.",
       "naoLido": "not read",
+      "impactoSeguro": "Result: {{pct}}% within target. Even if a value was misread, the plan for this record does not change.",
+      "impactoCritico": "Careful: {{pct}}% within target. Only {{n}} misread value(s) would change the plan. Check number by number.",
+      "impactoModerado": "Result: {{pct}}% within target. It would take {{n}} misread values to change the plan.",
       "erro": {
         "falha_upload": "The photo could not be uploaded. Check your connection and try again.",
         "falha_servico": "Automatic reading failed. You can type the values by hand.",

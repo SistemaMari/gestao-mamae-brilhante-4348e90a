@@ -48,6 +48,7 @@ import {
   type ResultadoExtracao,
 } from '@/lib/perfilPorFoto';
 import { podeUsarPerfilPorFoto } from '@/lib/extrairPerfilFoto';
+import { calcularImpactoLeitura } from '@/lib/impactoLeituraFoto';
 
 /** Remove uma chave de um Set sem mutar o original (marcas de origem da foto). */
 function remover(conjunto: Set<string>, chave: string): Set<string> {
@@ -157,6 +158,14 @@ export default function FichaACForm({
   // o serviço não conseguiu ler e pedem preenchimento à mão. Chave: "dia:ponto".
   const [celulasFoto, setCelulasFoto] = useState<Set<string>>(new Set());
   const [celulasIncertas, setCelulasIncertas] = useState<Set<string>>(new Set());
+
+  // V4 — o que está em jogo se a leitura tiver errado. Só os valores vindos da
+  // foto entram na conta: o que foi digitado à mão é confiável.
+  const impactoDaLeitura = useMemo(() => {
+    if (celulasFoto.size === 0) return null;
+    const metas = POINTS.map((p) => ({ ponto: p, meta: pointMeta(p, janela) }));
+    return calcularImpactoLeitura(grid, metas, celulasFoto);
+  }, [grid, janela, celulasFoto]);
 
   // Determine if this is the first Ficha A (no prior ficha_a/ficha_c consultations)
   const isFirstFichaA = !consultas.some(c => ['ficha_a', 'ficha_c'].includes(c.tipo));
@@ -1122,6 +1131,7 @@ export default function FichaACForm({
           onLeitura={aplicarLeituraDaFoto}
           onConfirmar={() => { setCelulasFoto(new Set()); setCelulasIncertas(new Set()); }}
           onDescartar={limparLeituraDaFoto}
+          impacto={impactoDaLeitura}
         />
       )}
 

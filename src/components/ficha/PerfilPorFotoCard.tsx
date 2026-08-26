@@ -26,6 +26,7 @@ import {
   extrairPerfilFoto, ErroExtracao, USAR_SIMULACAO, SALVAR_FOTO_NO_SERVIDOR,
 } from '@/lib/extrairPerfilFoto';
 import type { ResultadoExtracao, RelatorioAplicacao } from '@/lib/perfilPorFoto';
+import { leituraMereceAtencao, type ImpactoLeitura } from '@/lib/impactoLeituraFoto';
 
 const BUCKET = 'controles-glicemia';
 
@@ -46,13 +47,15 @@ interface Props {
   onConfirmar: () => void;
   /** Profissional descartou a leitura — a ficha limpa o que veio da foto. */
   onDescartar: () => void;
+  /** Quanto um erro de leitura mexeria na conduta (calculado pela ficha). */
+  impacto?: ImpactoLeitura | null;
 }
 
 type Etapa = 'inicial' | 'lendo' | 'conferindo' | 'confirmado';
 
 export default function PerfilPorFotoCard({
   pacienteId, consultaId, isPreview, tipoPerfil, janelaPos, dataInicio, dias,
-  datasDias, habilitado, onLeitura, onConfirmar, onDescartar,
+  datasDias, habilitado, onLeitura, onConfirmar, onDescartar, impacto,
 }: Props) {
   const { t } = useTranslation();
   const [etapa, setEtapa] = useState<Etapa>('inicial');
@@ -60,6 +63,7 @@ export default function PerfilPorFotoCard({
   const [storagePath, setStoragePath] = useState<string | null>(null);
   const [relatorio, setRelatorio] = useState<RelatorioAplicacao | null>(null);
   const [ampliada, setAmpliada] = useState(false);
+  const mereceAtencao = !!impacto && leituraMereceAtencao(impacto);
 
   const inputCamera = useRef<HTMLInputElement>(null);
   const inputArquivo = useRef<HTMLInputElement>(null);
@@ -211,6 +215,32 @@ export default function PerfilPorFotoCard({
               </p>
             </div>
           </div>
+
+          {/* O que está em jogo. Um erro de leitura só importa se atravessar uma
+              linha de decisão: no teste real, dois valores saíram errados por
+              1 mg/dL e não mudaram nada. Em vez de pedir a mesma atenção para
+              tudo, dizemos quantos erros bastariam para a conduta virar. */}
+          {impacto?.percentual != null && (
+            <div className="rounded-lg bg-white/70 px-3 py-2 ml-7">
+              {impacto.errosParaMudar == null ? (
+                <p className="text-xs" style={{ color: '#166534' }}>
+                  {t('fichaAC.perfilFoto.impactoSeguro', { pct: impacto.percentual })}
+                </p>
+              ) : mereceAtencao ? (
+                <p className="text-xs font-semibold" style={{ color: '#92400E' }}>
+                  {t('fichaAC.perfilFoto.impactoCritico', {
+                    pct: impacto.percentual, n: impacto.errosParaMudar,
+                  })}
+                </p>
+              ) : (
+                <p className="text-xs" style={{ color: '#92400E' }}>
+                  {t('fichaAC.perfilFoto.impactoModerado', {
+                    pct: impacto.percentual, n: impacto.errosParaMudar,
+                  })}
+                </p>
+              )}
+            </div>
+          )}
 
           {relatorio && (
             <ul className="list-disc pl-9 space-y-0.5">

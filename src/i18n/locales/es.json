@@ -3251,6 +3251,9 @@
       "verOriginal": "Ver foto original de la gestante",
       "confirmado": "Lectura revisada. Complete la ficha y guarde normalmente.",
       "naoLido": "no leído",
+      "impactoSeguro": "Resultado: {{pct}}% en la meta. Aunque algún valor se haya leído mal, la conducta de esta ficha no cambia.",
+      "impactoCritico": "Atención: {{pct}}% en la meta. Bastarían {{n}} valor(es) mal leído(s) para que la conducta cambie. Revise número por número.",
+      "impactoModerado": "Resultado: {{pct}}% en la meta. Harían falta {{n}} valores mal leídos para que la conducta cambie.",
       "erro": {
         "falha_upload": "No fue posible enviar la foto. Verifique la conexión e intente de nuevo.",
         "falha_servico": "La lectura automática falló. Puede escribir los valores a mano.",
