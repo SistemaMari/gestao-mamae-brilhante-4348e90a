@@ -22,6 +22,19 @@ import { useProfissionalData } from '@/hooks/useProfissionalData';
 import StatusFichaBadge from '@/components/ficha/StatusFichaBadge';
 import ExamesFetaisCard from '@/components/ficha/ExamesFetaisCard';
 import { useRespostaVigenteCrescimento } from '@/hooks/useRespostaVigenteCrescimento';
+import PerfilPorFotoCard from '@/components/ficha/PerfilPorFotoCard';
+import {
+  aplicarLeituraNaGrade, chaveCelula,
+  type ResultadoExtracao,
+} from '@/lib/perfilPorFoto';
+import { podeUsarPerfilPorFoto } from '@/lib/extrairPerfilFoto';
+
+/** Remove uma chave de um Set sem mutar o original (marcas de origem da foto). */
+function remover(conjunto: Set<string>, chave: string): Set<string> {
+  const copia = new Set(conjunto);
+  copia.delete(chave);
+  return copia;
+}
 import { EXAMES_FETAIS_VAZIO, EXAMES_UMA_VEZ, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
 import DateInput from '@/components/ficha/DateInput';
@@ -270,6 +283,37 @@ export default function FichaEForm({
     });
   }, [dataInicio, dataFim]);
 
+  // V4 — leitura do perfil por foto do controle da gestante. Mesma peça da Ficha
+  // A/C; aqui a grade tem 6 pontos e 10 dias. `celulasFoto` são as células que a
+  // foto preencheu; `celulasIncertas` as que o serviço não conseguiu ler.
+  const [celulasFoto, setCelulasFoto] = useState<Set<string>>(new Set());
+  const [celulasIncertas, setCelulasIncertas] = useState<Set<string>>(new Set());
+
+  // Só encosta em célula VAZIA: o que o profissional digitou antes prevalece.
+  const aplicarLeituraDaFoto = (resultado: ResultadoExtracao) => {
+    const { grid: novaGrade, relatorio } = aplicarLeituraNaGrade(
+      grid, datasDias, resultado, POINTS_6,
+    );
+    setGrid(novaGrade);
+    setCelulasFoto(new Set(relatorio.daFoto));
+    setCelulasIncertas(new Set(relatorio.incertas));
+    return relatorio;
+  };
+
+  // Descartar apaga só o que a foto escreveu.
+  const limparLeituraDaFoto = () => {
+    setGrid((prev) => {
+      const copia = prev.map((l) => ({ ...l }));
+      celulasFoto.forEach((chave) => {
+        const [dia, ponto] = chave.split(':');
+        if (copia[Number(dia)]) copia[Number(dia)][ponto] = '';
+      });
+      return copia;
+    });
+    setCelulasFoto(new Set());
+    setCelulasIncertas(new Set());
+  };
+
   // V4 — período da medição anterior (referência) + validação de datas (ver FichaACForm).
   const periodoAnterior = useMemo(() => {
     const perfis = consultas.filter(
@@ -324,6 +368,10 @@ export default function FichaEForm({
   const [savedResult, setSavedResult] = useState<{ percentual: number; adequado: boolean } | null>(null);
 
   const handleCellChange = (dayIdx: number, point: Point6, value: string) => {
+    // V4 — mão humana no valor tira as marcas da foto.
+    const chaveEditada = chaveCelula(dayIdx, point);
+    setCelulasFoto(prev => (prev.has(chaveEditada) ? remover(prev, chaveEditada) : prev));
+    setCelulasIncertas(prev => (prev.has(chaveEditada) ? remover(prev, chaveEditada) : prev));
     const cleaned = value.replace(/[^0-9]/g, '');
     setGrid(prev => {
       const next = [...prev];
@@ -756,6 +804,24 @@ export default function FichaEForm({
         )}
       </div>
 
+      {/* V4 — preenchimento por foto. Atalho para a digitação, nunca substituto. */}
+      {podeUsarPerfilPorFoto(isPreview) && (
+        <PerfilPorFotoCard
+          pacienteId={paciente.id}
+          consultaId={editingConsulta?.id ?? null}
+          isPreview={isPreview}
+          tipoPerfil="6_pontos"
+          janelaPos="1h"
+          dataInicio={dataInicio}
+          dias={DAYS.length}
+          datasDias={datasDias}
+          habilitado={!!dataInicio && !saving}
+          onLeitura={aplicarLeituraDaFoto}
+          onConfirmar={() => { setCelulasFoto(new Set()); setCelulasIncertas(new Set()); }}
+          onDescartar={limparLeituraDaFoto}
+        />
+      )}
+
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full min-w-[780px]">
           <thead>
@@ -795,6 +861,11 @@ export default function FichaEForm({
                   const isNeg = !isNaN(numVal) && numVal < 0;
                   const isHigh = !isNaN(numVal) && numVal > 400;
                   const isHypo = !isNaN(numVal) && numVal > 0 && isHypoglycemia(p, numVal);
+                  // V4 — origem do valor: amarelo claro = veio da foto e aguarda
+                  // conferência; âmbar = a foto não leu, preencher à mão.
+                  const chaveCel = chaveCelula(dayIdx, p);
+                  const vindoDaFoto = celulasFoto.has(chaveCel);
+                  const incerta = celulasIncertas.has(chaveCel);
                   return (
                     <td key={p} className={`px-1 py-1 ${IS_PRE_PRANDIAL[p] ? 'bg-[#E8E0FF]/30' : ''}`}>
                       <input
@@ -809,8 +880,10 @@ export default function FichaEForm({
                           ${isNeg ? 'bg-red-100 border-red-400 text-red-700' : ''}
                           ${isHigh ? 'bg-amber-50 border-amber-400' : ''}
                           ${isHypo ? 'bg-[#FEE2E2] border-red-400' : ''}
-                          ${!isNeg && !isHigh && !isHypo ? getCellBg(p, val) : ''}
-                          ${!val ? 'border-border' : ''}
+                          ${!isNeg && !isHigh && !isHypo && !vindoDaFoto ? getCellBg(p, val) : ''}
+                          ${!val && !incerta ? 'border-border' : ''}
+                          ${vindoDaFoto && !isNeg && !isHypo ? 'bg-[#FEF9E7] border-[#F0C36D]' : ''}
+                          ${incerta ? 'bg-[#FEF3C7] border-2 border-[#F59E0B]' : ''}
                         `}
                         placeholder="—"
                         aria-label={t('fichaE.cellAria', { day, point: t(POINT_LABEL_KEYS[p]) })}

@@ -100,7 +100,7 @@ export function aplicarLeituraNaGrade(
     if (idx == null) { foraDoPeriodo++; continue; }
 
     for (const ponto of pontos) {
-      const valor = (leitura as Record<string, unknown>)[ponto];
+      const valor = (leitura as unknown as Record<string, unknown>)[ponto];
       if (valor == null) continue;
       if (typeof valor !== 'number' || !Number.isFinite(valor)) continue;
 
