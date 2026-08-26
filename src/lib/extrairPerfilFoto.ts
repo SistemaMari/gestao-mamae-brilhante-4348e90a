@@ -26,39 +26,19 @@ export const USAR_SIMULACAO = true;
 export const PERFIL_POR_FOTO_ATIVO = true;
 
 /**
- * Guarda de segurança clínica.
+ * A funcionalidade aparece em toda ficha de 4 pontos.
  *
- * Enquanto a leitura é SIMULADA, os números são inventados aqui dentro. Se o
- * botão aparecesse numa ficha real, um profissional apressado poderia gravar
- * glicemia falsa numa gestante de verdade — e é o percentual na meta que decide
- * insulina. Por isso, em modo simulado a funcionalidade fica restrita à VITRINE
- * (`/vitrine`), onde as pacientes são fictícias e nada toca o banco.
+ * Decisão de produto durante a construção: a equipe precisa experimentar o fluxo
+ * nas fichas de verdade, e restringir à vitrine ou a um parâmetro na URL
+ * atrapalhava mais do que protegia.
  *
- * Quando a edge function estiver no ar e `USAR_SIMULACAO` virar false, a
- * funcionalidade libera para as fichas reais.
+ * ⚠️ Enquanto `USAR_SIMULACAO` for true os números são INVENTADOS aqui dentro.
+ * A proteção passa a ser o aviso — que aparece no botão e, sobretudo, dentro da
+ * tela de conferência, ao lado dos próprios números, mandando não salvar. Ver
+ * `fichaAC.perfilFoto.simulacao*`.
  */
-export function podeUsarPerfilPorFoto(isPreview: boolean): boolean {
-  if (!PERFIL_POR_FOTO_ATIVO) return false;
-  if (USAR_SIMULACAO) return isPreview || modoTesteNaUrl();
-  return true;
-}
-
-/**
- * Escotilha de teste durante a fase simulada.
- *
- * Só a vitrine não bastava: as pacientes de demonstração do dia a dia vivem no
- * banco, no aplicativo normal, e para o sistema são fichas reais. Sem uma saída,
- * não haveria como conferir as telas numa ficha de verdade antes de a leitura
- * existir.
- *
- * Acrescentar `?leituraFoto=teste` ao endereço libera o botão naquela aba.
- * Ninguém digita isso por acaso, e o aviso de "leitura simulada" continua na
- * tela o tempo todo. Esta função inteira desaparece quando `USAR_SIMULACAO`
- * virar false — a partir daí a liberação é normal, para todas as fichas.
- */
-function modoTesteNaUrl(): boolean {
-  if (typeof window === 'undefined') return false;
-  return new URLSearchParams(window.location.search).get('leituraFoto') === 'teste';
+export function podeUsarPerfilPorFoto(_isPreview: boolean): boolean {
+  return PERFIL_POR_FOTO_ATIVO;
 }
 
 /**

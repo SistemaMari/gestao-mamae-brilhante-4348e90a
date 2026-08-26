@@ -145,11 +145,25 @@ export default function PerfilPorFotoCard({
     const lendo = etapa === 'lendo';
     return (
       <div className="rounded-xl border border-[#D6BCFA] bg-[#FAFAFE] p-4 space-y-2">
+        {/* Bloqueado por falta da data: o motivo vem ANTES dos botões e em
+            destaque. Antes ficava em cinza claro embaixo, e o botão desabilitado
+            continuava roxo — quem chegava aqui clicava sem entender por que nada
+            acontecia. O aviso é a informação principal enquanto o bloqueio dura. */}
+        {!habilitado && (
+          <div className="flex items-start gap-2 rounded-lg border p-2.5"
+               style={{ backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }}>
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#92400E' }} />
+            <p className="text-xs" style={{ color: '#92400E' }}>{t('fichaAC.perfilFoto.faltaData')}</p>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button" size="sm" disabled={!habilitado || lendo}
             onClick={() => inputCamera.current?.click()}
-            className="bg-[#7C4DBA] hover:bg-[#5B21B6] text-white"
+            className={habilitado
+              ? 'bg-[#7C4DBA] hover:bg-[#5B21B6] text-white'
+              : 'bg-muted text-muted-foreground hover:bg-muted'}
           >
             {lendo
               ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
@@ -164,9 +178,10 @@ export default function PerfilPorFotoCard({
             {t('fichaAC.perfilFoto.enviarArquivo')}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {habilitado ? t('fichaAC.perfilFoto.ajuda') : t('fichaAC.perfilFoto.faltaData')}
-        </p>
+
+        {habilitado && (
+          <p className="text-xs text-muted-foreground">{t('fichaAC.perfilFoto.ajuda')}</p>
+        )}
         {USAR_SIMULACAO && (
           <p className="text-[11px] italic text-[#92400E]">{t('fichaAC.perfilFoto.simulacao')}</p>
         )}
@@ -183,6 +198,26 @@ export default function PerfilPorFotoCard({
   if (etapa === 'conferindo') {
     return (
       <div className="space-y-3">
+        {/* Enquanto a leitura é simulada, o botão aparece em ficha real — decisão
+            de produto para permitir experimentar o fluxo. O que impede um número
+            inventado de virar prontuário é ESTE aviso, aqui, ao lado dos próprios
+            valores. No card do botão ele passaria batido: quem chega até aqui já
+            está olhando a grade preenchida. */}
+        {USAR_SIMULACAO && (
+          <div className="rounded-xl border-2 p-4 flex items-start gap-2"
+               style={{ backgroundColor: '#FEE2E2', borderColor: '#DC2626' }}>
+            <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: '#991B1B' }} />
+            <div className="space-y-1">
+              <p className="text-sm font-bold" style={{ color: '#991B1B' }}>
+                {t('fichaAC.perfilFoto.simulacaoTitulo')}
+              </p>
+              <p className="text-xs" style={{ color: '#991B1B' }}>
+                {t('fichaAC.perfilFoto.simulacaoTexto')}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-xl border-2 p-4 space-y-2"
              style={{ backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }}>
           <div className="flex items-start gap-2">
