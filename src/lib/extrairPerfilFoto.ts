@@ -39,8 +39,26 @@ export const PERFIL_POR_FOTO_ATIVO = true;
  */
 export function podeUsarPerfilPorFoto(isPreview: boolean): boolean {
   if (!PERFIL_POR_FOTO_ATIVO) return false;
-  if (USAR_SIMULACAO) return isPreview;
+  if (USAR_SIMULACAO) return isPreview || modoTesteNaUrl();
   return true;
+}
+
+/**
+ * Escotilha de teste durante a fase simulada.
+ *
+ * Só a vitrine não bastava: as pacientes de demonstração do dia a dia vivem no
+ * banco, no aplicativo normal, e para o sistema são fichas reais. Sem uma saída,
+ * não haveria como conferir as telas numa ficha de verdade antes de a leitura
+ * existir.
+ *
+ * Acrescentar `?leituraFoto=teste` ao endereço libera o botão naquela aba.
+ * Ninguém digita isso por acaso, e o aviso de "leitura simulada" continua na
+ * tela o tempo todo. Esta função inteira desaparece quando `USAR_SIMULACAO`
+ * virar false — a partir daí a liberação é normal, para todas as fichas.
+ */
+function modoTesteNaUrl(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('leituraFoto') === 'teste';
 }
 
 /**
