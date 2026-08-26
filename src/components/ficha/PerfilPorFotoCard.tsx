@@ -198,6 +198,26 @@ export default function PerfilPorFotoCard({
   if (etapa === 'conferindo') {
     return (
       <div className="space-y-3">
+        {/* Enquanto a leitura é simulada, o botão aparece em ficha real — decisão
+            de produto para permitir experimentar o fluxo. O que impede um número
+            inventado de virar prontuário é ESTE aviso, aqui, ao lado dos próprios
+            valores. No card do botão ele passaria batido: quem chega até aqui já
+            está olhando a grade preenchida. */}
+        {USAR_SIMULACAO && (
+          <div className="rounded-xl border-2 p-4 flex items-start gap-2"
+               style={{ backgroundColor: '#FEE2E2', borderColor: '#DC2626' }}>
+            <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: '#991B1B' }} />
+            <div className="space-y-1">
+              <p className="text-sm font-bold" style={{ color: '#991B1B' }}>
+                {t('fichaAC.perfilFoto.simulacaoTitulo')}
+              </p>
+              <p className="text-xs" style={{ color: '#991B1B' }}>
+                {t('fichaAC.perfilFoto.simulacaoTexto')}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-xl border-2 p-4 space-y-2"
              style={{ backgroundColor: '#FEF3C7', borderColor: '#F59E0B' }}>
           <div className="flex items-start gap-2">
