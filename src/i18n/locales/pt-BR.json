@@ -3237,7 +3237,7 @@
       "enviarArquivo": "Enviar do aparelho",
       "lendo": "Lendo o controle...",
       "ajuda": "Fotografe o papel onde a gestante anotou as glicemias. Você confere tudo antes de salvar — e pode digitar à mão a qualquer momento.",
-      "faltaData": "Informe a data de início do período para usar a foto.",
+      "faltaData": "Preencha a \"Data de início do perfil\", no topo da ficha, para usar a foto. Sem ela o sistema não sabe a que dia pertence cada linha.",
       "simulacao": "Leitura simulada: o serviço de leitura ainda não está ligado.",
       "confiraTitulo": "Confira antes de salvar",
       "confiraTexto": "Compare a foto com os valores da grade. Os campos em amarelo vieram da leitura automática e ainda não foram conferidos por você.",

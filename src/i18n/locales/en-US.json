@@ -3237,7 +3237,7 @@
       "enviarArquivo": "Upload from device",
       "lendo": "Reading the log...",
       "ajuda": "Photograph the sheet where the patient wrote her readings. You review everything before saving — and can type by hand at any time.",
-      "faltaData": "Enter the period start date to use a photo.",
+      "faltaData": "Fill in the \"Profile start date\" at the top of the record to use a photo. Without it the system cannot tell which day each row belongs to.",
       "simulacao": "Simulated reading: the reading service is not connected yet.",
       "confiraTitulo": "Review before saving",
       "confiraTexto": "Compare the photo with the values in the grid. Fields in yellow came from the automatic reading and have not been reviewed by you yet.",
