@@ -211,7 +211,7 @@
     "colLastConsultation": "Last consultation",
     "colReturn": "Return",
     "dmgPriorTooltip": "History of GDM in a previous pregnancy.",
-    "overtTooltip": "Pre-existing diabetes diagnosed during pregnancy (OVERT DM). Management differs from gestational GDM.",
+    "overtTooltip": "Pre-existing diabetes (OVERT DM). Follow-up in MARI is the same as for GDM; the diabetes persists after delivery.",
     "noDate": "—",
     "gaShort": "GA",
     "lastShort": "Last",
