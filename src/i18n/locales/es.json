@@ -211,7 +211,7 @@
     "colLastConsultation": "Última consulta",
     "colReturn": "Retorno",
     "dmgPriorTooltip": "Antecedente de DMG en gestación anterior.",
-    "overtTooltip": "Diabetes preexistente diagnosticada en la gestación (OVERT DM). Conducta distinta de la DMG gestacional.",
+    "overtTooltip": "Diabetes preexistente (OVERT DM). Seguimiento igual al del DMG en MARI; la diabetes persiste después del parto.",
     "noDate": "—",
     "gaShort": "EG",
     "lastShort": "Última",
