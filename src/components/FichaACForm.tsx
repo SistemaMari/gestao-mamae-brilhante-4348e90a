@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
-import { todayLocalISO, parseDateLocal } from '@/lib/dateUtils';
+import { todayLocalISO, parseDateLocal, formatDateBR } from '@/lib/dateUtils';
 import { useIg, descreverReferenciaIg } from '@/lib/getIg';
 import { useRespostaVigenteCrescimento } from '@/hooks/useRespostaVigenteCrescimento';
 import { supabase } from '@/integrations/supabase/client';
@@ -514,6 +514,17 @@ export default function FichaACForm({
     ).length,
     [consultas, editingConsulta?.id],
   );
+
+  // 42F — data da repactuação já usada nesta gestação. A regra do teto único é a
+  // que mais parece defeito para quem não a conhece: numa inadequação seguinte o
+  // sistema deixa de perguntar e vai direto para insulina. Dizer QUANDO a
+  // pactuação aconteceu transforma "sumiu o botão" em "já foi usada em tal dia".
+  const dataPactuacaoPrevia = useMemo(() => {
+    const previa = consultas.find(
+      (c) => c.regra_aplicada === 'regra_2' && c.pactuacao_adesao === 'aceita' && c.id !== editingConsulta?.id,
+    );
+    return previa?.data ? formatDateBR(previa.data) : null;
+  }, [consultas, editingConsulta?.id]);
 
   const decisaoFichaA = useMemo<DecisaoResultado | null>(() => {
     if (!isFichaAC || !isChecklistCompleto(checklist, igSemNum) || percentual == null) return null;
@@ -1262,6 +1273,8 @@ export default function FichaACForm({
           onPactuacao={setPactuacao}
           onMemoria={setMemoria}
           disabled={saving}
+          pactuacoesPrevias={pactuacoesPrevias}
+          dataPactuacaoPrevia={dataPactuacaoPrevia}
         />
       )}
 

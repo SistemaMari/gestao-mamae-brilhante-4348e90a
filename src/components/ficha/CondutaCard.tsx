@@ -4,7 +4,7 @@
  * Inclui controles de pactuação (Regra 2 e Regra 4 não-confirma) e
  * confirmação da memória do glicosímetro (Regra 4).
  */
-import { FileText, Heart, AlertTriangle, ArrowRight } from 'lucide-react';
+import { FileText, Heart, AlertTriangle, ArrowRight, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 
@@ -28,10 +28,17 @@ interface Props {
   memoria: 'confirma' | 'nao_confirma' | null;
   onPactuacao: (v: 'aceita' | 'recusa') => void;
   onMemoria: (v: 'confirma' | 'nao_confirma') => void;
+  /** 42F — já houve repactuação de MEV aceita nesta gestação. */
+  pactuacoesPrevias?: number;
+  /** Data dessa repactuação, para o aviso citar quando foi. */
+  dataPactuacaoPrevia?: string | null;
   disabled?: boolean;
 }
 
-export default function CondutaCard({ decisao, pactuacao, memoria, onPactuacao, onMemoria, disabled }: Props) {
+export default function CondutaCard({
+  decisao, pactuacao, memoria, onPactuacao, onMemoria,
+  pactuacoesPrevias = 0, dataPactuacaoPrevia, disabled,
+}: Props) {
   const { t } = useTranslation();
   const { conduta_gerada: conduta, proxima_ficha_recomendada: proxima } = decisao;
   if (!conduta) return null;
@@ -56,6 +63,11 @@ export default function CondutaCard({ decisao, pactuacao, memoria, onPactuacao, 
     insulina:      { bg: '#FEF3C7', border: '#FCD34D', title: '#92400E', text: '#B45309', label: t('ficha.condutaCard.condutaInsulina'), icon: AlertTriangle },
     avaliar_memoria: { bg: '#E0F2FE', border: '#7DD3FC', title: '#075985', text: '#0369A1', label: t('ficha.condutaCard.condutaAvaliarMemoria'), icon: FileText },
   };
+  // O teto só é notícia quando ele MUDOU a conduta: inadequação que virou
+  // insulina porque a repactuação já foi usada.
+  const pactuacaoJaUsada =
+    pactuacoesPrevias > 0 && decisao.regra_aplicada === 'regra_2' && conduta === 'insulina';
+
   const s = stylesPorConduta[conduta];
   const Icon = s.icon;
 
@@ -68,12 +80,39 @@ export default function CondutaCard({ decisao, pactuacao, memoria, onPactuacao, 
 
       {/* 42I — "Regra N" é rótulo interno do motor; não expor ao usuário final. */}
 
+      {/* 42F — teto de pactuação única. Este é o aviso que mais importa: numa
+          inadequação seguinte o sistema NÃO reoferece o reforço de MEV e vai
+          direto para insulina. Sem explicação, quem não conhece a regra lê isso
+          como defeito — "sumiu o botão de pactuar". Dizer a data da repactuação
+          anterior fecha a dúvida na hora, sem ninguém precisar consultar o
+          histórico. */}
+      {pactuacaoJaUsada && (
+        <div className="rounded-lg p-3 flex items-start gap-2"
+             style={{ backgroundColor: '#FFFFFF', border: '1px solid #FCD34D' }}>
+          <Info className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#92400E' }} />
+          <p className="text-xs" style={{ color: '#92400E' }}>
+            {dataPactuacaoPrevia
+              ? t('ficha.condutaCard.pactuacaoJaUsadaEm', { data: dataPactuacaoPrevia })
+              : t('ficha.condutaCard.pactuacaoJaUsada')}
+          </p>
+        </div>
+      )}
+
       {/* Regra 2 e Regra 4 não-confirma → pactuação */}
       {(conduta === 'reforcar_mev' || (conduta === 'avaliar_memoria' && memoria === 'nao_confirma')) && (
         <div className="rounded-lg bg-white/70 p-3 space-y-2">
           <p className="text-xs font-semibold" style={{ color: s.title }}>
             {t('ficha.condutaCard.pactuacaoLabel')}
           </p>
+          {/* 42F — a repactuação é única na gestação. Avisar AQUI, no momento em
+              que ela é oferecida, é o que evita a surpresa lá na frente: quem
+              aceita agora precisa saber que não haverá uma segunda vez. */}
+          {conduta === 'reforcar_mev' && (
+            <p className="text-xs rounded-md px-2 py-1.5"
+               style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+              {t('ficha.condutaCard.pactuacaoUnicaAviso')}
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
