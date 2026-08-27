@@ -309,16 +309,10 @@ export default function FichaACForm({
 
   // Insulin dose calculation moved to laudo (FichaACResultCard) — captured AFTER doctor sees Bloco 1.
 
-  // 38B-C (#17): intervalo de retorno da regra central. A 1ª Ficha A/C
-  // (1º perfil glicêmico pós-diagnóstico) usa 10 dias; demais, 15 (≤30) / 7 (>30).
   const ehPrimeiroPerfil = !consultas.some(
     c => c.id !== editingConsulta?.id && ['ficha_a', 'ficha_c', 'ficha_b', 'ficha_d', 'ficha_e'].includes(c.tipo),
   );
-  const retornoDias = calcularIntervaloRetornoDias({ ehFichaE: false, ehPrimeiroPerfil, igSemanas: igSemNum });
   const dataConsultaLocal = parseDateLocal(dataConsulta);
-  const dataProximoRetorno = dataConsultaLocal
-    ? addDays(dataConsultaLocal, retornoDias).toLocaleDateString(i18n.language)
-    : null;
 
   // Impact popup
   const [showImpact, setShowImpact] = useState(false);
@@ -541,6 +535,19 @@ export default function FichaACForm({
       pactuacoesPrevias,
     );
   }, [isFichaAC, checklist, memoria, pactuacao, percentual, editingConsulta?.peso_kg, igSemNum, pactuacoesPrevias]);
+
+  // 38B-C (#17) + fluxograma ago/2026: intervalo de retorno pela regra central.
+  // Precisa vir DEPOIS da decisão porque a Regra 2 (reforçar MEV) tem teto próprio
+  // de 7 dias — perfil inadequado não pode esperar os 15 dias do caso estável.
+  const retornoDias = calcularIntervaloRetornoDias({
+    ehFichaE: false,
+    ehPrimeiroPerfil,
+    igSemanas: igSemNum,
+    regraAplicada: decisaoFichaA?.regra_aplicada ?? null,
+  });
+  const dataProximoRetorno = dataConsultaLocal
+    ? addDays(dataConsultaLocal, retornoDias).toLocaleDateString(i18n.language)
+    : null;
 
   // Validation — peso não é mais obrigatório aqui (capturado no laudo, após o Bloco 1)
   const canSave = useMemo(() => {

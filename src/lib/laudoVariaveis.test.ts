@@ -251,3 +251,25 @@ describe('ultimaDoseInsulina', () => {
     ).toBeNull();
   });
 });
+
+describe('data do retorno no laudo — reforçar MEV', () => {
+  it('regra_2 encurta o retorno para 7 dias, e o laudo acompanha a ficha', () => {
+    const consultas = [{ id: 'c1', tipo: 'ficha_a' }, { id: 'c2', tipo: 'ficha_a' }];
+    expect(
+      calcularDataProximoRetornoLaudo(
+        { id: 'c2', tipo: 'ficha_a', data: '2026-03-01', regra_aplicada: 'regra_2' },
+        consultas, 26,
+      ),
+    ).toBe('2026-03-08');
+  });
+
+  it('sem regra_2, o mesmo caso segue em 15 dias', () => {
+    const consultas = [{ id: 'c1', tipo: 'ficha_a' }, { id: 'c2', tipo: 'ficha_a' }];
+    expect(
+      calcularDataProximoRetornoLaudo(
+        { id: 'c2', tipo: 'ficha_a', data: '2026-03-01', regra_aplicada: 'regra_manter' },
+        consultas, 26,
+      ),
+    ).toBe('2026-03-16');
+  });
+});
