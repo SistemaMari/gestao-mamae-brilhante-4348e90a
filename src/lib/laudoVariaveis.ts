@@ -108,6 +108,8 @@ export interface DadosConsultaLaudo {
   dose_noite?: number | null;
   /** Grade do perfil (linha = dia, coluna = ponto). Fonte de [dias preenchidos]. */
   grid_valores?: Array<Record<string, string>> | null;
+  /** Regra do motor da Ficha A/C — 'regra_2' (reforçar MEV) encurta o retorno. */
+  regra_aplicada?: string | null;
 }
 
 /**
@@ -156,7 +158,7 @@ const TIPOS_PERFIL = ['ficha_a', 'ficha_c', 'ficha_b', 'ficha_d', 'ficha_e'];
  * diagnósticos) → null.
  */
 export function calcularDataProximoRetornoLaudo(
-  consulta: { id?: string; tipo?: string | null; data?: string | null },
+  consulta: { id?: string; tipo?: string | null; data?: string | null; regra_aplicada?: string | null },
   consultas: Array<{ id?: string; tipo?: string | null }>,
   igSemanas: number | null,
 ): string | null {
@@ -165,14 +167,17 @@ export function calcularDataProximoRetornoLaudo(
   const d = consulta.data ? parseDateLocal(consulta.data) : null;
   if (!d) return null;
 
-  // Espelha os forms: Ficha E = 7d; 1ª Ficha A/C (1º perfil) = 10d;
-  // demais = 15d (≤30 sem) / 7d (>30 sem).
+  // Espelha os forms: Ficha E = 7d; reforçar MEV (regra_2) = 7d; 1ª Ficha A/C
+  // (1º perfil) = 10d; demais = 15d (≤30 sem) / 7d (>30 sem).
   const ehFichaE = tipo === 'ficha_e';
   const ehPrimeiroPerfil =
     (tipo === 'ficha_a' || tipo === 'ficha_c') &&
     !consultas.some((x) => x.id !== consulta.id && TIPOS_PERFIL.includes(x.tipo ?? ''));
 
-  const dias = calcularIntervaloRetornoDias({ ehFichaE, ehPrimeiroPerfil, igSemanas });
+  const dias = calcularIntervaloRetornoDias({
+    ehFichaE, ehPrimeiroPerfil, igSemanas,
+    regraAplicada: consulta.regra_aplicada ?? null,
+  });
   return format(addDays(d, dias), 'yyyy-MM-dd');
 }
 
