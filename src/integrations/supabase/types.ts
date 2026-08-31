@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -985,6 +985,94 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      fotos_perfil: {
+        Row: {
+          consulta_id: string | null
+          created_at: string
+          custo_usd: number | null
+          id: string
+          modelo: string | null
+          paciente_id: string
+          profissional_id: string | null
+          status: string
+          storage_path: string
+          tokens_entrada: number | null
+          tokens_saida: number | null
+          updated_at: string
+        }
+        Insert: {
+          consulta_id?: string | null
+          created_at?: string
+          custo_usd?: number | null
+          id?: string
+          modelo?: string | null
+          paciente_id: string
+          profissional_id?: string | null
+          status?: string
+          storage_path: string
+          tokens_entrada?: number | null
+          tokens_saida?: number | null
+          updated_at?: string
+        }
+        Update: {
+          consulta_id?: string | null
+          created_at?: string
+          custo_usd?: number | null
+          id?: string
+          modelo?: string | null
+          paciente_id?: string
+          profissional_id?: string | null
+          status?: string
+          storage_path?: string
+          tokens_entrada?: number | null
+          tokens_saida?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fotos_perfil_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "consultas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fotos_perfil_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "v_ficha_retorno_contexto"
+            referencedColumns: ["consulta_caso_novo_id"]
+          },
+          {
+            foreignKeyName: "fotos_perfil_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "v_ficha_retorno_contexto"
+            referencedColumns: ["consulta_retorno_id"]
+          },
+          {
+            foreignKeyName: "fotos_perfil_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fotos_perfil_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "equipe_unidade_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fotos_perfil_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissionais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gestores_gerais: {
         Row: {
