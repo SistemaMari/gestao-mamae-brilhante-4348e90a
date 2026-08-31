@@ -27,6 +27,10 @@ function planoSlugPorValor(valor: number): string | null {
   if (v === 79) return "inicial";
   if (v === 139) return "intermediaria";
   if (v === 299) return "profissional";
+  // Planos institucionais (links de pagamento avulsos no Asaas, vendidos
+  // diretamente pelo Raul — não passam pelo checkout/:slug do app).
+  if (v === 2997) return "institucional-1000";
+  if (v === 4997) return "institucional-5000";
   return null;
 }
 
