@@ -1844,6 +1844,7 @@ export type Database = {
           asaas_customer_id: string | null
           asaas_subscription_id: string | null
           avatar_url: string | null
+          aviso_fim_ciclo_enviado_em: string | null
           cidade: string | null
           created_at: string
           crm: string | null
@@ -1881,6 +1882,7 @@ export type Database = {
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
           avatar_url?: string | null
+          aviso_fim_ciclo_enviado_em?: string | null
           cidade?: string | null
           created_at?: string
           crm?: string | null
@@ -1918,6 +1920,7 @@ export type Database = {
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
           avatar_url?: string | null
+          aviso_fim_ciclo_enviado_em?: string | null
           cidade?: string | null
           created_at?: string
           crm?: string | null
