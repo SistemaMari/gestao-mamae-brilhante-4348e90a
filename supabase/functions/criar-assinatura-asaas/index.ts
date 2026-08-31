@@ -110,6 +110,10 @@ Deno.serve(async (req) => {
     value: plano.preco_mensal,
     nextDueDate: hoje,
     cycle: "MONTHLY",
+    // Plano é anual: 12 cobranças mensais de plano.preco_mensal (ex.: R$79 x 12 =
+    // R$948/ano) e a assinatura encerra sozinha — a Asaas não gera a 13ª cobrança.
+    // Renovação é uma decisão de negócio separada, não automática aqui.
+    maxPayments: 12,
     description: plano.pacientes_max
       ? `${plano.nome} MARI | até ${plano.pacientes_max} pacientes`
       : `${plano.nome} MARI`,
