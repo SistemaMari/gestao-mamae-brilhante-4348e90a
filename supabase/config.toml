@@ -27,3 +27,5 @@ project_id = "ywldvotfgbxufcyjdvnq"
     verify_jwt = false
   [functions.enviar-feedback]
     verify_jwt = true
+  [functions.extrair-perfil-foto]
+    verify_jwt = true
