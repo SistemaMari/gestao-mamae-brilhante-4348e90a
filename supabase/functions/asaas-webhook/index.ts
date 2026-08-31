@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
       // Verifica se já existe profissional por asaas_customer_id (renovação)
       const { data: profExistente } = await supabase
         .from("profissionais")
-        .select("id, user_id, data_inicio_assinatura")
+        .select("id, user_id, data_inicio_assinatura, asaas_subscription_id")
         .eq("asaas_customer_id", customerId)
         .maybeSingle();
 
@@ -177,6 +177,14 @@ Deno.serve(async (req) => {
 
       if (profExistente) {
         // ----- RENOVAÇÃO -----
+        // Um asaas_subscription_id diferente do que já estava salvo significa que
+        // começou um ciclo anual novo (a assinatura anterior, com maxPayments: 12,
+        // encerrou e uma nova foi criada) — não é só mais uma das 12 cobranças
+        // mensais de dentro do mesmo ciclo. Reinicia a contagem do ciclo
+        // (data_inicio_assinatura) e destrava o aviso de "plano acabando" para
+        // este novo ciclo.
+        const novoCicloAnual = profExistente.asaas_subscription_id !== subscriptionId;
+
         await supabase
           .from("profissionais")
           .update({
@@ -186,6 +194,9 @@ Deno.serve(async (req) => {
             laudos_usados: 0, // reset por aniversário da assinatura
             asaas_subscription_id: subscriptionId,
             proxima_renovacao: proxRenov.toISOString(),
+            ...(novoCicloAnual
+              ? { data_inicio_assinatura: agora.toISOString(), aviso_fim_ciclo_enviado_em: null }
+              : {}),
           })
           .eq("id", profExistente.id);
 
