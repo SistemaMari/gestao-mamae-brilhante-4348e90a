@@ -386,7 +386,14 @@ Deno.serve(async (req) => {
 
     // storage_path precisa apontar para a pasta desta paciente — sem isso um
     // caminho forjado leria o arquivo de outra gestante (Guarda 2).
-    const prefixoEsperado = `${BUCKET}/${pacienteId}/`;
+    //
+    // Bug corrigido em 03/09/2026: storage_path chega do front já RELATIVO ao
+    // bucket (ex.: "{pacienteId}/{arquivo}.jpg" — é assim que o Supabase
+    // Storage espera no .from(BUCKET).upload(...), e é assim que as policies
+    // de storage.objects leem (storage.foldername(name))[1]). A checagem
+    // aqui pedia o prefixo "controles-glicemia/" na frente, que o front nunca
+    // envia — toda extração real caía neste 403 antes de chegar no modelo.
+    const prefixoEsperado = `${pacienteId}/`;
     if (!storagePath.startsWith(prefixoEsperado)) {
       return jsonResp({ ok: false, codigo: "paciente_nao_vinculada" }, 403);
     }
@@ -429,9 +436,11 @@ Deno.serve(async (req) => {
       // exemplo fixo do contrato, para o front trabalhar em paralelo.
       resultado = respostaFixaDeExemplo(dataInicio as string);
     } else {
+      // storagePath já é relativo ao bucket (ver correção da Guarda 2 acima) —
+      // não corta mais o prefixo do nome do bucket, que nunca esteve lá.
       const { data: arquivo, error: downloadErro } = await supabaseAdmin.storage
         .from(BUCKET)
-        .download(storagePath.slice(BUCKET.length + 1));
+        .download(storagePath);
       if (downloadErro || !arquivo) {
         return jsonResp({ ok: false, codigo: "imagem_ilegivel", mensagem: "Não foi possível ler o arquivo da imagem." }, 422);
       }
