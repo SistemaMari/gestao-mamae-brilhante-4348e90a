@@ -46,23 +46,26 @@ interface ExameGlicemia {
   consulta_id: string;
 }
 
-// Brand palette — NO semantic colors (orange/green/red) on this dashboard
+// Paleta "Bento médico" — teal protagonista, roxo como acento
 const BRAND = {
-  lilas: '#7C4DBA',
-  verdaAgua: '#5EEAD4',
-  lilasClaro: '#D6BCFA',
+  teal: '#2F7E98',
+  tealEscuro: '#25667C',
+  verdaAgua: '#99F6E4',
+  lilas: '#7E69AB',
+  lilasClaro: '#C4B5FD',
   roxoEscuro: '#7E69AB',
   bgBranco: '#FFFFFF',
+  bgTealSuave: '#F1FAFB',
   bgLavanda: '#F1F0FB',
   bgLavandaDef: '#E5DEFF',
   bgVerdeSuave: '#D1FAE5',
   bgRosaSuave: '#FFF0F6',
-  borderCinza: '#E2E8F0',
+  borderCinza: '#DCEEF2',
+  borderTeal: '#CCE8EE',
   borderLilas: '#D6BCFA',
-  borderLilasPrimario: '#7C4DBA',
-  borderVerdeAgua: '#5EEAD4',
+  borderVerdeAgua: '#99F6E4',
   borderRosa: '#FBCFE8',
-  textNumero: '#2D2B55',
+  textNumero: '#1E293B',
   textLabel: '#64748B',
 };
 
