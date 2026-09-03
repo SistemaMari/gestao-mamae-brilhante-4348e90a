@@ -37,6 +37,7 @@ import ConfiguracoesGestorGeralPage from "./pages/consolidar/ConfiguracoesGestor
 import UnidadeDrillDownPage from "./pages/consolidar/UnidadeDrillDownPage";
 import PlanosPage from "./pages/PlanosPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import InstitucionalPage from "./pages/InstitucionalPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
 import GestaoEquipePage from "./pages/GestaoEquipePage";
 import CadastroConvitePage from "./pages/CadastroConvitePage";
@@ -105,6 +106,10 @@ const App = () => (
             {/* Compat: links antigos de email apontam para /cadastro-convite/:token */}
             <Route path="/cadastro-convite/:token" element={<CadastroConvitePage />} />
             <Route path="/checkout/:slug" element={<CheckoutPage />} />
+
+            {/* Landing institucional (Até 1000/5000 gestantes) — sem link em
+                nenhum menu; só chega quem recebe o link direto do Raul. */}
+            <Route path="/institucional" element={<InstitucionalPage />} />
 
             {/* Maquete de demonstração (sem link em menus) */}
             <Route path="/demo/perfil-por-foto" element={<DemoPerfilPorFoto />} />
