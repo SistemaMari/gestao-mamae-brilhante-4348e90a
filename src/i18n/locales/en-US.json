@@ -3269,6 +3269,13 @@
       "tirarFoto": "Take a photo with the camera",
       "enviarArquivo": "Import photo from files",
       "lendo": "Reading the log...",
+      "lendoContador": "{{passo}} · {{segundos}}s",
+      "passo": {
+        "preparando": "Preparing the photo",
+        "lendo": "Reading the log"
+      },
+      "tempoEsperado": "The reading can take up to ~30 seconds. Please wait.",
+      "tempoSimulado": "Test mode — the reading only takes a few seconds.",
       "ajuda": "Photograph the sheet where the patient wrote her readings. You review everything before saving — and can type by hand at any time.",
       "faltaData": "Fill in the \"Profile start date\" at the top of the record to use a photo. Without it the system cannot tell which day each row belongs to.",
       "simulacao": "Reading in test mode: the numbers will be samples, not from the photo.",

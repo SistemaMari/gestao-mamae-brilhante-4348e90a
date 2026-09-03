@@ -3269,6 +3269,13 @@
       "tirarFoto": "Tirar foto pela câmera",
       "enviarArquivo": "Importar foto dos arquivos",
       "lendo": "Lendo o controle...",
+      "lendoContador": "{{passo}} · {{segundos}}s",
+      "passo": {
+        "preparando": "Preparando a foto",
+        "lendo": "Lendo o controle"
+      },
+      "tempoEsperado": "A leitura pode levar até ~30 segundos. Continue aguardando.",
+      "tempoSimulado": "Modo de teste — leitura leva apenas alguns segundos.",
       "ajuda": "Fotografe o papel onde a gestante anotou as glicemias. Você confere tudo antes de salvar — e pode digitar à mão a qualquer momento.",
       "faltaData": "Preencha a \"Data de início do perfil\", no topo da ficha, para usar a foto. Sem ela o sistema não sabe a que dia pertence cada linha.",
       "simulacao": "Leitura em teste: os números serão de exemplo, não virão da foto.",

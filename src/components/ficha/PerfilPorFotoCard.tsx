@@ -12,7 +12,7 @@
  * mesmo texto e some com um clique vira clique automático em duas semanas — e a
  * segurança desta funcionalidade inteira depende de a conferência acontecer.
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Camera, ImageIcon, Loader2, AlertTriangle, Check, X } from 'lucide-react';
@@ -50,12 +50,22 @@ interface Props {
 
 type Etapa = 'inicial' | 'lendo' | 'conferindo' | 'confirmado';
 
+/**
+ * Passo dentro da etapa 'lendo'. Existe para o usuário ver em qual das duas
+ * fases estamos (a compressão da foto pode ser LENTA em celular antigo/foto
+ * grande — antes o botão só dizia "Lendo o controle...", o que dava a impressão
+ * de travado quando na verdade o aparelho ainda estava tratando a imagem).
+ */
+type PassoLeitura = 'preparando' | 'lendo';
+
 export default function PerfilPorFotoCard({
   pacienteId, consultaId, isPreview, tipoPerfil, janelaPos, dataInicio, dias,
   datasDias, habilitado, onLeitura, onConfirmar, onDescartar,
 }: Props) {
   const { t } = useTranslation();
   const [etapa, setEtapa] = useState<Etapa>('inicial');
+  const [passo, setPasso] = useState<PassoLeitura>('preparando');
+  const [segundos, setSegundos] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [storagePath, setStoragePath] = useState<string | null>(null);
   const [relatorio, setRelatorio] = useState<RelatorioAplicacao | null>(null);
@@ -64,12 +74,22 @@ export default function PerfilPorFotoCard({
   const inputCamera = useRef<HTMLInputElement>(null);
   const inputArquivo = useRef<HTMLInputElement>(null);
 
+  // Contador de segundos enquanto está lendo. Prova ao usuário que a coisa não
+  // travou (a leitura real pode levar dezenas de segundos, e um botão parado no
+  // mesmo texto por muito tempo é indistinguível de um bug).
+  useEffect(() => {
+    if (etapa !== 'lendo') { setSegundos(0); return; }
+    const id = window.setInterval(() => setSegundos((s) => s + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [etapa]);
+
   const escolherArquivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const arquivo = e.target.files?.[0];
     e.target.value = ''; // permite escolher a mesma foto de novo
     if (!arquivo) return;
 
     setEtapa('lendo');
+    setPasso('preparando');
     let urlLocal: string | null = null;
 
     try {
@@ -96,6 +116,7 @@ export default function PerfilPorFotoCard({
         setStoragePath(caminho);
       }
 
+      setPasso('lendo');
       const resultado = await extrairPerfilFoto({
         pacienteId, consultaId, storagePath: caminho ?? 'preview',
         tipoPerfil, janelaPos, dataInicio, dias, datasDias,
@@ -168,7 +189,12 @@ export default function PerfilPorFotoCard({
             {lendo
               ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
               : <Camera className="h-4 w-4 mr-1.5" />}
-            {lendo ? t('fichaAC.perfilFoto.lendo') : t('fichaAC.perfilFoto.tirarFoto')}
+            {lendo
+              ? t('fichaAC.perfilFoto.lendoContador', {
+                  passo: t(`fichaAC.perfilFoto.passo.${passo}`),
+                  segundos,
+                })
+              : t('fichaAC.perfilFoto.tirarFoto')}
           </Button>
           <Button
             type="button" size="sm" variant="outline" disabled={!habilitado || lendo}
@@ -179,7 +205,19 @@ export default function PerfilPorFotoCard({
           </Button>
         </div>
 
-        {habilitado && (
+        {/* Enquanto lê: expectativa de tempo, para o silêncio da IA não ser lido
+            como travamento. No modo simulado o tempo é fixo em ~2s; ao ligar a
+            leitura real, sobe para dezenas de segundos — a mensagem já reflete
+            os dois cenários pra não precisar de código quando virar a chave. */}
+        {lendo && (
+          <p className="text-xs text-[#5B21B6]">
+            {USAR_SIMULACAO
+              ? t('fichaAC.perfilFoto.tempoSimulado')
+              : t('fichaAC.perfilFoto.tempoEsperado')}
+          </p>
+        )}
+
+        {!lendo && habilitado && (
           <p className="text-xs text-muted-foreground">{t('fichaAC.perfilFoto.ajuda')}</p>
         )}
         {USAR_SIMULACAO && (
