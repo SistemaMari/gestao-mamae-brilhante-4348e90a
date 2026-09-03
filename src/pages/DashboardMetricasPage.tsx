@@ -236,9 +236,9 @@ export default function DashboardMetricasPage() {
   }).length;
 
   const diagPieData = [
-    { name: t('dashboardMetricas.pie.diagGj'), value: dmgByGJ, color: BRAND.lilas },
+    { name: t('dashboardMetricas.pie.diagGj'), value: dmgByGJ, color: BRAND.teal },
     { name: t('dashboardMetricas.pie.gttNormal'), value: gttNormal, color: BRAND.verdaAgua },
-    { name: t('dashboardMetricas.pie.gttTardio'), value: gttTardio, color: BRAND.lilasClaro },
+    { name: t('dashboardMetricas.pie.gttTardio'), value: gttTardio, color: BRAND.lilas },
   ].filter(d => d.value > 0);
 
   // --- TRATAMENTO ---
