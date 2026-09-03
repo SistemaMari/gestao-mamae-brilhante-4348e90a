@@ -16,8 +16,12 @@ import type { ResultadoExtracao } from './perfilPorFoto';
  * ⚠️ ENQUANTO TRUE, NADA É LIDO DE VERDADE — os números são inventados aqui
  * mesmo, para permitir construir e testar as telas antes do back-end existir.
  * Virar para false quando a edge function estiver no ar.
+ *
+ * Ligado em 03/09/2026: a edge function extrair-perfil-foto está implantada,
+ * com ANTHROPIC_API_KEY configurada e o bug do output_config corrigido — a
+ * leitura por foto agora é real.
  */
-export const USAR_SIMULACAO = true;
+export const USAR_SIMULACAO = false;
 
 /**
  * Trava de produto: enquanto false, o botão de foto não aparece para ninguém.
