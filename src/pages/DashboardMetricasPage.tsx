@@ -682,10 +682,10 @@ export default function DashboardMetricasPage() {
                 <YAxis tick={{ fontSize: 12, fill: BRAND.textLabel }} allowDecimals={false} axisLine={false} tickLine={false} />
                 <RechartsTooltip />
                 <Legend iconType="circle" wrapperStyle={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 12 }} />
-                <Bar dataKey="novas" name={t('dashboardMetricas.chart.newPatients')} stackId="a" fill={BRAND.lilas} radius={[0, 0, 0, 0]}>
+                <Bar dataKey="novas" name={t('dashboardMetricas.chart.newPatients')} stackId="a" fill={BRAND.verdaAgua} radius={[6, 6, 0, 0]}>
                   <LabelList dataKey="novas" content={renderLabel} />
                 </Bar>
-                <Bar dataKey="dmg" name={t('dashboardMetricas.chart.dmgConfirmed')} stackId="a" fill={BRAND.roxoEscuro} radius={[6, 6, 0, 0]}>
+                <Bar dataKey="dmg" name={t('dashboardMetricas.chart.dmgConfirmed')} stackId="a" fill={BRAND.teal} radius={[6, 6, 0, 0]}>
                   <LabelList dataKey="dmg" content={renderLabel} />
                 </Bar>
               </BarChart>
