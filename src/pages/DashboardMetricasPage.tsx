@@ -759,40 +759,148 @@ function AdminMetricaCard({
   valor,
   sublabel,
   cor,
+  destaque,
   onClick,
 }: {
   label: string;
   valor: string | number;
   sublabel?: string;
   cor?: string;
+  destaque?: boolean;
   onClick?: () => void;
 }) {
   const Tag: any = onClick ? 'button' : 'div';
+  if (destaque) {
+    return (
+      <Tag
+        onClick={onClick}
+        className={`rounded-[2rem] p-6 text-left shadow-lg transition-all ${onClick ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}
+        style={{ backgroundColor: BRAND.teal, boxShadow: '0 18px 32px -18px rgba(47,126,152,0.65)' }}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-sm font-medium text-white/80" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            {label}
+          </span>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
+            <span className="h-2 w-2 animate-pulse rounded-full" style={{ backgroundColor: BRAND.verdaAgua }} />
+          </span>
+        </div>
+        <div className="mt-3 text-[38px] font-bold leading-none text-white" style={{ fontFamily: 'Sora, sans-serif' }}>
+          {valor}
+        </div>
+        {sublabel && (
+          <div className="mt-3 text-xs text-white/75" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            {sublabel}
+          </div>
+        )}
+      </Tag>
+    );
+  }
   return (
     <Tag
       onClick={onClick}
-      className={`rounded-xl border bg-white p-5 text-left shadow-sm transition-all ${onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : ''}`}
-      style={{ borderColor: '#E2E8F0' }}
+      className={`rounded-[2rem] border bg-white p-6 text-left shadow-sm transition-all ${onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : ''}`}
+      style={{ borderColor: BRAND.borderTeal }}
     >
       <div
-        className="text-sm"
+        className="text-sm font-medium"
         style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
       >
         {label}
       </div>
       <div
-        className="mt-2 text-[32px] leading-none font-bold"
+        className="mt-3 text-[34px] leading-none font-bold"
         style={{ color: cor ?? '#1E293B', fontFamily: 'Sora, sans-serif' }}
       >
         {valor}
       </div>
       {sublabel && (
         <div
-          className="mt-2 text-xs"
-          style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          className="mt-3 text-xs"
+          style={{ color: '#94A3B8', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         >
           {sublabel}
         </div>
+      )}
+    </Tag>
+  );
+}
+
+/** Tile bento branco com título e faixa de rótulo discreta. */
+function BentoPanel({
+  title,
+  eyebrow,
+  children,
+}: {
+  title: string;
+  eyebrow?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className="rounded-[2.5rem] border bg-white p-6 shadow-sm sm:p-8"
+      style={{ borderColor: BRAND.borderTeal }}
+    >
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h2 className="text-xl font-bold" style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}>
+          {title}
+        </h2>
+        {eyebrow && (
+          <span
+            className="hidden text-[11px] font-semibold uppercase tracking-widest sm:inline"
+            style={{ color: '#94A3B8', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          >
+            {eyebrow}
+          </span>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** Métrica compacta dentro de um tile bento — barra de acento à esquerda. */
+function BentoItem({
+  label,
+  value,
+  detail,
+  accent,
+  highlight,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  detail?: string;
+  accent: string;
+  highlight?: boolean;
+  onClick?: () => void;
+}) {
+  const clickable = !!onClick && value > 0;
+  const Tag: any = clickable ? 'button' : 'div';
+  return (
+    <Tag
+      onClick={clickable ? onClick : undefined}
+      className={`group flex w-full items-start gap-3 rounded-2xl py-2 pl-4 pr-3 text-left transition-all ${clickable ? 'cursor-pointer hover:bg-[#F1FAFB]' : ''}`}
+      style={{ borderLeft: `4px solid ${accent}` }}
+    >
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm" style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+          {label}
+        </p>
+        <p
+          className="mt-1 text-[26px] font-bold leading-none"
+          style={{ color: highlight ? BRAND.teal : '#1E293B', fontFamily: 'Sora, sans-serif' }}
+        >
+          {value}
+        </p>
+        {detail && (
+          <p className="mt-1 text-xs" style={{ color: '#94A3B8', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            {detail}
+          </p>
+        )}
+      </div>
+      {clickable && (
+        <ChevronRight className="mt-1 h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" style={{ color: '#94A3B8' }} />
       )}
     </Tag>
   );
@@ -818,13 +926,13 @@ function CleanStatCard({
   return (
     <Tag
       onClick={clickable ? onClick : undefined}
-      className={`group relative w-full rounded-xl border bg-white p-5 text-left shadow-sm transition-all ${clickable ? 'cursor-pointer hover:-translate-y-0.5 hover:border-[#C4B5FD] hover:shadow-md' : ''}`}
-      style={{ borderColor: '#E2E8F0' }}
+      className={`group relative w-full rounded-[2rem] border bg-white p-6 text-left shadow-sm transition-all ${clickable ? 'cursor-pointer hover:-translate-y-0.5 hover:border-[#2F7E98] hover:shadow-md' : ''}`}
+      style={{ borderColor: BRAND.borderTeal }}
     >
-      <div className="mb-2 flex items-center gap-2">
+      <div className="mb-3 flex items-center gap-2">
         <span
-          className="inline-flex h-6 w-6 items-center justify-center rounded-full"
-          style={{ backgroundColor: `${dotColor}1A` }}
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full"
+          style={{ backgroundColor: `${dotColor}26` }}
         >
           <Icon className="h-3.5 w-3.5" style={{ color: dotColor }} />
         </span>
@@ -842,7 +950,7 @@ function CleanStatCard({
         )}
       </div>
       <p
-        className="text-[28px] font-bold leading-none"
+        className="text-[30px] font-bold leading-none"
         style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
       >
         {value}
@@ -850,7 +958,7 @@ function CleanStatCard({
       {detail && (
         <p
           className="mt-2 text-xs"
-          style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          style={{ color: '#94A3B8', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         >
           {detail}
         </p>
@@ -863,7 +971,7 @@ function CleanStatCard({
 function AdminSectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2
-      className="text-lg font-semibold"
+      className="text-lg font-bold"
       style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
     >
       {children}
@@ -874,11 +982,11 @@ function AdminSectionTitle({ children }: { children: React.ReactNode }) {
 function AdminChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div
-      className="rounded-xl border bg-white p-5 shadow-sm"
-      style={{ borderColor: '#E2E8F0' }}
+      className="rounded-[2.5rem] border bg-white p-6 shadow-sm sm:p-8"
+      style={{ borderColor: BRAND.borderTeal }}
     >
       <h3
-        className="mb-4 text-base font-semibold"
+        className="mb-6 text-xl font-bold"
         style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
       >
         {title}
@@ -887,6 +995,7 @@ function AdminChartCard({ title, children }: { title: string; children: React.Re
     </div>
   );
 }
+
 
 // ==========================================================================
 // PREVIEW DATA — 8 pacientes fictícias com dados internamente consistentes
