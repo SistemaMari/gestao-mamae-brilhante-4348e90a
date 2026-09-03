@@ -46,23 +46,26 @@ interface ExameGlicemia {
   consulta_id: string;
 }
 
-// Brand palette — NO semantic colors (orange/green/red) on this dashboard
+// Paleta "Bento médico" — teal protagonista, roxo como acento
 const BRAND = {
-  lilas: '#7C4DBA',
-  verdaAgua: '#5EEAD4',
-  lilasClaro: '#D6BCFA',
+  teal: '#2F7E98',
+  tealEscuro: '#25667C',
+  verdaAgua: '#99F6E4',
+  lilas: '#7E69AB',
+  lilasClaro: '#C4B5FD',
   roxoEscuro: '#7E69AB',
   bgBranco: '#FFFFFF',
+  bgTealSuave: '#F1FAFB',
   bgLavanda: '#F1F0FB',
   bgLavandaDef: '#E5DEFF',
   bgVerdeSuave: '#D1FAE5',
   bgRosaSuave: '#FFF0F6',
-  borderCinza: '#E2E8F0',
+  borderCinza: '#DCEEF2',
+  borderTeal: '#CCE8EE',
   borderLilas: '#D6BCFA',
-  borderLilasPrimario: '#7C4DBA',
-  borderVerdeAgua: '#5EEAD4',
+  borderVerdeAgua: '#99F6E4',
   borderRosa: '#FBCFE8',
-  textNumero: '#2D2B55',
+  textNumero: '#1E293B',
   textLabel: '#64748B',
 };
 
@@ -233,9 +236,9 @@ export default function DashboardMetricasPage() {
   }).length;
 
   const diagPieData = [
-    { name: t('dashboardMetricas.pie.diagGj'), value: dmgByGJ, color: BRAND.lilas },
+    { name: t('dashboardMetricas.pie.diagGj'), value: dmgByGJ, color: BRAND.teal },
     { name: t('dashboardMetricas.pie.gttNormal'), value: gttNormal, color: BRAND.verdaAgua },
-    { name: t('dashboardMetricas.pie.gttTardio'), value: gttTardio, color: BRAND.lilasClaro },
+    { name: t('dashboardMetricas.pie.gttTardio'), value: gttTardio, color: BRAND.lilas },
   ].filter(d => d.value > 0);
 
   // --- TRATAMENTO ---
@@ -355,10 +358,12 @@ export default function DashboardMetricasPage() {
   }
 
   const renderLabel = (props: any) => {
-    const { x, y, width, height, value } = props;
+    const { x, y, width, height, value, fill } = props;
     if (!value || value === 0) return null;
+    // Barra clara (verde-água) pede texto escuro; barra teal pede texto branco.
+    const textColor = fill === BRAND.verdaAgua ? '#0F3B47' : '#FFFFFF';
     return (
-      <text x={x + width / 2} y={y + height / 2} fill="#FFFFFF" textAnchor="middle" dominantBaseline="middle" fontSize={12} fontWeight="bold">
+      <text x={x + width / 2} y={y + height / 2} fill={textColor} textAnchor="middle" dominantBaseline="middle" fontSize={12} fontWeight="bold">
         {value}
       </text>
     );
@@ -408,13 +413,13 @@ export default function DashboardMetricasPage() {
 
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* 1. Header — mesma estrutura do admin (título + subtítulo + ações à direita) */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="-m-4 flex flex-col gap-6 bg-[#F1FAFB] p-4 sm:-m-6 sm:p-6 lg:p-8">
+      {/* 1. Header — bento médico (teal protagonista) */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1
-            className="text-[26px] font-bold leading-tight"
-            style={{ fontFamily: 'Sora, sans-serif', color: '#1E293B' }}
+            className="text-[28px] font-bold leading-tight tracking-tight"
+            style={{ fontFamily: 'Sora, sans-serif', color: BRAND.teal }}
           >
             {t('dashboardMetricas.title')}
           </h1>
@@ -425,19 +430,20 @@ export default function DashboardMetricasPage() {
             {t('dashboardMetricas.kpi.trackedSub')}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="h-9 w-[150px] text-sm" />
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-white p-2 shadow-sm" style={{ borderColor: BRAND.borderTeal }}>
+          <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="h-9 w-[150px] rounded-xl border-transparent bg-[#F1FAFB] text-sm" />
           <span className="text-sm" style={{ color: '#94A3B8' }}>{t('dashboardMetricas.dateRangeSep')}</span>
-          <Input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} className="h-9 w-[150px] text-sm" />
+          <Input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} className="h-9 w-[150px] rounded-xl border-transparent bg-[#F1FAFB] text-sm" />
           <Button
             size="sm"
             onClick={handleExportPDF}
-            className="h-9 bg-[#7C4DBA] text-white hover:bg-[#6A3FA0]"
+            className="h-9 rounded-xl bg-[#2F7E98] text-white shadow-md hover:bg-[#25667C]"
           >
             <Download className="mr-1 h-4 w-4" /> {t('dashboardMetricas.exportPdf')}
           </Button>
         </div>
       </div>
+
 
       {/* 2. Barra operacional — chips discretos alinhados à direita */}
       <div className="flex flex-wrap justify-end gap-2">
@@ -469,18 +475,19 @@ export default function DashboardMetricasPage() {
       </div>
 
       <div id="dashboard-metricas-content" className="flex flex-col gap-8">
-        {/* KPIs principais — cards brancos limpos, idênticos ao admin */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {/* KPIs principais — bento com um card herói em teal */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <AdminMetricaCard
             label={t('dashboardMetricas.kpi.tracked')}
             valor={allPacientesCount}
             sublabel={t('dashboardMetricas.kpi.trackedSub')}
+            cor={BRAND.teal}
           />
           <AdminMetricaCard
+            destaque
             label={t('dashboardMetricas.kpi.dmgRate')}
             valor={`${taxaDmg}%`}
             sublabel={t('dashboardMetricas.kpi.dmgRateSub', { count: dmgCount })}
-            cor={BRAND.lilas}
           />
           <AdminMetricaCard
             label={t('dashboardMetricas.kpi.active')}
@@ -496,27 +503,30 @@ export default function DashboardMetricasPage() {
           />
         </div>
 
-        {/* Visão Geral — 6 status clínicos como cards limpos com bolinha colorida */}
-        <section className="flex flex-col gap-4">
-          <AdminSectionTitle>{t('dashboardMetricas.sections.overview')}</AdminSectionTitle>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.overview.awaitingGj')} value={statusCounts.aguardando_gj} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGj'), pacsByStatus('aguardando_gj'))} />
-            <CleanStatCard dotColor="#3B82F6" icon={Clock} label={t('dashboardMetricas.overview.awaitingGtt')} value={statusCounts.aguardando_gtt} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGtt'), pacsByStatus('aguardando_gtt'))} />
-            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.overview.dmgConfirmed')} value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgConfirmed'), pacsDmgConfirmado)} />
-            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.overview.dmgRuledOut')} value={statusCounts.dmg_afastado} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgRuledOut'), pacsByStatus('dmg_afastado'))} />
-            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Baby} label={t('dashboardMetricas.overview.deliveryResult')} value={statusCounts.resultado_parto} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })} onClick={() => abrirLista(t('dashboardMetricas.overview.deliveryResult'), pacsByStatus('resultado_parto'))} />
-            <CleanStatCard dotColor="#8B5CF6" icon={Stethoscope} label={t('dashboardMetricas.overview.associateEndo')} value={encerramentos.insulinizacao} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(encerramentos.insulinizacao) })} onClick={() => abrirLista(t('dashboardMetricas.overview.associateEndo'), filteredPacientes.filter(p => motivoDe(p) === 'insulinizacao'))} />
+        {/* Visão Geral — um único tile bento com os 6 status */}
+        <BentoPanel
+          title={t('dashboardMetricas.sections.overview')}
+          eyebrow={t('dashboardMetricas.sections.overview')}
+        >
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <BentoItem accent="#94A3B8" label={t('dashboardMetricas.overview.awaitingGj')} value={statusCounts.aguardando_gj} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGj'), pacsByStatus('aguardando_gj'))} />
+            <BentoItem accent={BRAND.verdaAgua} label={t('dashboardMetricas.overview.awaitingGtt')} value={statusCounts.aguardando_gtt} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGtt'), pacsByStatus('aguardando_gtt'))} />
+            <BentoItem accent={BRAND.teal} highlight label={t('dashboardMetricas.overview.dmgConfirmed')} value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgConfirmed'), pacsDmgConfirmado)} />
+            <BentoItem accent="#5EEAD4" label={t('dashboardMetricas.overview.dmgRuledOut')} value={statusCounts.dmg_afastado} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgRuledOut'), pacsByStatus('dmg_afastado'))} />
+            <BentoItem accent={BRAND.lilas} label={t('dashboardMetricas.overview.deliveryResult')} value={statusCounts.resultado_parto} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })} onClick={() => abrirLista(t('dashboardMetricas.overview.deliveryResult'), pacsByStatus('resultado_parto'))} />
+            <BentoItem accent={BRAND.lilasClaro} label={t('dashboardMetricas.overview.associateEndo')} value={encerramentos.insulinizacao} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(encerramentos.insulinizacao) })} onClick={() => abrirLista(t('dashboardMetricas.overview.associateEndo'), filteredPacientes.filter(p => motivoDe(p) === 'insulinizacao'))} />
           </div>
-        </section>
+        </BentoPanel>
+
 
         {/* Diagnóstico — cards + gráfico dentro de CardContainer */}
         <section className="flex flex-col gap-4">
           <AdminSectionTitle>{t('dashboardMetricas.sections.diagnosis')}</AdminSectionTitle>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.diagnosis.totalPatients')} value={allPacientesCount} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.totalPatients'), filteredPacientes)} />
-            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGj')} value={dmgByGJ} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGJ / allPacientesCount) * 100) : 0 })} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.dmgConfirmedGj'), pacsDmgByGJ)} />
-            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGtt')} value={dmgByGTT} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGTT / allPacientesCount) * 100) : 0 })} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.dmgConfirmedGtt'), pacsDmgByGTT)} />
-            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.diagnosis.dmgRuledOutGtt')} value={dmgAfastado} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0 })} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.dmgRuledOutGtt'), pacsDmgAfastado)} />
+            <CleanStatCard dotColor={BRAND.teal} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGj')} value={dmgByGJ} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGJ / allPacientesCount) * 100) : 0 })} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.dmgConfirmedGj'), pacsDmgByGJ)} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.diagnosis.dmgConfirmedGtt')} value={dmgByGTT} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgByGTT / allPacientesCount) * 100) : 0 })} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.dmgConfirmedGtt'), pacsDmgByGTT)} />
+            <CleanStatCard dotColor={"#5EEAD4"} icon={CheckCircle} label={t('dashboardMetricas.diagnosis.dmgRuledOutGtt')} value={dmgAfastado} detail={t('dashboardMetricas.pctOfTotal', { pct: allPacientesCount > 0 ? Math.round((dmgAfastado / allPacientesCount) * 100) : 0 })} onClick={() => abrirLista(t('dashboardMetricas.diagnosis.dmgRuledOutGtt'), pacsDmgAfastado)} />
             <CleanStatCard
               dotColor="#F59E0B"
               icon={HelpCircle}
@@ -674,10 +684,10 @@ export default function DashboardMetricasPage() {
                 <YAxis tick={{ fontSize: 12, fill: BRAND.textLabel }} allowDecimals={false} axisLine={false} tickLine={false} />
                 <RechartsTooltip />
                 <Legend iconType="circle" wrapperStyle={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 12 }} />
-                <Bar dataKey="novas" name={t('dashboardMetricas.chart.newPatients')} stackId="a" fill={BRAND.lilas} radius={[0, 0, 0, 0]}>
+                <Bar dataKey="novas" name={t('dashboardMetricas.chart.newPatients')} stackId="a" fill={BRAND.verdaAgua} radius={[6, 6, 0, 0]}>
                   <LabelList dataKey="novas" content={renderLabel} />
                 </Bar>
-                <Bar dataKey="dmg" name={t('dashboardMetricas.chart.dmgConfirmed')} stackId="a" fill={BRAND.roxoEscuro} radius={[6, 6, 0, 0]}>
+                <Bar dataKey="dmg" name={t('dashboardMetricas.chart.dmgConfirmed')} stackId="a" fill={BRAND.teal} radius={[6, 6, 0, 0]}>
                   <LabelList dataKey="dmg" content={renderLabel} />
                 </Bar>
               </BarChart>
@@ -751,40 +761,148 @@ function AdminMetricaCard({
   valor,
   sublabel,
   cor,
+  destaque,
   onClick,
 }: {
   label: string;
   valor: string | number;
   sublabel?: string;
   cor?: string;
+  destaque?: boolean;
   onClick?: () => void;
 }) {
   const Tag: any = onClick ? 'button' : 'div';
+  if (destaque) {
+    return (
+      <Tag
+        onClick={onClick}
+        className={`rounded-[2rem] p-6 text-left shadow-lg transition-all ${onClick ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}
+        style={{ backgroundColor: BRAND.teal, boxShadow: '0 18px 32px -18px rgba(47,126,152,0.65)' }}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-sm font-medium text-white/80" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            {label}
+          </span>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
+            <span className="h-2 w-2 animate-pulse rounded-full" style={{ backgroundColor: BRAND.verdaAgua }} />
+          </span>
+        </div>
+        <div className="mt-3 text-[38px] font-bold leading-none text-white" style={{ fontFamily: 'Sora, sans-serif' }}>
+          {valor}
+        </div>
+        {sublabel && (
+          <div className="mt-3 text-xs text-white/75" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            {sublabel}
+          </div>
+        )}
+      </Tag>
+    );
+  }
   return (
     <Tag
       onClick={onClick}
-      className={`rounded-xl border bg-white p-5 text-left shadow-sm transition-all ${onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : ''}`}
-      style={{ borderColor: '#E2E8F0' }}
+      className={`rounded-[2rem] border bg-white p-6 text-left shadow-sm transition-all ${onClick ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : ''}`}
+      style={{ borderColor: BRAND.borderTeal }}
     >
       <div
-        className="text-sm"
+        className="text-sm font-medium"
         style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
       >
         {label}
       </div>
       <div
-        className="mt-2 text-[32px] leading-none font-bold"
+        className="mt-3 text-[34px] leading-none font-bold"
         style={{ color: cor ?? '#1E293B', fontFamily: 'Sora, sans-serif' }}
       >
         {valor}
       </div>
       {sublabel && (
         <div
-          className="mt-2 text-xs"
-          style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          className="mt-3 text-xs"
+          style={{ color: '#94A3B8', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         >
           {sublabel}
         </div>
+      )}
+    </Tag>
+  );
+}
+
+/** Tile bento branco com título e faixa de rótulo discreta. */
+function BentoPanel({
+  title,
+  eyebrow,
+  children,
+}: {
+  title: string;
+  eyebrow?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className="rounded-[2.5rem] border bg-white p-6 shadow-sm sm:p-8"
+      style={{ borderColor: BRAND.borderTeal }}
+    >
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h2 className="text-xl font-bold" style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}>
+          {title}
+        </h2>
+        {eyebrow && (
+          <span
+            className="hidden text-[11px] font-semibold uppercase tracking-widest sm:inline"
+            style={{ color: '#94A3B8', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          >
+            {eyebrow}
+          </span>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** Métrica compacta dentro de um tile bento — barra de acento à esquerda. */
+function BentoItem({
+  label,
+  value,
+  detail,
+  accent,
+  highlight,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  detail?: string;
+  accent: string;
+  highlight?: boolean;
+  onClick?: () => void;
+}) {
+  const clickable = !!onClick && value > 0;
+  const Tag: any = clickable ? 'button' : 'div';
+  return (
+    <Tag
+      onClick={clickable ? onClick : undefined}
+      className={`group flex w-full items-start gap-3 rounded-2xl py-2 pl-4 pr-3 text-left transition-all ${clickable ? 'cursor-pointer hover:bg-[#F1FAFB]' : ''}`}
+      style={{ borderLeft: `4px solid ${accent}` }}
+    >
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm" style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+          {label}
+        </p>
+        <p
+          className="mt-1 text-[26px] font-bold leading-none"
+          style={{ color: highlight ? BRAND.teal : '#1E293B', fontFamily: 'Sora, sans-serif' }}
+        >
+          {value}
+        </p>
+        {detail && (
+          <p className="mt-1 text-xs" style={{ color: '#94A3B8', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            {detail}
+          </p>
+        )}
+      </div>
+      {clickable && (
+        <ChevronRight className="mt-1 h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" style={{ color: '#94A3B8' }} />
       )}
     </Tag>
   );
@@ -810,13 +928,13 @@ function CleanStatCard({
   return (
     <Tag
       onClick={clickable ? onClick : undefined}
-      className={`group relative w-full rounded-xl border bg-white p-5 text-left shadow-sm transition-all ${clickable ? 'cursor-pointer hover:-translate-y-0.5 hover:border-[#C4B5FD] hover:shadow-md' : ''}`}
-      style={{ borderColor: '#E2E8F0' }}
+      className={`group relative w-full rounded-[2rem] border bg-white p-6 text-left shadow-sm transition-all ${clickable ? 'cursor-pointer hover:-translate-y-0.5 hover:border-[#2F7E98] hover:shadow-md' : ''}`}
+      style={{ borderColor: BRAND.borderTeal }}
     >
-      <div className="mb-2 flex items-center gap-2">
+      <div className="mb-3 flex items-center gap-2">
         <span
-          className="inline-flex h-6 w-6 items-center justify-center rounded-full"
-          style={{ backgroundColor: `${dotColor}1A` }}
+          className="inline-flex h-7 w-7 items-center justify-center rounded-full"
+          style={{ backgroundColor: `${dotColor}26` }}
         >
           <Icon className="h-3.5 w-3.5" style={{ color: dotColor }} />
         </span>
@@ -834,7 +952,7 @@ function CleanStatCard({
         )}
       </div>
       <p
-        className="text-[28px] font-bold leading-none"
+        className="text-[30px] font-bold leading-none"
         style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
       >
         {value}
@@ -842,7 +960,7 @@ function CleanStatCard({
       {detail && (
         <p
           className="mt-2 text-xs"
-          style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+          style={{ color: '#94A3B8', fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         >
           {detail}
         </p>
@@ -855,7 +973,7 @@ function CleanStatCard({
 function AdminSectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2
-      className="text-lg font-semibold"
+      className="text-lg font-bold"
       style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
     >
       {children}
@@ -866,11 +984,11 @@ function AdminSectionTitle({ children }: { children: React.ReactNode }) {
 function AdminChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div
-      className="rounded-xl border bg-white p-5 shadow-sm"
-      style={{ borderColor: '#E2E8F0' }}
+      className="rounded-[2.5rem] border bg-white p-6 shadow-sm sm:p-8"
+      style={{ borderColor: BRAND.borderTeal }}
     >
       <h3
-        className="mb-4 text-base font-semibold"
+        className="mb-6 text-xl font-bold"
         style={{ color: '#1E293B', fontFamily: 'Sora, sans-serif' }}
       >
         {title}
@@ -879,6 +997,7 @@ function AdminChartCard({ title, children }: { title: string; children: React.Re
     </div>
   );
 }
+
 
 // ==========================================================================
 // PREVIEW DATA — 8 pacientes fictícias com dados internamente consistentes
