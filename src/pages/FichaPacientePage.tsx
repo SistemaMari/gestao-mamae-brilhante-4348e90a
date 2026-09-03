@@ -963,7 +963,7 @@ export default function FichaPacientePage() {
 
     const whatsappValid = validarWhatsappBR(editWhatsapp);
     if (!whatsappValid.ok) {
-      toast.error(whatsappValid.mensagem || t('fichaPaciente.toast.whatsappInvalid'));
+      toast.error(t('fichaPaciente.toast.whatsappInvalid'));
       return;
     }
     const whatsappCanonico = paraFormatoCanonico(editWhatsapp);

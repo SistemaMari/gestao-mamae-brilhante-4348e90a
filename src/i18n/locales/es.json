@@ -3261,8 +3261,8 @@
       }
     },
     "perfilFoto": {
-      "tirarFoto": "Tomar foto del control",
-      "enviarArquivo": "Subir desde el dispositivo",
+      "tirarFoto": "Tomar foto con la cámara",
+      "enviarArquivo": "Importar foto de los archivos",
       "lendo": "Leyendo el control...",
       "ajuda": "Fotografíe la hoja donde la gestante anotó sus glucemias. Usted revisa todo antes de guardar — y puede escribir a mano en cualquier momento.",
       "faltaData": "Complete la \"Fecha de inicio del perfil\", arriba en la ficha, para usar la foto. Sin ella el sistema no sabe a qué día pertenece cada fila.",
@@ -3325,8 +3325,8 @@
     },
     "header": {
       "titleRetorno2": "RETORNO 2 — Momento de ver el resultado inicial del tratamiento (Perfil Glucémico de 4 puntos) y definir el siguiente paso",
-      "titleFichaC": "FICHA C — Seguimiento sin insulina, después de la semana 30 (Perfil Glucémico de 4 puntos × 7 días)",
-      "titleFichaA": "FICHA A — Seguimiento sin insulina, hasta la semana 30 (Perfil Glucémico de 4 puntos × 15 días)",
+      "titleFichaC": "Seguimiento sin insulina, después de la semana 30 (Perfil Glucémico de 4 puntos × 7 días)",
+      "titleFichaA": "Seguimiento sin insulina, hasta la semana 30 (Perfil Glucémico de 4 puntos × 15 días)",
       "subtitle": "Complete la cuadrícula con las glucemias capilares registradas por la gestante.",
       "posPrandialBadge": "Posprandial: {{janela}}"
     },
@@ -3946,8 +3946,10 @@
     "idTypeMedicalRecord": "Historia clínica",
     "idTypeCns": "CNS",
     "idNumberPlaceholder": "Número (opcional)",
-    "whatsappTooltip": "Opcional. Código de área + número, 10 u 11 dígitos. El código de país brasileño (+55) es fijo.",
+    "whatsappTooltip": "Obligatorio. Código de área + celular de 9 dígitos (11 en total). El código de país brasileño (+55) es fijo.",
     "whatsappLabel": "WhatsApp",
+    "whatsappObrigatorio": "Ingrese el WhatsApp (código de área + celular de 9 dígitos).",
+    "whatsappIncompleto": "WhatsApp incompleto: ingrese el código de área + los 9 dígitos del celular (11 en total).",
     "locationTooltip": "Lugar de residencia de la gestante. La lista de estados y ciudades cambia según el país.",
     "locationLabel": "Ubicación",
     "selectCity": "Seleccione la ciudad...",

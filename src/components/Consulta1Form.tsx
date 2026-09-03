@@ -65,7 +65,7 @@ export default function Consulta1Form() {
     return nasc ? differenceInYears(new Date(), nasc) : null;
   }, [dataNascimento]);
 
-  const whatsappValidacao = validarWhatsappBR(whatsapp);
+  const whatsappValidacao = validarWhatsappBR(whatsapp, { obrigatorio: true });
   const dumValido = dumDesconhecida || !!dum;
   // Se "sim" para USG, exige data + semanas + dias + referência
   const usgValida =
@@ -361,10 +361,11 @@ export default function Consulta1Form() {
             </div>
           </div>
 
-          {/* WhatsApp (opcional) */}
+          {/* WhatsApp (obrigatório — necessário para a integração futura) */}
           <div className="space-y-2">
             <FieldLabel
               htmlFor="whatsapp"
+              required
               tooltip={t('consulta1.whatsappTooltip')}
             >
               {t('consulta1.whatsappLabel')}
@@ -387,8 +388,12 @@ export default function Consulta1Form() {
                 aria-invalid={touched && !whatsappValidacao.ok}
               />
             </div>
-            {touched && !whatsappValidacao.ok && whatsappValidacao.mensagem && (
-              <p className="text-xs text-destructive">{whatsappValidacao.mensagem}</p>
+            {touched && !whatsappValidacao.ok && (
+              <p className="text-xs text-destructive">
+                {whatsappValidacao.codigo === 'obrigatorio'
+                  ? t('consulta1.whatsappObrigatorio')
+                  : t('consulta1.whatsappIncompleto')}
+              </p>
             )}
           </div>
 

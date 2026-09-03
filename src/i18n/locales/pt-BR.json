@@ -3261,8 +3261,8 @@
       }
     },
     "perfilFoto": {
-      "tirarFoto": "Tirar foto do controle",
-      "enviarArquivo": "Enviar do aparelho",
+      "tirarFoto": "Tirar foto pela câmera",
+      "enviarArquivo": "Importar foto dos arquivos",
       "lendo": "Lendo o controle...",
       "ajuda": "Fotografe o papel onde a gestante anotou as glicemias. Você confere tudo antes de salvar — e pode digitar à mão a qualquer momento.",
       "faltaData": "Preencha a \"Data de início do perfil\", no topo da ficha, para usar a foto. Sem ela o sistema não sabe a que dia pertence cada linha.",
@@ -3325,8 +3325,8 @@
     },
     "header": {
       "titleRetorno2": "RETORNO 2 — Hora de ver o resultado inicial do tratamento (Perfil Glicêmico de 4 pontos) e definir próximo passo",
-      "titleFichaC": "FICHA C — Acompanhamento sem insulina, após a 30ª semana (Perfil Glicêmico de 4 pontos × 7 dias)",
-      "titleFichaA": "FICHA A — Acompanhamento sem insulina, até a 30ª semana (Perfil Glicêmico de 4 pontos × 15 dias)",
+      "titleFichaC": "Acompanhamento sem insulina, após a 30ª semana (Perfil Glicêmico de 4 pontos × 7 dias)",
+      "titleFichaA": "Acompanhamento sem insulina, até a 30ª semana (Perfil Glicêmico de 4 pontos × 15 dias)",
       "subtitle": "Preencha a grade com as glicemias capilares registradas pela gestante.",
       "posPrandialBadge": "Pós-prandial: {{janela}}"
     },
@@ -3946,8 +3946,10 @@
     "idTypeMedicalRecord": "Prontuário",
     "idTypeCns": "CNS",
     "idNumberPlaceholder": "Número (opcional)",
-    "whatsappTooltip": "Opcional. DDD + número, 10 ou 11 dígitos. DDI brasileiro (+55) é fixo.",
+    "whatsappTooltip": "Obrigatório. DDD + celular com 9 dígitos (11 no total). DDI brasileiro (+55) é fixo.",
     "whatsappLabel": "WhatsApp",
+    "whatsappObrigatorio": "Informe o WhatsApp (DDD + celular com 9 dígitos).",
+    "whatsappIncompleto": "WhatsApp incompleto: informe DDD + os 9 dígitos do celular (11 no total).",
     "locationTooltip": "Local de residência da gestante. A lista de estados e cidades muda conforme o país.",
     "locationLabel": "Localização",
     "selectCity": "Selecione a cidade...",
