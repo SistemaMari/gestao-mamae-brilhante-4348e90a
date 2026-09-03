@@ -186,9 +186,10 @@ export default function AppShellClinico() {
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/');
   };
 
-  // Métricas: bloqueada para planos abaixo de Profissional → exibe cadeado.
-  const planoAtual = profissionalData?.planos?.slug ?? 'inicial';
-  const metricasBloqueada = planoAtual !== 'profissional';
+  // Métricas: bloqueada apenas quando o plano não tem a feature habilitada.
+  const metricasBloqueada = profissionalData
+    ? !(profissionalData.planos?.metricas_habilitado ?? false)
+    : false;
 
   const renderNavButton = (item: NavItem) => {
     const ehMetricas = item.path === '/dashboard/metricas';
