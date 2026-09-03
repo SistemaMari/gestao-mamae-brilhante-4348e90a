@@ -3261,8 +3261,8 @@
       }
     },
     "perfilFoto": {
-      "tirarFoto": "Take a photo of the log",
-      "enviarArquivo": "Upload from device",
+      "tirarFoto": "Take a photo with the camera",
+      "enviarArquivo": "Import photo from files",
       "lendo": "Reading the log...",
       "ajuda": "Photograph the sheet where the patient wrote her readings. You review everything before saving — and can type by hand at any time.",
       "faltaData": "Fill in the \"Profile start date\" at the top of the record to use a photo. Without it the system cannot tell which day each row belongs to.",
@@ -3325,8 +3325,8 @@
     },
     "header": {
       "titleRetorno2": "RETURN 2 — Time to review the initial treatment result (4-point Glucose Profile) and define the next step",
-      "titleFichaC": "FORM C — Follow-up without insulin, after the 30th week (4-point Glucose Profile × 7 days)",
-      "titleFichaA": "FORM A — Follow-up without insulin, up to the 30th week (4-point Glucose Profile × 15 days)",
+      "titleFichaC": "Follow-up without insulin, after the 30th week (4-point Glucose Profile × 7 days)",
+      "titleFichaA": "Follow-up without insulin, up to the 30th week (4-point Glucose Profile × 15 days)",
       "subtitle": "Fill in the grid with the capillary glucose readings recorded by the patient.",
       "posPrandialBadge": "Postprandial: {{janela}}"
     },
@@ -3946,8 +3946,10 @@
     "idTypeMedicalRecord": "Medical record",
     "idTypeCns": "CNS",
     "idNumberPlaceholder": "Number (optional)",
-    "whatsappTooltip": "Optional. Area code + number, 10 or 11 digits. Brazilian country code (+55) is fixed.",
+    "whatsappTooltip": "Required. Area code + 9-digit mobile (11 digits total). Brazilian country code (+55) is fixed.",
     "whatsappLabel": "WhatsApp",
+    "whatsappObrigatorio": "Enter the WhatsApp number (area code + 9-digit mobile).",
+    "whatsappIncompleto": "Incomplete WhatsApp: enter area code + the 9 mobile digits (11 digits total).",
     "locationTooltip": "Patient's place of residence. The list of states and cities changes according to the country.",
     "locationLabel": "Location",
     "selectCity": "Select the city...",

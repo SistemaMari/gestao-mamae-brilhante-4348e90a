@@ -23,14 +23,26 @@ export function mascararWhatsappBR(valor: string): string {
 }
 
 /**
- * Aceita: vazio, ou exatamente 10/11 dígitos (DDD+número, sem DDI).
- * Se o usuário começou a digitar mas não completou, retorna inválido.
+ * Valida um WhatsApp brasileiro. Como WhatsApp é sempre celular, exige DDD (2
+ * dígitos) + celular de 9 dígitos = exatamente 11 dígitos (antes aceitava 10,
+ * de fixo — o que deixava passar um celular sem o 9 e sem um dígito).
+ *
+ * `obrigatorio: true` recusa também o campo vazio (usado no cadastro da
+ * gestante, onde o número é necessário para a integração futura com WhatsApp).
+ * Sem essa opção, vazio é aceito (ex.: edição de gestante antiga sem número).
+ *
+ * Devolve um `codigo` (não a frase pronta) para a tela traduzir nos 3 idiomas.
  */
-export function validarWhatsappBR(valor: string): { ok: boolean; mensagem?: string } {
+export function validarWhatsappBR(
+  valor: string,
+  opts?: { obrigatorio?: boolean },
+): { ok: boolean; codigo?: 'obrigatorio' | 'incompleto' } {
   const d = apenasDigitos(valor);
-  if (d.length === 0) return { ok: true };
-  if (d.length !== 10 && d.length !== 11) {
-    return { ok: false, mensagem: 'Informe DDD + número (10 ou 11 dígitos) ou deixe em branco.' };
+  if (d.length === 0) {
+    return opts?.obrigatorio ? { ok: false, codigo: 'obrigatorio' } : { ok: true };
+  }
+  if (d.length !== 11) {
+    return { ok: false, codigo: 'incompleto' };
   }
   return { ok: true };
 }
