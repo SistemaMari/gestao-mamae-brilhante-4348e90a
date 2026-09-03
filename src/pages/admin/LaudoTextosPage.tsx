@@ -26,7 +26,7 @@ import { SUPPORTED_LANGUAGES, LANGUAGE_META, type SupportedLanguage } from '@/i1
 import {
   VARIAVEIS_LAUDO, labelBloco, variaveisDesconhecidas, ajudaCenario,
   cenarioTecnicoOculto, familiaTipo, tipoRepresentante, notaFamilia,
-  ordemFamilia, ordemDesfecho, rotuloCenario, type LaudoTextoRow,
+  ordemFamilia, ordemDesfecho, rotuloCenario, ehPedidoExame, type LaudoTextoRow,
 } from '@/lib/laudoTextosAdmin';
 
 interface BlocoAgrupado {
@@ -280,18 +280,32 @@ export default function LaudoTextosPage() {
             const rascunhosNoCenario = cen.blocos.filter((b) => b.rascunhos.length > 0).length;
             const ajuda = ajudaCenario(tipoRepresentante(cen.familia), cen.desfecho_clinico, tt);
             const nota = notaFamilia(cen.familia, tt);
+            // Caso Novo (pedido de exame) ganha borda verde água para o time
+            // clínico distinguir do laudo — não é um laudo, é uma orientação.
+            const pedidoExame = ehPedidoExame(cen.familia);
             return (
               <AccordionItem
                 key={cen.key}
                 value={cen.key}
-                className="rounded-lg border border-[#E2E8F0] bg-white px-4"
+                className={
+                  pedidoExame
+                    ? 'rounded-lg border-2 border-[#5EEAD4] bg-[#F0FDFA] px-4'
+                    : 'rounded-lg border border-[#E2E8F0] bg-white px-4'
+                }
               >
                 <AccordionTrigger className="text-sm hover:no-underline">
                   <span className="flex flex-wrap items-center gap-2 text-left">
-                    <FileText className="h-4 w-4 shrink-0 text-[#7C4DBA]" />
+                    <FileText
+                      className={`h-4 w-4 shrink-0 ${pedidoExame ? 'text-[#0F766E]' : 'text-[#7C4DBA]'}`}
+                    />
                     <span className="font-medium text-[#334155]">
                       {rotuloCenario(cen.familia, cen.desfecho_clinico, tt)}
                     </span>
+                    {pedidoExame && (
+                      <Badge className="border-0 bg-[#CCFBF1] text-[#0F766E]">
+                        {t('admin.laudoTextos.pedidoExameBadge')}
+                      </Badge>
+                    )}
                     {ajuda && (
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -317,7 +331,13 @@ export default function LaudoTextosPage() {
                 </AccordionTrigger>
                 <AccordionContent className="space-y-3 pb-4">
                   {nota && (
-                    <div className="flex items-start gap-2 rounded-md bg-[#F1F0FB] px-3 py-2 text-xs text-[#5B21B6]">
+                    <div
+                      className={
+                        pedidoExame
+                          ? 'flex items-start gap-2 rounded-md bg-[#CCFBF1] px-3 py-2 text-xs text-[#0F766E]'
+                          : 'flex items-start gap-2 rounded-md bg-[#F1F0FB] px-3 py-2 text-xs text-[#5B21B6]'
+                      }
+                    >
                       <Info className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>{nota}</span>
                     </div>

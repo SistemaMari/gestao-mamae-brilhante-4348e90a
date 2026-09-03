@@ -6,7 +6,7 @@ export const STATUS_CONFIG: Record<string, { label: string; color: string; meani
   aguardando_gj: {
     label: 'Aguardando GJ',
     color: 'bg-gray-500',
-    meaning: 'Caso Novo registrada. Aguardando resultado da glicemia de jejum.',
+    meaning: 'Caso Novo registrado. Aguardando resultado da glicemia de jejum.',
   },
   aguardando_gtt: {
     label: 'Aguardando GTT 75g',
