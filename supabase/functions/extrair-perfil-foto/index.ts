@@ -202,8 +202,10 @@ function respostaFixaDeExemplo(dataInicio: string): ResultadoModelo {
 }
 
 // Preço por token do claude-opus-5 (USD). Ajustar se a tabela de preços mudar.
-const PRECO_ENTRADA_POR_TOKEN = 15 / 1_000_000;
-const PRECO_SAIDA_POR_TOKEN = 75 / 1_000_000;
+// Tabela oficial (set/2026): claude-opus-5 = US$ 5 / MTok entrada, US$ 25 / MTok saída.
+// (Os valores 15/75 anteriores eram do Opus 4.1, já aposentado — infla o custo ~3x.)
+const PRECO_ENTRADA_POR_TOKEN = 5 / 1_000_000;
+const PRECO_SAIDA_POR_TOKEN = 25 / 1_000_000;
 
 async function chamarModelo(params: {
   apiKey: string;
@@ -213,9 +215,13 @@ async function chamarModelo(params: {
 }): Promise<ResultadoModelo> {
   const corpo = {
     model: "claude-opus-5",
-    max_tokens: 4000,
+    // Teto amplo: o raciocínio (thinking) consome desse mesmo limite; com 4000 a
+    // resposta podia voltar cortada e virar erro. 16000 dá folga para a grade.
+    max_tokens: 16000,
     thinking: { type: "adaptive" },
-    output_config: { format: RES_JSON_SCHEMA, effort: "high" },
+    // A saída estruturada precisa do invólucro { type: "json_schema", schema }.
+    // Passar o esquema cru (sem o "type") faz a API recusar o pedido com 400.
+    output_config: { format: { type: "json_schema", schema: RES_JSON_SCHEMA }, effort: "high" },
     system: params.prompt,
     messages: [
       {
