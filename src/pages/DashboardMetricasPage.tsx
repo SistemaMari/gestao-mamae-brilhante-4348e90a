@@ -473,18 +473,19 @@ export default function DashboardMetricasPage() {
       </div>
 
       <div id="dashboard-metricas-content" className="flex flex-col gap-8">
-        {/* KPIs principais — cards brancos limpos, idênticos ao admin */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {/* KPIs principais — bento com um card herói em teal */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <AdminMetricaCard
             label={t('dashboardMetricas.kpi.tracked')}
             valor={allPacientesCount}
             sublabel={t('dashboardMetricas.kpi.trackedSub')}
+            cor={BRAND.teal}
           />
           <AdminMetricaCard
+            destaque
             label={t('dashboardMetricas.kpi.dmgRate')}
             valor={`${taxaDmg}%`}
             sublabel={t('dashboardMetricas.kpi.dmgRateSub', { count: dmgCount })}
-            cor={BRAND.lilas}
           />
           <AdminMetricaCard
             label={t('dashboardMetricas.kpi.active')}
@@ -500,18 +501,21 @@ export default function DashboardMetricasPage() {
           />
         </div>
 
-        {/* Visão Geral — 6 status clínicos como cards limpos com bolinha colorida */}
-        <section className="flex flex-col gap-4">
-          <AdminSectionTitle>{t('dashboardMetricas.sections.overview')}</AdminSectionTitle>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.overview.awaitingGj')} value={statusCounts.aguardando_gj} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGj'), pacsByStatus('aguardando_gj'))} />
-            <CleanStatCard dotColor="#3B82F6" icon={Clock} label={t('dashboardMetricas.overview.awaitingGtt')} value={statusCounts.aguardando_gtt} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGtt'), pacsByStatus('aguardando_gtt'))} />
-            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.overview.dmgConfirmed')} value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgConfirmed'), pacsDmgConfirmado)} />
-            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.overview.dmgRuledOut')} value={statusCounts.dmg_afastado} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgRuledOut'), pacsByStatus('dmg_afastado'))} />
-            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Baby} label={t('dashboardMetricas.overview.deliveryResult')} value={statusCounts.resultado_parto} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })} onClick={() => abrirLista(t('dashboardMetricas.overview.deliveryResult'), pacsByStatus('resultado_parto'))} />
-            <CleanStatCard dotColor="#8B5CF6" icon={Stethoscope} label={t('dashboardMetricas.overview.associateEndo')} value={encerramentos.insulinizacao} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(encerramentos.insulinizacao) })} onClick={() => abrirLista(t('dashboardMetricas.overview.associateEndo'), filteredPacientes.filter(p => motivoDe(p) === 'insulinizacao'))} />
+        {/* Visão Geral — um único tile bento com os 6 status */}
+        <BentoPanel
+          title={t('dashboardMetricas.sections.overview')}
+          eyebrow={t('dashboardMetricas.sections.overview')}
+        >
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <BentoItem accent="#94A3B8" label={t('dashboardMetricas.overview.awaitingGj')} value={statusCounts.aguardando_gj} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGj'), pacsByStatus('aguardando_gj'))} />
+            <BentoItem accent={BRAND.verdaAgua} label={t('dashboardMetricas.overview.awaitingGtt')} value={statusCounts.aguardando_gtt} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGtt'), pacsByStatus('aguardando_gtt'))} />
+            <BentoItem accent={BRAND.teal} highlight label={t('dashboardMetricas.overview.dmgConfirmed')} value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgConfirmed'), pacsDmgConfirmado)} />
+            <BentoItem accent="#5EEAD4" label={t('dashboardMetricas.overview.dmgRuledOut')} value={statusCounts.dmg_afastado} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgRuledOut'), pacsByStatus('dmg_afastado'))} />
+            <BentoItem accent={BRAND.lilas} label={t('dashboardMetricas.overview.deliveryResult')} value={statusCounts.resultado_parto} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })} onClick={() => abrirLista(t('dashboardMetricas.overview.deliveryResult'), pacsByStatus('resultado_parto'))} />
+            <BentoItem accent={BRAND.lilasClaro} label={t('dashboardMetricas.overview.associateEndo')} value={encerramentos.insulinizacao} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(encerramentos.insulinizacao) })} onClick={() => abrirLista(t('dashboardMetricas.overview.associateEndo'), filteredPacientes.filter(p => motivoDe(p) === 'insulinizacao'))} />
           </div>
-        </section>
+        </BentoPanel>
+
 
         {/* Diagnóstico — cards + gráfico dentro de CardContainer */}
         <section className="flex flex-col gap-4">
