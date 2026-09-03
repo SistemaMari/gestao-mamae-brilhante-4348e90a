@@ -358,10 +358,12 @@ export default function DashboardMetricasPage() {
   }
 
   const renderLabel = (props: any) => {
-    const { x, y, width, height, value } = props;
+    const { x, y, width, height, value, fill } = props;
     if (!value || value === 0) return null;
+    // Barra clara (verde-água) pede texto escuro; barra teal pede texto branco.
+    const textColor = fill === BRAND.verdaAgua ? '#0F3B47' : '#FFFFFF';
     return (
-      <text x={x + width / 2} y={y + height / 2} fill="#FFFFFF" textAnchor="middle" dominantBaseline="middle" fontSize={12} fontWeight="bold">
+      <text x={x + width / 2} y={y + height / 2} fill={textColor} textAnchor="middle" dominantBaseline="middle" fontSize={12} fontWeight="bold">
         {value}
       </text>
     );
