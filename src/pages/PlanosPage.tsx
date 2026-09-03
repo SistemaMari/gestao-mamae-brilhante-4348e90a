@@ -50,6 +50,9 @@ export default function PlanosPage() {
       .from('planos')
       .select('*')
       .eq('ativo', true)
+      // Planos institucionais (Até 1000/5000 gestantes) só são vendidos pelo
+      // link direto do Asaas, nunca aqui dentro do app.
+      .eq('exibir_no_app', true)
       .order('ordem', { ascending: true });
 
     if (err) {
@@ -193,6 +196,9 @@ export default function PlanosPage() {
                         {formatPreco(plano.preco_mensal, t('planos.perMonth'))}
                       </span>
                     </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t('planos.annualNote')}
+                    </p>
                   </div>
 
                   <ul className="mb-6 flex-1 space-y-2.5">
