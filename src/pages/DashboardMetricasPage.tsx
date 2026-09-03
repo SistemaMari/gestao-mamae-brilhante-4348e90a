@@ -411,13 +411,13 @@ export default function DashboardMetricasPage() {
 
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* 1. Header — mesma estrutura do admin (título + subtítulo + ações à direita) */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="-m-4 flex flex-col gap-6 bg-[#F1FAFB] p-4 sm:-m-6 sm:p-6 lg:p-8">
+      {/* 1. Header — bento médico (teal protagonista) */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1
-            className="text-[26px] font-bold leading-tight"
-            style={{ fontFamily: 'Sora, sans-serif', color: '#1E293B' }}
+            className="text-[28px] font-bold leading-tight tracking-tight"
+            style={{ fontFamily: 'Sora, sans-serif', color: BRAND.teal }}
           >
             {t('dashboardMetricas.title')}
           </h1>
@@ -428,19 +428,20 @@ export default function DashboardMetricasPage() {
             {t('dashboardMetricas.kpi.trackedSub')}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="h-9 w-[150px] text-sm" />
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border bg-white p-2 shadow-sm" style={{ borderColor: BRAND.borderTeal }}>
+          <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="h-9 w-[150px] rounded-xl border-transparent bg-[#F1FAFB] text-sm" />
           <span className="text-sm" style={{ color: '#94A3B8' }}>{t('dashboardMetricas.dateRangeSep')}</span>
-          <Input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} className="h-9 w-[150px] text-sm" />
+          <Input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} className="h-9 w-[150px] rounded-xl border-transparent bg-[#F1FAFB] text-sm" />
           <Button
             size="sm"
             onClick={handleExportPDF}
-            className="h-9 bg-[#7C4DBA] text-white hover:bg-[#6A3FA0]"
+            className="h-9 rounded-xl bg-[#2F7E98] text-white shadow-md hover:bg-[#25667C]"
           >
             <Download className="mr-1 h-4 w-4" /> {t('dashboardMetricas.exportPdf')}
           </Button>
         </div>
       </div>
+
 
       {/* 2. Barra operacional — chips discretos alinhados à direita */}
       <div className="flex flex-wrap justify-end gap-2">
