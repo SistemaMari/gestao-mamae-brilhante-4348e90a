@@ -3264,6 +3264,13 @@
       "tirarFoto": "Tomar foto del control",
       "enviarArquivo": "Subir desde el dispositivo",
       "lendo": "Leyendo el control...",
+      "lendoContador": "{{passo}} · {{segundos}}s",
+      "passo": {
+        "preparando": "Preparando la foto",
+        "lendo": "Leyendo el control"
+      },
+      "tempoEsperado": "La lectura puede tardar hasta ~30 segundos. Aguarde.",
+      "tempoSimulado": "Modo de prueba — la lectura toma solo unos segundos.",
       "ajuda": "Fotografíe la hoja donde la gestante anotó sus glucemias. Usted revisa todo antes de guardar — y puede escribir a mano en cualquier momento.",
       "faltaData": "Complete la \"Fecha de inicio del perfil\", arriba en la ficha, para usar la foto. Sin ella el sistema no sabe a qué día pertenece cada fila.",
       "simulacao": "Lectura en prueba: los números serán de ejemplo, no vendrán de la foto.",
