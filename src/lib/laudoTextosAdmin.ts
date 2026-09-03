@@ -50,6 +50,7 @@ const TIPO_LABEL: Record<string, string> = {
 };
 
 const DESFECHO_LABEL: Record<string, string> = {
+  pedido_exame: 'Pedido de exame',
   negativo: 'Negativo (afasta DMG)',
   '1': 'DMG confirmado pela glicemia de jejum',
   '6': 'DMG confirmado pelo GTT',
@@ -78,6 +79,7 @@ const BLOCO_LABEL: Record<string, string> = {
   justificativa: 'Justificativa Científica',
   conduta: 'Conduta Orientativa',
   nota_tardio: 'Nota — diagnóstico tardio',
+  orientacao: 'Orientação do exame',
 };
 
 /**
@@ -227,6 +229,7 @@ export function tipoRepresentante(familia: string): string {
 }
 
 const FAMILIA_LABEL: Record<string, string> = {
+  consulta_1: 'Caso Novo',
   retorno_1: 'Retorno 1 (glicemia de jejum)',
   gtt: 'GTT 75g',
   ficha_ac: 'Retorno 2 — perfil de 4 pontos (sem insulina)',
@@ -250,12 +253,26 @@ export function notaFamilia(familia: string, tt?: RotuloTr): string | null {
     const pt = 'Texto único para até 30 semanas (Ficha B) e após 30 semanas (Ficha D) — editar aqui atualiza os dois.';
     return tt ? tt(`${K}.notaFamilia.bd`, { defaultValue: pt }) : pt;
   }
+  if (familia === 'consulta_1') {
+    const pt = 'Este NÃO é um laudo — é o pedido de exame inicial exibido logo após o cadastro do Caso Novo. As variáveis clínicas (IG, glicemia) ainda não existem nesta etapa e não devem ser usadas.';
+    return tt ? tt(`${K}.notaFamilia.consulta_1`, { defaultValue: pt }) : pt;
+  }
   return null;
 }
 
-const FAMILIA_ORDEM: Record<string, number> = { retorno_1: 1, gtt: 2, ficha_ac: 3, ficha_e: 4, ficha_bd: 5, encerramento: 6 };
+// Caso Novo (consulta_1) é a PRIMEIRA consulta da gestante — vem antes de tudo (ordem 0).
+const FAMILIA_ORDEM: Record<string, number> = { consulta_1: 0, retorno_1: 1, gtt: 2, ficha_ac: 3, ficha_e: 4, ficha_bd: 5, encerramento: 6 };
 export function ordemFamilia(familia: string): number {
   return FAMILIA_ORDEM[familia] ?? 99;
+}
+
+/**
+ * Caso Novo (consulta_1) NÃO é um laudo — é o "pedido de exame" inicial. No editor
+ * ganha destaque visual (borda verde água) para o time clínico não confundir com
+ * um laudo. Único cenário assim hoje.
+ */
+export function ehPedidoExame(familia: string): boolean {
+  return familia === 'consulta_1';
 }
 
 const DESFECHO_ORDEM = [

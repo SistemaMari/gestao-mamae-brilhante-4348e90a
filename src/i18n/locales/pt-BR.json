@@ -843,6 +843,7 @@
           "ficha_e": "Ficha E — perfil de 6 pontos sem insulina"
         },
         "familia": {
+          "consulta_1": "Caso Novo",
           "retorno_1": "Retorno 1 (glicemia de jejum)",
           "gtt": "GTT 75g",
           "ficha_ac": "Retorno 2 — perfil de 4 pontos (sem insulina)",
@@ -851,6 +852,7 @@
           "encerramento": "Encerramento do acompanhamento"
         },
         "desfecho": {
+          "pedido_exame": "Pedido de exame",
           "negativo": "Negativo (afasta DMG)",
           "1": "DMG confirmado pela glicemia de jejum",
           "6": "DMG confirmado pelo GTT",
@@ -876,7 +878,8 @@
         "bloco": {
           "justificativa": "Justificativa Científica",
           "conduta": "Conduta Orientativa",
-          "nota_tardio": "Nota — diagnóstico tardio"
+          "nota_tardio": "Nota — diagnóstico tardio",
+          "orientacao": "Orientação do exame"
         },
         "adequacao": {
           "adequado": "adequado",
@@ -890,7 +893,8 @@
         "retornoTemplate": "Retorno para DMG com controle {{adeq}} — {{perfil}} · {{desfecho}}",
         "notaFamilia": {
           "ac": "Texto único para até 30 semanas (Ficha A) e após 30 semanas (Ficha C) — editar aqui atualiza os dois.",
-          "bd": "Texto único para até 30 semanas (Ficha B) e após 30 semanas (Ficha D) — editar aqui atualiza os dois."
+          "bd": "Texto único para até 30 semanas (Ficha B) e após 30 semanas (Ficha D) — editar aqui atualiza os dois.",
+          "consulta_1": "Este NÃO é um laudo — é o pedido de exame inicial exibido logo após o cadastro do Caso Novo. As variáveis clínicas (IG, glicemia) ainda não existem nesta etapa e não devem ser usadas."
         },
         "ajuda": {
           "retorno_1__negativo": "Retorno 1 com glicemia de jejum abaixo de 92 mg/dL: NÃO há DMG neste momento. O texto deve orientar seguir o pré-natal e realizar o GTT 75g entre 24 e 28 semanas.",
@@ -922,6 +926,7 @@
       "carregarError": "Erro ao carregar os textos. Recarregue a página.",
       "oQueEsteCenario": "O que é este cenário",
       "rascunhosBadge": "{{count}} rascunho(s)",
+      "pedidoExameBadge": "Pedido de exame — não é laudo",
       "editarRascunho": "Editar rascunho",
       "publicar": "Publicar",
       "descartar": "Descartar",
@@ -3611,7 +3616,7 @@
   "consulta1Result": {
     "title": "Pedido de exame — Caso Novo",
     "orientationTitle": "Orientação do exame",
-    "orientationBody": "Caso Novo registrada com sucesso. Solicitar glicemia plasmática de jejum. Jejum de 8 a 12 horas. Coleta venosa processada em laboratório — glicemia capilar em ponta de dedo não é válida para fins diagnósticos."
+    "orientationBody": "Caso Novo registrado com sucesso. Solicitar glicemia plasmática de jejum. Jejum de 8 a 12 horas. Coleta venosa processada em laboratório — glicemia capilar em ponta de dedo não é válida para fins diagnósticos."
   },
   "usageWarning": {
     "limitReached": "Seu plano atingiu o limite de gestantes.",
@@ -3924,7 +3929,7 @@
   },
   "consulta1": {
     "fillAllRequired": "Preencha todos os campos obrigatórios.",
-    "newCaseRegistered": "Caso Novo registrada com sucesso!",
+    "newCaseRegistered": "Caso Novo registrado com sucesso!",
     "mustBeLoggedIn": "Você precisa estar logado.",
     "fileLimitReached": "Limite de fichas atingido para o plano atual.",
     "errorCreatingPatient": "Erro ao criar gestante.",

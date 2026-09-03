@@ -843,6 +843,7 @@
           "ficha_e": "Form E — 6-point profile, no insulin"
         },
         "familia": {
+          "consulta_1": "New Case",
           "retorno_1": "Return 1 (fasting glucose)",
           "gtt": "OGTT 75g",
           "ficha_ac": "Return 2 — 4-point profile (no insulin)",
@@ -851,6 +852,7 @@
           "encerramento": "End of follow-up"
         },
         "desfecho": {
+          "pedido_exame": "Test request",
           "negativo": "Negative (rules out GDM)",
           "1": "GDM confirmed by fasting glucose",
           "6": "GDM confirmed by OGTT",
@@ -876,7 +878,8 @@
         "bloco": {
           "justificativa": "Scientific Rationale",
           "conduta": "Recommended Management",
-          "nota_tardio": "Note — late diagnosis"
+          "nota_tardio": "Note — late diagnosis",
+          "orientacao": "Test instructions"
         },
         "adequacao": {
           "adequado": "adequate",
@@ -890,7 +893,8 @@
         "retornoTemplate": "GDM follow-up with {{adeq}} control — {{perfil}} · {{desfecho}}",
         "notaFamilia": {
           "ac": "Single text for up to 30 weeks (Form A) and after 30 weeks (Form C) — editing here updates both.",
-          "bd": "Single text for up to 30 weeks (Form B) and after 30 weeks (Form D) — editing here updates both."
+          "bd": "Single text for up to 30 weeks (Form B) and after 30 weeks (Form D) — editing here updates both.",
+          "consulta_1": "This is NOT a report — it is the initial test request shown right after the New Case is registered. Clinical variables (GA, glucose) do not exist yet at this stage and must not be used."
         },
         "ajuda": {
           "retorno_1__negativo": "Return 1 with fasting glucose below 92 mg/dL: there is NO GDM at this point. The text should advise continuing prenatal care and performing the 75g OGTT between 24 and 28 weeks.",
@@ -922,6 +926,7 @@
       "carregarError": "Error loading the texts. Reload the page.",
       "oQueEsteCenario": "What is this scenario",
       "rascunhosBadge": "{{count}} draft(s)",
+      "pedidoExameBadge": "Test request — not a report",
       "editarRascunho": "Edit draft",
       "publicar": "Publish",
       "descartar": "Discard",

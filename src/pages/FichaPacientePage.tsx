@@ -1528,7 +1528,7 @@ export default function FichaPacientePage() {
           onTentarNovamente={() => laudoTextos.tentarNovamente(primeiraConsulta.id, 'consulta_1', desfechoStandalone)}
           proximaFichaTexto={janelaGTT ? t('fichaPaciente.proximaFichaGtt', { inicio: format(janelaGTT.inicio, 'dd/MM/yyyy'), fim: format(janelaGTT.fim, 'dd/MM/yyyy') }) : null}
         >
-          <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />
+          <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} consultaId={primeiraConsulta?.id ?? null} />
           <AutoriaRodape registro={autoriaC1} label={t('clinico.autoriaRodape.defaultLabel')} />
         </LaudoCompleto>
         );
@@ -1864,7 +1864,7 @@ export default function FichaPacientePage() {
 
                     const renderCardBloco1 = () => {
                       if (c.tipo === 'consulta_1') {
-                        return <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} />;
+                        return <Consulta1ResultCard janelaGTT={janelaGTT} igMaior24={igMaior24} consultaId={c.id} />;
                       }
                       if (c.tipo === 'retorno_1') {
                         return <Retorno1ResultCard consulta={c} janelaGTT={janelaGTT} igHoje={igAtual} />;
