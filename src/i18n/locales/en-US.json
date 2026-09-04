@@ -3294,6 +3294,19 @@
       "verOriginal": "View the patient's original photo",
       "confirmado": "Reading reviewed. Complete the record and save as usual.",
       "naoLido": "not read",
+      "webcam": {
+        "titulo": "Take a photo with your computer's camera",
+        "abrindo": "Turning on the camera...",
+        "capturar": "Capture photo",
+        "tirarOutra": "Retake",
+        "usarFoto": "Use this photo",
+        "cancelar": "Cancel",
+        "erro": {
+          "permissao": "The browser doesn't have permission to use the camera. Allow camera access in your browser settings and try again, or use \"Import photo from files\".",
+          "sem_camera": "No camera was found on this computer. Use \"Import photo from files\".",
+          "generico": "Couldn't open the camera. Use \"Import photo from files\"."
+        }
+      },
       "erro": {
         "falha_upload": "The photo could not be uploaded. Check your connection and try again.",
         "falha_servico": "Automatic reading failed. You can type the values by hand.",

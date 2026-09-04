@@ -3294,6 +3294,19 @@
       "verOriginal": "Ver foto original da gestante",
       "confirmado": "Leitura conferida. Complete a ficha e salve normalmente.",
       "naoLido": "não lido",
+      "webcam": {
+        "titulo": "Tirar foto pela câmera do computador",
+        "abrindo": "Ligando a câmera...",
+        "capturar": "Capturar foto",
+        "tirarOutra": "Tirar outra",
+        "usarFoto": "Usar esta foto",
+        "cancelar": "Cancelar",
+        "erro": {
+          "permissao": "O navegador não tem permissão para usar a câmera. Libere o acesso à câmera nas configurações do navegador e tente de novo, ou use \"Importar foto dos arquivos\".",
+          "sem_camera": "Nenhuma câmera foi encontrada neste computador. Use \"Importar foto dos arquivos\".",
+          "generico": "Não foi possível abrir a câmera. Use \"Importar foto dos arquivos\"."
+        }
+      },
       "erro": {
         "falha_upload": "Não foi possível enviar a foto. Verifique a conexão e tente de novo.",
         "falha_servico": "A leitura automática falhou. Você pode digitar os valores à mão.",

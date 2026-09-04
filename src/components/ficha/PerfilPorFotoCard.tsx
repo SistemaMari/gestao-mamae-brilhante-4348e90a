@@ -26,8 +26,23 @@ import {
   extrairPerfilFoto, ErroExtracao, USAR_SIMULACAO, SALVAR_FOTO_NO_SERVIDOR,
 } from '@/lib/extrairPerfilFoto';
 import type { ResultadoExtracao, RelatorioAplicacao } from '@/lib/perfilPorFoto';
+import WebcamCaptureModal from './WebcamCaptureModal';
 
 const BUCKET = 'controles-glicemia';
+
+/**
+ * O input file com capture="environment" só abre câmera de verdade em
+ * celular — em notebook/desktop todo navegador ignora o atributo e cai no
+ * seletor de arquivos comum (não é bug daqui, é assim em qualquer site).
+ * "pointer: fine" é true quando o dispositivo apontador principal é mouse ou
+ * trackpad (desktop) e false em touch (celular/tablet) — é a forma
+ * recomendada de distinguir os dois sem sniffar user-agent.
+ */
+function suportaWebcamDesktop(): boolean {
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) return false;
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return window.matchMedia('(pointer: fine)').matches;
+}
 
 interface Props {
   pacienteId: string;
@@ -70,6 +85,7 @@ export default function PerfilPorFotoCard({
   const [storagePath, setStoragePath] = useState<string | null>(null);
   const [relatorio, setRelatorio] = useState<RelatorioAplicacao | null>(null);
   const [ampliada, setAmpliada] = useState(false);
+  const [webcamAberta, setWebcamAberta] = useState(false);
 
   const inputCamera = useRef<HTMLInputElement>(null);
   const inputArquivo = useRef<HTMLInputElement>(null);
@@ -83,11 +99,17 @@ export default function PerfilPorFotoCard({
     return () => window.clearInterval(id);
   }, [etapa]);
 
-  const escolherArquivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const escolherArquivo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const arquivo = e.target.files?.[0];
     e.target.value = ''; // permite escolher a mesma foto de novo
     if (!arquivo) return;
+    processarImagem(arquivo);
+  };
 
+  // Chamada tanto pelo <input type="file"> (celular ou "Enviar arquivo")
+  // quanto pelo modal de webcam (notebook/desktop) — a partir daqui o
+  // arquivo já existe, não importa de onde veio.
+  const processarImagem = async (arquivo: File) => {
     setEtapa('lendo');
     setPasso('preparando');
     let urlLocal: string | null = null;
@@ -181,7 +203,17 @@ export default function PerfilPorFotoCard({
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button" size="sm" disabled={!habilitado || lendo}
-            onClick={() => inputCamera.current?.click()}
+            onClick={() => {
+              // Em notebook/desktop, o input com capture="environment" não
+              // abre câmera nenhuma (limitação universal do navegador) — aí
+              // usamos o modal com getUserMedia. Em celular, o input nativo
+              // continua sendo o caminho certo (câmera do sistema, já testada).
+              if (suportaWebcamDesktop()) {
+                setWebcamAberta(true);
+              } else {
+                inputCamera.current?.click();
+              }
+            }}
             className={habilitado
               ? 'bg-[#7C4DBA] hover:bg-[#5B21B6] text-white'
               : 'bg-muted text-muted-foreground hover:bg-muted'}
@@ -228,6 +260,13 @@ export default function PerfilPorFotoCard({
                className="hidden" onChange={escolherArquivo} />
         <input ref={inputArquivo} type="file" accept="image/*"
                className="hidden" onChange={escolherArquivo} />
+
+        <WebcamCaptureModal
+          aberto={webcamAberta}
+          onFechar={() => setWebcamAberta(false)}
+          onCapturar={processarImagem}
+          t={t}
+        />
       </div>
     );
   }
