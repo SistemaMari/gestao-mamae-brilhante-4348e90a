@@ -3292,6 +3292,8 @@
         "pre": "before eating"
       }
     },
+    "pactuacaoAnteriorDatas": "Dates agreed with the patient in the previous consultation. Edit if needed.",
+    "pactuacaoAnteriorDataEditada": "⚠️ Dates edited by the professional — they no longer match what was agreed in the previous consultation.",
     "perfilFoto": {
       "tirarFoto": "Take a photo with the camera",
       "enviarArquivo": "Import photo from files",

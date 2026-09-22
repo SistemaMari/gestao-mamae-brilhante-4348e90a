@@ -1011,6 +1011,17 @@ export default function FichaACForm({
           ? 'border border-border bg-card'
           : 'border-2 border-[#F59E0B] bg-[#FFFBEB]'
       }`}>
+        {/* V4 (set/2026) — quando as datas foram pactuadas no laudo da consulta
+            anterior, avisar o profissional. Se ele editar (data diferente da
+            pactuada), a linha muda para "Data editada pelo usuário". */}
+        {pactuacaoAnterior && !editingConsulta && (
+          <div className="mb-3 rounded-md border border-[#5EEAD4] bg-[#F0FDFA] px-3 py-2 text-xs text-[#0F766E]">
+            {(dataInicio && dataInicio !== pactuacaoAnterior.inicio) ||
+             (dataFim && dataFim !== pactuacaoAnterior.fim)
+              ? t('fichaAC.pactuacaoAnteriorDataEditada')
+              : t('fichaAC.pactuacaoAnteriorDatas')}
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-1">
