@@ -140,6 +140,25 @@ export default function FichaACForm({
   const [dataFim, setDataFim] = useState(
     editingConsulta?.data_fim ?? pactuacaoAnterior?.fim ?? '',
   );
+
+  // V4 (set/2026) etapa 3 — corrige bug em que `useState` capturava
+  // `pactuacaoAnterior` como null porque `consultas` ainda não estava
+  // pronto no primeiro render. Ao chegar a pactuação, sincroniza JANELA
+  // e DATAS — só em ficha nova, e só quando o campo ainda está vazio
+  // (não sobrescreve o que o usuário digitou).
+  useEffect(() => {
+    if (editingConsulta || !pactuacaoAnterior) return;
+    if (!pactuada) {
+      setJanela(normalizarJanela(pactuacaoAnterior.janela));
+      setPactuada(true);
+    }
+    if (!dataInicio) setDataInicio(pactuacaoAnterior.inicio);
+    if (!dataFim) setDataFim(pactuacaoAnterior.fim);
+    // Dependemos SÓ do "chega uma vez" — não queremos sobrescrever o que
+    // o usuário eventualmente apagou depois. Por isso pactuada/dataInicio/
+    // dataFim ficam de fora do array.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pactuacaoAnterior, editingConsulta]);
   const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? todayLocalISO());
   const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
   const [saving, setSaving] = useState(false);

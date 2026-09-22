@@ -285,6 +285,7 @@ export default function PactuacaoProxPerfilCard({
             onClick={() => setJanela('1h')}
           >
             {t('laudo.pactuacaoProxPerfil.janela1h')}
+            <span className="ml-1.5 text-[10px] opacity-75">&lt; 140 mg/dL</span>
           </Button>
           <Button
             type="button"
@@ -294,8 +295,14 @@ export default function PactuacaoProxPerfilCard({
             onClick={() => setJanela('2h')}
           >
             {t('laudo.pactuacaoProxPerfil.janela2h')}
+            <span className="ml-1.5 text-[10px] opacity-75">&lt; 120 mg/dL</span>
           </Button>
         </div>
+        {/* Texto clínico herdado do antigo modal de pactuação — a decisão
+            entre 1h e 2h é ESCOLHA CLÍNICA feita junto com a gestante. */}
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          {t('laudo.pactuacaoProxPerfil.janelaOrientacao')}
+        </p>
       </div>
 
       {/* Datas */}

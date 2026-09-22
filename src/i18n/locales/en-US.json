@@ -2009,6 +2009,7 @@
       "janelaLabel": "Postprandial window",
       "janela1h": "1 hour after",
       "janela2h": "2 hours after",
+      "janelaOrientacao": "The 1-hour measurement is the most common. The 2-hour one may be agreed for the patient's convenience. It is a clinical choice made together with the patient and cannot be changed later in the next profile's form.",
       "inicioLabel": "Start date",
       "fimLabel": "End date",
       "salvar": "Save",

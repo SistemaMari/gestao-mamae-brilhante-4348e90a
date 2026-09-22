@@ -778,6 +778,23 @@ export default function FichaPacientePage() {
   };
 
   /**
+   * V4 (set/2026) etapa 3 — quando o usuário abre uma FICHA NOVA (o botão "+"
+   * do próximo passo), a consulta anterior expandida no histórico precisa
+   * FECHAR e a viewport precisa rolar até o topo da nova ficha. Sem isso, a
+   * ficha antiga fica visível ao lado da nova e o usuário perde o contexto.
+   *
+   * `âncora-form-em-edicao` é um id fixo no wrapper dos 5 forms — o mesmo
+   * elemento que renderiza qualquer ficha nova aberta.
+   */
+  const fecharHistoricoERolarParaForm = () => {
+    setHistoricoAcordeaoValue(undefined);
+    requestAnimationFrame(() => {
+      const el = document.getElementById('ancora-form-em-edicao');
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  /**
    * V4 (set/2026) etapa 2 — depois que o usuário salva uma consulta, deixa a
    * ficha aberta na tela (expandida no histórico) e rola até o LAUDO. Antes
    * a ficha sumia e o novato não sabia que precisava reabrir para ver o
@@ -1586,7 +1603,7 @@ export default function FichaPacientePage() {
           Clínico (ordem #4) é renderizado dentro de cada form. */}
       {/* Retorno 1 form — only while actively filling (unmounts after save + popup close) */}
       {canShowRetorno1Form && primeiraConsulta && paciente && (
-        <div className="print:hidden">
+        <div id="ancora-form-em-edicao" className="print:hidden scroll-mt-4">
           <Retorno1Form
             paciente={paciente}
             primeiraConsulta={primeiraConsulta}
@@ -1599,7 +1616,7 @@ export default function FichaPacientePage() {
       )}
       {/* Ficha A/C form */}
       {showFichaAC && paciente && (
-        <div className="print:hidden">
+        <div id="ancora-form-em-edicao" className="print:hidden scroll-mt-4">
           <FichaACForm
             paciente={paciente}
             consultas={consultas}
@@ -1633,7 +1650,7 @@ export default function FichaPacientePage() {
       {/* Ficha B/D form — PROMPT 42J: oculto (dormente). */}
       {!HIDE_FICHA_6_PONTOS && showFichaBD && paciente && (
 
-        <div className="print:hidden">
+        <div id="ancora-form-em-edicao" className="print:hidden scroll-mt-4">
           <FichaBDForm
             paciente={paciente}
             consultas={consultas}
@@ -1664,7 +1681,7 @@ export default function FichaPacientePage() {
       )}
       {/* Ficha E form */}
       {showFichaE && paciente && (
-        <div className="print:hidden">
+        <div id="ancora-form-em-edicao" className="print:hidden scroll-mt-4">
           <FichaEForm
             paciente={paciente}
             consultas={consultas}
@@ -1694,7 +1711,7 @@ export default function FichaPacientePage() {
       )}
       {/* GTT 75g form */}
       {showGtt && paciente && (
-        <div className="print:hidden">
+        <div id="ancora-form-em-edicao" className="print:hidden scroll-mt-4">
           <GttForm
             paciente={paciente}
             consultas={consultas}
@@ -1721,7 +1738,7 @@ export default function FichaPacientePage() {
 
       {/* Registro do parto form */}
       {showRegistroParto && paciente && (
-        <div className="print:hidden">
+        <div id="ancora-form-em-edicao" className="print:hidden scroll-mt-4">
           <RegistroPartoForm
             paciente={paciente}
             consultas={consultas}
@@ -2264,7 +2281,9 @@ export default function FichaPacientePage() {
                   setShowFichaE(true);
                 } else {
                   toast(t('fichaPaciente.toast.proximoRetornoNaoImplementado'));
+                  return;
                 }
+                fecharHistoricoERolarParaForm();
               }}
             >
               <Plus className="mr-2 h-4 w-4 shrink-0" />
