@@ -209,6 +209,10 @@ export type Database = {
           numero_sequencial: number
           observacoes: string | null
           paciente_id: string
+          pactuou_fim_prox_perfil: string | null
+          pactuou_inicio_prox_perfil: string | null
+          pactuou_janela_prox_perfil: string | null
+          pactuou_pontos_prox_perfil: number | null
           profissional_id: string
           status_ficha: string
           status_gerado: string | null
@@ -226,6 +230,10 @@ export type Database = {
           numero_sequencial?: number
           observacoes?: string | null
           paciente_id: string
+          pactuou_fim_prox_perfil?: string | null
+          pactuou_inicio_prox_perfil?: string | null
+          pactuou_janela_prox_perfil?: string | null
+          pactuou_pontos_prox_perfil?: number | null
           profissional_id: string
           status_ficha?: string
           status_gerado?: string | null
@@ -243,6 +251,10 @@ export type Database = {
           numero_sequencial?: number
           observacoes?: string | null
           paciente_id?: string
+          pactuou_fim_prox_perfil?: string | null
+          pactuou_inicio_prox_perfil?: string | null
+          pactuou_janela_prox_perfil?: string | null
+          pactuou_pontos_prox_perfil?: number | null
           profissional_id?: string
           status_ficha?: string
           status_gerado?: string | null
