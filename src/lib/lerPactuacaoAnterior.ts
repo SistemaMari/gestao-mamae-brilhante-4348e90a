@@ -20,6 +20,11 @@
  */
 export interface ConsultaComPactuacao {
   id?: string;
+  /** Data da consulta (yyyy-MM-dd). Critério primário de "mais recente". */
+  data?: string | null;
+  /** Ordem clínica (Caso Novo=1, Retorno 1=2, ...). Desempate de data. */
+  numero_sequencial?: number | null;
+  /** created_at do banco; mantido opcional, usado só como último desempate. */
   created_at?: string | null;
   pactuou_janela_prox_perfil?: '1h' | '2h' | string | null;
   pactuou_inicio_prox_perfil?: string | null;
@@ -56,8 +61,18 @@ export function lerPactuacaoAnterior(
   );
   if (candidatas.length === 0) return null;
 
-  // Ordena por created_at desc; empate mantém a ordem do array (estável).
+  // Ordena por (data desc, numero_sequencial desc, created_at desc). O primeiro
+  // critério vem de PreviewConsulta e sobrevive ao map manual de fetchPaciente;
+  // `created_at` só entra como último desempate porque nem toda origem expõe
+  // essa coluna (ex.: PreviewConsulta não tem — era o bug que retornava a
+  // pactuação do PERÍODO 1 mesmo quando o PERÍODO 2 já existia).
   const ordenadas = [...candidatas].sort((a, b) => {
+    const da = a.data ?? '';
+    const db = b.data ?? '';
+    if (db !== da) return db.localeCompare(da);
+    const na = a.numero_sequencial ?? 0;
+    const nb = b.numero_sequencial ?? 0;
+    if (nb !== na) return nb - na;
     const ta = a.created_at ? Date.parse(a.created_at) : 0;
     const tb = b.created_at ? Date.parse(b.created_at) : 0;
     return tb - ta;
