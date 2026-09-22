@@ -52,6 +52,20 @@ const MARGEM = 12;
 const MARCA = 6;
 
 /**
+ * Datas de um intervalo dd/MM/yyyy INCLUSIVO (data de início até data de fim).
+ * Usado quando as datas do próximo perfil vêm pactuadas ('yyyy-MM-dd'), não
+ * calculadas a partir da consulta atual + dias.
+ */
+export function datasEntreInicioEFim(dataInicioIso: string, dataFimIso: string): string[] {
+  const ini = parseDateLocal(dataInicioIso);
+  const fim = parseDateLocal(dataFimIso);
+  if (!ini || !fim || ini > fim) return [];
+  const out: string[] = [];
+  for (let d = ini; d <= fim; d = addDays(d, 1)) out.push(format(d, 'dd/MM/yyyy'));
+  return out;
+}
+
+/**
  * Datas do período que a gestante vai monitorar a partir de agora.
  * Começa no dia seguinte à consulta — o papel é entregue para daqui pra frente.
  */

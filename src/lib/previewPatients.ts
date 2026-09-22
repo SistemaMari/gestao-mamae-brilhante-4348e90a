@@ -32,6 +32,12 @@ export interface PreviewConsulta {
   // 35B — janela das medições pós-prandiais pactuada nesta ficha (4 e 6 pontos).
   // Opcional: fichas legadas sem o campo são tratadas como '1h'.
   tipo_pos_prandial?: '1h' | '2h' | null;
+  // V4 (set/2026) — pactuação do PRÓXIMO perfil, feita no laudo desta consulta.
+  // Se preenchida, a ficha seguinte abre com estes valores pré-preenchidos.
+  pactuou_janela_prox_perfil?: '1h' | '2h' | null;
+  pactuou_inicio_prox_perfil?: string | null;
+  pactuou_fim_prox_perfil?: string | null;
+  pactuou_pontos_prox_perfil?: number | null;
   // GTT 75g data (optional)
   gtt_jejum?: number | null;
   gtt_1h?: number | null;

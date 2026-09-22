@@ -6,9 +6,11 @@ import BannerUrgenciaEndocrino from './BannerUrgenciaEndocrino';
 import GradeGlicemicaCompacta, { type GradeGlicemicaProps } from './GradeGlicemicaCompacta';
 import NotasTecnicasCard from './NotasTecnicasCard';
 import JanelaGttCard from './JanelaGttCard';
+import PactuacaoProxPerfilCard from './PactuacaoProxPerfilCard';
 import { type Cenario } from '@/lib/laudoMapping';
 import type { EstadoTextos } from '@/hooks/useLaudoTextos';
 import type { VariaveisLaudo } from '@/lib/laudoVariaveis';
+import type { PontosProxPerfil } from '@/lib/pactuacaoProxPerfil';
 
 export interface LaudoCompletoProps {
   paciente: { nome: string };
@@ -38,6 +40,30 @@ export interface LaudoCompletoProps {
   janelaGTT?: { inicio: Date; fim: Date } | null;
   igMaior24?: boolean;
   onTentarNovamente?: () => void;
+  /**
+   * V4 (set/2026) — quando presente, o laudo termina com o card de pactuação
+   * do PRÓXIMO perfil (janela + datas + botão de imprimir). O pai só passa esta
+   * prop quando o desfecho deste laudo pede papel para casa (helper
+   * `pontosDoProximoPerfil`).
+   */
+  pactuacaoProxPerfil?: {
+    consultaId: string;
+    isPreview: boolean;
+    nomeGestante: string;
+    pontos: PontosProxPerfil;
+    pactuacaoExistente: {
+      janela: '1h' | '2h';
+      inicio: string;
+      fim: string;
+    } | null;
+    contextoPrazo: {
+      ehFichaE: boolean;
+      ehPrimeiroPerfil: boolean;
+      igSemanas: number | null;
+      regraAplicada: string | null;
+    };
+    onSalvo?: () => void;
+  } | null;
 }
 
 export default function LaudoCompleto({
@@ -58,6 +84,7 @@ export default function LaudoCompleto({
   janelaGTT,
   igMaior24,
   onTentarNovamente,
+  pactuacaoProxPerfil,
 }: LaudoCompletoProps) {
   const { t, i18n } = useTranslation();
   // Critério 6/7: o rodapé legal impresso só aparece quando os textos oficiais
@@ -111,6 +138,13 @@ export default function LaudoCompleto({
             só nos desfechos de insulina e quando os textos já carregaram. */}
         {!ocultarTextosLaudo && urgenciaEndocrino && estado.status === 'completo' && (
           <BannerUrgenciaEndocrino />
+        )}
+
+        {/* V4 (set/2026) — pactuação do próximo perfil (janela + datas + imprimir).
+            Só aparece quando o pai passa a prop (i.e., o desfecho pede papel para casa)
+            e quando os textos oficiais estão publicados. */}
+        {pactuacaoProxPerfil && estado.status === 'completo' && (
+          <PactuacaoProxPerfilCard {...pactuacaoProxPerfil} />
         )}
 
         {/* Notas técnicas */}

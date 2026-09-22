@@ -2003,6 +2003,27 @@
       "diasPreenchidos_other": "{{count}} días completados",
       "rodapeLegal": "Generado por MARI — {{data}} — Este documento no sustituye la evaluación médica."
     },
+    "pactuacaoProxPerfil": {
+      "tituloForm": "Pactuar el próximo perfil ({{pontos}} puntos) e imprimir el control",
+      "instrucao": "Acuerde con la gestante la ventana posprandial y el período. Las fechas propuestas siguen el plazo del próximo retorno. Al imprimir, el papel sale con estos datos y esa combinación queda guardada — la próxima ficha se abrirá con todo pre-completado.",
+      "janelaLabel": "Ventana posprandial",
+      "janela1h": "1 hora después",
+      "janela2h": "2 horas después",
+      "inicioLabel": "Fecha de inicio",
+      "fimLabel": "Fecha de finalización",
+      "salvarEImprimir": "Guardar e imprimir control",
+      "salvando": "Guardando...",
+      "tituloPactuado": "Próximo perfil ya pactuado",
+      "resumo": "{{pontos}} puntos, posprandial de {{janela}}, del {{inicio}} al {{fim}}.",
+      "reimprimir": "Reimprimir control",
+      "editar": "Editar pactuación",
+      "salvoEImpresso": "Pactuación guardada y control enviado a impresión.",
+      "impresso": "Control enviado a impresión.",
+      "erro": {
+        "salvar": "No fue posible guardar la pactuación. Inténtelo de nuevo.",
+        "periodoInvalido": "El período informado es inválido."
+      }
+    },
     "notasTecnicas": {
       "title": "Notas técnicas",
       "nota1": "No repetir la glucemia plasmática en ayunas con fines diagnósticos — en ningún escenario, ya sea el resultado positivo o negativo.",
@@ -3263,6 +3284,7 @@
       "sub": {
         "jejum": "al despertar",
         "pos": "1 hora después",
+        "pos2h": "2 horas después",
         "pre": "antes de comer"
       }
     },

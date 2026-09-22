@@ -2003,6 +2003,27 @@
       "diasPreenchidos_other": "{{count}} dias preenchidos",
       "rodapeLegal": "Gerado por MARI — {{data}} — Este documento não substitui a avaliação médica."
     },
+    "pactuacaoProxPerfil": {
+      "tituloForm": "Pactuar o próximo perfil ({{pontos}} pontos) e imprimir o controle",
+      "instrucao": "Combine com a gestante a janela pós-prandial e o período. As datas propostas seguem o prazo do próximo retorno. Ao imprimir, o papel sai com esses dados e essa combinação já fica salva — a próxima ficha vai abrir com tudo pré-preenchido.",
+      "janelaLabel": "Janela pós-prandial",
+      "janela1h": "1 hora após",
+      "janela2h": "2 horas após",
+      "inicioLabel": "Data de início",
+      "fimLabel": "Data de encerramento",
+      "salvarEImprimir": "Salvar e imprimir controle",
+      "salvando": "Salvando...",
+      "tituloPactuado": "Próximo perfil já pactuado",
+      "resumo": "{{pontos}} pontos, pós-prandial de {{janela}}, de {{inicio}} a {{fim}}.",
+      "reimprimir": "Reimprimir controle",
+      "editar": "Editar pactuação",
+      "salvoEImpresso": "Pactuação salva e controle enviado para impressão.",
+      "impresso": "Controle enviado para impressão.",
+      "erro": {
+        "salvar": "Não foi possível salvar a pactuação. Tente novamente.",
+        "periodoInvalido": "O período informado é inválido."
+      }
+    },
     "notasTecnicas": {
       "title": "Notas técnicas",
       "nota1": "Não repetir glicemia plasmática de jejum para fins diagnósticos — em nenhum cenário, seja resultado positivo ou negativo.",
@@ -3263,6 +3284,7 @@
       "sub": {
         "jejum": "ao acordar",
         "pos": "1 hora depois",
+        "pos2h": "2 horas depois",
         "pre": "antes de comer"
       }
     },
