@@ -2213,6 +2213,20 @@ export default function FichaPacientePage() {
                                         igSemanas: igLaudo?.semanas ?? null,
                                         regraAplicada: regraAplicadaProx,
                                       },
+                                      // V4 (set/2026) — refetch após salvar,
+                                      // senão o card mostra o valor antigo até
+                                      // o usuário atualizar a página na mão.
+                                      onSalvo: () => {
+                                        if (isPreview && id) {
+                                          const p = getPreviewPacienteById(id);
+                                          if (p) {
+                                            setPaciente(p);
+                                            setConsultas(p.consultas || []);
+                                          }
+                                        } else {
+                                          void fetchPaciente();
+                                        }
+                                      },
                                     }
                                   : null
                               }
