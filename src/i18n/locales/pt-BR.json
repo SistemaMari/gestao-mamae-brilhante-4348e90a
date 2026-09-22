@@ -2024,7 +2024,8 @@
       "impresso": "Controle enviado para impressão.",
       "erro": {
         "salvar": "Não foi possível salvar a pactuação. Tente novamente.",
-        "periodoInvalido": "O período informado é inválido."
+        "periodoInvalido": "O período informado é inválido.",
+        "semPermissao": "A pactuação não foi gravada — você não tem permissão de editar esta consulta (só o profissional titular pode). Peça a quem atendeu para pactuar, ou entre com a conta correta."
       }
     },
     "notasTecnicas": {

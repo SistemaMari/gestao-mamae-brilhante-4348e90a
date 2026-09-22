@@ -171,21 +171,36 @@ export default function PactuacaoProxPerfilCard({
    * Grava a pactuação no banco. Extraído para poder ser chamado tanto por
    * "Salvar" quanto por "Salvar e imprimir" — sem duplicar update.
    * Devolve true em sucesso, false em erro.
+   *
+   * SEM `.select()`, o cliente Supabase devolve status 204 e `error=null` mesmo
+   * quando a RLS bloqueou a UPDATE — zero rows atualizadas passariam como
+   * "sucesso" (foi o bug que fazia o toast dizer "salva" e o dado nunca
+   * aparecer). Com `.select()`, `data` volta com as linhas realmente afetadas
+   * e a gente detecta `data.length === 0` como falha de fato.
    */
   const gravarPactuacao = async (): Promise<boolean> => {
     if (isPreview) return true; // vitrine não persiste
-    const { error } = await supabase
+    const payload = {
+      pactuou_janela_prox_perfil: janela,
+      pactuou_inicio_prox_perfil: inicio,
+      pactuou_fim_prox_perfil: fim,
+      pactuou_pontos_prox_perfil: pontos,
+    };
+    const { data, error } = await supabase
       .from('consultas')
-      .update({
-        pactuou_janela_prox_perfil: janela,
-        pactuou_inicio_prox_perfil: inicio,
-        pactuou_fim_prox_perfil: fim,
-        pactuou_pontos_prox_perfil: pontos,
-      })
-      .eq('id', consultaId);
+      .update(payload)
+      .eq('id', consultaId)
+      .select('id, pactuou_janela_prox_perfil, pactuou_inicio_prox_perfil, pactuou_fim_prox_perfil, pactuou_pontos_prox_perfil');
     if (error) {
-      console.error('[pactuacao-prox-perfil] falha ao salvar:', error);
-      toast.error(t('laudo.pactuacaoProxPerfil.erro.salvar'));
+      // Mostra a mensagem original do banco no console (Postgres/PostgREST
+      // costuma incluir causa: CHECK falhou, coluna inexistente, etc).
+      console.error('[pactuacao-prox-perfil] erro do banco:', error);
+      toast.error(`${t('laudo.pactuacaoProxPerfil.erro.salvar')} ${error.message ?? ''}`.trim());
+      return false;
+    }
+    if (!data || data.length === 0) {
+      console.error('[pactuacao-prox-perfil] 0 linhas atualizadas — provavelmente RLS bloqueou UPDATE em consulta_id=', consultaId);
+      toast.error(t('laudo.pactuacaoProxPerfil.erro.semPermissao'));
       return false;
     }
     return true;

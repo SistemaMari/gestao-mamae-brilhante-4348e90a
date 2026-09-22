@@ -2024,7 +2024,8 @@
       "impresso": "Control enviado a impresión.",
       "erro": {
         "salvar": "No fue posible guardar la pactuación. Inténtelo de nuevo.",
-        "periodoInvalido": "El período informado es inválido."
+        "periodoInvalido": "El período informado es inválido.",
+        "semPermissao": "La pactuación NO se guardó — usted no tiene permiso para editar esta consulta (solo el profesional titular puede). Pídale a quien atendió que la registre, o inicie sesión con la cuenta correcta."
       }
     },
     "notasTecnicas": {
