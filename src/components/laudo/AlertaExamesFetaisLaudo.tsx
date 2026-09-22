@@ -91,23 +91,27 @@ export default function AlertaExamesFetaisLaudo({ tipo, consultaId, igSemanas, e
         </div>
       )}
 
-      {/* 3) Quadro amarelo — Doppler (sempre, item 1 em destaque) + achados da Família 2 */}
-      <div className="rounded-xl border-2 p-4 space-y-2" style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}>
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4" style={{ color: '#92400E' }} />
-          <span className="text-sm font-bold" style={{ color: '#92400E' }}>{t('ficha.examesFetais.alertaTitulo')}</span>
-        </div>
-        <p className="rounded-md bg-white/70 px-3 py-2 text-xs font-semibold" style={{ color: '#92400E' }}>
-          {t('ficha.examesFetais.doppler')}
-        </p>
-        {alertas.length > 0 && (
+      {/* 3) Quadro amarelo — só aparece quando há achado clínico da Família 2.
+          Antes exibia o aviso do Doppler mesmo sem achados, o que sinalizava
+          "urgência obstétrica" onde não havia — a Moara reportou o falso alarme
+          em set/2026 e a decisão foi ocultar o quadro inteiro nesse caso. A
+          nota do Doppler continua nas "Orientações gerais" abaixo. */}
+      {alertas.length > 0 && (
+        <div className="rounded-xl border-2 p-4 space-y-2" style={{ backgroundColor: '#FEF3C7', borderColor: '#FCD34D' }}>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" style={{ color: '#92400E' }} />
+            <span className="text-sm font-bold" style={{ color: '#92400E' }}>{t('ficha.examesFetais.alertaTitulo')}</span>
+          </div>
+          <p className="rounded-md bg-white/70 px-3 py-2 text-xs font-semibold" style={{ color: '#92400E' }}>
+            {t('ficha.examesFetais.doppler')}
+          </p>
           <ul className="list-disc pl-6 space-y-0.5">
             {alertas.map((a) => (
               <li key={a.key} className="text-xs" style={{ color: '#B45309' }}>{t(a.alertaKey)}</li>
             ))}
           </ul>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 4) Sugestão de conduta (peso fetal × bem-estar fetal) */}
       <div className="rounded-xl border p-4 space-y-2" style={{ backgroundColor: '#F0FDFA', borderColor: '#99F6E4' }}>

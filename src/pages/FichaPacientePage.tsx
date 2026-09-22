@@ -815,33 +815,36 @@ export default function FichaPacientePage() {
    * ordenado com a mais nova primeiro, mas como o refetch é assíncrono, a
    * função re-lê `consultas` no próximo tick antes de decidir.
    */
+  // V4 (set/2026) etapa 3.1 — antes usávamos setTimeout(60ms) para "chutar" o
+  // momento em que `fetchPaciente()` teria devolvido. Falhava quando o refetch
+  // demorava mais que isso: a última consulta ainda era a anterior, a nova não
+  // expandia e a viewport não rolava. Agora marca uma flag e um useEffect faz
+  // o trabalho quando `consultas` de fato muda — sem timeout mágico.
+  const precisaExpandirUltimaRef = useRef(false);
+
   const expandirUltimaEDarScroll = () => {
-    // 60ms basta para o refetch/preview aplicar setConsultas.
-    setTimeout(() => {
-      setConsultas((atual) => {
-        // Ordena por data (desc); em empate, o cast defensivo para (c as any)
-        // pega created_at quando existe (banco real) e cai para '' no preview
-        // — PreviewConsulta não expõe created_at nos seus tipos.
-        const ultima = [...atual].sort((a, b) => {
-          const da = a.data ?? '';
-          const db = b.data ?? '';
-          if (db !== da) return db.localeCompare(da);
-          const ca = ((a as unknown) as { created_at?: string }).created_at ?? '';
-          const cb = ((b as unknown) as { created_at?: string }).created_at ?? '';
-          return cb.localeCompare(ca);
-        })[0];
-        if (ultima) {
-          setHistoricoAcordeaoValue(ultima.id);
-          // scrollIntoView no próximo frame — o Accordion já renderizou.
-          requestAnimationFrame(() => {
-            const el = document.getElementById(`laudo-consulta-${ultima.id}`);
-            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          });
-        }
-        return atual;
-      });
-    }, 60);
+    precisaExpandirUltimaRef.current = true;
   };
+
+  useEffect(() => {
+    if (!precisaExpandirUltimaRef.current || consultas.length === 0) return;
+    const ultima = [...consultas].sort((a, b) => {
+      const da = a.data ?? '';
+      const db = b.data ?? '';
+      if (db !== da) return db.localeCompare(da);
+      const ca = ((a as unknown) as { created_at?: string }).created_at ?? '';
+      const cb = ((b as unknown) as { created_at?: string }).created_at ?? '';
+      return cb.localeCompare(ca);
+    })[0];
+    if (ultima) {
+      setHistoricoAcordeaoValue(ultima.id);
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`laudo-consulta-${ultima.id}`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+    precisaExpandirUltimaRef.current = false;
+  }, [consultas]);
 
   // Atualiza o "Histórico de atendimentos" (e a autoria dos cards) assim que um
   // carimbo é gravado, sem depender de refresh. Como refetchOnWindowFocus está
