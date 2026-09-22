@@ -2009,6 +2009,7 @@
       "janelaLabel": "Janela pós-prandial",
       "janela1h": "1 hora após",
       "janela2h": "2 horas após",
+      "janelaOrientacao": "A medição de 1 hora é a mais usada. A de 2 horas pode ser pactuada por comodidade da gestante. É uma escolha clínica feita junto com ela e não pode ser alterada depois na ficha do próximo perfil.",
       "inicioLabel": "Data de início",
       "fimLabel": "Data de encerramento",
       "salvar": "Salvar",

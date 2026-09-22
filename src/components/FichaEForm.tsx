@@ -148,6 +148,17 @@ export default function FichaEForm({
   const [dataFim, setDataFim] = useState(
     editingConsulta?.data_fim ?? pactuacaoAnteriorE?.fim ?? '',
   );
+
+  // V4 (set/2026) etapa 3 — corrige bug em que `useState` capturava
+  // `pactuacaoAnteriorE` como null porque `consultas` ainda não estava
+  // pronto no primeiro render. Ao chegar, sincroniza — só em ficha nova
+  // e só em campo ainda vazio.
+  useEffect(() => {
+    if (editingConsulta || !pactuacaoAnteriorE) return;
+    if (!dataInicio) setDataInicio(pactuacaoAnteriorE.inicio);
+    if (!dataFim) setDataFim(pactuacaoAnteriorE.fim);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pactuacaoAnteriorE, editingConsulta]);
   const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? todayLocalISO());
   const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
   const [saving, setSaving] = useState(false);
