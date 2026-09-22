@@ -3292,6 +3292,8 @@
         "pre": "antes de comer"
       }
     },
+    "pactuacaoAnteriorDatas": "Datas pactuadas com a gestante na consulta anterior. Edite se necessário.",
+    "pactuacaoAnteriorDataEditada": "⚠️ Datas editadas pelo profissional — não coincidem com o que foi pactuado na consulta anterior.",
     "perfilFoto": {
       "tirarFoto": "Tirar foto pela câmera",
       "enviarArquivo": "Importar foto dos arquivos",

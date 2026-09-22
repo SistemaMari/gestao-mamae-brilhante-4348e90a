@@ -357,7 +357,9 @@ export default function FichaPacientePage() {
   // Depois que o usuário salva qualquer consulta, isto passa a ser a última —
   // e a página rola até o laudo dela. Usuário novo não precisa mais reabrir
   // a ficha pra encontrar o laudo (e o botão do próximo perfil).
-  const [historicoAcordeaoValue, setHistoricoAcordeaoValue] = useState<string | undefined>(undefined);
+  // string vazia = "nada expandido" no Radix Accordion controlado; `undefined`
+  // seria interpretado como "não controlado" e o Accordion não fecha.
+  const [historicoAcordeaoValue, setHistoricoAcordeaoValue] = useState<string>('');
 
   // Edit mode state
   const [editing, setEditing] = useState(false);
@@ -796,7 +798,7 @@ export default function FichaPacientePage() {
    * elemento que renderiza qualquer ficha nova aberta.
    */
   const fecharHistoricoERolarParaForm = () => {
-    setHistoricoAcordeaoValue(undefined);
+    setHistoricoAcordeaoValue('');
     requestAnimationFrame(() => {
       const el = document.getElementById('ancora-form-em-edicao');
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
