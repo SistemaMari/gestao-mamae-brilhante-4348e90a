@@ -60,6 +60,14 @@ interface Props {
     ehPrimeiroPerfil: boolean; // 1º perfil pós-diagnóstico → 10 dias
     igSemanas: number | null;
     regraAplicada: string | null;
+    /**
+     * Data DA CONSULTA que está sendo pactuada (yyyy-MM-dd). O próximo perfil
+     * começa no dia seguinte a ela — nunca "hoje+1" cego, senão numa consulta
+     * antiga (revisão) o padrão sugeriria datas no futuro que não fazem
+     * sentido, e numa consulta com data no passado sugeriria datas
+     * anteriores ao próprio dia da consulta.
+     */
+    dataConsulta: string;
   };
   /** Depois de salvar, o pai pode querer atualizar a query — opcional. */
   onSalvo?: () => void;
@@ -108,8 +116,16 @@ export default function PactuacaoProxPerfilCard({
     [contextoPrazo.ehFichaE, contextoPrazo.ehPrimeiroPerfil, contextoPrazo.igSemanas, contextoPrazo.regraAplicada],
   );
 
-  // Defaults: hoje+1 (início) e início+(prazo-1) (fim). Editáveis.
-  const inicioDefault = useMemo(() => somarDiasIso(isoHoje(), 1), []);
+  // Defaults: (data da consulta)+1 (início) e início+(prazo-1) (fim). Editáveis.
+  // Antes usávamos `hoje+1`, o que quebrava em dois casos: (1) revisar uma
+  // consulta antiga sugeria datas no FUTURO em vez de logo depois daquela
+  // consulta, (2) numa consulta com data no PASSADO o padrão continuava
+  // batendo com hoje, e o profissional podia salvar sem perceber que "próximo
+  // perfil" ficava vinculado a datas erradas.
+  const inicioDefault = useMemo(
+    () => somarDiasIso(contextoPrazo.dataConsulta || isoHoje(), 1),
+    [contextoPrazo.dataConsulta],
+  );
   const fimDefault = useMemo(() => somarDiasIso(inicioDefault, Math.max(0, prazoDias - 1)), [inicioDefault, prazoDias]);
 
   const [janela, setJanela] = useState<'1h' | '2h' | null>(pactuacaoExistente?.janela ?? null);
