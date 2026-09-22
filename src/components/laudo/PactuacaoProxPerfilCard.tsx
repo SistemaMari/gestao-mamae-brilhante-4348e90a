@@ -20,7 +20,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Printer, Pencil, CheckCircle2 } from 'lucide-react';
+import { Printer, Pencil, CheckCircle2, Save } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -167,33 +167,59 @@ export default function PactuacaoProxPerfilCard({
     imprimirPapelControle(doc, t('fichaAC.papelControle.arquivo'));
   };
 
+  /**
+   * Grava a pactuação no banco. Extraído para poder ser chamado tanto por
+   * "Salvar" quanto por "Salvar e imprimir" — sem duplicar update.
+   * Devolve true em sucesso, false em erro.
+   */
+  const gravarPactuacao = async (): Promise<boolean> => {
+    if (isPreview) return true; // vitrine não persiste
+    const { error } = await supabase
+      .from('consultas')
+      .update({
+        pactuou_janela_prox_perfil: janela,
+        pactuou_inicio_prox_perfil: inicio,
+        pactuou_fim_prox_perfil: fim,
+        pactuou_pontos_prox_perfil: pontos,
+      })
+      .eq('id', consultaId);
+    if (error) {
+      console.error('[pactuacao-prox-perfil] falha ao salvar:', error);
+      toast.error(t('laudo.pactuacaoProxPerfil.erro.salvar'));
+      return false;
+    }
+    return true;
+  };
+
+  const salvarSemImprimir = async () => {
+    if (!camposValidos || salvando) return;
+    setSalvando(true);
+    try {
+      const ok = await gravarPactuacao();
+      if (!ok) return;
+      toast.success(t('laudo.pactuacaoProxPerfil.salvo'));
+      setModoLeitura(true);
+      onSalvo?.();
+    } finally {
+      setSalvando(false);
+    }
+  };
+
   const salvarEImprimir = async () => {
     if (!camposValidos || salvando) return;
     if (isPreview) {
-      // Vitrine não persiste; só imprime pra experimentar o fluxo.
       imprimirAgora();
       toast.success(t('laudo.pactuacaoProxPerfil.impresso'));
       return;
     }
     setSalvando(true);
     try {
-      const { error } = await supabase
-        .from('consultas')
-        .update({
-          pactuou_janela_prox_perfil: janela,
-          pactuou_inicio_prox_perfil: inicio,
-          pactuou_fim_prox_perfil: fim,
-          pactuou_pontos_prox_perfil: pontos,
-        })
-        .eq('id', consultaId);
-      if (error) throw error;
+      const ok = await gravarPactuacao();
+      if (!ok) return;
       imprimirAgora();
       toast.success(t('laudo.pactuacaoProxPerfil.salvoEImpresso'));
       setModoLeitura(true);
       onSalvo?.();
-    } catch (err) {
-      console.error('[pactuacao-prox-perfil] falha ao salvar:', err);
-      toast.error(t('laudo.pactuacaoProxPerfil.erro.salvar'));
     } finally {
       setSalvando(false);
     }
@@ -298,18 +324,32 @@ export default function PactuacaoProxPerfilCard({
         </div>
       </div>
 
-      <Button
-        type="button"
-        size="sm"
-        onClick={salvarEImprimir}
-        disabled={!camposValidos || salvando}
-        className="bg-[#0F766E] hover:bg-[#115E59] text-white"
-      >
-        <Printer className="h-4 w-4 mr-1.5" />
-        {salvando
-          ? t('laudo.pactuacaoProxPerfil.salvando')
-          : t('laudo.pactuacaoProxPerfil.salvarEImprimir')}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={salvarSemImprimir}
+          disabled={!camposValidos || salvando}
+        >
+          <Save className="h-4 w-4 mr-1.5" />
+          {salvando
+            ? t('laudo.pactuacaoProxPerfil.salvando')
+            : t('laudo.pactuacaoProxPerfil.salvar')}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          onClick={salvarEImprimir}
+          disabled={!camposValidos || salvando}
+          className="bg-[#0F766E] hover:bg-[#115E59] text-white"
+        >
+          <Printer className="h-4 w-4 mr-1.5" />
+          {salvando
+            ? t('laudo.pactuacaoProxPerfil.salvando')
+            : t('laudo.pactuacaoProxPerfil.salvarEImprimir')}
+        </Button>
+      </div>
     </div>
   );
 }

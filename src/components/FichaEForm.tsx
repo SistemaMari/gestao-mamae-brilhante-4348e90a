@@ -28,7 +28,7 @@ import {
   type ResultadoExtracao,
 } from '@/lib/perfilPorFoto';
 import { podeUsarPerfilPorFoto } from '@/lib/extrairPerfilFoto';
-import PapelControleBotao from '@/components/ficha/PapelControleBotao';
+import { lerPactuacaoAnterior } from '@/lib/lerPactuacaoAnterior';
 
 import { EXAMES_FETAIS_VAZIO, EXAMES_UMA_VEZ, fromExamesFetaisRow, toExamesFetaisPayload, type ExamesFetaisState } from '@/components/ficha/examesFetaisItems';
 import CamposPendentesBanner from '@/components/ficha/CamposPendentesBanner';
@@ -136,8 +136,18 @@ export default function FichaEForm({
     return DAYS.map(() => Object.fromEntries(POINTS_6.map(p => [p, ''])));
   });
 
-  const [dataInicio, setDataInicio] = useState(editingConsulta?.data_inicio ?? '');
-  const [dataFim, setDataFim] = useState(editingConsulta?.data_fim ?? '');
+  // V4 (set/2026) etapa 2 — pré-preenche datas do que foi pactuado no laudo
+  // anterior. Ficha E tem 6 pontos, então busca pactuação `pontos = 6`.
+  const pactuacaoAnteriorE = useMemo(
+    () => (editingConsulta ? null : lerPactuacaoAnterior(consultas, 6)),
+    [editingConsulta, consultas],
+  );
+  const [dataInicio, setDataInicio] = useState(
+    editingConsulta?.data_inicio ?? pactuacaoAnteriorE?.inicio ?? '',
+  );
+  const [dataFim, setDataFim] = useState(
+    editingConsulta?.data_fim ?? pactuacaoAnteriorE?.fim ?? '',
+  );
   const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? todayLocalISO());
   const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
   const [saving, setSaving] = useState(false);
@@ -806,20 +816,11 @@ export default function FichaEForm({
         )}
       </div>
 
-      {/* V4 — papel em branco para a gestante levar, com as datas do próximo
-          período já impressas. Não depende de nada do servidor. */}
-      <PapelControleBotao
-        nomeGestante={paciente.nome}
-        dataConsulta={dataConsulta}
-        dias={DAYS.length}
-        colunas={POINTS_6.map((p) => `fichaAC.papelControle.ponto.${p}`)}
-        subColunas={POINTS_6.map((p) => (
-          p === 'jejum' ? 'fichaAC.papelControle.sub.jejum'
-            : p.startsWith('pre_') ? 'fichaAC.papelControle.sub.pre'
-            : 'fichaAC.papelControle.sub.pos'
-        ))}
-        disabled={saving}
-      />
+      {/* V4 (set/2026) etapa 2 — o botão de imprimir o papel de controle foi
+          MOVIDO para o final do laudo da consulta anterior (junto com a
+          pactuação de janela + datas). Aqui dentro da ficha ele deixou de
+          existir: quando a gestante chega, o papel já está impresso, e a
+          ficha só recebe os valores. Ver PactuacaoProxPerfilCard. */}
 
       {/* V4 — preenchimento por foto. Atalho para a digitação, nunca substituto. */}
       {podeUsarPerfilPorFoto(isPreview) && (

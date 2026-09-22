@@ -64,6 +64,13 @@ export interface LaudoCompletoProps {
     };
     onSalvo?: () => void;
   } | null;
+  /**
+   * V4 (set/2026) etapa 2 — id do elemento raiz do laudo, para permitir que a
+   * página role a viewport até aqui automaticamente logo após o usuário
+   * salvar uma consulta. Opcional. Em conjunto com a lógica em
+   * FichaPacientePage.
+   */
+  ancoraId?: string;
 }
 
 export default function LaudoCompleto({
@@ -85,6 +92,7 @@ export default function LaudoCompleto({
   igMaior24,
   onTentarNovamente,
   pactuacaoProxPerfil,
+  ancoraId,
 }: LaudoCompletoProps) {
   const { t, i18n } = useTranslation();
   // Critério 6/7: o rodapé legal impresso só aparece quando os textos oficiais
@@ -94,7 +102,7 @@ export default function LaudoCompleto({
   const mostrarRodapeLegal = estado.status === 'completo';
 
   return (
-    <article className="laudo-completo overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <article id={ancoraId} className="laudo-completo overflow-hidden rounded-xl border border-border bg-card shadow-sm scroll-mt-4">
       <LaudoCabecalho
         paciente={paciente}
         igSemanas={igSemanas}
