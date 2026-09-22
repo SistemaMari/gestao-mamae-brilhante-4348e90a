@@ -208,11 +208,11 @@ export type Database = {
           is_rascunho: boolean
           numero_sequencial: number
           observacoes: string | null
+          paciente_id: string
           pactuou_fim_prox_perfil: string | null
           pactuou_inicio_prox_perfil: string | null
           pactuou_janela_prox_perfil: string | null
           pactuou_pontos_prox_perfil: number | null
-          paciente_id: string
           profissional_id: string
           status_ficha: string
           status_gerado: string | null
@@ -229,11 +229,11 @@ export type Database = {
           is_rascunho?: boolean
           numero_sequencial?: number
           observacoes?: string | null
+          paciente_id: string
           pactuou_fim_prox_perfil?: string | null
           pactuou_inicio_prox_perfil?: string | null
           pactuou_janela_prox_perfil?: string | null
           pactuou_pontos_prox_perfil?: number | null
-          paciente_id: string
           profissional_id: string
           status_ficha?: string
           status_gerado?: string | null
@@ -250,11 +250,11 @@ export type Database = {
           is_rascunho?: boolean
           numero_sequencial?: number
           observacoes?: string | null
+          paciente_id?: string
           pactuou_fim_prox_perfil?: string | null
           pactuou_inicio_prox_perfil?: string | null
           pactuou_janela_prox_perfil?: string | null
           pactuou_pontos_prox_perfil?: number | null
-          paciente_id?: string
           profissional_id?: string
           status_ficha?: string
           status_gerado?: string | null
@@ -1802,6 +1802,7 @@ export type Database = {
           ativo: boolean
           created_at: string
           cursos_inclusos: string[]
+          exibir_no_app: boolean
           id: string
           laudos_por_mes: number
           link_pagamento_asaas: string | null
@@ -1818,6 +1819,7 @@ export type Database = {
           ativo?: boolean
           created_at?: string
           cursos_inclusos?: string[]
+          exibir_no_app?: boolean
           id?: string
           laudos_por_mes: number
           link_pagamento_asaas?: string | null
@@ -1834,6 +1836,7 @@ export type Database = {
           ativo?: boolean
           created_at?: string
           cursos_inclusos?: string[]
+          exibir_no_app?: boolean
           id?: string
           laudos_por_mes?: number
           link_pagamento_asaas?: string | null
