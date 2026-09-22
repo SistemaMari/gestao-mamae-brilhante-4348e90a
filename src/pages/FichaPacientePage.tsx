@@ -553,6 +553,15 @@ export default function FichaPacientePage() {
             pactuacao_adesao: decisao?.pactuacao_adesao ?? null,
             memoria_glicosimetro: decisao?.memoria_glicosimetro ?? null,
             tipo_pos_prandial: tipoPosByConsulta.get(c.id) ?? null,
+            // V4 (set/2026) — pactuação do PRÓXIMO perfil, feita no laudo desta
+            // consulta. Sem estes 4 campos aqui, o `select('*')` traz o dado do
+            // banco mas este map descarta silenciosamente — o card sempre volta
+            // ao modo edição, o modal antigo aparece, e a ficha seguinte abre
+            // em branco (bug relatado em set/2026). Este era o elo faltando.
+            pactuou_janela_prox_perfil: c.pactuou_janela_prox_perfil ?? null,
+            pactuou_inicio_prox_perfil: c.pactuou_inicio_prox_perfil ?? null,
+            pactuou_fim_prox_perfil: c.pactuou_fim_prox_perfil ?? null,
+            pactuou_pontos_prox_perfil: c.pactuou_pontos_prox_perfil ?? null,
             ...(c.tipo === 'retorno_1' && ex
               ? {
                   retorno1_valor_gj: ex.valor_mgdl ?? null,
