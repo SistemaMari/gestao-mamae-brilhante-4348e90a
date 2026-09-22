@@ -2024,7 +2024,8 @@
       "impresso": "Log sent to print.",
       "erro": {
         "salvar": "Could not save the agreement. Please try again.",
-        "periodoInvalido": "The date range is invalid."
+        "periodoInvalido": "The date range is invalid.",
+        "semPermissao": "The agreement was NOT saved — you do not have permission to edit this consultation (only the attending professional can). Ask the professional who saw the patient to record it, or sign in with the correct account."
       }
     },
     "notasTecnicas": {
