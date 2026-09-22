@@ -2011,6 +2011,8 @@
       "janela2h": "2 hours after",
       "inicioLabel": "Start date",
       "fimLabel": "End date",
+      "salvar": "Save",
+      "salvo": "Agreement saved.",
       "salvarEImprimir": "Save and print log",
       "salvando": "Saving...",
       "tituloPactuado": "Next profile already agreed",

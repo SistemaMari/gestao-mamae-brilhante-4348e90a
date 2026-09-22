@@ -48,7 +48,7 @@ import {
   type ResultadoExtracao,
 } from '@/lib/perfilPorFoto';
 import { podeUsarPerfilPorFoto } from '@/lib/extrairPerfilFoto';
-import PapelControleBotao from '@/components/ficha/PapelControleBotao';
+import { lerPactuacaoAnterior } from '@/lib/lerPactuacaoAnterior';
 
 /** Remove uma chave de um Set sem mutar o original (marcas de origem da foto). */
 function remover(conjunto: Set<string>, chave: string): Set<string> {
@@ -105,10 +105,21 @@ export default function FichaACForm({
   // 35B — Pactuação pós-prandial (1h/2h). Em edição, carrega a janela já gravada (loader
   // traz tipo_pos_prandial do banco); ficha antiga sem o campo cai em '1h'. Em ficha nova,
   // `pactuada` começa false → o corpo só renderiza após o modal de pactuação (sem flash de grade).
-  const [janela, setJanela] = useState<JanelaPosPrandial>(
-    () => normalizarJanela(editingConsulta?.tipo_pos_prandial),
+  //
+  // V4 (set/2026) etapa 2 — se o LAUDO da consulta anterior já pactuou o próximo
+  // perfil (janela + datas), pré-carrega esses valores e PULA o modal — o profissional
+  // só confirma ou edita nos campos do topo. Sem pactuação anterior: comportamento antigo.
+  const pactuacaoAnterior = useMemo(
+    () => (editingConsulta ? null : lerPactuacaoAnterior(consultas, 4)),
+    [editingConsulta, consultas],
   );
-  const [pactuada, setPactuada] = useState<boolean>(() => !!editingConsulta);
+
+  const [janela, setJanela] = useState<JanelaPosPrandial>(
+    () => normalizarJanela(editingConsulta?.tipo_pos_prandial ?? pactuacaoAnterior?.janela),
+  );
+  const [pactuada, setPactuada] = useState<boolean>(
+    () => !!editingConsulta || !!pactuacaoAnterior,
+  );
 
   // Grid state: grid[day-1][point] = string value
   const [grid, setGrid] = useState<Record<string, string>[]>(() => {
@@ -121,9 +132,14 @@ export default function FichaACForm({
     return DAYS.map(() => Object.fromEntries(POINTS.map(p => [p, ''])));
   });
 
-  // Form fields
-  const [dataInicio, setDataInicio] = useState(editingConsulta?.data_inicio ?? '');
-  const [dataFim, setDataFim] = useState(editingConsulta?.data_fim ?? '');
+  // Form fields — em ficha nova, pré-preenche com o que foi pactuado no laudo
+  // anterior; em edição, mantém o que já foi gravado.
+  const [dataInicio, setDataInicio] = useState(
+    editingConsulta?.data_inicio ?? pactuacaoAnterior?.inicio ?? '',
+  );
+  const [dataFim, setDataFim] = useState(
+    editingConsulta?.data_fim ?? pactuacaoAnterior?.fim ?? '',
+  );
   const [dataConsulta, setDataConsulta] = useState(editingConsulta?.data ?? todayLocalISO());
   const [observacoes, setObservacoes] = useState(editingConsulta?.observacoes ?? '');
   const [saving, setSaving] = useState(false);
@@ -1124,16 +1140,11 @@ export default function FichaACForm({
         )}
       </div>
 
-      {/* V4 — papel em branco para a gestante levar, com as datas do próximo
-          período já impressas. Não depende de nada do servidor. */}
-      <PapelControleBotao
-        nomeGestante={paciente.nome}
-        dataConsulta={dataConsulta}
-        dias={DAYS.length}
-        colunas={POINTS.map((p) => `fichaAC.papelControle.ponto.${p}`)}
-        subColunas={POINTS.map((p) => (p === 'jejum' ? 'fichaAC.papelControle.sub.jejum' : 'fichaAC.papelControle.sub.pos'))}
-        disabled={saving}
-      />
+      {/* V4 (set/2026) etapa 2 — o botão de imprimir o papel de controle foi
+          MOVIDO para o final do laudo da consulta anterior (junto com a
+          pactuação de janela + datas). Aqui dentro da ficha ele deixou de
+          existir: quando a gestante chega, o papel já está impresso, e a
+          ficha só recebe os valores. Ver PactuacaoProxPerfilCard. */}
 
       {/* V4 — preenchimento por foto do controle da gestante. Atalho para a
           digitação, nunca substituto: tudo abaixo continua funcionando igual

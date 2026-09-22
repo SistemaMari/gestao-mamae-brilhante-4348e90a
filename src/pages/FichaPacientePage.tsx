@@ -353,6 +353,12 @@ export default function FichaPacientePage() {
   // Editing state for last consultation — tracks which consultation is being edited inline
   const [editingConsultaId, setEditingConsultaId] = useState<string | null>(null);
 
+  // V4 (set/2026) etapa 2 — id da consulta expandida no accordion do histórico.
+  // Depois que o usuário salva qualquer consulta, isto passa a ser a última —
+  // e a página rola até o laudo dela. Usuário novo não precisa mais reabrir
+  // a ficha pra encontrar o laudo (e o botão do próximo perfil).
+  const [historicoAcordeaoValue, setHistoricoAcordeaoValue] = useState<string | undefined>(undefined);
+
   // Edit mode state
   const [editing, setEditing] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
@@ -768,6 +774,45 @@ export default function FichaPacientePage() {
     }
     setRetorno1Completed(true);
     setShowRetorno1(false);
+    expandirUltimaEDarScroll();
+  };
+
+  /**
+   * V4 (set/2026) etapa 2 — depois que o usuário salva uma consulta, deixa a
+   * ficha aberta na tela (expandida no histórico) e rola até o LAUDO. Antes
+   * a ficha sumia e o novato não sabia que precisava reabrir para ver o
+   * laudo e o botão de imprimir/pactuar o próximo perfil.
+   *
+   * A "última consulta" é a que ficará expandida — consultasHistorico já é
+   * ordenado com a mais nova primeiro, mas como o refetch é assíncrono, a
+   * função re-lê `consultas` no próximo tick antes de decidir.
+   */
+  const expandirUltimaEDarScroll = () => {
+    // 60ms basta para o refetch/preview aplicar setConsultas.
+    setTimeout(() => {
+      setConsultas((atual) => {
+        // Ordena por data (desc); em empate, o cast defensivo para (c as any)
+        // pega created_at quando existe (banco real) e cai para '' no preview
+        // — PreviewConsulta não expõe created_at nos seus tipos.
+        const ultima = [...atual].sort((a, b) => {
+          const da = a.data ?? '';
+          const db = b.data ?? '';
+          if (db !== da) return db.localeCompare(da);
+          const ca = ((a as unknown) as { created_at?: string }).created_at ?? '';
+          const cb = ((b as unknown) as { created_at?: string }).created_at ?? '';
+          return cb.localeCompare(ca);
+        })[0];
+        if (ultima) {
+          setHistoricoAcordeaoValue(ultima.id);
+          // scrollIntoView no próximo frame — o Accordion já renderizou.
+          requestAnimationFrame(() => {
+            const el = document.getElementById(`laudo-consulta-${ultima.id}`);
+            el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+        return atual;
+      });
+    }, 60);
   };
 
   // Atualiza o "Histórico de atendimentos" (e a autoria dos cards) assim que um
@@ -1579,6 +1624,7 @@ export default function FichaPacientePage() {
                 void fetchPaciente();
                 setFichaACCompleted(true);
               }
+              expandirUltimaEDarScroll();
             }}
             onCancel={() => setShowFichaAC(false)}
           />
@@ -1610,6 +1656,7 @@ export default function FichaPacientePage() {
                 void fetchPaciente();
                 setFichaBDCompleted(true);
               }
+              expandirUltimaEDarScroll();
             }}
             onCancel={() => setShowFichaBD(false)}
           />
@@ -1639,6 +1686,7 @@ export default function FichaPacientePage() {
                 void fetchPaciente();
                 setFichaECompleted(true);
               }
+              expandirUltimaEDarScroll();
             }}
             onCancel={() => setShowFichaE(false)}
           />
@@ -1664,6 +1712,7 @@ export default function FichaPacientePage() {
                 // 34B.1 follow-up: refetch explícito (Realtime desligado nesta tela)
                 void fetchPaciente();
               }
+              expandirUltimaEDarScroll();
             }}
             onCancel={() => setShowGtt(false)}
           />
@@ -1689,6 +1738,7 @@ export default function FichaPacientePage() {
                 // 34B.1 follow-up: refetch explícito (Realtime desligado nesta tela)
                 void fetchPaciente();
               }
+              expandirUltimaEDarScroll();
             }}
             onCancel={() => setShowRegistroParto(false)}
           />
@@ -1712,6 +1762,8 @@ export default function FichaPacientePage() {
           <Accordion
             type="single"
             collapsible
+            value={historicoAcordeaoValue}
+            onValueChange={setHistoricoAcordeaoValue}
             className="space-y-2"
           >
             {consultasHistorico.map((c) => {
@@ -1782,6 +1834,7 @@ export default function FichaPacientePage() {
                         // 34B.1 follow-up: refetch explícito (Realtime desligado nesta tela)
                         void fetchPaciente();
                       }
+                      expandirUltimaEDarScroll();
                     };
 
                     // If editing this consultation, show the form inline
@@ -2114,6 +2167,7 @@ export default function FichaPacientePage() {
                               onTentarNovamente={() => laudoTextos.tentarNovamente(c.id, c.tipo, desfechoC)}
                               janelaGTT={c.tipo === 'retorno_1' ? janelaGTT : null}
                               igMaior24={igMaior24}
+                              ancoraId={`laudo-consulta-${c.id}`}
                               pactuacaoProxPerfil={
                                 pontosProx
                                   ? {
