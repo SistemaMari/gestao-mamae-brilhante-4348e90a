@@ -68,6 +68,7 @@ import { calcularDppISO, janelaRetestePuerperal } from '@/lib/dpp';
 import LaudoCompleto from '@/components/laudo/LaudoCompleto';
 import PlaceholderBlocoLaudo from '@/components/laudo/PlaceholderBlocoLaudo';
 import { mapearCenario, derivarDesfechoClinico, cenarioSemTextoLaudo, ehDesfechoInsulina } from '@/lib/laudoMapping';
+import { pontosDoProximoPerfil } from '@/lib/pactuacaoProxPerfil';
 import { escolherDecisaoVigente } from '@/lib/proximoPasso';
 import { ordenarPorSequenciaClinica } from '@/lib/ordenarConsultas';
 import { getNotasLaudo } from '@/components/laudo/NotasTecnicasCard';
@@ -2043,6 +2044,29 @@ export default function FichaPacientePage() {
                         {(() => {
                           const estadoC = laudoTextos.getEstado(c.id);
                           const desfechoC = derivarDesfechoClinico(c);
+                          // V4 (set/2026) — pactuação do PRÓXIMO perfil ao final
+                          // do laudo. Só monta a prop se o desfecho pede papel.
+                          const pontosProx = pontosDoProximoPerfil(c.tipo, desfechoC);
+                          const pactuouExistente =
+                            c.pactuou_janela_prox_perfil &&
+                            c.pactuou_inicio_prox_perfil &&
+                            c.pactuou_fim_prox_perfil
+                              ? {
+                                  janela: c.pactuou_janela_prox_perfil as '1h' | '2h',
+                                  inicio: c.pactuou_inicio_prox_perfil as string,
+                                  fim: c.pactuou_fim_prox_perfil as string,
+                                }
+                              : null;
+                          // regra_aplicada: só ficha_a/c tem uma; para as demais
+                          // o cálculo do prazo cai no default (7d >30 sem, 15 ≤30).
+                          const regraAplicadaProx =
+                            desfechoC === 'r1_manter' ? 'regra_manter'
+                            : desfechoC === 'r2_reforcar' ? 'regra_2'
+                            : (desfechoC === 'r4_reforcar' || desfechoC === 'r4a_fichae') ? 'regra_4'
+                            : null;
+                          // 1º perfil = quando este laudo é do Retorno 1 ou do GTT
+                          // que confirmou DMG (a próxima ficha é a 1ª Ficha A/C).
+                          const ehPrimeiroPerfilProx = c.tipo === 'retorno_1' || c.tipo === 'gtt';
                           const tipoOpConsulta =
                             c.tipo === 'consulta_1' ? 'consulta_inicial'
                             : c.tipo === 'retorno_1' ? 'retorno'
@@ -2090,6 +2114,23 @@ export default function FichaPacientePage() {
                               onTentarNovamente={() => laudoTextos.tentarNovamente(c.id, c.tipo, desfechoC)}
                               janelaGTT={c.tipo === 'retorno_1' ? janelaGTT : null}
                               igMaior24={igMaior24}
+                              pactuacaoProxPerfil={
+                                pontosProx
+                                  ? {
+                                      consultaId: c.id,
+                                      isPreview,
+                                      nomeGestante: paciente.nome,
+                                      pontos: pontosProx,
+                                      pactuacaoExistente: pactuouExistente,
+                                      contextoPrazo: {
+                                        ehFichaE: pontosProx === 6,
+                                        ehPrimeiroPerfil: ehPrimeiroPerfilProx,
+                                        igSemanas: igLaudo?.semanas ?? null,
+                                        regraAplicada: regraAplicadaProx,
+                                      },
+                                    }
+                                  : null
+                              }
                             >
                               {renderCardBloco1()}
                               {/* V4 — avaliação fetal no laudo: registro + pedido + Doppler/achados
