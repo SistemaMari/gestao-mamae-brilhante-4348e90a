@@ -68,11 +68,27 @@ describe('lerPactuacaoAnterior', () => {
     expect(escolhida?.janela).toBe('2h');
   });
 
-  it('sem created_at (padrão PreviewConsulta): ainda escolhe a mais recente por data', () => {
+  it('sem created_at (padrão PreviewConsulta): ainda escolhe a mais recente pela sequência clínica', () => {
     const consultas = [
       { data: '2026-08-01', numero_sequencial: 2, pactuou_janela_prox_perfil: '1h', pactuou_inicio_prox_perfil: '2026-08-11', pactuou_fim_prox_perfil: '2026-08-17', pactuou_pontos_prox_perfil: 4 },
       { data: '2026-09-22', numero_sequencial: 3, pactuou_janela_prox_perfil: '2h', pactuou_inicio_prox_perfil: '2026-08-18', pactuou_fim_prox_perfil: '2026-08-27', pactuou_pontos_prox_perfil: 4 },
     ];
     expect(lerPactuacaoAnterior(consultas, 4)?.janela).toBe('2h');
+  });
+
+  it('data RETROATIVA (usuário digitou data no passado): escolhe por numero_sequencial, não por data', () => {
+    // Bug set/2026 relatado: paciente "Gestante teste pactuação 1h e 2h" tinha
+    // ficha_a #3 com data=22/09 (pact 18/08-27/08) e ficha_a #4 com data=28/08
+    // (pact 28/08-12/09). A #4 é a mais recente CLINICAMENTE, mas se o sort
+    // priorizasse data, escolheria a #3 (data maior) — bug real. Agora
+    // numero_sequencial vem primeiro, resolvido.
+    const consultas = [
+      c('2026-09-22', { numero_sequencial: 3, janela: '1h', inicio: '2026-08-18', fim: '2026-08-27' }),
+      c('2026-08-28', { numero_sequencial: 4, janela: '2h', inicio: '2026-08-28', fim: '2026-09-12' }),
+    ];
+    const escolhida = lerPactuacaoAnterior(consultas, 4);
+    expect(escolhida?.inicio).toBe('2026-08-28');
+    expect(escolhida?.fim).toBe('2026-09-12');
+    expect(escolhida?.janela).toBe('2h');
   });
 });

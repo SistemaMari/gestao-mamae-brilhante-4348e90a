@@ -61,18 +61,23 @@ export function lerPactuacaoAnterior(
   );
   if (candidatas.length === 0) return null;
 
-  // Ordena por (data desc, numero_sequencial desc, created_at desc). O primeiro
-  // critério vem de PreviewConsulta e sobrevive ao map manual de fetchPaciente;
-  // `created_at` só entra como último desempate porque nem toda origem expõe
-  // essa coluna (ex.: PreviewConsulta não tem — era o bug que retornava a
-  // pactuação do PERÍODO 1 mesmo quando o PERÍODO 2 já existia).
+  // Ordena por (numero_sequencial desc, data desc, created_at desc). A ORDEM
+  // dos critérios importa muito: `numero_sequencial` é atribuído em ordem
+  // clínica monotônica (Caso Novo=1, Retorno 1=2, 1ª Ficha A/C=3, ...) e o
+  // usuário não bagunça — usar como critério primário garante escolher a
+  // pactuação mais recente CLINICAMENTE, não a de maior `data`. Bug set/2026:
+  // se o usuário criasse uma ficha nova com `data` no passado (ex.: teste com
+  // datas retroativas), o sort por data pegaria uma ficha antiga só porque
+  // tinha data digitada no futuro, e a próxima consulta abria com pactuação
+  // errada. `data` fica só como desempate quando duas consultas têm o mesmo
+  // `numero_sequencial` (não deveria existir, mas é defensivo).
   const ordenadas = [...candidatas].sort((a, b) => {
-    const da = a.data ?? '';
-    const db = b.data ?? '';
-    if (db !== da) return db.localeCompare(da);
     const na = a.numero_sequencial ?? 0;
     const nb = b.numero_sequencial ?? 0;
     if (nb !== na) return nb - na;
+    const da = a.data ?? '';
+    const db = b.data ?? '';
+    if (db !== da) return db.localeCompare(da);
     const ta = a.created_at ? Date.parse(a.created_at) : 0;
     const tb = b.created_at ? Date.parse(b.created_at) : 0;
     return tb - ta;
