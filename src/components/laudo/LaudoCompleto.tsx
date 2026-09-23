@@ -61,6 +61,7 @@ export interface LaudoCompletoProps {
       ehPrimeiroPerfil: boolean;
       igSemanas: number | null;
       regraAplicada: string | null;
+      dataConsulta: string;
     };
     onSalvo?: () => void;
   } | null;

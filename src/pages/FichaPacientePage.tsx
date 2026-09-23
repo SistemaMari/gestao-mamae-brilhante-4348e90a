@@ -2212,6 +2212,7 @@ export default function FichaPacientePage() {
                                         ehPrimeiroPerfil: ehPrimeiroPerfilProx,
                                         igSemanas: igLaudo?.semanas ?? null,
                                         regraAplicada: regraAplicadaProx,
+                                        dataConsulta: c.data,
                                       },
                                       // V4 (set/2026) — refetch após salvar,
                                       // senão o card mostra o valor antigo até
