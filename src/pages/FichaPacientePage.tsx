@@ -789,21 +789,35 @@ export default function FichaPacientePage() {
   };
 
   /**
-   * V4 (set/2026) etapa 3 — quando o usuário abre uma FICHA NOVA (o botão "+"
-   * do próximo passo), a consulta anterior expandida no histórico precisa
-   * FECHAR e a viewport precisa rolar até o topo da nova ficha. Sem isso, a
-   * ficha antiga fica visível ao lado da nova e o usuário perde o contexto.
+   * V4 (set/2026) etapa 3 — quando o usuário abre uma FICHA NOVA (botão "+"
+   * do próximo passo), o accordion do histórico precisa FECHAR e a viewport
+   * precisa rolar até o topo da nova ficha.
    *
-   * `âncora-form-em-edicao` é um id fixo no wrapper dos 5 forms — o mesmo
-   * elemento que renderiza qualquer ficha nova aberta.
+   * Antes fazíamos isso direto no onClick + requestAnimationFrame, mas o
+   * `#ancora-form-em-edicao` ainda não estava no DOM (o form só monta no
+   * re-render seguinte ao setShowXXX(true)). Agora observamos a transição
+   * "nenhum form aberto → algum form aberto" via useEffect — ele roda DEPOIS
+   * que o React já commitou a nova UI, então o elemento sempre existe.
+   *
+   * `algumFormAberto` já é calculado logo abaixo para outros usos; aqui
+   * usamos um ref para saber quando é uma TRANSIÇÃO (false → true) e não
+   * qualquer re-render subsequente com o form já aberto.
    */
-  const fecharHistoricoERolarParaForm = () => {
+  const formAbertoAnteriorRef = useRef(false);
+  useEffect(() => {
+    const algumFormAberto =
+      showRetorno1 || showFichaAC || showFichaBD || showFichaE || showGtt || showRegistroParto;
+    const acabouDeAbrir = algumFormAberto && !formAbertoAnteriorRef.current;
+    formAbertoAnteriorRef.current = algumFormAberto;
+    if (!acabouDeAbrir) return;
     setHistoricoAcordeaoValue('');
+    // Rolagem no próximo frame — o React já commitou o nó, mas garantimos
+    // que o layout também computou antes do scrollIntoView.
     requestAnimationFrame(() => {
       const el = document.getElementById('ancora-form-em-edicao');
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
-  };
+  }, [showRetorno1, showFichaAC, showFichaBD, showFichaE, showGtt, showRegistroParto]);
 
   /**
    * V4 (set/2026) etapa 2 — depois que o usuário salva uma consulta, deixa a
@@ -2310,9 +2324,12 @@ export default function FichaPacientePage() {
                   setShowFichaE(true);
                 } else {
                   toast(t('fichaPaciente.toast.proximoRetornoNaoImplementado'));
-                  return;
                 }
-                fecharHistoricoERolarParaForm();
+                // V4 (set/2026) etapa 3 refinada — o fechamento do histórico
+                // e o scroll até o topo do form NOVO são feitos por um
+                // useEffect que observa `showXXX` (mais robusto do que
+                // chamar aqui, porque quando este onClick roda o form ainda
+                // não está no DOM).
               }}
             >
               <Plus className="mr-2 h-4 w-4 shrink-0" />
