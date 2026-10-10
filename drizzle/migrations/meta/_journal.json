@@ -15,6 +15,13 @@
       "when": 1791665630817,
       "tag": "0001_planos_links_anteriores_compra_id",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791666746546,
+      "tag": "0002_planos_parcela_12x",
+      "breakpoints": true
     }
   ]
 }
