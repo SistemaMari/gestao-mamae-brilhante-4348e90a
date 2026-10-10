@@ -8,6 +8,7 @@
 // - SUBSCRIPTION_DELETED → marca plano_status = 'cancelado'
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { planoSlugPorValor } from "../_shared/planoPorValor.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,18 +22,8 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-// Mapeia valor da cobrança → slug do plano. Tolera centavos.
-function planoSlugPorValor(valor: number): string | null {
-  const v = Math.round(Number(valor));
-  if (v === 79) return "inicial";
-  if (v === 139) return "intermediaria";
-  if (v === 299) return "profissional";
-  // Planos institucionais (links de pagamento avulsos no Asaas, vendidos
-  // diretamente pelo Raul — não passam pelo checkout/:slug do app).
-  if (v === 2997) return "institucional-1000";
-  if (v === 4997) return "institucional-5000";
-  return null;
-}
+// Valor da cobrança → slug do plano (aceita preço cheio e preço de lançamento).
+// Regra isolada e testada em src/lib/planoPorValor.test.ts.
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
