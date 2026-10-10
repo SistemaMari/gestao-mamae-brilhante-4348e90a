@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, CheckCircle, Copy, QrCode, FileText, Loader2, AlertCircle, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePromocaoLancamento } from '@/hooks/usePromocaoLancamento';
+import { precoLancamento, formatarBRL } from '@/lib/precoLancamento';
 
 // ─── Máscaras ────────────────────────────────────────────────────────────────
 function maskCpf(v: string) {
@@ -37,10 +39,14 @@ function maskCep(v: string) {
 }
 
 // ─── Plano info ───────────────────────────────────────────────────────────────
-const PLANOS: Record<string, { nome: string; preco: string; pacientes: number }> = {
-  inicial:       { nome: 'Inicial',       preco: 'R$ 79,00/mês',  pacientes: 10  },
-  intermediaria: { nome: 'Intermediária', preco: 'R$ 139,00/mês', pacientes: 35  },
-  profissional:  { nome: 'Profissional',  preco: 'R$ 299,00/mês', pacientes: 100 },
+// Cópia local porque esta tela atende quem ainda NÃO tem conta, e a tabela
+// `planos` só é legível por usuário logado. A cobrança NÃO usa estes números
+// (a edge function criar-assinatura-asaas lê o banco) — mas a tela precisa
+// bater com eles: ao mudar preço/limite em /admin/planos, atualizar aqui também.
+const PLANOS: Record<string, { nome: string; preco: number; pacientes: number }> = {
+  inicial:       { nome: 'Inicial',       preco: 79,  pacientes: 10  },
+  intermediaria: { nome: 'Intermediária', preco: 139, pacientes: 50  },
+  profissional:  { nome: 'Profissional',  preco: 299, pacientes: 150 },
 };
 
 // ─── Schema de validação ─────────────────────────────────────────────────────
@@ -64,6 +70,7 @@ export default function CheckoutPage() {
   const { slug = '' } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const planoInfo = PLANOS[slug];
+  const { ativa: promoAtiva } = usePromocaoLancamento();
 
   const [step, setStep] = useState<'dados' | 'pagamento' | 'confirmacao'>('dados');
   const [billingType, setBillingType] = useState<'PIX' | 'BOLETO' | 'CREDIT_CARD'>('PIX');
@@ -174,7 +181,17 @@ export default function CheckoutPage() {
                 <p className="font-heading text-xl font-bold text-foreground mt-1">{planoInfo.nome}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{t('checkout.pacientesLimite', { count: planoInfo.pacientes })}</p>
               </div>
-              <p className="font-heading text-2xl font-bold text-primary">{planoInfo.preco}</p>
+              <div className="text-right">
+                {promoAtiva && (
+                  <p className="text-xs text-muted-foreground line-through decoration-red-500 decoration-2">
+                    {formatarBRL(planoInfo.preco, i18n.language, true)}{t('planos.perMonth')}
+                  </p>
+                )}
+                <p className="font-heading text-2xl font-bold text-primary">
+                  {formatarBRL(promoAtiva ? precoLancamento(planoInfo.preco) : planoInfo.preco, i18n.language, true)}
+                  {t('planos.perMonth')}
+                </p>
+              </div>
             </div>
           </div>
 

@@ -1054,7 +1054,12 @@
       "metricsOn": "Metrics on",
       "metricsOff": "Metrics locked",
       "metricsToggleLabel": "Analytics dashboard (metrics)",
-      "metricsToggleHelp": "Enables or blocks access to the advanced metrics dashboard for anyone on this plan."
+      "metricsToggleHelp": "Enables or blocks access to the advanced metrics dashboard for anyone on this plan.",
+      "promoTitulo": "Launch promotion ({{pct}}%)",
+      "promoAjuda": "On: the plans and checkout pages show the discounted price, and in-app subscribers pay {{pct}}% less on the 12 payments of the first year. Turning it off is manual — those who subscribed during the promotion keep the discount until the end of their year.",
+      "promoLigada": "Launch promotion turned on.",
+      "promoDesligada": "Launch promotion turned off.",
+      "promoErro": "Could not change the promotion: {{error}}"
     },
     "barrasRanking": {
       "emptyPeriod": "No data for this period."
@@ -3137,7 +3142,16 @@
     "mostPopular": "Most popular",
     "upToReportsPerMonth": "Up to {{count}} reports per month",
     "launchPricingNote": "Launch pricing. Values may be adjusted after the promotional period.",
-    "unlimitedReports": "Unlimited reports"
+    "unlimitedReports": "Unlimited reports",
+    "promoBanner": "Special launch offer: <strong>{{pct}}%</strong> off in the first year",
+    "promoTimes": "12×",
+    "promoAnnual": "{{valor}} per year in the first year",
+    "perPatient": "Just {{valor}} per patient per month",
+    "dashboard": "Follow-up dashboard",
+    "personalizadoTitulo": "Custom",
+    "personalizadoSubtitulo": "For those who follow more than {{count}} patients per year",
+    "personalizadoTexto": "We build a tailor-made plan for the size of your prenatal care. Talk to our sales team.",
+    "personalizadoBotao": "Talk to our sales team"
   },
   "retorno1": {
     "diag": {

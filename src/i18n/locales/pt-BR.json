@@ -1054,7 +1054,12 @@
       "metricsOn": "Métricas ativas",
       "metricsOff": "Métricas bloqueadas",
       "metricsToggleLabel": "Dashboard analítico (métricas)",
-      "metricsToggleHelp": "Libera ou bloqueia o acesso ao dashboard de métricas avançadas para quem está neste plano."
+      "metricsToggleHelp": "Libera ou bloqueia o acesso ao dashboard de métricas avançadas para quem está neste plano.",
+      "promoTitulo": "Promoção de lançamento ({{pct}}%)",
+      "promoAjuda": "Ligada: a tela de planos e a de pagamento mostram o preço com desconto, e quem assina pelo app paga {{pct}}% a menos nas 12 parcelas do 1º ano. Desligar é manual — quem já assinou na promoção mantém o desconto até o fim do ano dela.",
+      "promoLigada": "Promoção de lançamento ligada.",
+      "promoDesligada": "Promoção de lançamento desligada.",
+      "promoErro": "Não foi possível alterar a promoção: {{error}}"
     },
     "barrasRanking": {
       "emptyPeriod": "Sem dados no período."
@@ -3137,7 +3142,16 @@
     "mostPopular": "Mais popular",
     "upToReportsPerMonth": "Até {{count}} laudos por mês",
     "launchPricingNote": "Preços de lançamento. Valores podem ser ajustados após o período promocional.",
-    "unlimitedReports": "Laudos ilimitados"
+    "unlimitedReports": "Laudos ilimitados",
+    "promoBanner": "Condição especial de lançamento: <strong>{{pct}}%</strong> do valor no primeiro ano",
+    "promoTimes": "12×",
+    "promoAnnual": "anuidade de {{valor}} no primeiro ano",
+    "perPatient": "Equivale a {{valor}} por gestante por mês",
+    "dashboard": "Dashboard de acompanhamento",
+    "personalizadoTitulo": "Personalizado",
+    "personalizadoSubtitulo": "Para quem acompanha mais de {{count}} gestantes por ano",
+    "personalizadoTexto": "Montamos um plano sob medida para o tamanho do seu pré-natal. Fale com o nosso time comercial.",
+    "personalizadoBotao": "Fale com nosso time comercial"
   },
   "retorno1": {
     "diag": {

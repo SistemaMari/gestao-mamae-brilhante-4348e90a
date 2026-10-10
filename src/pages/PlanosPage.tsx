@@ -1,13 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfissionalData } from '@/hooks/useProfissionalData';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, Crown, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Check, Crown, ArrowLeft, AlertCircle, BadgePercent, Building2, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePromocaoLancamento } from '@/hooks/usePromocaoLancamento';
+import {
+  DESCONTO_LANCAMENTO_PCT, precoLancamento, anuidade, precoPorGestante, formatarBRL,
+} from '@/lib/precoLancamento';
+
+// Plano Personalizado (acima do maior limite): atendimento pelo time comercial.
+const LINK_FALE_CONOSCO = 'https://unni.chat/mari-faleconosco-pv';
 
 interface Plano {
   id: string;
@@ -21,6 +28,7 @@ interface Plano {
   ordem: number;
   ativo: boolean;
   link_pagamento_asaas: string | null;
+  metricas_habilitado: boolean;
 }
 
 function formatPreco(valor: number, perMonth: string): string {
@@ -28,8 +36,10 @@ function formatPreco(valor: number, perMonth: string): string {
 }
 
 export default function PlanosPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { ativa: promoAtiva } = usePromocaoLancamento();
+  const idioma = i18n.language;
 
   const labelSuporte = (suporte: string): string => {
     if (suporte === 'email') return t('planos.supportEmail');
@@ -125,6 +135,21 @@ export default function PlanosPage() {
           </div>
         )}
 
+        {!loading && !error && planos && planos.length > 0 && promoAtiva && (
+          <div className="mb-8 flex justify-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#C6F432] px-5 py-2.5 text-sm text-[#1A2E05]">
+              <BadgePercent className="h-5 w-5 shrink-0" />
+              <span>
+                <Trans
+                  i18nKey="planos.promoBanner"
+                  values={{ pct: DESCONTO_LANCAMENTO_PCT }}
+                  components={{ strong: <strong className="text-base font-bold" /> }}
+                />
+              </span>
+            </div>
+          </div>
+        )}
+
         {!loading && !error && planos && planos.length > 0 && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {planos.map((plano, idx) => {
@@ -149,6 +174,9 @@ export default function PlanosPage() {
                   botaoVariant = 'secondary';
                 }
               }
+
+              const precoEfetivo = promoAtiva ? precoLancamento(plano.preco_mensal) : plano.preco_mensal;
+              const porGestante = precoPorGestante(precoEfetivo, plano.pacientes_max);
 
               const limitePacientes =
                 plano.pacientes_max === null
@@ -191,14 +219,41 @@ export default function PlanosPage() {
                     <h3 className="font-heading text-xl font-semibold text-foreground">
                       {plano.nome}
                     </h3>
-                    <div className="mt-3">
-                      <span className="font-heading text-3xl font-bold text-foreground">
-                        {formatPreco(plano.preco_mensal, t('planos.perMonth'))}
+                    {promoAtiva ? (
+                      <div className="mt-3">
+                        <p className="text-sm text-muted-foreground">
+                          {t('planos.promoTimes')}{' '}
+                          <span className="line-through decoration-red-500 decoration-2">
+                            {formatarBRL(plano.preco_mensal, idioma)}
+                          </span>
+                        </p>
+                        <p className="mt-0.5">
+                          <span className="text-sm font-medium text-muted-foreground">{t('planos.promoTimes')} </span>
+                          <span className="font-heading text-3xl font-bold text-foreground">
+                            {formatarBRL(precoEfetivo, idioma, true)}
+                          </span>
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {t('planos.promoAnnual', { valor: formatarBRL(anuidade(precoEfetivo), idioma) })}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="mt-3">
+                          <span className="font-heading text-3xl font-bold text-foreground">
+                            {formatPreco(plano.preco_mensal, t('planos.perMonth'))}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {t('planos.annualNote')}
+                        </p>
+                      </>
+                    )}
+                    {porGestante !== null && (
+                      <span className="mt-3 inline-block rounded-full bg-[#D1FAE5] px-3 py-1 text-xs font-medium text-[#065F46]">
+                        {t('planos.perPatient', { valor: formatarBRL(porGestante, idioma, true) })}
                       </span>
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {t('planos.annualNote')}
-                    </p>
+                    )}
                   </div>
 
                   <ul className="mb-6 flex-1 space-y-2.5">
@@ -206,6 +261,12 @@ export default function PlanosPage() {
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
                       {t('planos.unlimitedReports')}
                     </li>
+                    {plano.metricas_habilitado && (
+                      <li className="flex items-start gap-2 text-sm text-foreground">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
+                        {t('planos.dashboard')}
+                      </li>
+                    )}
                     <li className="flex items-start gap-2 text-sm text-foreground">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
                       {limitePacientes}
@@ -232,6 +293,33 @@ export default function PlanosPage() {
             })}
           </div>
         )}
+
+        {!loading && !error && planos && planos.length > 0 && (() => {
+          const maiorLimite = Math.max(0, ...planos.map((p) => p.pacientes_max ?? 0));
+          if (maiorLimite <= 0) return null;
+          return (
+            <div className="mt-8 flex flex-col gap-5 rounded-xl border border-[#E4DDFB] bg-[#F5F3FF] p-6 sm:flex-row sm:items-center">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
+                <Building2 className="h-6 w-6 text-[#7C4DBA]" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t('planos.personalizadoTitulo')}
+                </p>
+                <h3 className="mt-0.5 font-heading text-lg font-bold text-foreground">
+                  {t('planos.personalizadoSubtitulo', { count: maiorLimite })}
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">{t('planos.personalizadoTexto')}</p>
+              </div>
+              <Button asChild className="shrink-0 bg-[#15803D] font-semibold uppercase tracking-wide text-white hover:bg-[#166534]">
+                <a href={LINK_FALE_CONOSCO} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="h-4 w-4" />
+                  {t('planos.personalizadoBotao')}
+                </a>
+              </Button>
+            </div>
+          );
+        })()}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
           {t('planos.launchPricingNote')}

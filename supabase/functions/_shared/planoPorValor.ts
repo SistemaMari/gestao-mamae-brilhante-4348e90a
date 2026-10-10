@@ -30,3 +30,9 @@ export function planoSlugPorValor(valor: number): string | null {
   }
   return null;
 }
+
+// Valor mensal cobrado durante a promoção de lançamento (sempre 50%).
+// Mesma conta de src/lib/precoLancamento.ts (telas). Arredonda ao centavo.
+export function valorComDescontoLancamento(precoMensal: number): number {
+  return Math.round(Number(precoMensal) * 50) / 100;
+}
