@@ -28,6 +28,7 @@ interface Plano {
   ordem: number;
   ativo: boolean;
   link_pagamento_asaas: string | null;
+  parcela_12x_cartao: number | null;
   metricas_habilitado: boolean;
 }
 
@@ -175,6 +176,8 @@ export default function PlanosPage() {
 
               const precoEfetivo = promoAtiva ? precoLancamento(plano.preco_mensal) : plano.preco_mensal;
               const porGestante = precoPorGestante(precoEfetivo, plano.pacientes_max);
+              // Parcela em 12× no cartão (com juros), copiada do link do Asaas em /admin/planos.
+              const parcela12x = plano.parcela_12x_cartao != null ? Number(plano.parcela_12x_cartao) : null;
 
               const limitePacientes =
                 plano.pacientes_max === null
@@ -224,13 +227,32 @@ export default function PlanosPage() {
                           {formatarBRL(anuidade(plano.preco_mensal), idioma)}
                         </p>
                       )}
-                      <p className="mt-0.5">
-                        <span className="font-heading text-3xl font-bold text-foreground">
-                          {formatarBRL(anuidade(precoEfetivo), idioma)}
-                        </span>
-                        <span className="text-sm font-medium text-muted-foreground">{t('planos.perYear')}</span>
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">{t('planos.annualNote')}</p>
+                      {parcela12x !== null ? (
+                        <>
+                          <p className="mt-0.5">
+                            <span className="text-sm font-medium text-muted-foreground">{t('planos.installmentPrefix')} </span>
+                            <span className="font-heading text-3xl font-bold text-foreground">
+                              {formatarBRL(parcela12x, idioma, true)}
+                            </span>
+                          </p>
+                          <p className="mt-1 text-sm text-foreground">
+                            {t('planos.cashLine', { valor: formatarBRL(anuidade(precoEfetivo), idioma) })}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {t('planos.cardTotal', { valor: formatarBRL(anuidade(parcela12x), idioma, true) })}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="mt-0.5">
+                            <span className="font-heading text-3xl font-bold text-foreground">
+                              {formatarBRL(anuidade(precoEfetivo), idioma)}
+                            </span>
+                            <span className="text-sm font-medium text-muted-foreground">{t('planos.perYear')}</span>
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">{t('planos.annualNote')}</p>
+                        </>
+                      )}
                     </div>
                     {porGestante !== null && (
                       <span className="mt-3 inline-block rounded-full bg-[#D1FAE5] px-3 py-1 text-xs font-medium text-[#065F46]">

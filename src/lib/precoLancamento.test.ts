@@ -30,6 +30,12 @@ describe('precoLancamento', () => {
     expect(planoSlugPorValor(precoLancamento(299))).toBe('profissional');
   });
 
+  it('total no cartão (12× com juros) bate com o checkout do Asaas', () => {
+    expect(anuidade(41.18)).toBe(494.16);
+    expect(anuidade(72.42)).toBe(869.04);
+    expect(anuidade(155.75)).toBe(1869);
+  });
+
   it('a tela e a cobrança do Asaas calculam o mesmo valor', () => {
     for (const p of [79, 139, 299, 99.9, 1]) {
       expect(valorComDescontoLancamento(p)).toBe(precoLancamento(p));
