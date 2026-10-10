@@ -9,6 +9,9 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { planoSlugPorValor } from "../_shared/planoPorValor.ts";
+import {
+  codigoDoLink, slugPorCodigoDeLink, identificarCompra, somarMeses, MESES_COMPRA_ANUAL,
+} from "../_shared/compraAsaas.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -109,18 +112,13 @@ Deno.serve(async (req) => {
       const customerId: string | undefined = payment.customer;
       const subscriptionId: string | null = payment.subscription ?? null;
       const valor: number = Number(payment.value ?? 0);
-      const slug = planoSlugPorValor(valor);
+      const { compraId, anual } = identificarCompra(payment);
 
       if (!customerId) {
         await marcarErro("payment.customer ausente");
         return json({ error: "Missing customer" }, 400);
       }
-      if (!slug) {
-        await marcarErro(`Valor R$${valor} não corresponde a nenhum plano`);
-        return json({ error: "Plan not recognized" }, 400);
-      }
 
-      // Busca dados do cliente Asaas (e-mail/nome) via API
       const asaasEnv = (Deno.env.get("ASAAS_ENV") ?? "sandbox").toLowerCase();
       const asaasBase = asaasEnv === "production"
         ? "https://api.asaas.com/v3"
@@ -131,6 +129,32 @@ Deno.serve(async (req) => {
         return json({ error: "Missing ASAAS_API_KEY" }, 500);
       }
 
+      // Qual plano? 1º pelo LINK de pagamento (o valor varia com parcelas e juros);
+      // na falta dele (mensalidade criada pelo app), pelo valor.
+      let slug: string | null = null;
+      const paymentLinkId: string | null = payment.paymentLink ?? null;
+      if (paymentLinkId) {
+        const linkResp = await fetch(`${asaasBase}/paymentLinks/${paymentLinkId}`, {
+          headers: { access_token: asaasKey },
+        });
+        if (linkResp.ok) {
+          const link = await linkResp.json();
+          const { data: planosLinks } = await supabase
+            .from("planos")
+            .select("slug, link_pagamento_asaas, links_pagamento_anteriores");
+          slug = slugPorCodigoDeLink(codigoDoLink(link?.url), planosLinks ?? []);
+          if (!slug) console.warn(`[asaas-webhook] link ${paymentLinkId} (${link?.url}) não cadastrado em nenhum plano`);
+        } else {
+          console.warn(`[asaas-webhook] falha ao consultar link ${paymentLinkId}: ${linkResp.status}`);
+        }
+      }
+      if (!slug) slug = planoSlugPorValor(valor);
+      if (!slug) {
+        await marcarErro(`Plano não reconhecido (link ${paymentLinkId ?? "—"}, valor R$${valor})`);
+        return json({ error: "Plan not recognized" }, 400);
+      }
+
+      // Busca dados do cliente Asaas (e-mail/nome) via API
       const custResp = await fetch(`${asaasBase}/customers/${customerId}`, {
         headers: { access_token: asaasKey },
       });
@@ -159,25 +183,67 @@ Deno.serve(async (req) => {
         return json({ error: "Plan missing in DB" }, 500);
       }
 
-      // Verifica se já existe profissional por asaas_customer_id (renovação)
-      const { data: profExistente } = await supabase
+      const camposProf = "id, user_id, data_inicio_assinatura, asaas_subscription_id, asaas_compra_id";
+
+      // Já é cliente? Pelo cliente Asaas e, se não achar, pelo e-mail: quem troca
+      // de plano pelo link pode virar um cliente Asaas novo.
+      let { data: profExistente } = await supabase
         .from("profissionais")
-        .select("id, user_id, data_inicio_assinatura, asaas_subscription_id")
+        .select(camposProf)
         .eq("asaas_customer_id", customerId)
         .maybeSingle();
 
+      const { data: list } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      const authUser = list?.users?.find((u) => u.email?.toLowerCase() === email) ?? null;
+
+      if (!profExistente && authUser) {
+        const { data: porUsuario } = await supabase
+          .from("profissionais")
+          .select(camposProf)
+          .eq("user_id", authUser.id)
+          .maybeSingle();
+        profExistente = porUsuario;
+      }
+
       const agora = new Date();
-      const proxRenov = new Date(agora);
-      proxRenov.setMonth(proxRenov.getMonth() + 1);
+      const proxRenov = anual ? somarMeses(agora, MESES_COMPRA_ANUAL) : somarMeses(agora, 1);
+
+      if (profExistente && anual) {
+        // Outra parcela (ou o "recebido" depois do "confirmado") da MESMA compra:
+        // a conta já foi liberada por 12 meses, então não mexe em nada.
+        if (compraId && profExistente.asaas_compra_id === compraId) {
+          await marcarOk();
+          return json({ status: "same_purchase", profissional_id: profExistente.id });
+        }
+
+        // Compra anual NOVA (renovação ou troca de plano): começa um ano novo,
+        // no plano comprado, a partir de hoje.
+        await supabase
+          .from("profissionais")
+          .update({
+            plano_id: plano.id,
+            plano_status: "ativo",
+            laudos_limite: plano.laudos_por_mes,
+            laudos_usados: 0,
+            asaas_customer_id: customerId,
+            asaas_compra_id: compraId,
+            data_inicio_assinatura: agora.toISOString(),
+            proxima_renovacao: proxRenov.toISOString(),
+            aviso_fim_ciclo_enviado_em: null,
+          })
+          .eq("id", profExistente.id);
+
+        await marcarOk();
+        return json({ status: "renewed_annual", profissional_id: profExistente.id });
+      }
 
       if (profExistente) {
-        // ----- RENOVAÇÃO -----
+        // ----- RENOVAÇÃO DA MENSALIDADE (assinatura criada pelo app) -----
         // Um asaas_subscription_id diferente do que já estava salvo significa que
         // começou um ciclo anual novo (a assinatura anterior, com maxPayments: 12,
-        // encerrou e uma nova foi criada) — não é só mais uma das 12 cobranças
-        // mensais de dentro do mesmo ciclo. Reinicia a contagem do ciclo
-        // (data_inicio_assinatura) e destrava o aviso de "plano acabando" para
-        // este novo ciclo.
+        // encerrou e uma nova foi criada), e não só mais uma das 12 cobranças
+        // mensais do mesmo ciclo. Reinicia a contagem do ciclo
+        // (data_inicio_assinatura) e destrava o aviso de "plano acabando".
         const novoCicloAnual = profExistente.asaas_subscription_id !== subscriptionId;
 
         await supabase
@@ -188,6 +254,7 @@ Deno.serve(async (req) => {
             laudos_limite: plano.laudos_por_mes,
             laudos_usados: 0, // reset por aniversário da assinatura
             asaas_subscription_id: subscriptionId,
+            asaas_compra_id: compraId,
             proxima_renovacao: proxRenov.toISOString(),
             ...(novoCicloAnual
               ? { data_inicio_assinatura: agora.toISOString(), aviso_fim_ciclo_enviado_em: null }
@@ -199,15 +266,10 @@ Deno.serve(async (req) => {
         return json({ status: "renewed", profissional_id: profExistente.id });
       }
 
-      // ----- PRIMEIRA FATURA: provisiona conta -----
+      // ----- PRIMEIRA COMPRA: provisiona conta -----
 
-      // Verifica se já existe user no Auth com esse e-mail
-      let userId: string | null = null;
-      const { data: list } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-      const found = list?.users?.find((u) => u.email?.toLowerCase() === email);
-      if (found) {
-        userId = found.id;
-      } else {
+      let userId: string | null = authUser?.id ?? null;
+      if (!userId) {
         const { data: created, error: createErr } = await supabase.auth.admin
           .createUser({
             email,
@@ -231,6 +293,7 @@ Deno.serve(async (req) => {
         laudos_usados: 0,
         asaas_customer_id: customerId,
         asaas_subscription_id: subscriptionId,
+        asaas_compra_id: compraId,
         data_inicio_assinatura: agora.toISOString(),
         proxima_renovacao: proxRenov.toISOString(),
       });
@@ -260,7 +323,11 @@ Deno.serve(async (req) => {
     // ===== Inadimplência =====
     if (eventType === "PAYMENT_OVERDUE") {
       const customerId = payment?.customer;
-      if (customerId) {
+      // Só a MENSALIDADE (assinatura do app) bloqueia por atraso. Na compra anual
+      // pelo link, o acesso vale pela data de validade: um Pix/boleto gerado e não
+      // pago (ex.: tentativa de recompra abandonada) não pode bloquear quem já
+      // tem o ano pago.
+      if (customerId && payment?.subscription) {
         await supabase
           .from("profissionais")
           .update({ plano_status: "inadimplente" })

@@ -368,7 +368,7 @@ export default function PlanosAdminPage() {
                 <div className="flex items-center gap-2">
                   <Input
                     type="url"
-                    placeholder="https://www.asaas.com/paymentCampaign/show/..."
+                    placeholder="https://www.asaas.com/c/..."
                     value={form.link_pagamento_asaas}
                     onChange={(e) => setForm({ ...form, link_pagamento_asaas: e.target.value })}
                   />
@@ -390,6 +390,12 @@ export default function PlanosAdminPage() {
                 <p className="text-xs text-muted-foreground">
                   {t('admin.planos.paymentLinkHelp')}
                 </p>
+                {/paymentCampaign/i.test(form.link_pagamento_asaas) && (
+                  <p className="flex items-start gap-1.5 text-xs font-medium text-destructive">
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    {t('admin.planos.paymentLinkInterno')}
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center justify-between rounded-md border border-border p-3">
