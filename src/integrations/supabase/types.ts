@@ -1806,6 +1806,7 @@ export type Database = {
           id: string
           laudos_por_mes: number
           link_pagamento_asaas: string | null
+          links_pagamento_anteriores: string[]
           metricas_habilitado: boolean
           nome: string
           ordem: number
@@ -1823,6 +1824,7 @@ export type Database = {
           id?: string
           laudos_por_mes: number
           link_pagamento_asaas?: string | null
+          links_pagamento_anteriores?: string[]
           metricas_habilitado?: boolean
           nome: string
           ordem: number
@@ -1840,6 +1842,7 @@ export type Database = {
           id?: string
           laudos_por_mes?: number
           link_pagamento_asaas?: string | null
+          links_pagamento_anteriores?: string[]
           metricas_habilitado?: boolean
           nome?: string
           ordem?: number
@@ -1856,6 +1859,7 @@ export type Database = {
           acesso_revogado: boolean
           acesso_revogado_em: string | null
           acesso_revogado_por: string | null
+          asaas_compra_id: string | null
           asaas_customer_id: string | null
           asaas_subscription_id: string | null
           avatar_url: string | null
@@ -1894,6 +1898,7 @@ export type Database = {
           acesso_revogado?: boolean
           acesso_revogado_em?: string | null
           acesso_revogado_por?: string | null
+          asaas_compra_id?: string | null
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
           avatar_url?: string | null
@@ -1932,6 +1937,7 @@ export type Database = {
           acesso_revogado?: boolean
           acesso_revogado_em?: string | null
           acesso_revogado_por?: string | null
+          asaas_compra_id?: string | null
           asaas_customer_id?: string | null
           asaas_subscription_id?: string | null
           avatar_url?: string | null
