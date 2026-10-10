@@ -28,6 +28,7 @@ interface Plano {
   pacientes_max: number | null;
   preco_mensal: number;
   link_pagamento_asaas: string | null;
+  parcela_12x_cartao: number | null;
   metricas_habilitado: boolean;
   ordem: number;
 }
@@ -41,6 +42,7 @@ interface FormState {
   preco_str: string;
   preco_original: number;
   link_pagamento_asaas: string;
+  parcela_str: string;
   metricas_habilitado: boolean;
   propagacao: 'preservar' | 'reajustar';
 }
@@ -83,7 +85,7 @@ export default function PlanosAdminPage() {
       const [resPlanos, resProfs] = await Promise.all([
         supabase
           .from('planos')
-          .select('id, slug, nome, pacientes_max, preco_mensal, link_pagamento_asaas, metricas_habilitado, ordem')
+          .select('id, slug, nome, pacientes_max, preco_mensal, link_pagamento_asaas, parcela_12x_cartao, metricas_habilitado, ordem')
           .order('ordem', { ascending: true }),
         supabase.from('profissionais').select('plano_id'),
       ]);
@@ -110,6 +112,7 @@ export default function PlanosAdminPage() {
       preco_str: String(p.preco_mensal),
       preco_original: p.preco_mensal,
       link_pagamento_asaas: p.link_pagamento_asaas ?? '',
+      parcela_str: p.parcela_12x_cartao != null ? String(p.parcela_12x_cartao) : '',
       metricas_habilitado: p.metricas_habilitado,
       propagacao: 'preservar',
     });
@@ -148,6 +151,7 @@ export default function PlanosAdminPage() {
           pacientes_max: form.pacientes_max,
           preco_mensal: preco,
           link_pagamento_asaas: form.link_pagamento_asaas.trim() || null,
+          parcela_12x_cartao: form.parcela_str ? Number(form.parcela_str) || null : null,
           metricas_habilitado: form.metricas_habilitado,
         })
         .eq('id', form.id);
@@ -260,6 +264,9 @@ export default function PlanosAdminPage() {
                   {p.pacientes_max !== null
                     ? t('admin.planos.patientsLimit', { count: p.pacientes_max })
                     : t('admin.planos.patientsUnlimited')} · {t('admin.planos.pricePerMonth', { preco: fmtPreco(p.preco_mensal) })}
+                  {p.parcela_12x_cartao != null && (
+                    <> · {t('admin.planos.installmentList', { valor: fmtPreco(p.parcela_12x_cartao) })}</>
+                  )}
                   {' · '}
                   <span className={p.metricas_habilitado ? 'text-secondary' : 'text-muted-foreground'}>
                     {p.metricas_habilitado ? t('admin.planos.metricsOn') : t('admin.planos.metricsOff')}
@@ -396,6 +403,23 @@ export default function PlanosAdminPage() {
                     {t('admin.planos.paymentLinkInterno')}
                   </p>
                 )}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>{t('admin.planos.installmentLabel')}</Label>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="41,18"
+                  value={form.parcela_str}
+                  onChange={(e) => {
+                    let v = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+                    const p = v.split('.');
+                    if (p.length > 2) v = `${p[0]}.${p.slice(1).join('')}`;
+                    setForm({ ...form, parcela_str: v });
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">{t('admin.planos.installmentHelp')}</p>
               </div>
 
               <div className="flex items-center justify-between rounded-md border border-border p-3">
