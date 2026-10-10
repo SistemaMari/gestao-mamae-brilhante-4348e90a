@@ -31,10 +31,6 @@ interface Plano {
   metricas_habilitado: boolean;
 }
 
-function formatPreco(valor: number, perMonth: string): string {
-  return `R$ ${valor.toFixed(2).replace('.', ',')}${perMonth}`;
-}
-
 export default function PlanosPage() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
@@ -83,8 +79,10 @@ export default function PlanosPage() {
     ? planos?.find((p) => p.id === planoAtualId)?.preco_mensal ?? null
     : null;
 
+  // Toda compra (nova, upgrade ou downgrade) é ANUAL e acontece no link do Asaas
+  // — o mesmo da página de vendas. O webhook reconhece o plano pelo link.
   const handleAssinar = (plano: Plano) => {
-    navigate(`/checkout/${plano.slug}`);
+    if (plano.link_pagamento_asaas) window.location.href = plano.link_pagamento_asaas;
   };
 
   const renderHeader = () => (
@@ -219,36 +217,21 @@ export default function PlanosPage() {
                     <h3 className="font-heading text-xl font-semibold text-foreground">
                       {plano.nome}
                     </h3>
-                    {promoAtiva ? (
-                      <div className="mt-3">
-                        <p className="text-sm text-muted-foreground">
-                          {t('planos.promoTimes')}{' '}
-                          <span className="line-through decoration-red-500 decoration-2">
-                            {formatarBRL(plano.preco_mensal, idioma)}
-                          </span>
+                    {/* Plano anual: R$ X por ano, pago no link do Asaas (Pix à vista ou cartão). */}
+                    <div className="mt-3">
+                      {promoAtiva && (
+                        <p className="text-sm text-muted-foreground line-through decoration-red-500 decoration-2">
+                          {formatarBRL(anuidade(plano.preco_mensal), idioma)}
                         </p>
-                        <p className="mt-0.5">
-                          <span className="text-sm font-medium text-muted-foreground">{t('planos.promoTimes')} </span>
-                          <span className="font-heading text-3xl font-bold text-foreground">
-                            {formatarBRL(precoEfetivo, idioma, true)}
-                          </span>
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {t('planos.promoAnnual', { valor: formatarBRL(anuidade(precoEfetivo), idioma) })}
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="mt-3">
-                          <span className="font-heading text-3xl font-bold text-foreground">
-                            {formatPreco(plano.preco_mensal, t('planos.perMonth'))}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {t('planos.annualNote')}
-                        </p>
-                      </>
-                    )}
+                      )}
+                      <p className="mt-0.5">
+                        <span className="font-heading text-3xl font-bold text-foreground">
+                          {formatarBRL(anuidade(precoEfetivo), idioma)}
+                        </span>
+                        <span className="text-sm font-medium text-muted-foreground">{t('planos.perYear')}</span>
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t('planos.annualNote')}</p>
+                    </div>
                     {porGestante !== null && (
                       <span className="mt-3 inline-block rounded-full bg-[#D1FAE5] px-3 py-1 text-xs font-medium text-[#065F46]">
                         {t('planos.perPatient', { valor: formatarBRL(porGestante, idioma, true) })}
@@ -283,7 +266,7 @@ export default function PlanosPage() {
                   <Button
                     className="w-full"
                     variant={botaoVariant}
-                    disabled={botaoDisabled}
+                    disabled={botaoDisabled || !plano.link_pagamento_asaas}
                     onClick={() => handleAssinar(plano)}
                   >
                     {botaoTexto}
@@ -321,7 +304,13 @@ export default function PlanosPage() {
           );
         })()}
 
-        <p className="mt-8 text-center text-xs text-muted-foreground">
+        {user && (
+          <p className="mt-8 text-center text-sm font-medium text-foreground">
+            {t('planos.sameEmailNote')}
+          </p>
+        )}
+
+        <p className="mt-4 text-center text-xs text-muted-foreground">
           {t('planos.launchPricingNote')}
         </p>
       </div>
