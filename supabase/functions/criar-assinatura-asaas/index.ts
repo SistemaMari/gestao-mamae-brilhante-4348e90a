@@ -2,6 +2,7 @@
 // Público: verify_jwt = false (acesso sem login, pois o usuário ainda não tem conta).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { valorComDescontoLancamento } from "../_shared/planoPorValor.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -71,6 +72,19 @@ Deno.serve(async (req) => {
 
   if (!plano) return json({ error: "Plano não encontrado" }, 404);
 
+  // Promoção de lançamento (liga/desliga manual em /admin/planos). Se a tabela
+  // não existir ou a leitura falhar, cobra o preço cheio — nunca dá desconto
+  // por engano.
+  const { data: promo } = await supabase
+    .from("promocao_lancamento")
+    .select("ativa")
+    .eq("id", 1)
+    .maybeSingle();
+  const emPromocao = promo?.ativa === true;
+  const valorMensal = emPromocao
+    ? valorComDescontoLancamento(Number(plano.preco_mensal))
+    : Number(plano.preco_mensal);
+
   // 2. Cria ou recupera cliente no Asaas
   const cpfLimpo = cpf.replace(/\D/g, "");
   const foneFormatado = telefone ? telefone.replace(/\D/g, "") : undefined;
@@ -107,16 +121,16 @@ Deno.serve(async (req) => {
   const subPayload: any = {
     customer: customerId,
     billingType: billing_type,
-    value: plano.preco_mensal,
+    value: valorMensal,
     nextDueDate: hoje,
     cycle: "MONTHLY",
-    // Plano é anual: 12 cobranças mensais de plano.preco_mensal (ex.: R$79 x 12 =
+    // Plano é anual: 12 cobranças mensais de valorMensal (ex.: R$79 x 12 =
     // R$948/ano) e a assinatura encerra sozinha — a Asaas não gera a 13ª cobrança.
     // Renovação é uma decisão de negócio separada, não automática aqui.
     maxPayments: 12,
     description: plano.pacientes_max
-      ? `${plano.nome} MARI | até ${plano.pacientes_max} pacientes`
-      : `${plano.nome} MARI`,
+      ? `${plano.nome} MARI | até ${plano.pacientes_max} pacientes${emPromocao ? " | lançamento 50%" : ""}`
+      : `${plano.nome} MARI${emPromocao ? " | lançamento 50%" : ""}`,
     externalReference: plano_slug,
   };
 
@@ -155,7 +169,7 @@ Deno.serve(async (req) => {
     return json({
       billing_type: "CREDIT_CARD",
       subscription_id: subscriptionId,
-      plano: { nome: plano.nome, preco: plano.preco_mensal },
+      plano: { nome: plano.nome, preco: valorMensal },
     });
   }
 
@@ -183,7 +197,7 @@ Deno.serve(async (req) => {
       pix_qr_code_image: pixData.encodedImage ?? null,
       pix_copia_cola: pixData.payload ?? null,
       expiration: pixData.expirationDate ?? null,
-      plano: { nome: plano.nome, preco: plano.preco_mensal },
+      plano: { nome: plano.nome, preco: valorMensal },
     });
   }
 
@@ -197,6 +211,6 @@ Deno.serve(async (req) => {
     boleto_linha_digitavel: boletoData.identificationField ?? null,
     boleto_pdf_url: payment.bankSlipUrl ?? null,
     due_date: payment.dueDate ?? hoje,
-    plano: { nome: plano.nome, preco: plano.preco_mensal },
+    plano: { nome: plano.nome, preco: valorMensal },
   });
 });

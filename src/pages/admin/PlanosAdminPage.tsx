@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CreditCard, Pencil, Loader2, AlertTriangle, Info, ExternalLink } from 'lucide-react';
+import { CreditCard, Pencil, Loader2, AlertTriangle, Info, ExternalLink, BadgePercent } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { usePromocaoLancamento, PROMOCAO_LANCAMENTO_QUERY_KEY } from '@/hooks/usePromocaoLancamento';
+import { DESCONTO_LANCAMENTO_PCT } from '@/lib/precoLancamento';
 
 interface Plano {
   id: string;
@@ -51,6 +53,29 @@ export default function PlanosAdminPage() {
   const [form, setForm] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
   const [confirmarReajuste, setConfirmarReajuste] = useState(false);
+  const { ativa: promoAtiva, carregando: promoCarregando } = usePromocaoLancamento();
+  const [promoSalvando, setPromoSalvando] = useState(false);
+
+  async function alternarPromocao(ligar: boolean) {
+    setPromoSalvando(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      // .select() para detectar UPDATE bloqueado (RLS devolve 0 linhas sem erro).
+      const { data: linhas, error } = await supabase
+        .from('promocao_lancamento')
+        .update({ ativa: ligar, updated_at: new Date().toISOString(), updated_by: auth.user?.id ?? null })
+        .eq('id', 1)
+        .select('id');
+      if (error) throw error;
+      if (!linhas || linhas.length === 0) throw new Error('sem permissão ou tabela ainda não criada (SQL)');
+      toast.success(ligar ? t('admin.planos.promoLigada') : t('admin.planos.promoDesligada'));
+      queryClient.invalidateQueries({ queryKey: PROMOCAO_LANCAMENTO_QUERY_KEY });
+    } catch (e) {
+      toast.error(t('admin.planos.promoErro', { error: (e as Error).message }));
+    } finally {
+      setPromoSalvando(false);
+    }
+  }
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-planos'],
@@ -176,6 +201,27 @@ export default function PlanosAdminPage() {
           {t('admin.planos.subtitle')}
         </p>
       </header>
+
+      <div className="mb-6 flex items-center gap-4 rounded-lg border-2 border-[#C6F432] bg-[#F7FEE7] p-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#C6F432]">
+          <BadgePercent className="h-5 w-5 text-[#1A2E05]" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-heading font-bold text-foreground">
+            {t('admin.planos.promoTitulo', { pct: DESCONTO_LANCAMENTO_PCT })}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t('admin.planos.promoAjuda', { pct: DESCONTO_LANCAMENTO_PCT })}
+          </p>
+        </div>
+        {promoSalvando && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />}
+        <Switch
+          checked={promoAtiva}
+          disabled={promoCarregando || promoSalvando}
+          onCheckedChange={(checked) => void alternarPromocao(checked)}
+          aria-label={t('admin.planos.promoTitulo', { pct: DESCONTO_LANCAMENTO_PCT })}
+        />
+      </div>
 
       {isLoading && (
         <div className="space-y-4">

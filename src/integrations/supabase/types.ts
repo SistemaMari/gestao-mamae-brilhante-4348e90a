@@ -1851,6 +1851,27 @@ export type Database = {
         }
         Relationships: []
       }
+      promocao_lancamento: {
+        Row: {
+          ativa: boolean
+          id: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ativa?: boolean
+          id?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ativa?: boolean
+          id?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profissionais: {
         Row: {
           acesso_revogado: boolean
