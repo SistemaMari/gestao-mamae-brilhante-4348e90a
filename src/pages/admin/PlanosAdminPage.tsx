@@ -29,6 +29,7 @@ interface Plano {
   preco_mensal: number;
   link_pagamento_asaas: string | null;
   parcela_12x_cartao: number | null;
+  parcela_12x_cartao_promo: number | null;
   metricas_habilitado: boolean;
   ordem: number;
 }
@@ -43,8 +44,17 @@ interface FormState {
   preco_original: number;
   link_pagamento_asaas: string;
   parcela_str: string;
+  parcela_promo_str: string;
   metricas_habilitado: boolean;
   propagacao: 'preservar' | 'reajustar';
+}
+
+// Dígitos + um separador decimal (vírgula vira ponto).
+function limparDecimal(valor: string) {
+  let v = valor.replace(/[^0-9.,]/g, '').replace(',', '.');
+  const p = v.split('.');
+  if (p.length > 2) v = `${p[0]}.${p.slice(1).join('')}`;
+  return v;
 }
 
 export default function PlanosAdminPage() {
@@ -85,7 +95,7 @@ export default function PlanosAdminPage() {
       const [resPlanos, resProfs] = await Promise.all([
         supabase
           .from('planos')
-          .select('id, slug, nome, pacientes_max, preco_mensal, link_pagamento_asaas, parcela_12x_cartao, metricas_habilitado, ordem')
+          .select('id, slug, nome, pacientes_max, preco_mensal, link_pagamento_asaas, parcela_12x_cartao, parcela_12x_cartao_promo, metricas_habilitado, ordem')
           .order('ordem', { ascending: true }),
         supabase.from('profissionais').select('plano_id'),
       ]);
@@ -113,6 +123,7 @@ export default function PlanosAdminPage() {
       preco_original: p.preco_mensal,
       link_pagamento_asaas: p.link_pagamento_asaas ?? '',
       parcela_str: p.parcela_12x_cartao != null ? String(p.parcela_12x_cartao) : '',
+      parcela_promo_str: p.parcela_12x_cartao_promo != null ? String(p.parcela_12x_cartao_promo) : '',
       metricas_habilitado: p.metricas_habilitado,
       propagacao: 'preservar',
     });
@@ -152,6 +163,7 @@ export default function PlanosAdminPage() {
           preco_mensal: preco,
           link_pagamento_asaas: form.link_pagamento_asaas.trim() || null,
           parcela_12x_cartao: form.parcela_str ? Number(form.parcela_str) || null : null,
+          parcela_12x_cartao_promo: form.parcela_promo_str ? Number(form.parcela_promo_str) || null : null,
           metricas_habilitado: form.metricas_habilitado,
         })
         .eq('id', form.id);
@@ -266,6 +278,9 @@ export default function PlanosAdminPage() {
                     : t('admin.planos.patientsUnlimited')} · {t('admin.planos.pricePerMonth', { preco: fmtPreco(p.preco_mensal) })}
                   {p.parcela_12x_cartao != null && (
                     <> · {t('admin.planos.installmentList', { valor: fmtPreco(p.parcela_12x_cartao) })}</>
+                  )}
+                  {p.parcela_12x_cartao_promo != null && (
+                    <> · {t('admin.planos.installmentPromoList', { valor: fmtPreco(p.parcela_12x_cartao_promo) })}</>
                   )}
                   {' · '}
                   <span className={p.metricas_habilitado ? 'text-secondary' : 'text-muted-foreground'}>
@@ -406,19 +421,28 @@ export default function PlanosAdminPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label>{t('admin.planos.installmentLabel')}</Label>
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="41,18"
-                  value={form.parcela_str}
-                  onChange={(e) => {
-                    let v = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
-                    const p = v.split('.');
-                    if (p.length > 2) v = `${p[0]}.${p.slice(1).join('')}`;
-                    setForm({ ...form, parcela_str: v });
-                  }}
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>{t('admin.planos.installmentLabel')}</Label>
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="82,36"
+                      value={form.parcela_str}
+                      onChange={(e) => setForm({ ...form, parcela_str: limparDecimal(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>{t('admin.planos.installmentPromoLabel')}</Label>
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="41,18"
+                      value={form.parcela_promo_str}
+                      onChange={(e) => setForm({ ...form, parcela_promo_str: limparDecimal(e.target.value) })}
+                    />
+                  </div>
+                </div>
                 <p className="text-xs text-muted-foreground">{t('admin.planos.installmentHelp')}</p>
               </div>
 
