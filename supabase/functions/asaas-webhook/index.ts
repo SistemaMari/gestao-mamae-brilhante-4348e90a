@@ -200,7 +200,8 @@ Deno.serve(async (req) => {
         return json({ error: "Plan missing in DB" }, 500);
       }
 
-      const camposProf = "id, user_id, data_inicio_assinatura, asaas_subscription_id, asaas_compra_id";
+      const camposProf =
+        "id, user_id, data_inicio_assinatura, asaas_subscription_id, asaas_compra_id, unidade_id, perfil_institucional";
 
       // Já é cliente? Pelo cliente Asaas e, se não achar, pelo e-mail: quem troca
       // de plano pelo link pode virar um cliente Asaas novo.
@@ -236,6 +237,29 @@ Deno.serve(async (req) => {
           return json({ error: "Failed to read profissionais" }, 500);
         }
         profExistente = porUsuario.data;
+      }
+
+      // 1 e-mail = 1 modelo (consultório OU institucional). A compra pelo link é de
+      // consultório: nunca altera conta institucional, de admin ou de gestor geral.
+      // O Asaas reaproveita o cliente pelo CPF (com o e-mail antigo), então uma
+      // compra nova pode apontar para uma dessas contas — fica para o admin resolver.
+      if (profExistente && (profExistente.unidade_id || profExistente.perfil_institucional)) {
+        return await ignorar(
+          `E-mail ${email} é de conta institucional (profissional ${profExistente.id}); liberar o acesso à mão`,
+          "ignored_institutional_account",
+        );
+      }
+      if (!profExistente && authUser) {
+        const [{ data: admin }, { data: gestorGeral }] = await Promise.all([
+          supabase.from("admins").select("id").eq("user_id", authUser.id).maybeSingle(),
+          supabase.from("gestores_gerais").select("id").eq("user_id", authUser.id).maybeSingle(),
+        ]);
+        if (admin || gestorGeral) {
+          return await ignorar(
+            `E-mail ${email} é de ${admin ? "admin" : "gestor geral"}; liberar o acesso à mão`,
+            "ignored_staff_account",
+          );
+        }
       }
 
       // Quem ainda não entrou nenhuma vez recebe o e-mail com o link de senha.
