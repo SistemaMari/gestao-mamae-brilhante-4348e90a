@@ -1025,7 +1025,7 @@
       "priceNewSubscriptions": "El precio es la referencia de la pantalla de planes — quien cobra es el enlace de Asaas.",
       "laudosPerMonthLabel": "Informes por mes",
       "priceLabel": "Precio (R$/mes)",
-      "priceInfo": "Este precio es la <strong>referencia</strong> que se muestra en la pantalla de planes (al contado = 12× este valor, con 50% de descuento si la promoción está activa). <strong>Quien cobra es el enlace de Asaas</strong>: cambiar el precio aquí no cambia lo que paga la clienta. Al cambiar el precio, cambie también el enlace y la cuota.",
+      "priceInfo": "Este precio es la <strong>referencia</strong> que se muestra en la pantalla de planes (al contado = 12× este valor, con 50% de descuento si la promoción está activa). <strong>Quien cobra es el enlace de Asaas</strong>: cambiar el precio aquí no cambia lo que paga la clienta. Al cambiar el precio, edite también el valor en el enlace de Asaas y las cuotas.",
       "paymentLinkLabel": "Enlace de pago (Asaas)",
       "openAsaasLink": "Abrir enlace de Asaas",
       "paymentLinkHelp": "El enlace que la clienta abre para pagar (asaas.com/.../c/...). Con él la MARI reconoce la compra y activa la cuenta. Al reemplazarlo, el enlace anterior sigue siendo reconocido.",
