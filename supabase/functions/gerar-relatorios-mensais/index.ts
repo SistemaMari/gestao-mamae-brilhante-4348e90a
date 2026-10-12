@@ -551,7 +551,7 @@ Deno.serve(async (req) => {
 
         // Salva via salvar-relatorio (passando service_role para o auth header)
         const fd = new FormData();
-        fd.append('pdf_file', new Blob([pdfBytes], { type: 'application/pdf' }), `relatorio-${unidade.id}.pdf`);
+        fd.append('pdf_file', new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' }), `relatorio-${unidade.id}.pdf`);
         fd.append('unidade_id', unidade.id as string);
         fd.append('gestor_id', SYSTEM_USER_UUID);
         fd.append('periodo_inicio', periodoInicio);
@@ -605,7 +605,7 @@ Deno.serve(async (req) => {
           const pdfBytes = await gerarPdfRelatorio({ metricas, periodoInicio, periodoFim, rotuloMes });
 
           const fd = new FormData();
-          fd.append('pdf_file', new Blob([pdfBytes], { type: 'application/pdf' }), `relatorio-${uni.id}.pdf`);
+          fd.append('pdf_file', new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' }), `relatorio-${uni.id}.pdf`);
           fd.append('unidade_id', uni.id as string);
           fd.append('gestor_id', SYSTEM_USER_UUID);
           fd.append('periodo_inicio', periodoInicio);
