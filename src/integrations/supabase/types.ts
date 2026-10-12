@@ -1812,6 +1812,7 @@ export type Database = {
           ordem: number
           pacientes_max: number | null
           parcela_12x_cartao: number | null
+          parcela_12x_cartao_promo: number | null
           preco_mensal: number
           slug: string
           suporte: string
@@ -1831,6 +1832,7 @@ export type Database = {
           ordem: number
           pacientes_max?: number | null
           parcela_12x_cartao?: number | null
+          parcela_12x_cartao_promo?: number | null
           preco_mensal: number
           slug: string
           suporte: string
@@ -1850,6 +1852,7 @@ export type Database = {
           ordem?: number
           pacientes_max?: number | null
           parcela_12x_cartao?: number | null
+          parcela_12x_cartao_promo?: number | null
           preco_mensal?: number
           slug?: string
           suporte?: string
