@@ -1,6 +1,7 @@
 import type * as React from 'npm:react@18.3.1'
 import { template as feedbackRecebido } from './feedback-recebido.tsx'
 import { template as planoAnualAcabando } from './plano-anual-acabando.tsx'
+import { template as acessoLiberado } from './acesso-liberado.tsx'
 
 export interface TemplateEntry {
   component: (props: any) => React.ReactElement
@@ -13,4 +14,5 @@ export interface TemplateEntry {
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'feedback-recebido': feedbackRecebido,
   'plano-anual-acabando': planoAnualAcabando,
+  'acesso-liberado': acessoLiberado,
 }

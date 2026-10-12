@@ -641,7 +641,17 @@
       "reactivateDesc": "The professional regains access to MARI. Plan and report limit are preserved as they were. The professional needs to log in again. If the Asaas subscription is canceled, remember to reactivate it there as well.",
       "reactivating": "Reactivating…",
       "reactivateAction": "Reactivate access",
-      "patientsQuota": "Patients registered"
+      "patientsQuota": "Patients registered",
+      "validUntil": "Access valid until",
+      "purchaseDate": "Period start",
+      "paymentsEmpty": "No Asaas payment linked to this account.",
+      "paymentsLoadError": "Could not load payments.",
+      "installment": "Installment {{n}}",
+      "resendAccess": "Resend access e-mail",
+      "resendAccessSuccess": "Access e-mail sent to {{email}}.",
+      "resendAccessError": "Could not send the access e-mail.",
+      "payStatus": { "PENDING": "Pending", "CONFIRMED": "Confirmed", "RECEIVED": "Received", "RECEIVED_IN_CASH": "Received", "OVERDUE": "Overdue", "REFUNDED": "Refunded", "REFUND_REQUESTED": "Refund requested", "REFUND_IN_PROGRESS": "Refund in progress", "CHARGEBACK_REQUESTED": "Chargeback", "CHARGEBACK_DISPUTE": "Chargeback", "DELETED": "Deleted" },
+      "payMethod": { "CREDIT_CARD": "Card", "PIX": "Pix", "BOLETO": "Boleto", "DEBIT_CARD": "Debit", "UNDEFINED": "—" }
     },
     "feedbacks": {
       "title": "Feedback",
@@ -1249,6 +1259,7 @@
       "statusActive": "Active",
       "statusLate": "Overdue",
       "statusNone": "No subscription",
+      "statusCanceled": "Canceled",
       "activity": "Activity",
       "lastReport": "Last report",
       "lastLogin": "Last login",

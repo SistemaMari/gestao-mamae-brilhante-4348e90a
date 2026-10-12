@@ -1,7 +1,10 @@
 // Edge Function: gerenciar-profissionais-consultorio
-// Ações admin: listar, cadastrar, editar, mudar_plano, revogar_acesso
+// Ações admin: listar, cadastrar, editar, mudar_plano, revogar_acesso,
+// historico_pagamentos, reenviar_acesso
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { montarHistoricoPagamentos } from "../_shared/historicoPagamentos.ts";
+import { enviarEmailAcesso } from "../_shared/emailAcesso.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -85,6 +88,7 @@ Deno.serve(async (req) => {
         .select(
           `id, nome, crm, especialidade, telefone, plano_id, plano_status,
            plano_expira_em, laudos_limite, laudos_usados, asaas_subscription_id,
+           asaas_customer_id, asaas_compra_id, data_inicio_assinatura, proxima_renovacao,
            acesso_revogado, created_at, user_id,
            planos:plano_id ( nome, preco_mensal, laudos_por_mes, pacientes_max )`
         )
@@ -151,6 +155,10 @@ Deno.serve(async (req) => {
           pacientes_max: p.planos?.pacientes_max ?? null,
           pacientes_usados: pacientesCount.get(p.id) ?? 0,
           asaas_subscription_id: p.asaas_subscription_id,
+          asaas_customer_id: p.asaas_customer_id,
+          asaas_compra_id: p.asaas_compra_id,
+          data_inicio_assinatura: p.data_inicio_assinatura,
+          proxima_renovacao: p.proxima_renovacao,
           acesso_revogado: p.acesso_revogado,
           convite_pendente: u ? !u.email_confirmed_at : false,
           ultimo_login: u?.last_sign_in_at ?? null,
@@ -413,6 +421,68 @@ Deno.serve(async (req) => {
         return erro("erro_interno", "Erro ao reativar.", 500);
       }
       return json({ status: "reativado" });
+    }
+
+    // ============ HISTÓRICO DE PAGAMENTOS ============
+    // Montado dos eventos que o webhook do Asaas grava (asaas_webhook_events).
+    if (acao === "historico_pagamentos_consultorio") {
+      const Schema = z.object({ profissional_id: z.string().uuid() });
+      const parsed = Schema.safeParse(body);
+      if (!parsed.success) return erro("validacao", "Dados inválidos.");
+
+      const { data: prof } = await supabaseAdmin
+        .from("profissionais")
+        .select("id, asaas_customer_id")
+        .eq("id", parsed.data.profissional_id)
+        .maybeSingle();
+      if (!prof) return erro("profissional_inexistente", "Profissional não encontrado.", 404);
+      if (!prof.asaas_customer_id) return json({ status: "ok", pagamentos: [] });
+
+      const { data: eventos, error: evErr } = await supabaseAdmin
+        .from("asaas_webhook_events")
+        .select("event_type, created_at, payload")
+        .like("event_type", "PAYMENT_%")
+        .eq("payload->payment->>customer", prof.asaas_customer_id)
+        .order("created_at", { ascending: true })
+        .limit(500);
+      if (evErr) {
+        console.error("[historico] err:", evErr);
+        return erro("erro_interno", "Erro ao carregar pagamentos.", 500);
+      }
+      return json({ status: "ok", pagamentos: montarHistoricoPagamentos(eventos ?? []) });
+    }
+
+    // ============ REENVIAR E-MAIL DE ACESSO ============
+    // Novo link para criar a senha (o anterior expira). Login = o e-mail da conta.
+    if (acao === "reenviar_acesso_consultorio") {
+      const Schema = z.object({ profissional_id: z.string().uuid() });
+      const parsed = Schema.safeParse(body);
+      if (!parsed.success) return erro("validacao", "Dados inválidos.");
+
+      const { data: prof } = await supabaseAdmin
+        .from("profissionais")
+        .select("id, user_id, nome, acesso_revogado, proxima_renovacao, planos:plano_id ( nome )")
+        .eq("id", parsed.data.profissional_id)
+        .maybeSingle();
+      if (!prof) return erro("profissional_inexistente", "Profissional não encontrado.", 404);
+      if (prof.acesso_revogado) return erro("acesso_revogado", "Acesso revogado: reative antes de reenviar.");
+
+      const { data: userData } = await supabaseAdmin.auth.admin.getUserById(prof.user_id);
+      const email = userData?.user?.email;
+      if (!email) return erro("sem_email", "Conta sem e-mail.", 400);
+
+      const erroEmail = await enviarEmailAcesso(supabaseAdmin, {
+        email,
+        nome: prof.nome,
+        nomePlano: (prof as any).planos?.nome ?? null,
+        validade: prof.proxima_renovacao ? new Date(prof.proxima_renovacao) : null,
+        idempotencyKey: `acesso-reenviado-${prof.id}-${Date.now()}`,
+      });
+      if (erroEmail) {
+        console.error("[reenviar_acesso] err:", erroEmail);
+        return erro("erro_email", "Não foi possível enviar o e-mail.", 500);
+      }
+      return json({ status: "reenviado", email });
     }
 
     return erro("acao_invalida", "Ação desconhecida.");

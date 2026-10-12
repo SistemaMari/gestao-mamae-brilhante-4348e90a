@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Pencil, Check, X as XIcon, ExternalLink, AlertCircle } from "lucide-react";
+import { Pencil, Check, X as XIcon, ExternalLink, AlertCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { maskTelBR } from "@/lib/cnpj";
 import { FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
@@ -35,6 +35,8 @@ export interface ProfissionalConsultorio {
   pacientes_usados: number;
   asaas_subscription_id: string | null;
   asaas_customer_id?: string | null;
+  asaas_compra_id?: string | null;
+  data_inicio_assinatura?: string | null;
   proxima_renovacao?: string | null;
   acesso_revogado: boolean;
   convite_pendente: boolean;
@@ -42,6 +44,17 @@ export interface ProfissionalConsultorio {
   ultimo_laudo: string | null;
   laudos_ultimos_30d: number;
   created_at: string;
+}
+
+// Linha do histórico (mesmo formato de supabase/functions/_shared/historicoPagamentos.ts).
+interface LinhaPagamento {
+  id: string;
+  data: string | null;
+  valor: number;
+  forma: string | null;
+  parcela: number | null;
+  status: string;
+  link: string | null;
 }
 
 type EditField = "nome" | "crm" | "especialidade" | "telefone" | null;
@@ -60,9 +73,43 @@ export default function DrawerProfissional({
   const [openRevogar, setOpenRevogar] = useState(false);
   const [openReativar, setOpenReativar] = useState(false);
 
+  const [reenviando, setReenviando] = useState(false);
+
   useEffect(() => { setEditing(null); }, [profissional?.id]);
 
+  const { data: pagamentos = [], isLoading: carregandoPagamentos, isError: erroPagamentos } = useQuery({
+    queryKey: ["pagamentos-consultorio", profissional?.id],
+    enabled: !!profissional?.asaas_customer_id,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke(
+        "gerenciar-profissionais-consultorio",
+        { body: { acao: "historico_pagamentos_consultorio", profissional_id: profissional!.id } }
+      );
+      if (error || data?.status === "erro") throw new Error(FALLBACK_GENERICO);
+      return (data?.pagamentos ?? []) as LinhaPagamento[];
+    },
+  });
+
   if (!profissional) return null;
+
+  const reenviarAcesso = async () => {
+    setReenviando(true);
+    const { data, error } = await supabase.functions.invoke(
+      "gerenciar-profissionais-consultorio",
+      { body: { acao: "reenviar_acesso_consultorio", profissional_id: profissional.id } }
+    );
+    setReenviando(false);
+    if (error || data?.status === "erro") {
+      toast.error(data?.mensagem || t("admin.profissionais.resendAccessError"));
+      return;
+    }
+    toast.success(t("admin.profissionais.resendAccessSuccess", { email: data?.email ?? profissional.email }));
+  };
+
+  const fmtDia = (d: string) =>
+    new Date(d.length === 10 ? `${d}T12:00:00` : d).toLocaleDateString(i18n.language);
+  const fmtValor = (v: number) =>
+    v.toLocaleString(i18n.language, { style: "currency", currency: "BRL" });
 
   const startEdit = (field: Exclude<EditField, null>) => {
     setEditing(field);
@@ -188,10 +235,20 @@ export default function DrawerProfissional({
                 <span className="text-muted-foreground">{t("common.status")}</span>
                 <span className="font-medium capitalize">{profissional.plano_status}</span>
               </div>
+              {profissional.data_inicio_assinatura && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t("admin.profissionais.purchaseDate")}</span>
+                  <span>{fmtDia(profissional.data_inicio_assinatura)}</span>
+                </div>
+              )}
               {profissional.proxima_renovacao && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("admin.profissionais.nextRenewal")}</span>
-                  <span>{new Date(profissional.proxima_renovacao).toLocaleDateString(i18n.language)}</span>
+                  <span className="text-muted-foreground">
+                    {profissional.asaas_subscription_id
+                      ? t("admin.profissionais.nextRenewal")
+                      : t("admin.profissionais.validUntil")}
+                  </span>
+                  <span>{fmtDia(profissional.proxima_renovacao)}</span>
                 </div>
               )}
             </div>
@@ -217,14 +274,48 @@ export default function DrawerProfissional({
             </Button>
           </section>
 
-          {/* Seção 3 — Histórico de Pagamentos */}
-          <section className="mt-6 rounded-lg border border-dashed border-[#E2E8F0] bg-slate-50 p-4">
-            <h3 className="font-[Sora] text-sm font-semibold text-slate-600 mb-1 flex items-center gap-1">
+          {/* Seção 3 — Histórico de Pagamentos (eventos do webhook do Asaas) */}
+          <section className="mt-6 rounded-lg border border-[#E2E8F0] bg-slate-50 p-4">
+            <h3 className="font-[Sora] text-sm font-semibold text-slate-600 mb-2 flex items-center gap-1">
               <AlertCircle className="h-4 w-4" /> {t("admin.profissionais.paymentsSection")}
             </h3>
-            <p className="text-xs text-muted-foreground">
-              {t("admin.profissionais.paymentsPlaceholder")}
-            </p>
+            {carregandoPagamentos && profissional.asaas_customer_id ? (
+              <p className="text-xs text-muted-foreground">{t("common.loading")}</p>
+            ) : erroPagamentos ? (
+              <p className="text-xs text-destructive">{t("admin.profissionais.paymentsLoadError")}</p>
+            ) : pagamentos.length === 0 ? (
+              <p className="text-xs text-muted-foreground">{t("admin.profissionais.paymentsEmpty")}</p>
+            ) : (
+              <ul className="divide-y divide-[#E2E8F0] text-xs">
+                {pagamentos.map((pg) => (
+                  <li key={pg.id} className="flex items-center justify-between gap-2 py-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-[#2A1B47]">
+                        {fmtValor(pg.valor)}
+                        <span className="ml-1 font-normal text-muted-foreground">
+                          · {t(`admin.profissionais.payMethod.${pg.forma ?? "UNDEFINED"}`, { defaultValue: pg.forma ?? "—" })}
+                          {pg.parcela ? ` · ${t("admin.profissionais.installment", { n: pg.parcela })}` : ""}
+                        </span>
+                      </p>
+                      <p className="text-muted-foreground">{pg.data ? fmtDia(pg.data) : "—"}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Badge variant="outline" className="whitespace-nowrap">
+                        {t(`admin.profissionais.payStatus.${pg.status}`, { defaultValue: pg.status })}
+                      </Badge>
+                      {pg.link && (
+                        <Button
+                          size="icon" variant="ghost" className="h-7 w-7"
+                          onClick={() => window.open(pg.link!, "_blank", "noopener")}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
             {profissional.asaas_customer_id && (
               <Button
                 size="sm" variant="outline" className="mt-3"
@@ -246,6 +337,15 @@ export default function DrawerProfissional({
               >
                 {t("admin.profissionais.changePlan")}
               </Button>
+              {!profissional.acesso_revogado && !profissional.ultimo_login && (
+                <Button
+                  variant="outline" className="w-full justify-start"
+                  onClick={reenviarAcesso}
+                  disabled={reenviando}
+                >
+                  <Mail className="h-4 w-4 mr-2" /> {t("admin.profissionais.resendAccess")}
+                </Button>
+              )}
               {profissional.acesso_revogado ? (
                 <Button
                   variant="outline" className="w-full justify-start border-blue-300 text-blue-700"
