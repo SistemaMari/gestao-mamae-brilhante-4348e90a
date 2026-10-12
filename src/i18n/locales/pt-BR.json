@@ -136,7 +136,7 @@
     "or": "ou",
     "signInWithGoogle": "Entrar com Google",
     "passwordMustBeDifferent": "A nova senha deve ser diferente da senha atual. Escolha outra.",
-    "passwordBreached": "Esta senha aparece em vazamentos públicos. Escolha uma senha mais forte.",
+    "passwordBreached": "Essa senha é muito comum e aparece em vazamentos (ex.: 123456). Escolha outra, misturando letras e números.",
     "passwordTooShort": "A senha não atende aos requisitos mínimos de tamanho.",
     "passwordMinLength": "A senha deve ter no mínimo 6 caracteres.",
     "invalidRecoveryLink": "Link de recuperação inválido ou expirado.",

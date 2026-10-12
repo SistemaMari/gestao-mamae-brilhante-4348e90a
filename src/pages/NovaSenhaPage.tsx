@@ -102,16 +102,18 @@ export default function NovaSenhaPage() {
 
     if (error) {
       const msg = (error.message || '').toLowerCase();
+      const code = (error as { code?: string }).code ?? '';
       console.error('[NovaSenha] updateUser error:', error);
-      if (msg.includes('expired') || msg.includes('jwt') || msg.includes('session')) {
-        setExpired(true);
-      } else if (msg.includes('different') || msg.includes('same as')) {
-        // A senha digitada já é a senha da conta (ex.: 2º clique em "Salvar"
-        // depois de o 1º já ter gravado): para quem está criando a senha, isso
-        // é sucesso, não erro.
-        setSuccess(true);
-      } else if (msg.includes('pwned') || msg.includes('compromis') || msg.includes('weak') || msg.includes('breach')) {
+      // A ordem importa: a recusa de senha fraca/vazada também diz "choose a
+      // different one" e NÃO grava nada — tem de vir antes do caso "mesma senha".
+      if (code === 'weak_password' || msg.includes('weak') || msg.includes('easy to guess') || msg.includes('pwned') || msg.includes('breach') || msg.includes('compromis')) {
         setError(t('auth.passwordBreached'));
+      } else if (code === 'same_password' || msg.includes('different from the old') || msg.includes('same as')) {
+        // A senha digitada já é a senha da conta (ex.: 2º clique em "Salvar"
+        // depois de o 1º já ter gravado): para quem está criando a senha, é sucesso.
+        setSuccess(true);
+      } else if (msg.includes('expired') || msg.includes('jwt') || msg.includes('session')) {
+        setExpired(true);
       } else if (msg.includes('characters') || msg.includes('length') || msg.includes('short')) {
         setError(t('auth.passwordTooShort'));
       } else {
