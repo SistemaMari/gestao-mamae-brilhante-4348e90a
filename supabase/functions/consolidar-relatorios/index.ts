@@ -50,7 +50,7 @@ function jsonResponse(body: Record<string, unknown>, status: number) {
 }
 
 function normalizarMetricas(raw: unknown): Metricas {
-  const out: Metricas = Object.fromEntries(METRIC_KEYS.map((k) => [k, 0])) as Metricas;
+  const out: Metricas = Object.fromEntries(METRIC_KEYS.map((k) => [k, 0])) as unknown as Metricas;
   if (!raw || typeof raw !== 'object') return out;
   const obj = raw as Record<string, unknown>;
   for (const k of METRIC_KEYS) {
@@ -62,7 +62,7 @@ function normalizarMetricas(raw: unknown): Metricas {
 }
 
 function somar(unidades: Array<{ metricas: Metricas }>): Metricas {
-  const total: Metricas = Object.fromEntries(METRIC_KEYS.map((k) => [k, 0])) as Metricas;
+  const total: Metricas = Object.fromEntries(METRIC_KEYS.map((k) => [k, 0])) as unknown as Metricas;
   for (const u of unidades) {
     for (const k of METRIC_KEYS) {
       // Para percentuais, recalcular depois — não somar
@@ -593,7 +593,7 @@ Deno.serve(async (req) => {
         pdfPath = `${baseDir}/consolidado.pdf`;
         const { error: upErr } = await admin.storage
           .from('consolidados')
-          .upload(pdfPath, new Blob([pdfBytes], { type: 'application/pdf' }), {
+          .upload(pdfPath, new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' }), {
             contentType: 'application/pdf',
             upsert: false,
           });

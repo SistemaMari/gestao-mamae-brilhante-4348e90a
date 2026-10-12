@@ -38,7 +38,10 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-type Admin = ReturnType<typeof createClient>;
+// O client de serviço roda com service_role e escapa do typegen: os chamadores
+// constroem clients com generics diferentes, então o parâmetro é intencionalmente
+// amplo — a validação de acesso é feita no banco (RLS/has_role), não no tipo.
+type Admin = any;
 
 // ----------------- Helpers -----------------
 

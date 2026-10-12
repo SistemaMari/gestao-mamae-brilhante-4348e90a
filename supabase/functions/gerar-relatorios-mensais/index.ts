@@ -79,7 +79,7 @@ export interface MetricasUnidade {
 }
 
 export async function agregarMetricas(
-  admin: ReturnType<typeof createClient>,
+  admin: any,
   unidadeId: string,
   unidadeNome: string,
   periodoInicio: string,
@@ -93,7 +93,7 @@ export async function agregarMetricas(
     .gte('created_at', `${periodoInicio}T00:00:00Z`)
     .lte('created_at', `${periodoFim}T23:59:59Z`);
 
-  const pacientesArr = pacientes ?? [];
+  const pacientesArr: any[] = pacientes ?? [];
   const total_gestantes = pacientesArr.length;
   const idsPacientes = pacientesArr.map((p) => p.id as string);
 
@@ -117,7 +117,7 @@ export async function agregarMetricas(
       .gte('created_at', `${periodoInicio}T00:00:00Z`)
       .lte('created_at', `${periodoFim}T23:59:59Z`);
 
-    const laudosArr = laudos ?? [];
+    const laudosArr: any[] = laudos ?? [];
     total_laudos = laudosArr.length;
 
     laudosArr.forEach((l) => {
@@ -149,7 +149,7 @@ export async function agregarMetricas(
       .select('paciente_id, tipo, status_gerado, cenario_clinico')
       .in('paciente_id', dmgIds);
 
-    const consultasArr = consultas ?? [];
+    const consultasArr: any[] = consultas ?? [];
     const retornoSet = new Set<string>();
     const gttSet = new Set<string>();
     consultasArr.forEach((c) => {
@@ -174,7 +174,7 @@ export async function agregarMetricas(
       .select('paciente_id, decisao, percentual_meta, data_fim')
       .in('paciente_id', idsPacientes);
 
-    const perfisArr = perfis ?? [];
+    const perfisArr: any[] = perfis ?? [];
     // Pega o perfil mais recente por paciente (data_fim DESC)
     const ultimoPorPaciente = new Map<string, { decisao: string | null; percentual_meta: number }>();
     perfisArr
@@ -209,7 +209,7 @@ export async function agregarMetricas(
     .gte('data_parto', periodoInicio)
     .lte('data_parto', periodoFim);
 
-  const partosArr = partos ?? [];
+  const partosArr: any[] = partos ?? [];
   const partos_registrados = partosArr.length;
   const partos_vaginal = partosArr.filter((p) => p.via_parto === 'vaginal').length;
   const partos_cesarea = partosArr.filter((p) => p.via_parto === 'cesarea').length;
@@ -529,7 +529,7 @@ Deno.serve(async (req) => {
       .eq('ativa', true);
 
     if (uniErr) throw uniErr;
-    const unidadesArr = unidades ?? [];
+    const unidadesArr: any[] = unidades ?? [];
 
     const resultados = {
       sucesso: [] as Array<{ unidade_id: string; relatorio_id: string; arquivo_path: string }>,
@@ -551,7 +551,7 @@ Deno.serve(async (req) => {
 
         // Salva via salvar-relatorio (passando service_role para o auth header)
         const fd = new FormData();
-        fd.append('pdf_file', new Blob([pdfBytes], { type: 'application/pdf' }), `relatorio-${unidade.id}.pdf`);
+        fd.append('pdf_file', new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' }), `relatorio-${unidade.id}.pdf`);
         fd.append('unidade_id', unidade.id as string);
         fd.append('gestor_id', SYSTEM_USER_UUID);
         fd.append('periodo_inicio', periodoInicio);
@@ -605,7 +605,7 @@ Deno.serve(async (req) => {
           const pdfBytes = await gerarPdfRelatorio({ metricas, periodoInicio, periodoFim, rotuloMes });
 
           const fd = new FormData();
-          fd.append('pdf_file', new Blob([pdfBytes], { type: 'application/pdf' }), `relatorio-${uni.id}.pdf`);
+          fd.append('pdf_file', new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' }), `relatorio-${uni.id}.pdf`);
           fd.append('unidade_id', uni.id as string);
           fd.append('gestor_id', SYSTEM_USER_UUID);
           fd.append('periodo_inicio', periodoInicio);
