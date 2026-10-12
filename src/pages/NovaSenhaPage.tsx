@@ -106,7 +106,10 @@ export default function NovaSenhaPage() {
       if (msg.includes('expired') || msg.includes('jwt') || msg.includes('session')) {
         setExpired(true);
       } else if (msg.includes('different') || msg.includes('same as')) {
-        setError(t('auth.passwordMustBeDifferent'));
+        // A senha digitada já é a senha da conta (ex.: 2º clique em "Salvar"
+        // depois de o 1º já ter gravado): para quem está criando a senha, isso
+        // é sucesso, não erro.
+        setSuccess(true);
       } else if (msg.includes('pwned') || msg.includes('compromis') || msg.includes('weak') || msg.includes('breach')) {
         setError(t('auth.passwordBreached'));
       } else if (msg.includes('characters') || msg.includes('length') || msg.includes('short')) {
