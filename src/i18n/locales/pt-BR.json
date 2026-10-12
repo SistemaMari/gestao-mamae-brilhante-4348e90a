@@ -641,7 +641,17 @@
       "reactivateDesc": "O profissional volta a ter acesso ao MARI. Plano e limite de laudos preservados como estavam. Profissional precisa fazer login de novo. Se a assinatura no Asaas estiver cancelada, lembre-se de reativar lá também.",
       "reactivating": "Reativando…",
       "reactivateAction": "Reativar acesso",
-      "patientsQuota": "Gestantes cadastradas"
+      "patientsQuota": "Gestantes cadastradas",
+      "validUntil": "Acesso válido até",
+      "purchaseDate": "Início do período",
+      "paymentsEmpty": "Nenhum pagamento do Asaas vinculado a esta conta.",
+      "paymentsLoadError": "Não foi possível carregar os pagamentos.",
+      "installment": "Parcela {{n}}",
+      "resendAccess": "Reenviar e-mail de acesso",
+      "resendAccessSuccess": "E-mail de acesso enviado para {{email}}.",
+      "resendAccessError": "Não foi possível enviar o e-mail de acesso.",
+      "payStatus": { "PENDING": "Pendente", "CONFIRMED": "Confirmado", "RECEIVED": "Recebido", "RECEIVED_IN_CASH": "Recebido", "OVERDUE": "Vencido", "REFUNDED": "Estornado", "REFUND_REQUESTED": "Estorno solicitado", "REFUND_IN_PROGRESS": "Estorno em andamento", "CHARGEBACK_REQUESTED": "Contestação", "CHARGEBACK_DISPUTE": "Contestação", "DELETED": "Removido" },
+      "payMethod": { "CREDIT_CARD": "Cartão", "PIX": "Pix", "BOLETO": "Boleto", "DEBIT_CARD": "Débito", "UNDEFINED": "—" }
     },
     "feedbacks": {
       "title": "Feedbacks",
@@ -1249,6 +1259,7 @@
       "statusActive": "Ativo",
       "statusLate": "Atrasado",
       "statusNone": "Sem assinatura",
+      "statusCanceled": "Cancelado",
       "activity": "Atividade",
       "lastReport": "Último laudo",
       "lastLogin": "Último login",

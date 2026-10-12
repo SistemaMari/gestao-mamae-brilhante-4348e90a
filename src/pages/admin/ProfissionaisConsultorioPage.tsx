@@ -15,6 +15,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Plus, Search, Users, UserCheck, Clock, DollarSign } from "lucide-react";
 import { FALLBACK_GENERICO, extrairErroEdge } from "@/lib/mensagensUnicidade";
+import { statusPagamentoConta } from "@/lib/statusPagamentoConta";
 import ModalCadastrarProfissionalConsultorio from "@/components/admin/profissionais/ModalCadastrarProfissionalConsultorio";
 import DrawerProfissional, {
   type ProfissionalConsultorio,
@@ -22,7 +23,7 @@ import DrawerProfissional, {
 
 type AtivField = "ultimo_laudo" | "ultimo_login";
 type Periodo = "todos" | "hoje" | "7d" | "30d" | "mais30" | "nunca";
-type StatusPgto = "todos" | "ativo" | "atrasado" | "sem";
+type StatusPgto = "todos" | "ativo" | "atrasado" | "cancelado" | "sem";
 
 function fmtData(d: string | null, locale: string) {
   if (!d) return "—";
@@ -102,12 +103,7 @@ export default function ProfissionaisConsultorioPage() {
     let r = [...profissionais];
     if (filtroPlano !== "todos") r = r.filter((p) => p.plano_id === filtroPlano);
     if (filtroStatus !== "todos") {
-      r = r.filter((p) => {
-        if (filtroStatus === "ativo") return p.plano_status === "ativo" && p.asaas_subscription_id;
-        if (filtroStatus === "atrasado") return p.plano_status === "inadimplente";
-        if (filtroStatus === "sem") return !p.asaas_subscription_id;
-        return true;
-      });
+      r = r.filter((p) => statusPagamentoConta(p) === filtroStatus);
     }
     if (periodo !== "todos") {
       r = r.filter((p) => dentroPeriodo(p[ativField], periodo));
@@ -163,6 +159,7 @@ export default function ProfissionaisConsultorioPage() {
                 <SelectItem value="todos">{t("common.all")}</SelectItem>
                 <SelectItem value="ativo">{t("admin.profissionaisConsultorio.statusActive")}</SelectItem>
                 <SelectItem value="atrasado">{t("admin.profissionaisConsultorio.statusLate")}</SelectItem>
+                <SelectItem value="cancelado">{t("admin.profissionaisConsultorio.statusCanceled")}</SelectItem>
                 <SelectItem value="sem">{t("admin.profissionaisConsultorio.statusNone")}</SelectItem>
               </SelectContent>
             </Select>
@@ -241,11 +238,12 @@ export default function ProfissionaisConsultorioPage() {
               <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">{t("admin.profissionaisConsultorio.noProfessionals")}</TableCell></TableRow>
             )}
             {linhas.map((p, idx) => {
-              const statusPgto = p.plano_status === "inadimplente"
-                ? <Badge className="bg-red-100 text-red-700 hover:bg-red-100">{t("admin.profissionaisConsultorio.statusLate")}</Badge>
-                : p.asaas_subscription_id
-                  ? <Badge className="bg-green-100 text-green-700 hover:bg-green-100">{t("admin.profissionaisConsultorio.statusActive")}</Badge>
-                  : <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t("admin.profissionaisConsultorio.statusNone")}</Badge>;
+              const statusPgto = {
+                atrasado: <Badge className="bg-red-100 text-red-700 hover:bg-red-100">{t("admin.profissionaisConsultorio.statusLate")}</Badge>,
+                cancelado: <Badge className="bg-red-100 text-red-700 hover:bg-red-100">{t("admin.profissionaisConsultorio.statusCanceled")}</Badge>,
+                ativo: <Badge className="bg-green-100 text-green-700 hover:bg-green-100">{t("admin.profissionaisConsultorio.statusActive")}</Badge>,
+                sem: <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">{t("admin.profissionaisConsultorio.statusNone")}</Badge>,
+              }[statusPagamentoConta(p)];
               return (
                 <TableRow
                   key={p.id}
