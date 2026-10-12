@@ -593,7 +593,7 @@ Deno.serve(async (req) => {
         pdfPath = `${baseDir}/consolidado.pdf`;
         const { error: upErr } = await admin.storage
           .from('consolidados')
-          .upload(pdfPath, new Blob([pdfBytes], { type: 'application/pdf' }), {
+          .upload(pdfPath, new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' }), {
             contentType: 'application/pdf',
             upsert: false,
           });

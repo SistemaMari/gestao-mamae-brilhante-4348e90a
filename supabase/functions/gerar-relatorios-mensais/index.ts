@@ -79,7 +79,7 @@ export interface MetricasUnidade {
 }
 
 export async function agregarMetricas(
-  admin: ReturnType<typeof createClient>,
+  admin: any,
   unidadeId: string,
   unidadeNome: string,
   periodoInicio: string,

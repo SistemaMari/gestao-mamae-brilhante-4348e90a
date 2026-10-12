@@ -90,8 +90,10 @@ function nomeArquivo(conteudo: string, formato: string, f: Filtros) {
 // ---------- Coleta de dados agregados ----------
 
 async function coletarDados(
-  admin: ReturnType<typeof createClient>,
-  userClient: ReturnType<typeof createClient>,
+  // Clients de serviço/construídos no chamador: amplamente tipados de propósito
+  // (a validação de admin é feita no banco via RPC SECURITY DEFINER).
+  admin: any,
+  userClient: any,
   conteudo: string,
   filtros: Filtros,
 ) {

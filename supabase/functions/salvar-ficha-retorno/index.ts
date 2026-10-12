@@ -46,6 +46,9 @@ interface GradeInput {
   percentual_meta?: number | null;
   decisao?: string | null;
   dose_insulina_calculada?: number | null;
+  // Contagem da grade (mesmos nomes da tabela perfis_glicemicos)
+  total_preenchidos?: number | null;
+  na_meta?: number | null;
   // Valores da grade. Quando omitido (undefined), valores existentes ficam INTACTOS.
   // Quando enviado como array (inclusive vazio), substitui (delete+insert).
   valores?: ValorPerfilInput[];

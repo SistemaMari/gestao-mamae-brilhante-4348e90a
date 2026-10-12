@@ -3,7 +3,7 @@
 //
 // Suporta criação individual e em lote. Retorna por item: { ok, email, motivo? }
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { sendLovableEmail } from "npm:@lovable.dev/email-js";
 
 const corsHeaders = {
