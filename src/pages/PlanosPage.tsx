@@ -29,6 +29,7 @@ interface Plano {
   ativo: boolean;
   link_pagamento_asaas: string | null;
   parcela_12x_cartao: number | null;
+  parcela_12x_cartao_promo: number | null;
   metricas_habilitado: boolean;
 }
 
@@ -177,7 +178,11 @@ export default function PlanosPage() {
               const precoEfetivo = promoAtiva ? precoLancamento(plano.preco_mensal) : plano.preco_mensal;
               const porGestante = precoPorGestante(precoEfetivo, plano.pacientes_max);
               // Parcela em 12× no cartão (com juros), copiada do link do Asaas em /admin/planos.
-              const parcela12x = plano.parcela_12x_cartao != null ? Number(plano.parcela_12x_cartao) : null;
+              // Promoção ligada → parcela da promoção; desligada → parcela do preço cheio.
+              // Sem parcela da promoção cadastrada, cai no "R$ X/ano" (nunca mistura
+              // parcela cheia com à vista promocional).
+              const parcelaBruta = promoAtiva ? plano.parcela_12x_cartao_promo : plano.parcela_12x_cartao;
+              const parcela12x = parcelaBruta != null ? Number(parcelaBruta) : null;
 
               const limitePacientes =
                 plano.pacientes_max === null
