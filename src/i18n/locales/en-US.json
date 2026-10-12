@@ -1025,7 +1025,7 @@
       "priceNewSubscriptions": "The price is the reference shown on the plans page — the Asaas link is what charges.",
       "laudosPerMonthLabel": "Reports per month",
       "priceLabel": "Price (R$/month)",
-      "priceInfo": "This price is the <strong>reference</strong> shown on the plans page (upfront = 12× this value, 50% off if the promotion is on). <strong>The Asaas link is what charges</strong>: changing the price here does not change what the customer pays. When you change the price, also replace the link and the installment.",
+      "priceInfo": "This price is the <strong>reference</strong> shown on the plans page (upfront = 12× this value, 50% off if the promotion is on). <strong>The Asaas link is what charges</strong>: changing the price here does not change what the customer pays. When you change the price, also edit the amount on the Asaas link and the installments.",
       "paymentLinkLabel": "Payment link (Asaas)",
       "openAsaasLink": "Open Asaas link",
       "paymentLinkHelp": "The link the customer opens to pay (asaas.com/.../c/...). MARI uses it to recognize the purchase and activate the account. When you replace it, the previous link is still recognized.",
