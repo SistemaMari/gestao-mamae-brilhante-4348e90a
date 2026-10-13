@@ -78,6 +78,26 @@ export interface MetricasUnidade {
   total_laudos: number;
 }
 
+// cenario_clinico é gravado CRU pelo gerar-laudo ('1','6','6B','8'...). Aceita
+// também o formato legado prefixado ('cenario_1') e o texto livre antigo
+// ("DMG confirmado", "overt"), para não zerar relatórios de dados antigos.
+// DMG = Retorno 1 (1) ou GTT (6 / 6B); overt (8) é contado à parte.
+const CENARIOS_DMG = new Set(['1', '6', '6b', 'cenario_1', 'cenario_6', 'cenario_6b']);
+const CENARIOS_OVERT = new Set(['8', 'cenario_8']);
+
+export function ehCenarioDmg(cenario: string | null | undefined): boolean {
+  const c = (cenario ?? '').trim().toLowerCase();
+  if (!c) return false;
+  if (CENARIOS_DMG.has(c)) return true;
+  return c.includes('dmg') && !c.includes('sem dmg') && !c.includes('não tem') && !c.includes('nao tem');
+}
+
+export function ehCenarioOvert(cenario: string | null | undefined): boolean {
+  const c = (cenario ?? '').trim().toLowerCase();
+  if (!c) return false;
+  return CENARIOS_OVERT.has(c) || c.includes('overt');
+}
+
 export async function agregarMetricas(
   admin: any,
   unidadeId: string,
@@ -121,13 +141,12 @@ export async function agregarMetricas(
     total_laudos = laudosArr.length;
 
     laudosArr.forEach((l) => {
-      const c = ((l.cenario_clinico as string | null) ?? '').toLowerCase();
+      const c = l.cenario_clinico as string | null;
       if (!c) return;
-      if (c.includes('overt')) {
+      if (ehCenarioOvert(c)) {
         overtSet.add(l.paciente_id as string);
       }
-      // DMG confirmado: cenário menciona dmg e NÃO inclui "sem dmg"/"nao tem"
-      if (c.includes('dmg') && !c.includes('sem dmg') && !c.includes('não tem') && !c.includes('nao tem')) {
+      if (ehCenarioDmg(c)) {
         dmgSet.add(l.paciente_id as string);
       }
     });
@@ -153,9 +172,7 @@ export async function agregarMetricas(
     const retornoSet = new Set<string>();
     const gttSet = new Set<string>();
     consultasArr.forEach((c) => {
-      const cc = ((c.cenario_clinico as string | null) ?? '').toLowerCase();
-      const isDmg = cc.includes('dmg') && !cc.includes('sem dmg');
-      if (!isDmg) return;
+      if (!ehCenarioDmg(c.cenario_clinico as string | null)) return;
       if (c.tipo === 'retorno_1') retornoSet.add(c.paciente_id as string);
       if (c.tipo === 'gtt') gttSet.add(c.paciente_id as string);
     });
@@ -465,10 +482,16 @@ Deno.serve(async (req) => {
   let periodoInicio: string;
   let periodoFim: string;
   let rotuloMes: string;
+  // Filtro opcional: gerar só para estas unidades (ex.: rede de demonstração).
+  // Sem o campo, comportamento original — todas as unidades ativas.
+  let unidadeIdsFiltro: string[] | null = null;
 
   try {
     if (req.method === 'POST' && req.headers.get('content-type')?.includes('application/json')) {
       const body = await req.json().catch(() => ({}));
+      if (Array.isArray(body.unidade_ids) && body.unidade_ids.length > 0) {
+        unidadeIdsFiltro = body.unidade_ids.map((x: unknown) => String(x));
+      }
       if (body.periodo_inicio && body.periodo_fim) {
         periodoInicio = body.periodo_inicio;
         periodoFim = body.periodo_fim;
@@ -523,10 +546,12 @@ Deno.serve(async (req) => {
 
   try {
     // Busca unidades ativas
-    const { data: unidades, error: uniErr } = await admin
+    let unidadesQuery = admin
       .from('unidades')
       .select('id, nome')
       .eq('ativa', true);
+    if (unidadeIdsFiltro) unidadesQuery = unidadesQuery.in('id', unidadeIdsFiltro);
+    const { data: unidades, error: uniErr } = await unidadesQuery;
 
     if (uniErr) throw uniErr;
     const unidadesArr: any[] = unidades ?? [];
