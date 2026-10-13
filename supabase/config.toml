@@ -17,6 +17,10 @@ project_id = "ywldvotfgbxufcyjdvnq"
     verify_jwt = false
   [functions.seed-test-accounts]
     verify_jwt = false
+  [functions.seed-rede-demo]
+    verify_jwt = false
+  [functions.seed-rede-demo-cleanup]
+    verify_jwt = false
   [functions.send-transactional-email]
     verify_jwt = true
   [functions.preview-transactional-email]
