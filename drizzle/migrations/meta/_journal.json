@@ -29,6 +29,13 @@
       "when": 1791767414041,
       "tag": "0003_planos_parcela_promo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791924210357,
+      "tag": "0004_fix_paineis_gestor_cenario_formato",
+      "breakpoints": true
     }
   ]
 }
