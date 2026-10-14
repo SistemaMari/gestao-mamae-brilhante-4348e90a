@@ -14,13 +14,13 @@ export const CONTRATANTE = {
   // CNPJ propositalmente inválido/fictício (não pertence a ninguém).
   cnpj: '99.999.999/0001-99',
   razao_social: 'Rede Demonstração MARI (organização fictícia)',
-  contato_nome: 'Dra. Regina Demonstração',
+  contato_nome: 'Regina Demonstração',
   contato_email: email('gestora.geral'),
 };
 
 export const GESTOR_GERAL = {
   email: email('gestora.geral'),
-  nome: 'Dra. Regina Demonstração',
+  nome: 'Regina Demonstração',
 };
 
 export type Especialidade =
@@ -71,7 +71,8 @@ export interface PerfilUnidade {
 export interface UnidadeSpec {
   chave: string;
   nome: string;
-  gestor: { nome: string; email: string; crm: string; especialidade: Especialidade };
+  /** Gestor de unidade: cargo administrativo — não atende gestantes, sem CRM. */
+  gestor: { nome: string; email: string };
   profissionais: ProfissionalSpec[];
   /** Convites ainda não aceitos (aparecem como "pendentes" na tela de equipe). */
   convitesPendentes: string[];
@@ -96,7 +97,7 @@ export const UNIDADES: UnidadeSpec[] = [
     // A melhor da rede: diagnóstico rápido (tempo até o 1º laudo ≤ 14 dias).
     chave: 'centro',
     nome: 'Unidade Centro',
-    gestor: { nome: 'Dr. Paulo Exemplo', email: email('gestor.centro'), crm: 'CRM DEMO 1000', especialidade: 'Ginecologista-Obstetra' },
+    gestor: { nome: 'Paulo Exemplo', email: email('gestor.centro') },
     profissionais: [
       prof('helena.modelo', 'Dra. Helena Modelo', 'Ginecologista-Obstetra', 1001),
       prof('marcos.amostra', 'Dr. Marcos Amostra', 'Endocrinologista', 1002),
@@ -114,7 +115,7 @@ export const UNIDADES: UnidadeSpec[] = [
     // Sem endocrinologista na equipe (há um convite pendente para um).
     chave: 'norte',
     nome: 'Unidade Norte',
-    gestor: { nome: 'Dra. Sandra Exemplo', email: email('gestor.norte'), crm: 'CRM DEMO 2000', especialidade: 'Clínico Geral' },
+    gestor: { nome: 'Sandra Exemplo', email: email('gestor.norte') },
     profissionais: [
       prof('beatriz.modelo', 'Dra. Beatriz Modelo', 'Ginecologista-Obstetra', 2001),
       prof('rafael.amostra', 'Dr. Rafael Amostra', 'Clínico Geral', 2002),
@@ -131,7 +132,7 @@ export const UNIDADES: UnidadeSpec[] = [
     // Diagnóstico tardio: tempo até o 1º laudo acima de 30 dias, GTT depois de 28 sem.
     chave: 'sul',
     nome: 'Unidade Sul',
-    gestor: { nome: 'Dr. André Exemplo', email: email('gestor.sul'), crm: 'CRM DEMO 3000', especialidade: 'Ginecologista-Obstetra' },
+    gestor: { nome: 'André Exemplo', email: email('gestor.sul') },
     profissionais: [
       prof('patricia.modelo', 'Dra. Patrícia Modelo', 'Ginecologista-Obstetra', 3001),
       prof('eduardo.amostra', 'Dr. Eduardo Amostra', 'Endocrinologista', 3002),
@@ -148,7 +149,7 @@ export const UNIDADES: UnidadeSpec[] = [
     // Taxa de diagnóstico bem abaixo da faixa esperada (subnotificação).
     chave: 'leste',
     nome: 'Unidade Leste',
-    gestor: { nome: 'Dra. Cláudia Exemplo', email: email('gestor.leste'), crm: 'CRM DEMO 4000', especialidade: 'Ginecologista-Obstetra' },
+    gestor: { nome: 'Cláudia Exemplo', email: email('gestor.leste') },
     profissionais: [
       prof('roberto.amostra', 'Dr. Roberto Amostra', 'Clínico Geral', 4001),
       prof('juliana.modelo', 'Dra. Juliana Modelo', 'Médico de Família', 4002),
@@ -166,7 +167,7 @@ export const UNIDADES: UnidadeSpec[] = [
     // Unidade menor; um profissional sem uso recente.
     chave: 'oeste',
     nome: 'Unidade Oeste',
-    gestor: { nome: 'Dr. Sérgio Exemplo', email: email('gestor.oeste'), crm: 'CRM DEMO 5000', especialidade: 'Ginecologista-Obstetra' },
+    gestor: { nome: 'Sérgio Exemplo', email: email('gestor.oeste') },
     profissionais: [
       prof('carla.modelo', 'Dra. Carla Modelo', 'Ginecologista-Obstetra', 5001),
       prof('vinicius.amostra', 'Dr. Vinícius Amostra', 'Endocrinologista', 5002),
