@@ -155,6 +155,13 @@
       "when": 1792017988824,
       "tag": "0021_relatorios_gestor_geral",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792020736470,
+      "tag": "0022_relatorio_mensal_dados",
+      "breakpoints": true
     }
   ]
 }
