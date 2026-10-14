@@ -1,12 +1,15 @@
 import { Building2, Mail, ShieldCheck } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { ResumoSemanalToggle } from "@/components/ResumoSemanalToggle";
 
 export default function ConfiguracoesGestorGeralPage() {
   const { gestor, unidades, contratantes } = useFiltrosGestorGeral();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const isVitrine = useLocation().pathname.startsWith("/vitrine");
 
   return (
     <div className="space-y-5 max-w-3xl">
@@ -55,6 +58,17 @@ export default function ConfiguracoesGestorGeralPage() {
             <li key={u.id} className="truncate">• {u.nome}</li>
           ))}
         </ul>
+      </div>
+
+      <div className="rounded-xl border border-border bg-white p-5 shadow-sm space-y-3">
+        <div className="flex items-start gap-3">
+          <Mail className="h-5 w-5 text-[#7E69AB] mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-[#1E293B]">{t('gestao.configuracoes.resumoSemanalTitle')}</p>
+            <p className="text-xs text-[#64748B]">{t('gestao.configuracoes.resumoSemanalSubtitle')}</p>
+          </div>
+        </div>
+        <ResumoSemanalToggle vitrine={isVitrine} descricao={t('gestao.configuracoes.resumoSemanalDescricaoGestorGeral')} />
       </div>
 
       <div className="rounded-lg border border-[#E8E0FF] bg-[#FAF8FF] p-4 text-xs text-[#475569]">

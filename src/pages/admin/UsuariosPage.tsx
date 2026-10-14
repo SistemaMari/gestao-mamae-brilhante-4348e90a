@@ -18,10 +18,11 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { encontrarUnidadeImportacao } from "@/lib/encontrarUnidadeImportacao";
 
 type Perfil = "admin" | "consultorio" | "institucional" | "gestor" | "gestor_geral";
 
-interface Unidade { id: string; nome: string; }
+interface Unidade { id: string; nome: string; contratante_nome: string | null; }
 interface Plano { id: string; slug: string; nome: string; }
 
 interface ItemLista {
@@ -64,10 +65,15 @@ export default function UsuariosPage() {
   useEffect(() => {
     (async () => {
       const [u, p] = await Promise.all([
-        supabase.from("unidades").select("id, nome").order("nome"),
+        supabase.from("unidades").select("id, nome, ativa, contratantes(nome, status)").order("nome"),
         supabase.from("planos").select("id, slug, nome").order("ordem"),
       ]);
-      setUnidades(u.data ?? []);
+      // Só unidades ativas de redes não encerradas (o servidor também recusa as outras).
+      setUnidades(
+        (u.data ?? [])
+          .filter((x) => x.ativa !== false && x.contratantes?.status !== "encerrado")
+          .map((x) => ({ id: x.id, nome: x.nome, contratante_nome: x.contratantes?.nome ?? null })),
+      );
       setPlanos(p.data ?? []);
       setCarregandoMeta(false);
     })();
@@ -226,10 +232,15 @@ function FormIndividual({
               <SelectTrigger><SelectValue placeholder={t("admin.usuarios.selectPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {unidades.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.contratante_nome ? `${u.nome} — ${u.contratante_nome}` : u.nome}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {perfil === "gestor_geral" && (
+              <p className="text-xs text-[#64748B]">{t("admin.usuarios.ggUnitHint")}</p>
+            )}
           </div>
         )}
       </div>
@@ -264,12 +275,6 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
   const [enviando, setEnviando] = useState(false);
   const [resultados, setResultados] = useState<Resultado[]>([]);
 
-  const unidadePorNome = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const u of unidades) m.set(u.nome.trim().toLowerCase(), u.id);
-    return m;
-  }, [unidades]);
-
   const planoSlugs = useMemo(() => new Set(planos.map((p) => p.slug)), [planos]);
 
   function parsear() {
@@ -289,7 +294,7 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
         });
         continue;
       }
-      const [nome, email, perfilStr, planoStr = "-", unidadeStr = "-"] = partes;
+      const [nome, email, perfilStr, planoStr = "-", unidadeStr = "-", redeStr = ""] = partes;
       let erro: string | undefined;
 
       const perfil = perfilStr.toLowerCase().replace(/-/g, "_") as Perfil;
@@ -312,9 +317,12 @@ Moara Souza, gestaodaoh@gmail.com, consultorio, profissional, -`
         if (!unidadeStr || unidadeStr === "-") {
           erro = erro ?? t("admin.usuarios.errUnitRequired");
         } else {
-          const id = unidadePorNome.get(unidadeStr.toLowerCase());
-          if (!id) erro = erro ?? t("admin.usuarios.errUnitNotFound", { value: unidadeStr });
-          else unidadeId = id;
+          // Unidade pela rede + nome (antes só pelo nome, entre todas as redes).
+          const r = encontrarUnidadeImportacao(unidades, unidadeStr, redeStr === "-" ? "" : redeStr);
+          if (r.erro === "naoEncontrada") erro = erro ?? t("admin.usuarios.errUnitNotFound", { value: unidadeStr });
+          else if (r.erro === "ambigua") erro = erro ?? t("importar.err.unidadeAmbigua");
+          else if (r.erro === "redeNaoEncontrada") erro = erro ?? t("importar.err.redeNaoEncontrada");
+          else unidadeId = r.id;
         }
       }
       if (!nome) erro = erro ?? t("admin.usuarios.errEmptyName");

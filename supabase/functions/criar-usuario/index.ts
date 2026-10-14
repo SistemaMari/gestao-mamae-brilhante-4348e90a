@@ -2,6 +2,11 @@
 // e-mail de convite direto via sendLovableEmail (sem depender do auth hook ou pg_cron).
 //
 // Suporta criação individual e em lote. Retorna por item: { ok, email, motivo? }
+//
+// Regras da hierarquia (15/out/2026): uma conta = um papel (e-mail já cadastrado
+// é recusado, nunca apagado/sobrescrito — exceto reenvio do convite para a mesma
+// conta e papel que ainda não entrou); unidade ativa de rede não encerrada; no
+// máximo 1 gestor ativo por unidade; gestor geral ligado à REDE da unidade.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { sendLovableEmail } from "npm:@lovable.dev/email-js";
@@ -67,6 +72,34 @@ function validar(item: ItemEntrada): string | null {
     return "Unidade obrigatória para esse perfil.";
   }
   return null;
+}
+
+const ROTULO_PERFIL: Record<Perfil, string> = {
+  admin: "admin",
+  consultorio: "profissional de consultório",
+  institucional: "profissional de unidade",
+  gestor: "gestor de unidade",
+  gestor_geral: "gestor geral",
+};
+
+// Papéis que a conta já tem no MARI (uma pessoa = um papel; ver auditoria da hierarquia).
+// deno-lint-ignore no-explicit-any
+async function papeisDoUsuario(sb: any, userId: string) {
+  const [a, g, p] = await Promise.all([
+    sb.from("admins").select("id").eq("user_id", userId).maybeSingle(),
+    sb.from("gestores_gerais").select("id").eq("user_id", userId).maybeSingle(),
+    sb.from("profissionais").select("id, unidade_id, perfil_institucional").eq("user_id", userId).maybeSingle(),
+  ]);
+  const papeis: Array<{ perfil: Perfil; unidade_id: string | null }> = [];
+  if (a.data) papeis.push({ perfil: "admin", unidade_id: null });
+  if (g.data) papeis.push({ perfil: "gestor_geral", unidade_id: null });
+  if (p.data) {
+    papeis.push({
+      perfil: (p.data.perfil_institucional ?? "consultorio") as Perfil,
+      unidade_id: p.data.unidade_id ?? null,
+    });
+  }
+  return papeis;
 }
 
 Deno.serve(async (req) => {
@@ -146,6 +179,9 @@ Deno.serve(async (req) => {
         plano_slug: itemRaw.plano_slug ?? null,
         unidade_id: itemRaw.unidade_id ?? null,
       };
+      // Consultório e admin não têm unidade (antes a unidade ia junto e a conta
+      // ficava "com unidade mas sem perfil institucional").
+      if (item.perfil === "consultorio" || item.perfil === "admin") item.unidade_id = null;
       const erroValid = validar(item);
       if (erroValid) {
         resultados.push({ email: item.email, ok: false, motivo: erroValid });
@@ -153,25 +189,68 @@ Deno.serve(async (req) => {
       }
 
       try {
-        // já existe?
-        let userId = emailToUserId.get(item.email);
-        if (userId) {
-          // Usuário existe — verifica se nunca fez login (criado pelo fluxo antigo
-          // sem convite). Nesse caso é seguro deletar e re-convidar para que o email
-          // de convite seja enviado corretamente.
-          const existingAuthUser = authList?.users?.find((u) => u.id === userId);
-          const hasLoggedIn = existingAuthUser?.last_sign_in_at != null;
-          if (!hasLoggedIn) {
-            // Limpa registros de perfil (se existirem) e deleta o auth user
-            await supabaseAdmin.from("profissionais").delete().eq("user_id", userId);
-            await supabaseAdmin.from("admins").delete().eq("user_id", userId);
-            await supabaseAdmin.from("gestores_gerais").delete().eq("user_id", userId);
-            await supabaseAdmin.auth.admin.deleteUser(userId);
-            userId = undefined; // cai no bloco de criação abaixo
+        const falhar = (motivo: string) => resultados.push({ email: item.email, ok: false, motivo });
+
+        // Unidade: precisa existir, estar ativa e a rede não pode estar encerrada.
+        // deno-lint-ignore no-explicit-any
+        let unidade: any = null;
+        if (item.unidade_id) {
+          const { data: u } = await supabaseAdmin
+            .from("unidades")
+            .select("id, nome, ativa, contratante_id, contratantes(nome, status)")
+            .eq("id", item.unidade_id)
+            .maybeSingle();
+          if (!u) { falhar("Unidade não encontrada."); continue; }
+          if (u.ativa === false) { falhar(`A unidade ${u.nome} está inativa.`); continue; }
+          if (!u.contratante_id) { falhar(`A unidade ${u.nome} não está ligada a nenhuma rede.`); continue; }
+          // deno-lint-ignore no-explicit-any
+          if ((u as any).contratantes?.status === "encerrado") {
+            falhar(`A rede da unidade ${u.nome} está encerrada.`);
+            continue;
+          }
+          unidade = u;
+        }
+
+        // Gestor de unidade: no máximo um gestor ativo por unidade.
+        if (item.perfil === "gestor") {
+          const { data: atual } = await supabaseAdmin
+            .from("profissionais")
+            .select("id, nome")
+            .eq("unidade_id", item.unidade_id!)
+            .eq("perfil_institucional", "gestor")
+            .eq("acesso_revogado", false)
+            .limit(1)
+            .maybeSingle();
+          if (atual) {
+            falhar(`A unidade ${unidade?.nome ?? ""} já tem gestor ativo (${atual.nome}). Para trocar, use Institucional → Unidades → trocar gestor.`);
+            continue;
           }
         }
 
-        if (!userId) {
+        // E-mail já existe? Nunca apaga nem sobrescreve uma conta com papel:
+        // antes, conta sem login era APAGADA (com o papel que tinha) e conta com
+        // login tinha unidade/papel sobrescritos — uma transferência sem as regras.
+        let userId = emailToUserId.get(item.email);
+        let criadoAgora = false;
+        let soReenviar = false;
+        if (userId) {
+          const papeis = await papeisDoUsuario(supabaseAdmin, userId);
+          if (papeis.length > 0) {
+            const jaLogou = authList?.users?.find((u) => u.id === userId)?.last_sign_in_at != null;
+            const mesmoPapel =
+              papeis.length === 1 &&
+              papeis[0].perfil === item.perfil &&
+              (item.perfil === "gestor_geral" || papeis[0].unidade_id === item.unidade_id);
+            if (mesmoPapel && !jaLogou) {
+              soReenviar = true; // mesma conta, mesmo papel, nunca entrou: só reenvia o convite
+            } else {
+              const rotulos = papeis.map((p) => ROTULO_PERFIL[p.perfil] ?? p.perfil).join(" e ");
+              falhar(`Este e-mail já tem acesso ao MARI como ${rotulos}. Para mudar de unidade ou de papel, use as telas de Institucional (transferir profissional / trocar gestor).`);
+              continue;
+            }
+          }
+          // Conta sem nenhum papel: reaproveita (cria o papel abaixo).
+        } else {
           // Cria conta confirmada sem senha — o profissional define a senha
           // clicando no link do email de convite que enviamos abaixo.
           const { data: created, error: createErr } =
@@ -181,72 +260,72 @@ Deno.serve(async (req) => {
               user_metadata: { nome: item.nome },
             });
           if (createErr || !created?.user) {
-            resultados.push({
-              email: item.email,
-              ok: false,
-              motivo: createErr?.message ?? "Falha ao criar usuário.",
-            });
+            falhar(createErr?.message ?? "Falha ao criar usuário.");
             continue;
           }
           userId = created.user.id;
+          criadoAgora = true;
         }
 
-        // cria registros de perfil conforme tipo
+        // Cria o papel conforme o perfil, conferindo cada gravação (antes os
+        // erros eram ignorados e a tela dizia "conta criada" mesmo sem papel).
+        let erroPapel: string | null = null;
         if (item.perfil === "admin") {
-          await supabaseAdmin
-            .from("admins")
-            .upsert({ user_id: userId, nome: item.nome }, { onConflict: "user_id" });
+          if (!soReenviar) {
+            const { error } = await supabaseAdmin
+              .from("admins")
+              .upsert({ user_id: userId, nome: item.nome }, { onConflict: "user_id" });
+            if (error) erroPapel = error.message;
+          }
         } else if (item.perfil === "gestor_geral") {
-          await supabaseAdmin
-            .from("gestores_gerais")
-            .upsert({ user_id: userId, nome: item.nome }, { onConflict: "user_id" });
-          if (item.unidade_id) {
-            const { data: gg } = await supabaseAdmin
+          if (!soReenviar) {
+            const { error } = await supabaseAdmin
               .from("gestores_gerais")
-              .select("id")
-              .eq("user_id", userId)
-              .maybeSingle();
-            if (gg?.id) {
-              await supabaseAdmin
-                .from("gestores_gerais_unidades")
-                .insert({ gestor_geral_id: gg.id, unidade_id: item.unidade_id })
-                .select()
-                .maybeSingle();
+              .upsert({ user_id: userId, nome: item.nome }, { onConflict: "user_id" });
+            if (error) erroPapel = error.message;
+          }
+          // O gestor geral é ligado à REDE da unidade escolhida (os gatilhos dão
+          // acesso a todas as unidades dela). Antes ligava só a unidade, direto,
+          // fora do vínculo com a rede.
+          if (!erroPapel && unidade?.contratante_id) {
+            const { data: gg } = await supabaseAdmin
+              .from("gestores_gerais").select("id").eq("user_id", userId).maybeSingle();
+            if (!gg?.id) {
+              erroPapel = "gestor geral não encontrado após a criação.";
+            } else {
+              const { error } = await supabaseAdmin
+                .from("gestores_gerais_contratantes")
+                .upsert(
+                  { gestor_geral_id: gg.id, contratante_id: unidade.contratante_id },
+                  { onConflict: "gestor_geral_id,contratante_id", ignoreDuplicates: true },
+                );
+              if (error) erroPapel = error.message;
             }
           }
-        } else {
+        } else if (!soReenviar) {
           // consultorio | institucional | gestor → tabela profissionais
           const planoSlug = item.plano_slug || "inicial";
           const planoId = planoSlugToId.get(planoSlug);
           const perfilInst =
             item.perfil === "consultorio" ? null : item.perfil; // 'gestor' | 'institucional'
-
-          // upsert por user_id (cria se não houver)
-          const { data: existing } = await supabaseAdmin
-            .from("profissionais")
-            .select("id")
-            .eq("user_id", userId)
-            .maybeSingle();
-
-          if (existing) {
-            await supabaseAdmin
-              .from("profissionais")
-              .update({
-                nome: item.nome,
-                perfil_institucional: perfilInst,
-                unidade_id: item.unidade_id ?? null,
-                plano_id: planoId,
-              })
-              .eq("id", existing.id);
-          } else {
-            await supabaseAdmin.from("profissionais").insert({
-              user_id: userId,
-              nome: item.nome,
-              perfil_institucional: perfilInst,
-              unidade_id: item.unidade_id ?? null,
-              plano_id: planoId,
-            });
+          const { error } = await supabaseAdmin.from("profissionais").insert({
+            user_id: userId,
+            nome: item.nome,
+            perfil_institucional: perfilInst,
+            unidade_id: item.unidade_id ?? null,
+            plano_id: planoId,
+          });
+          if (error) {
+            erroPapel = error.code === "23505" && item.perfil === "gestor"
+              ? "a unidade já tem gestor ativo. Para trocar, use Institucional → Unidades → trocar gestor."
+              : error.message;
           }
+        }
+        if (erroPapel) {
+          // Não deixa conta "solta", sem papel.
+          if (criadoAgora && userId) await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => {});
+          falhar(`Não foi possível criar o acesso: ${erroPapel}`);
+          continue;
         }
 
         // Gera link de definição de senha e envia email de convite diretamente.
