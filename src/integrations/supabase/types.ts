@@ -2585,9 +2585,26 @@ export type Database = {
       }
     }
     Functions: {
+      _partos_gg: {
+        Args: { p_fim: string; p_inicio: string; p_unidades: string[] }
+        Returns: {
+          media_fechamento: number
+          partos: number
+          unidade_id: string
+        }[]
+      }
       _pode_ver_unidade: {
         Args: { _unidade: string; _user: string }
         Returns: boolean
+      }
+      _rastreio_dmg_gg: {
+        Args: { p_fim: string; p_inicio: string; p_unidades: string[] }
+        Returns: {
+          dmg: number
+          overt: number
+          rastreadas: number
+          unidade_id: string
+        }[]
       }
       _unidades_gg: {
         Args: { _unidades: string[]; _user: string }

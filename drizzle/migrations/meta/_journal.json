@@ -71,6 +71,13 @@
       "when": 1791995934729,
       "tag": "0009_pin_search_path_gargalos_detalhado",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791997901492,
+      "tag": "0010_metricas_gestores_dmg_partos_overt",
+      "breakpoints": true
     }
   ]
 }
