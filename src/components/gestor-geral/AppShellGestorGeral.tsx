@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutGrid, FileBarChart, Activity, BarChart3, Settings, LogOut, Briefcase, Loader2, PlayCircle } from "lucide-react";
+import { LayoutGrid, FileBarChart, Activity, BarChart3, Settings, Loader2, PlayCircle, UserRound } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,7 +14,8 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { SidebarLogo, SidebarRodapeUsuario } from "@/components/shell/SidebarMarca";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -27,28 +28,16 @@ const buildItems = (base: string, t: (key: string) => string) => [
   // Tutorial só no app real; a vitrine não tem rota /vitrine/consolidar/tutorial.
   ...(base.startsWith("/vitrine")
     ? []
-    : [{ title: t("gestorGeral.appShell.navTutorial"), path: `${base}/tutorial`, icon: PlayCircle, exact: false }]),
+    : [{ title: t("gestorGeral.appShell.navTutorial"), path: `${base}/tutorial`, icon: PlayCircle, exact: false, separar: true }]),
 ];
-
-function iniciais(nome?: string | null) {
-  if (!nome) return "GG";
-  return nome
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}
 
 function GestorGeralSidebar({
   nome,
-  detalhe,
   email,
   basePath,
   onSair,
 }: {
   nome: string;
-  detalhe: string;
   email: string;
   basePath: string;
   onSair: () => void;
@@ -58,7 +47,7 @@ function GestorGeralSidebar({
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
   const items = buildItems(basePath, t);
-
+  const isVitrine = basePath.startsWith("/vitrine");
   const isActive = (url: string, exact: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(`${url}/`);
 
@@ -73,75 +62,48 @@ function GestorGeralSidebar({
         ["--sidebar-accent-foreground" as string]: "260 25% 54%",
       }}
     >
-      <SidebarContent className="bg-white border-r border-[#E2E8F0] flex flex-col overflow-hidden">
-        <div className="border-b border-[#E2E8F0] p-4">
-          <div className="flex items-center gap-3">
-            <div
-              className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-white font-semibold text-sm"
-              style={{ background: "linear-gradient(135deg, #7E69AB, #9b87f5)", fontFamily: "Sora, sans-serif" }}
-            >
-              {iniciais(nome)}
-            </div>
-            {!collapsed && (
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
-                  {nome || "—"}
-                </p>
-                <p className="text-xs text-[#7E69AB]">{t("gestorGeral.appShell.roleLabel")}</p>
-              </div>
-            )}
-          </div>
-          {!collapsed && detalhe && (
-            <div className="mt-3 flex items-center gap-2 text-xs text-[#64748B]">
-              <Briefcase className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{detalhe}</span>
-            </div>
-          )}
-        </div>
-
-        <SidebarGroup className="flex-1 min-h-0 overflow-y-auto">
+      <SidebarLogo collapsed={collapsed} />
+      <SidebarContent className="bg-white border-r border-[#E2E8F0]">
+        <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
                 const active = isActive(item.path, item.exact);
                 return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={active}>
-                      <NavLink
-                        to={item.path}
-                        end={item.exact}
-                        className={
-                          active
-                            ? "flex items-center gap-3 bg-[#E8E0FF] text-[#7E69AB] font-medium rounded-md"
-                            : "flex items-center gap-3 text-[#64748B] hover:bg-[#F1F5F9] rounded-md"
-                        }
-                      >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span className="text-sm">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <div key={item.path}>
+                    {"separar" in item && item.separar && <div className="my-1 border-t border-[#E2E8F0]" />}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={active}>
+                        <NavLink
+                          to={item.path}
+                          end={item.exact}
+                          className={
+                            active
+                              ? "flex items-center gap-3 bg-[#E8E0FF] text-[#7E69AB] font-medium rounded-md"
+                              : "flex items-center gap-3 text-[#64748B] hover:bg-[#F1F5F9] rounded-md"
+                          }
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="text-sm">{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </div>
                 );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <div className="shrink-0 border-t border-[#E2E8F0] p-3 space-y-2 bg-white">
-          {!collapsed && email && (
-            <p className="truncate px-2 text-xs text-[#94A3B8]">{email}</p>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onSair}
-            className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            {!collapsed && t("common.logout")}
-          </Button>
-        </div>
       </SidebarContent>
+
+      <SidebarRodapeUsuario
+        collapsed={collapsed}
+        nome={nome}
+        papel={t("gestorGeral.appShell.roleLabel")}
+        email={email}
+        links={isVitrine ? [] : [{ to: `${basePath}/perfil`, label: t("appShell.myProfile"), icon: UserRound }]}
+        onSair={onSair}
+      />
     </Sidebar>
   );
 }
@@ -154,9 +116,6 @@ export default function AppShellGestorGeral() {
   const isVitrine = pathname.startsWith("/vitrine");
   const [carregando, setCarregando] = useState(!isVitrine);
   const [nome, setNome] = useState(isVitrine ? t("gestorGeral.appShell.demoNome") : "");
-  const [detalhe, setDetalhe] = useState(
-    isVitrine ? t("gestorGeral.appShell.demoDetalhe") : "",
-  );
 
   useEffect(() => {
     if (isVitrine) return;
@@ -173,7 +132,6 @@ export default function AppShellGestorGeral() {
         .maybeSingle();
       if (cancelado) return;
       setNome(data?.nome ?? "");
-      setDetalhe("");
       setCarregando(false);
     })();
     return () => {
@@ -203,7 +161,6 @@ export default function AppShellGestorGeral() {
       <div className="min-h-screen flex w-full bg-[#F8FAFC]">
         <GestorGeralSidebar
           nome={nome}
-          detalhe={detalhe}
           email={isVitrine ? "demo@mari.health" : user?.email ?? ""}
           basePath={isVitrine ? "/vitrine/consolidar" : "/consolidar"}
           onSair={handleSair}
@@ -214,6 +171,9 @@ export default function AppShellGestorGeral() {
             <span className="text-sm text-[#64748B]" style={{ fontFamily: "Sora, sans-serif" }}>
               {t("gestorGeral.appShell.headerLabel")}
             </span>
+            <div className="ml-auto">
+              <LanguageSwitcher variant="compact" />
+            </div>
           </header>
           <main className="flex-1 min-w-0">
             <Outlet />
