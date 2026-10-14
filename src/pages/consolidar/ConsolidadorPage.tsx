@@ -8,7 +8,7 @@ import {
   YAxis,
   Legend,
 } from "recharts";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, FileText, Activity, Stethoscope, FlaskConical } from "lucide-react";
@@ -63,13 +63,11 @@ function MetricCard({ label, value, Icon, tooltip, subtitle }: MetricCardProps) 
 
 export default function ConsolidadorPage() {
   const { semSelecao } = useFiltrosGestorGeral();
-  // Contêiner capturado pelo "Exportar PDF" (cada bloco tem data-pdf-section).
-  const raiz = useRef<HTMLDivElement>(null);
   if (semSelecao) return <EmptyStateSemSelecao />;
   return (
-    <div className="space-y-8" ref={raiz}>
+    <div className="space-y-8">
       <div className="flex justify-end -mb-4">
-        <BotaoExportarPdfRede raiz={raiz} />
+        <BotaoExportarPdfRede />
       </div>
       <BlocoOperacaoConsolidado />
       <BlocoPerfilClinicoConsolidado />
@@ -84,7 +82,7 @@ function BlocoOperacaoConsolidado() {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorOperacao();
   return (
-    <section className="space-y-3" data-pdf-section="operacao-rede">
+    <section className="space-y-3">
       <h2 className="text-lg font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
         {t('consolidar.operacao.title')}
       </h2>
@@ -140,7 +138,7 @@ function BlocoPerfilClinicoConsolidado() {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorPerfilClinico();
   return (
-    <section className="space-y-3" data-pdf-section="perfil-rede">
+    <section className="space-y-3">
       <h2 className="text-lg font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
         {t('consolidar.perfilClinico.title')}
       </h2>
@@ -226,7 +224,7 @@ function BlocoTendenciaConsolidado() {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorTendencia();
   return (
-    <section className="space-y-3" data-pdf-section="tendencia-rede">
+    <section className="space-y-3">
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
           {t('consolidar.tendencia.title')}

@@ -1,26 +1,18 @@
-import { useState, type RefObject } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FileDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
-import { useVisaoGeralRede } from "@/hooks/usePainelDataGestorGeral";
 import { exportarConsolidadoPdf } from "@/lib/exportarConsolidadoPdf";
 
-interface Props {
-  /** Contêiner da tela do Consolidador (os blocos com data-pdf-section). */
-  raiz: RefObject<HTMLElement>;
-}
-
-/** "Exportar PDF" do consolidado da rede — mesmo formato do PDF do painel da unidade. */
-export default function BotaoExportarPdfRede({ raiz }: Props) {
+/** "Exportar PDF" do consolidado da rede — relatório completo, com os filtros da tela. */
+export default function BotaoExportarPdfRede() {
   const { t } = useTranslation();
   const { filtros, unidades, unidadesEfetivas, redes } = useFiltrosGestorGeral();
-  const visaoGeral = useVisaoGeralRede();
   const [gerando, setGerando] = useState(false);
 
   const executar = async () => {
-    if (!raiz.current) return;
     const ids = unidadesEfetivas ?? unidades.map((u) => u.id);
     const selecionadas = unidades.filter((u) => ids.includes(u.id));
     const idsRede = new Set(selecionadas.map((u) => u.contratante_id).filter(Boolean));
@@ -30,9 +22,9 @@ export default function BotaoExportarPdfRede({ raiz }: Props) {
       redeNome: nomesRede.length > 0 ? nomesRede.join(" + ") : t("consolidar.exportar.pdfRedeSemNome"),
       unidadesNomes: selecionadas.map((u) => u.nome).sort((a, b) => a.localeCompare(b, "pt-BR")),
       periodo: { inicio: filtros.dataInicio, fim: filtros.dataFim },
-      raiz: raiz.current,
-      visaoGeral: visaoGeral.data ?? null,
       unidadesIds: unidadesEfetivas,
+      redeDaUnidade: Object.fromEntries(unidades.map((u) => [u.id, u.contratante_id ?? null])),
+      todasUnidadesIds: ids,
     });
     setGerando(false);
     if (res.ok) toast.success(t("consolidar.exportar.pdfGerado", { seconds: (res.tempoMs / 1000).toFixed(1) }));
