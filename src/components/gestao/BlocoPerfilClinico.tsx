@@ -86,9 +86,9 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {data.total_dmg_confirmadas} {t('common.of')} {data.total_acompanhadas}{' '}
-                    {t('gestao.blocoPerfilClinico.gestantesDoPeriodo')}
+                  {/* Linguagem simples: o gestor nem sempre é da área obstétrica. */}
+                  <p className="mt-1.5 text-xs text-[#475569]">
+                    {t('gestao.blocoPerfilClinico.taxaDetalhe', { dmg: data.total_dmg_confirmadas, total: data.total_acompanhadas })}
                   </p>
                   {(data.total_overt ?? 0) > 0 && (
                     <p className="mt-0.5 text-xs text-muted-foreground">

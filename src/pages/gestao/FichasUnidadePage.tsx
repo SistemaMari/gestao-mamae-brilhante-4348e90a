@@ -112,6 +112,8 @@ export default function FichasUnidadePage() {
   const [busca, setBusca] = useState('');
   const [buscaDebounced, setBuscaDebounced] = useState('');
   const [statusFiltro, setStatusFiltro] = useState<string | null>(null);
+  // Gargalos do painel (RPC get_painel_gargalos): GTT atrasado e DMG sem retorno.
+  const [gargaloIds, setGargaloIds] = useState<{ gtt: Set<string>; semRetorno: Set<string> }>({ gtt: new Set(), semRetorno: new Set() });
   const [page, setPage] = useState(1);
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -185,6 +187,14 @@ export default function FichasUnidadePage() {
         .eq('is_rascunho', false)
         .order('created_at', { ascending: false });
 
+      // Gargalos do painel para o filtro "Em atraso" (mesma regra dos cards do Painel).
+      const { data: garg } = await supabase.rpc('get_painel_gargalos', { p_unidade_id: prof.unidade_id });
+      const g = (garg ?? {}) as { atrasadas_gtt?: { paciente_ids?: string[] }; confirmadas_sem_retorno?: { paciente_ids?: string[] } };
+      setGargaloIds({
+        gtt: new Set(g.atrasadas_gtt?.paciente_ids ?? []),
+        semRetorno: new Set(g.confirmadas_sem_retorno?.paciente_ids ?? []),
+      });
+
       setFichas((pacs || []).map((p: any) => ({
         id: p.id,
         nome: p.nome,
@@ -216,6 +226,26 @@ export default function FichasUnidadePage() {
     return acc;
   }, [fichas]);
 
+  // "Em atraso": gestantes em acompanhamento com algum atraso, e o(s) motivo(s).
+  //  - GTT 75g atrasado (≥ 28 sem sem GTT) e DMG sem retorno há 14+ dias: gargalos do Painel;
+  //  - aguardando glicemia de jejum há mais de 14 dias desde a última consulta;
+  //  - data do próximo retorno já vencida.
+  const atrasos = useMemo(() => {
+    const hoje = formatDateISO(new Date());
+    const limiteGj = formatDateISO(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000));
+    const out = new Map<string, string[]>();
+    for (const f of fichas) {
+      if (isPacienteEncerrada(f)) continue;
+      const motivos: string[] = [];
+      if (gargaloIds.gtt.has(f.id)) motivos.push('gtt');
+      if (gargaloIds.semRetorno.has(f.id)) motivos.push('semRetorno');
+      if (f.status_ficha === 'aguardando_gj' && f.data_ultima_consulta && f.data_ultima_consulta < limiteGj) motivos.push('semGj');
+      if (f.data_proximo_retorno && f.data_proximo_retorno < hoje) motivos.push('retornoVencido');
+      if (motivos.length) out.set(f.id, motivos);
+    }
+    return out;
+  }, [fichas, gargaloIds]);
+
   const kpiTotal = fichas.length;
   const kpiEncerradas = fichas.filter(f => isPacienteEncerrada(f)).length;
   const kpiAguardandoGj = contagensStatus['aguardando_gj'] || 0;
@@ -224,7 +254,8 @@ export default function FichasUnidadePage() {
   const filtradas = useMemo(() => {
     let base = fichas;
     if (idsFiltro) base = base.filter(f => idsFiltro.has(f.id));
-    if (statusFiltro) base = base.filter(f => getChaveStatusPaciente(f) === statusFiltro);
+    if (statusFiltro === 'em_atraso') base = base.filter(f => atrasos.has(f.id));
+    else if (statusFiltro) base = base.filter(f => getChaveStatusPaciente(f) === statusFiltro);
     if (buscaDebounced.trim()) {
       // Item 15 (busca por médico) ADIADO — precisa de RPC que exponha os médicos
       // que atenderam cada paciente (multi-médico por paciente, nomes protegidos
@@ -234,7 +265,7 @@ export default function FichasUnidadePage() {
     }
     // Ajustes V3 item 7 — lista em ordem alfabética (por nome da paciente).
     return [...base].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
-  }, [fichas, buscaDebounced, idsFiltro, statusFiltro]);
+  }, [fichas, buscaDebounced, idsFiltro, statusFiltro, atrasos]);
 
   useEffect(() => {
     setPage(1);
@@ -262,7 +293,7 @@ export default function FichasUnidadePage() {
   );
 
   const fmtBR = (v: string | null) => v ? formatDateBR(v) : '—';
-  const slugFiltro = statusFiltro ? slugify(getChipPorChave(statusFiltro)?.label || statusFiltro) : 'todas';
+  const slugFiltro = statusFiltro === 'em_atraso' ? 'em-atraso' : statusFiltro ? slugify(getChipPorChave(statusFiltro)?.label || statusFiltro) : 'todas';
   const fileBase = `fichas-unidade-${slugFiltro}_${(unidadeNome || 'unidade').replace(/\s+/g, '')}_${format(new Date(), 'yyyy-MM-dd')}`;
 
   const exportCSV = async () => {
@@ -367,6 +398,19 @@ export default function FichasUnidadePage() {
           }`}
         >
           {t('gestao.fichasUnidade.chipTodos', { count: kpiTotal })}
+        </button>
+        <button
+          type="button"
+          title={t('gestao.fichasUnidade.chipEmAtrasoTip')}
+          onClick={() => setStatusFiltro(statusFiltro === 'em_atraso' ? null : 'em_atraso')}
+          className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm whitespace-nowrap transition ${
+            statusFiltro === 'em_atraso'
+              ? 'bg-amber-100 border-amber-500 text-amber-900 font-medium'
+              : 'bg-amber-50 border-amber-200 text-amber-900 hover:bg-amber-100 cursor-pointer'
+          }`}
+        >
+          <AlertTriangle className="h-3.5 w-3.5" />
+          {t('gestao.fichasUnidade.chipEmAtraso', { count: atrasos.size })}
         </button>
         {STATUS_CHIP_KEYS.map(key => {
           const cfg = getChipPorChave(key);
@@ -513,6 +557,12 @@ export default function FichasUnidadePage() {
                         <Badge className={`${cfg.color} text-white border-0`}>{cfg.label}</Badge>
                       ) : (
                         <Badge variant="outline">{f.status_ficha}</Badge>
+                      )}
+                      {atrasos.has(f.id) && (
+                        <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-amber-700">
+                          <AlertTriangle className="h-3 w-3 shrink-0" />
+                          {atrasos.get(f.id)!.map((m) => t(`gestao.fichasUnidade.atraso.${m}`)).join(' · ')}
+                        </p>
                       )}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{f.profissional_nome}</TableCell>

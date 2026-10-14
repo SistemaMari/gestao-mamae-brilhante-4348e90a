@@ -28,7 +28,7 @@ export function gerarResumoExecutivo(input: ResumoExecutivoInput): string[] {
   else if (prev > 18) qualificadorPrev = ' — acima da faixa Febrasgo (7–18%), sugere população de alto risco';
   else qualificadorPrev = ' — dentro da faixa Febrasgo (7–18%)';
   frases.push(
-    `A prevalência atual de DMG é de ${prev}% (${perfil.total_dmg_confirmadas} de ${perfil.total_acompanhadas})${qualificadorPrev}.`,
+    `A taxa de diagnóstico de DMG é de ${prev}% (${perfil.total_dmg_confirmadas} de ${perfil.total_acompanhadas})${qualificadorPrev}.`,
   );
 
   // Frase 3 — gargalos (só se houver)
