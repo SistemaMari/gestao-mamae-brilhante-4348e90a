@@ -43,6 +43,13 @@
       "when": 1791984798411,
       "tag": "0005_laudos_consulta_unico",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791987014741,
+      "tag": "0006_sync_gestor_geral_unidades",
+      "breakpoints": true
     }
   ]
 }
