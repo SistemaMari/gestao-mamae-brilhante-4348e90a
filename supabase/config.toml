@@ -33,3 +33,7 @@ project_id = "ywldvotfgbxufcyjdvnq"
     verify_jwt = true
   [functions.extrair-perfil-foto]
     verify_jwt = true
+  [functions.enviar-resumo-semanal]
+    verify_jwt = true
+  [functions.gerar-relatorios-mensais]
+    verify_jwt = true

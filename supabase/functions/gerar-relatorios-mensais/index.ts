@@ -9,6 +9,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 import { agregarMetricas, gerarPdfRelatorio } from '../_shared/relatorioMensal.ts';
+import { papelDoToken } from '../_shared/papelDoToken.ts';
 
 const SYSTEM_USER_UUID = '00000000-0000-0000-0000-000000000001';
 
@@ -55,9 +56,10 @@ Deno.serve(async (req) => {
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-  // Auth guard: only allow calls bearing the service-role key (pg_cron / admin).
+  // Auth guard: só chave de serviço (pg_cron manda a do cofre). verify_jwt = true
+  // no config.toml: o gateway já conferiu a assinatura; aqui conferimos o papel.
   const bearer = req.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
-  if (!SERVICE_ROLE || bearer !== SERVICE_ROLE) {
+  if (!SERVICE_ROLE || papelDoToken(bearer) !== 'service_role') {
     return jsonResponse({ error: 'Unauthorized' }, 401);
   }
 
