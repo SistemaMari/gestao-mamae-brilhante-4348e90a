@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import i18n from '@/i18n';
 
@@ -95,6 +96,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  // Cache das consultas (react-query) é por aba, não por usuário: as chaves dos
+  // painéis não levam o id de quem está logado. Ao trocar de conta na mesma aba,
+  // a tela mostrava os dados da conta anterior (ex.: gestor geral vendo as
+  // unidades de outro gestor geral). Limpamos o cache a cada troca de identidade.
+  const queryClient = useQueryClient();
 
   // Refs estáveis com o último user.id e o último access_token persistidos.
   // Usadas para evitar criar novas referências de user/session em eventos
@@ -156,12 +162,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Se mudou o token mas o user é o mesmo, NÃO derruba o profile — só atualiza session
           // silenciosamente. O profile já resolvido continua válido.
           if (sameUser) return;
-          // Caso real de mudança de identidade: re-resolve perfil.
+          // Caso real de mudança de identidade: descarta dados da conta anterior e re-resolve perfil.
+          queryClient.clear();
           setLoading(true);
           setTimeout(() => {
             resolverPerfil(newSession.user.id);
           }, 0);
         } else {
+          queryClient.clear();
           setProfile(null);
           setLoading(false);
         }
@@ -183,7 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       cancelado = true;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [queryClient]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
