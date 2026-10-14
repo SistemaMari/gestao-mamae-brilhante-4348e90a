@@ -1,6 +1,6 @@
 // Edge Function: enviar-resumo-semanal
 // Disparada por pg_cron toda segunda às 10:00 UTC (07:00 em Brasília) — o SQL
-// do agendamento está no cabeçalho da migration 20261015150000_resumo_semanal_email.
+// do agendamento está em scripts/agendar-resumo-semanal.sql.
 //
 // Gestor de unidade: "Resumo da semana — <unidade>" (pendências de hoje +
 // laudos e gestantes novas da semana anterior). Gestor geral: um e-mail com
@@ -9,7 +9,8 @@
 // resumo_semanal_destinatarios (SQL). Entrega pela fila transacional
 // (mesma do convite/e-mail de acesso) — o process-email-queue envia.
 //
-// Só aceita a service role (cron/admin), como gerar-relatorios-mensais.
+// Envio real só com a service role (cron), como gerar-relatorios-mensais.
+// Admin logado pode chamar SÓ os modos de teste abaixo (dry_run / somente_email).
 // Corpo (todos opcionais):
 //   { "dry_run": true }                → devolve o que enviaria, sem enviar nada
 //   { "somente_email": "x@y.com" }     → envia SÓ para esse destinatário, como
@@ -76,15 +77,24 @@ Deno.serve(async (req) => {
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const bearer = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
-  if (!SERVICE_ROLE || bearer !== SERVICE_ROLE) {
-    return json({ error: "Unauthorized" }, 401);
-  }
 
   const body = await req.json().catch(() => ({}));
   const dryRun = body?.dry_run === true;
   const somenteEmail = typeof body?.somente_email === "string" && body.somente_email.trim()
     ? body.somente_email.trim().toLowerCase()
     : null;
+
+  // Envio real: só a service role (o agendamento). Um ADMIN logado pode apenas
+  // TESTAR (dry_run ou somente_email) — nunca disparar o envio para todos.
+  if (!SERVICE_ROLE) return json({ error: "Unauthorized" }, 401);
+  if (bearer !== SERVICE_ROLE) {
+    if (!bearer || (!dryRun && !somenteEmail)) return json({ error: "Unauthorized" }, 401);
+    const sb = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const { data: quem } = await sb.auth.getUser(bearer);
+    if (!quem?.user) return json({ error: "Unauthorized" }, 401);
+    const { data: adm } = await sb.from("admins").select("id").eq("user_id", quem.user.id).maybeSingle();
+    if (!adm) return json({ error: "Apenas admins podem testar o resumo semanal." }, 403);
+  }
   let semana: string;
   if (typeof body?.semana === "string" && body.semana) {
     if (!ehSegunda(body.semana)) {
