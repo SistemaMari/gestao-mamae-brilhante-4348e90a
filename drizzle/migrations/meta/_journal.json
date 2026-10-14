@@ -134,6 +134,13 @@
       "when": 1792014320749,
       "tag": "0018_painel_unidade_filtro_periodo",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792014382387,
+      "tag": "0019_indicadores_linha_cuidado",
+      "breakpoints": true
     }
   ]
 }
