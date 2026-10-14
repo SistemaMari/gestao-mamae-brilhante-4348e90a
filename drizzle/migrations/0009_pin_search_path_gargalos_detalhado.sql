@@ -1,0 +1,1 @@
+ALTER FUNCTION public.get_painel_gargalos_detalhado(uuid, integer) SET search_path = public;
