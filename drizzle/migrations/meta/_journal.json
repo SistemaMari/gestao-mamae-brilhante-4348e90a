@@ -120,6 +120,34 @@
       "when": 1792013272163,
       "tag": "0016_agendar_resumo_semanal",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792014262282,
+      "tag": "0017_gargalos_detalhado_gestor_geral",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792014320749,
+      "tag": "0018_painel_unidade_filtro_periodo",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792014382387,
+      "tag": "0019_indicadores_linha_cuidado",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792014427738,
+      "tag": "0020_metas_da_rede",
+      "breakpoints": true
     }
   ]
 }

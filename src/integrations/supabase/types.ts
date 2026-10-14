@@ -2650,6 +2650,14 @@ export type Database = {
       }
     }
     Functions: {
+      _linha_cuidado_calc: {
+        Args: { p_fim: string; p_inicio: string; p_unidades: string[] }
+        Returns: Json
+      }
+      _linha_cuidado_com_anterior: {
+        Args: { p_fim: string; p_inicio: string; p_unidades: string[] }
+        Returns: Json
+      }
       _partos_gg: {
         Args: { p_fim: string; p_inicio: string; p_unidades: string[] }
         Returns: {
@@ -2657,6 +2665,14 @@ export type Database = {
           partos: number
           unidade_id: string
         }[]
+      }
+      _pode_editar_metas_rede: {
+        Args: { _contratante: string; _user: string }
+        Returns: boolean
+      }
+      _pode_ver_metas_rede: {
+        Args: { _contratante: string; _user: string }
+        Returns: boolean
       }
       _pode_ver_unidade: {
         Args: { _unidade: string; _user: string }
@@ -2761,10 +2777,7 @@ export type Database = {
         }[]
       }
       get_consolidador_gargalos_detalhado_gestor_geral: {
-        Args: {
-          p_limit?: number
-          p_unidades?: string[]
-        }
+        Args: { p_limit?: number; p_unidades?: string[] }
         Returns: Json
       }
       get_consolidador_gargalos_gestor_geral: {
@@ -2825,19 +2838,35 @@ export type Database = {
         Returns: Json
       }
       get_painel_linha_cuidado: {
-        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Args: {
+          p_data_fim?: string
+          p_data_inicio?: string
+          p_unidade_id: string
+        }
         Returns: Json
       }
       get_painel_operacao: {
-        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Args: {
+          p_data_fim?: string
+          p_data_inicio?: string
+          p_unidade_id: string
+        }
         Returns: Json
       }
       get_painel_perfil_clinico: {
-        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Args: {
+          p_data_fim?: string
+          p_data_inicio?: string
+          p_unidade_id: string
+        }
         Returns: Json
       }
       get_painel_tendencia: {
-        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Args: {
+          p_data_fim?: string
+          p_data_inicio?: string
+          p_unidade_id: string
+        }
         Returns: Json
       }
       get_profissionais_equipe: {
