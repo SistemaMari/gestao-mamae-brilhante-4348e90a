@@ -27,7 +27,7 @@ import {
   SENHA_DEMO,
   UNIDADES,
   type UnidadeSpec,
-} from './rede.ts';
+} from '../_shared/redeDemo.ts';
 import { addDias, planejarRede, type Evento, type PlanoPaciente } from './plano.ts';
 import { PONTOS_4 } from './regras.ts';
 import { agregarMetricas, gerarPdfRelatorio } from '../_shared/relatorioMensal.ts';

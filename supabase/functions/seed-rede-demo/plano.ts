@@ -16,7 +16,7 @@ import {
   type DecisaoResultado,
   type Ponto4,
 } from './regras.ts';
-import { UNIDADES, type Jornada, type UnidadeSpec } from './rede.ts';
+import { UNIDADES, type Jornada, type UnidadeSpec } from '../_shared/redeDemo.ts';
 
 // ── datas (strings 'YYYY-MM-DD', aritmética em UTC) ─────────────────────────
 export function addDias(iso: string, n: number): string {

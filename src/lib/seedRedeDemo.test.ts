@@ -21,7 +21,7 @@ import {
   planejarRede,
   type PlanoPaciente,
 } from '../../supabase/functions/seed-rede-demo/plano.ts';
-import { UNIDADES } from '../../supabase/functions/seed-rede-demo/rede.ts';
+import { UNIDADES } from '../../supabase/functions/_shared/redeDemo.ts';
 
 const HOJE = '2026-10-13';
 const DMG = new Set(['1', '6', '6B']);
