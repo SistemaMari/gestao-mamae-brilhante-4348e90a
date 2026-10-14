@@ -57,6 +57,13 @@
       "when": 1791987962630,
       "tag": "0007_paineis_gestantes_em_acompanhamento",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791988475317,
+      "tag": "0008_gestor_fora_da_equipe_clinica",
+      "breakpoints": true
     }
   ]
 }
