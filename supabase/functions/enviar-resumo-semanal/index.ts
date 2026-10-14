@@ -23,6 +23,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { enfileirarEmailTransacional } from "../_shared/emailTransacional.ts";
+import { papelDoToken } from "../_shared/papelDoToken.ts";
 import { CONTRATANTE as CONTRATANTE_DEMO, DOMINIO_EMAIL as DOMINIO_DEMO } from "../_shared/redeDemo.ts";
 import {
   deveEnviarGestorGeral,
@@ -87,7 +88,8 @@ Deno.serve(async (req) => {
   // Envio real: só a service role (o agendamento). Um ADMIN logado pode apenas
   // TESTAR (dry_run ou somente_email) — nunca disparar o envio para todos.
   if (!SERVICE_ROLE) return json({ error: "Unauthorized" }, 401);
-  if (bearer !== SERVICE_ROLE) {
+  // verify_jwt = true (config.toml): o gateway já conferiu a assinatura.
+  if (papelDoToken(bearer) !== "service_role") {
     if (!bearer || (!dryRun && !somenteEmail)) return json({ error: "Unauthorized" }, 401);
     const sb = createClient(SUPABASE_URL, SERVICE_ROLE);
     const { data: quem } = await sb.auth.getUser(bearer);
