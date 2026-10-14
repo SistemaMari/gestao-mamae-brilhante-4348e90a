@@ -24,7 +24,8 @@ import {
 import { UNIDADES } from '../../supabase/functions/_shared/redeDemo.ts';
 
 const HOJE = '2026-10-13';
-const DMG = new Set(['1', '6', '6B']);
+// Diabetes confirmado na gestação = DMG (1/6/6B) + overt (8), como nos painéis (15/out).
+const DMG = new Set(['1', '6', '6B', '8']);
 
 describe('regras copiadas = regras do app', () => {
   it('aplicarRegrasFichaA: mesma saída em todas as combinações', () => {
