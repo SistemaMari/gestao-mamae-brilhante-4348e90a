@@ -1614,6 +1614,7 @@ export default function FichaPacientePage() {
             consultas,
             ig: igNaConsulta1,
             janelaGTT,
+            idioma: i18n.language,
           })}
           ocultarTextosLaudo={cenarioSemTextoLaudo(primeiraConsulta)}
           onTentarNovamente={() => laudoTextos.tentarNovamente(primeiraConsulta.id, 'consulta_1', desfechoStandalone)}
@@ -2196,6 +2197,7 @@ export default function FichaPacientePage() {
                                 consultas,
                                 ig: igLaudo,
                                 janelaGTT: c.tipo === 'retorno_1' ? janelaGTT : null,
+                                idioma: i18n.language,
                               })}
                               ocultarTextosLaudo={cenarioSemTextoLaudo(c)}
                               urgenciaEndocrino={ehDesfechoInsulina(desfechoC)}

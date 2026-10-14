@@ -1,6 +1,7 @@
 import { addDays, format } from 'date-fns';
 import { parseDateLocal } from '@/lib/dateUtils';
 import { calcularIntervaloRetornoDias } from '@/lib/retornoInterval';
+import { arredondarDoseInteira, doseQuebrada } from '@/lib/doseInteira';
 
 /**
  * Substituição das variáveis [entre colchetes] dos textos de `laudo_textos`.
@@ -82,6 +83,24 @@ function fmtNum(n: number | null | undefined): string | null {
 function fmtDose(n: number | null | undefined): string | null {
   const s = fmtNum(n);
   return s == null ? null : `${s} UI`;
+}
+
+const SUGESTAO_DOSE_INTEIRA: Record<string, (inteira: string) => string> = {
+  pt: (d) => `sugestão: ajustar para ${d} UI`,
+  en: (d) => `suggestion: round to ${d} IU`,
+  es: (d) => `sugerencia: ajustar a ${d} UI`,
+};
+
+/**
+ * Dose de manhã/noite com sugestão de inteiro quando quebrada:
+ * "27,3 UI — sugestão: ajustar para 27 UI". Dose já inteira → igual a fmtDose.
+ */
+function fmtDoseComSugestao(n: number | null | undefined, idioma?: string): string | null {
+  const base = fmtDose(n);
+  if (base == null || !doseQuebrada(n)) return base;
+  const sugestao =
+    SUGESTAO_DOSE_INTEIRA[(idioma ?? 'pt').slice(0, 2).toLowerCase()] ?? SUGESTAO_DOSE_INTEIRA.pt;
+  return `${base} — ${sugestao(String(arredondarDoseInteira(n)))}`;
 }
 
 /** Percentual inteiro (sem o símbolo — o "%" já está no texto). */
@@ -187,8 +206,10 @@ export function montarVariaveisLaudo(params: {
   consultas?: Array<{ id?: string; tipo?: string | null; data?: string | null; dose_total?: number | null }>;
   ig: IgInfo;
   janelaGTT?: { inicio: Date; fim: Date } | null;
+  /** Idioma do laudo (i18n.language) — só muda o texto da sugestão de dose inteira. */
+  idioma?: string;
 }): VariaveisLaudo {
-  const { paciente, consulta, consultas = [], ig, janelaGTT } = params;
+  const { paciente, consulta, consultas = [], ig, janelaGTT, idioma } = params;
   const igTexto = fmtIg(ig);
 
   // Doses: usa as gravadas (motor da Ficha A) ou deriva ⅔ manhã / ⅓ noite da total
@@ -219,7 +240,8 @@ export function montarVariaveisLaudo(params: {
     // "atual" = dose vigente; na Ficha B/D (que não guarda dose) puxa da consulta
     // anterior que a iniciou/ajustou.
     'dose atual de insulina': fmtDose(ultimaDoseInsulina(consultas, consulta)),
-    'dose manhã': fmtDose(doseManha),
-    'dose noite': fmtDose(doseNoite),
+    // Manhã/noite são o que a gestante aplica: valor exato + sugestão de inteiro.
+    'dose manhã': fmtDoseComSugestao(doseManha, idioma),
+    'dose noite': fmtDoseComSugestao(doseNoite, idioma),
   };
 }

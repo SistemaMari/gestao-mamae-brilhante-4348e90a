@@ -4261,7 +4261,8 @@
     "initialNphDose": "Dosis inicial de insulina NPH",
     "uiPerDay": "UI/día",
     "doseSplit": "{{morning}} UI mañana (al despertar) + {{night}} UI a las 22 h",
-    "weightFormula": "Peso: {{weight}} kg • fórmula: 0,5 UI/kg/día"
+    "weightFormula": "Peso: {{weight}} kg • fórmula: 0,5 UI/kg/día",
+    "doseRoundSuggestion": "Sugerencia: ajustar a números enteros para facilitar la aplicación por la gestante: {{morning}} UI por la mañana y {{night}} UI a las 22 h."
   },
   "retorno1Result": {
     "negativeLabel": "Resultado: NEGATIVO — Normoglucemia",

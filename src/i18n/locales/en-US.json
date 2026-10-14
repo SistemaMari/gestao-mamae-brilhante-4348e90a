@@ -4261,7 +4261,8 @@
     "initialNphDose": "Initial NPH insulin dose",
     "uiPerDay": "IU/day",
     "doseSplit": "{{morning}} IU morning (on waking) + {{night}} IU at 10 p.m.",
-    "weightFormula": "Weight: {{weight}} kg • formula: 0.5 IU/kg/day"
+    "weightFormula": "Weight: {{weight}} kg • formula: 0.5 IU/kg/day",
+    "doseRoundSuggestion": "Suggestion: round to whole numbers to make it easier for the patient to inject: {{morning}} IU in the morning and {{night}} IU at 10 p.m."
   },
   "retorno1Result": {
     "negativeLabel": "Result: NEGATIVE — Normoglycemia",

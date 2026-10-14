@@ -165,6 +165,23 @@ describe('montarVariaveisLaudo', () => {
     expect(vars['dose noite']).toBe('12 UI');
   });
 
+  it('dose manhã/noite quebrada: mantém o exato + sugere o inteiro (x,5 sobe)', () => {
+    // 82 kg → 41 UI/dia → 27,3 + 13,7 (caso relatado pela Dra.)
+    const vars = montarVariaveisLaudo({ paciente, ig: null, consulta: { dose_total: 41 } });
+    expect(vars['dose total de insulina']).toBe('41 UI');
+    expect(vars['dose manhã']).toBe('27,3 UI — sugestão: ajustar para 27 UI');
+    expect(vars['dose noite']).toBe('13,7 UI — sugestão: ajustar para 14 UI');
+
+    const meio = montarVariaveisLaudo({
+      paciente, ig: null, consulta: { dose_total: 40.5, dose_manha: 27, dose_noite: 13.5 },
+    });
+    expect(meio['dose manhã']).toBe('27 UI');
+    expect(meio['dose noite']).toBe('13,5 UI — sugestão: ajustar para 14 UI');
+
+    const en = montarVariaveisLaudo({ paciente, ig: null, consulta: { dose_total: 41 }, idioma: 'en-US' });
+    expect(en['dose manhã']).toBe('27,3 UI — suggestion: round to 27 IU');
+  });
+
   it('valores ausentes ficam null (viram marcador na renderização)', () => {
     const vars = montarVariaveisLaudo({ paciente, ig: null, consulta: {} });
     expect(vars['IG']).toBeNull();
