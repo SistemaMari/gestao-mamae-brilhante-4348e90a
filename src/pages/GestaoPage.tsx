@@ -263,6 +263,13 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
       )}
 
       <div className="space-y-8">
+        {/* Os blocos só aparecem com dados; se a carga falhar (ex.: unidade sem
+            acesso no drill-down do gestor geral) a página ficava em branco. */}
+        {erroBlocos && !loadingBlocos && !operacao && !perfil && !gargalos && !tendencia && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+            {erroBlocos}
+          </div>
+        )}
         {operacao && <BlocoOperacao data={operacao} loading={loadingBlocos} error={erroBlocos} />}
         {!operacao && loadingBlocos && (
           <BlocoOperacao data={mockOperacao} loading error={null} />

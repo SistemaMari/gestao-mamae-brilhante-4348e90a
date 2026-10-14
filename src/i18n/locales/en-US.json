@@ -2088,6 +2088,7 @@
       "subtitle": "Select one or more metrics to compare units side by side.",
       "maiorMelhor": "Higher is better",
       "menorMelhor": "Lower is better",
+      "faixaEsperada": "Expected range {{min}}–{{max}}%",
       "semDadosMetrica": "No data for this metric.",
       "loadError": "Failed to load data.",
       "selecioneMetrica": "Select at least one metric above to compare the units.",
@@ -2097,7 +2098,9 @@
         "menor": "lowest",
         "acima": "above",
         "abaixo": "below",
-        "frase": "{{unidade}} has the {{palavraSup}} {{labelLong}} ({{valorTop}}), {{diffPct}}% {{acimaAbaixo}} the network average ({{valorMedia}})."
+        "frase": "{{unidade}} has the {{palavraSup}} {{labelLong}} ({{valorTop}}), {{diffPct}}% {{acimaAbaixo}} the network average ({{valorMedia}}).",
+        "faixa": "{{dentro}} of {{total}} units are within the expected GDM range ({{min}}–{{max}}%). Below (possible underdiagnosis): {{abaixo}}. Above (higher-risk population): {{acima}}.",
+        "nenhuma": "none"
       },
       "metricas": {
         "pacientes_ativos": {
@@ -2215,6 +2218,8 @@
     "composicaoClinica": {
       "gineco": "Gynecologists/Obstetricians",
       "endo": "Endocrinologists",
+      "clinico": "General practitioners",
+      "familia": "Family physicians",
       "enfermeira": "Nurses",
       "nutri": "Nutritionists",
       "outros": "Others",

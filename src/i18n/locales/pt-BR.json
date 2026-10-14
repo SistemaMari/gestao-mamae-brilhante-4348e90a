@@ -2088,6 +2088,7 @@
       "subtitle": "Selecione uma ou mais métricas para comparar as unidades lado a lado.",
       "maiorMelhor": "Maior é melhor",
       "menorMelhor": "Menor é melhor",
+      "faixaEsperada": "Faixa esperada {{min}}–{{max}}%",
       "semDadosMetrica": "Sem dados para esta métrica.",
       "loadError": "Falha ao carregar dados.",
       "selecioneMetrica": "Selecione ao menos uma métrica acima para comparar as unidades.",
@@ -2097,7 +2098,9 @@
         "menor": "menor",
         "acima": "acima",
         "abaixo": "abaixo",
-        "frase": "{{unidade}} tem o {{palavraSup}} {{labelLong}} ({{valorTop}}), {{diffPct}}% {{acimaAbaixo}} da média da rede ({{valorMedia}})."
+        "frase": "{{unidade}} tem o {{palavraSup}} {{labelLong}} ({{valorTop}}), {{diffPct}}% {{acimaAbaixo}} da média da rede ({{valorMedia}}).",
+        "faixa": "{{dentro}} de {{total}} unidades estão na faixa esperada de DMG ({{min}}–{{max}}%). Abaixo (possível subdiagnóstico): {{abaixo}}. Acima (população de maior risco): {{acima}}.",
+        "nenhuma": "nenhuma"
       },
       "metricas": {
         "pacientes_ativos": {
@@ -2215,6 +2218,8 @@
     "composicaoClinica": {
       "gineco": "Ginecologistas/Obstetras",
       "endo": "Endocrinologistas",
+      "clinico": "Clínicos gerais",
+      "familia": "Médicos de família",
       "enfermeira": "Enfermeiras",
       "nutri": "Nutricionistas",
       "outros": "Outros",

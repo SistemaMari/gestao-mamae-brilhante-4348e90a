@@ -338,16 +338,6 @@ export async function exportarPainelPdf(
 
     const filename = `painel-${slugify(input.unidadeNome)}-${formatDateISO(geradoEm)}.pdf`;
     const blob = pdf.output('blob');
-    const b64 = pdf.output('datauristring').replace(/^data:.*?;base64,/, '');
-    (window as unknown as Record<string, unknown>).__painelPdfB64 = b64;
-    let dbg = document.getElementById('__painel_pdf_b64') as HTMLTextAreaElement | null;
-    if (!dbg) {
-      dbg = document.createElement('textarea');
-      dbg.id = '__painel_pdf_b64';
-      dbg.style.cssText = 'position: fixed; left: -9999px; top: 0;';
-      document.body.appendChild(dbg);
-    }
-    dbg.value = b64;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
