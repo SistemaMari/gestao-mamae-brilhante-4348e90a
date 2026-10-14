@@ -16,7 +16,7 @@ export interface MetricasUnidade {
   total_gestantes: number;            // = gestantes ACOMPANHADAS no mês (com consulta no mês)
   gestantes_novas: number;            // cadastradas no mês
   gestantes_rastreadas: number;       // com Retorno 1 ou GTT no mês (denominador da taxa)
-  total_dmg_confirmado: number;       // gestantes com DMG confirmado (1/6/6B) no mês
+  total_dmg_confirmado: number;       // gestantes com diabetes confirmado (DMG 1/6/6B + overt 8) no mês
   taxa_dmg_percent: number;           // derivado: total_dmg_confirmado / gestantes_rastreadas * 100
   total_overt: number;                // overt diabetes (cenário clínico)
   // Diagnóstico por momento
@@ -44,8 +44,10 @@ export interface MetricasUnidade {
 // cenario_clinico é gravado CRU pelo gerar-laudo ('1','6','6B','8'...). Aceita
 // também o formato legado prefixado ('cenario_1') e o texto livre antigo
 // ("DMG confirmado", "overt"), para não zerar relatórios de dados antigos.
-// DMG = Retorno 1 (1) ou GTT (6 / 6B); overt (8) é contado à parte.
-const CENARIOS_DMG = new Set(['1', '6', '6b', 'cenario_1', 'cenario_6', 'cenario_6b']);
+// Diabetes confirmado na gestação = DMG por Retorno 1 (1) ou GTT (6 / 6B) E
+// overt (8) — decisão de 15/out/2026: overt entra na taxa (igual aos painéis).
+// total_overt segue contado para mostrar quantos dos diagnósticos são overt.
+const CENARIOS_DMG = new Set(['1', '6', '6b', '8', 'cenario_1', 'cenario_6', 'cenario_6b', 'cenario_8']);
 const CENARIOS_OVERT = new Set(['8', 'cenario_8']);
 
 export function ehCenarioDmg(cenario: string | null | undefined): boolean {
@@ -313,11 +315,11 @@ export async function gerarPdfRelatorio(params: {
   y -= 20;
   y = desenharSecao(page, helvBold, 'Diagnóstico de DMG', y, cRoxo);
   const dxKpis: Array<[string, string | number]> = [
-    ['DMG confirmado', metricas.total_dmg_confirmado],
+    ['Diabetes confirmado', metricas.total_dmg_confirmado],
     ['Taxa de DMG (%)', metricas.taxa_dmg_percent],
     ['DMG via Retorno 1', metricas.dmg_retorno1],
     ['DMG via GTT 75g', metricas.dmg_gtt],
-    ['Overt (à parte)', metricas.total_overt],
+    ['Desses, overt', metricas.total_overt],
   ];
   y = desenharGridKpis(page, helv, helvBold, dxKpis, y, cBgCard, cTexto, cMuted);
 
