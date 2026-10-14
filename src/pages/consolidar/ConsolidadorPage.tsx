@@ -21,6 +21,7 @@ import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
 import EmptyStateSemSelecao from "@/components/gestor-geral/EmptyStateSemSelecao";
 import TooltipInfo from "@/components/gestor-geral/TooltipInfo";
 import BlocoGargalos from "@/components/gestao/BlocoGargalos";
+import LinhaDeCuidadoRede from "@/components/gestao/LinhaDeCuidadoRede";
 import { formatNum, formatPctOrDash, formatIg } from "@/lib/formatters";
 
 interface MetricCardProps {
@@ -63,6 +64,7 @@ export default function ConsolidadorPage() {
     <div className="space-y-8">
       <BlocoOperacaoConsolidado />
       <BlocoPerfilClinicoConsolidado />
+      <LinhaDeCuidadoRede />
       <BlocoGargalosConsolidado />
       <BlocoTendenciaConsolidado />
     </div>

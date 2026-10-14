@@ -64,9 +64,9 @@ export default function BlocoOperacao({ data, loading, error }: Props) {
             Icon={Users}
           />
           <Card
-            title={t('gestao.blocoOperacao.laudosTitle')}
-            tooltip={t('gestao.blocoOperacao.laudosTooltip')}
-            value={data.laudos_30d}
+            title={t(data.periodo ? 'gestao.blocoOperacao.laudosTitlePeriodo' : 'gestao.blocoOperacao.laudosTitle')}
+            tooltip={t(data.periodo ? 'gestao.blocoOperacao.laudosTooltipPeriodo' : 'gestao.blocoOperacao.laudosTooltip')}
+            value={data.periodo ? (data.laudos_periodo ?? data.laudos_30d) : data.laudos_30d}
             subtitle={t('gestao.blocoOperacao.laudosSubtitle')}
             Icon={FileText}
           />

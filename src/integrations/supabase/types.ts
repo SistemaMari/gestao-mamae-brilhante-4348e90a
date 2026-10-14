@@ -2706,6 +2706,14 @@ export type Database = {
         Args: { p_unidades?: string[] }
         Returns: Json
       }
+      get_linha_cuidado_gestor_geral: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
       get_metricas_consolidadas_gestor_geral: {
         Args: {
           p_data_fim: string
@@ -2719,12 +2727,22 @@ export type Database = {
         Args: { p_limit?: number; p_unidade_id: string }
         Returns: Json
       }
-      get_painel_operacao: { Args: { p_unidade_id: string }; Returns: Json }
-      get_painel_perfil_clinico: {
-        Args: { p_unidade_id: string }
+      get_painel_linha_cuidado: {
+        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
         Returns: Json
       }
-      get_painel_tendencia: { Args: { p_unidade_id: string }; Returns: Json }
+      get_painel_operacao: {
+        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Returns: Json
+      }
+      get_painel_perfil_clinico: {
+        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Returns: Json
+      }
+      get_painel_tendencia: {
+        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Returns: Json
+      }
       get_profissionais_equipe: {
         Args: { p_unidade_id?: string }
         Returns: {

@@ -3,6 +3,9 @@
 export interface PainelOperacao {
   gestantes_ativas: number;
   laudos_30d: number;
+  /** Laudos no período do filtro (= laudos_30d quando chamada sem período). */
+  laudos_periodo?: number;
+  periodo?: { inicio: string; fim: string } | null;
   distribuicao_profissionais: Array<{
     profissional_id: string;
     nome: string;
@@ -11,6 +14,9 @@ export interface PainelOperacao {
 }
 
 export interface PainelPerfilClinico {
+  /** 'periodo' = gestantes rastreadas no período do filtro; 'dum_280d' = regra sem período (DUM em 280 dias). */
+  base?: 'periodo' | 'dum_280d';
+  periodo?: { inicio: string; fim: string } | null;
   total_acompanhadas: number;
   total_dmg_confirmadas: number;
   prevalencia_pct: number;

@@ -26,9 +26,11 @@ interface Props {
   loading?: boolean;
   error?: string | null;
   showDataLabels?: boolean;
+  /** Texto quando não há dados (o padrão fala em "6 meses"; com filtro de período muda). */
+  noDataText?: string;
 }
 
-export default function BlocoTendencia({ data, loading, error, showDataLabels }: Props) {
+export default function BlocoTendencia({ data, loading, error, showDataLabels, noDataText }: Props) {
   const { t } = useTranslation();
   const isPdf = useContext(PdfModeContext);
   const semDados = data.every(d => d.total_gestantes === 0 && d.total_dmg_confirmadas === 0);
@@ -69,7 +71,7 @@ export default function BlocoTendencia({ data, loading, error, showDataLabels }:
         <div className="rounded-xl border border-border bg-card p-5">
           {semDados ? (
             <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
-              {t('gestao.blocoTendencia.noData6m')}
+              {noDataText ?? t('gestao.blocoTendencia.noData6m')}
             </div>
           ) : (
             <div style={{ width: '100%', height: showDataLabels ? 320 : 280 }}>

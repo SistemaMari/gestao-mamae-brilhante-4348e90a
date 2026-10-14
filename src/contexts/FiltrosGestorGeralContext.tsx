@@ -8,13 +8,14 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { format, subDays, startOfYear } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { calcularPeriodo, type PresetPeriodo } from "@/lib/periodo";
 
-export type PresetPeriodo = "7d" | "30d" | "90d" | "12m" | "ano" | "custom";
+// Presets e cálculo do período ficam em src/lib/periodo.ts (o painel da unidade usa também).
+export { calcularPeriodo, type PresetPeriodo };
 
 export interface UnidadeOpt {
   id: string;
@@ -56,42 +57,6 @@ interface FiltrosCtx {
 }
 
 const Ctx = createContext<FiltrosCtx | null>(null);
-
-const HOJE = () => new Date();
-
-export function calcularPeriodo(
-  preset: PresetPeriodo,
-  custom?: { from?: Date; to?: Date },
-): { inicio: string; fim: string } {
-  const fim = HOJE();
-  let inicio = subDays(fim, 30);
-  switch (preset) {
-    case "7d":
-      inicio = subDays(fim, 7);
-      break;
-    case "30d":
-      inicio = subDays(fim, 30);
-      break;
-    case "90d":
-      inicio = subDays(fim, 90);
-      break;
-    case "12m":
-      inicio = subDays(fim, 365);
-      break;
-    case "ano":
-      inicio = startOfYear(fim);
-      break;
-    case "custom":
-      if (custom?.from && custom?.to) {
-        return {
-          inicio: format(custom.from, "yyyy-MM-dd"),
-          fim: format(custom.to, "yyyy-MM-dd"),
-        };
-      }
-      break;
-  }
-  return { inicio: format(inicio, "yyyy-MM-dd"), fim: format(fim, "yyyy-MM-dd") };
-}
 
 export function FiltrosGestorGeralProvider({
   children,

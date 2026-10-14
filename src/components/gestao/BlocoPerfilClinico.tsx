@@ -28,6 +28,9 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
         : 'esperado';
 
   const dentroDoBenchmark = status === 'esperado';
+  // Com filtro de período a base são as gestantes rastreadas no período (regra do gestor geral).
+  const porPeriodo = data.base === 'periodo';
+  const k = (chave: string, chavePeriodo: string) => `gestao.blocoPerfilClinico.${porPeriodo ? chavePeriodo : chave}`;
 
   return (
     <section className="space-y-3" data-pdf-section="perfil">
@@ -46,7 +49,7 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
         </div>
       ) : data.total_acompanhadas === 0 ? (
         <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-          {t('gestao.blocoPerfilClinico.semGestantes')}
+          {t(k('semGestantes', 'semGestantesPeriodo'))}
         </div>
       ) : (
         <>
@@ -67,7 +70,7 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium text-muted-foreground">{t('gestao.blocoPerfilClinico.prevalenciaDmg')}</p>
-                    <CardInfoTooltip text={t('gestao.blocoPerfilClinico.ttPrevalencia')} />
+                    <CardInfoTooltip text={t(k('ttPrevalencia', 'ttPrevalenciaPeriodo'))} />
                   </div>
                   <div className="mt-1 flex items-center gap-2">
                     <p className="font-heading text-[32px] font-bold leading-none text-[#1E293B]">
@@ -88,7 +91,7 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
                   </div>
                   {/* Linguagem simples: o gestor nem sempre é da área obstétrica. */}
                   <p className="mt-1.5 text-xs text-[#475569]">
-                    {t('gestao.blocoPerfilClinico.taxaDetalhe', { dmg: data.total_dmg_confirmadas, total: data.total_acompanhadas })}
+                    {t(k('taxaDetalhe', 'taxaDetalhePeriodo'), { dmg: data.total_dmg_confirmadas, total: data.total_acompanhadas })}
                   </p>
                   {(data.total_overt ?? 0) > 0 && (
                     <p className="mt-0.5 text-xs text-muted-foreground">
@@ -144,7 +147,7 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
                     {data.dmg_anterior}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {t('gestao.blocoPerfilClinico.pctDasAtivas', { pct: data.dmg_anterior_pct })}
+                    {t(k('pctDasAtivas', 'pctDasRastreadas'), { pct: data.dmg_anterior_pct })}
                   </p>
                 </div>
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F5F0FF]">
@@ -158,12 +161,12 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
                 <div>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium text-muted-foreground">{t('gestao.blocoPerfilClinico.igMediaDiagnostico')}</p>
-                    <CardInfoTooltip text={t('gestao.blocoPerfilClinico.ttIgMedia')} />
+                    <CardInfoTooltip text={t(k('ttIgMedia', 'ttIgMediaPeriodo'))} />
                   </div>
                   <p className="mt-1 font-heading text-[32px] font-bold leading-none text-[#1E293B]">
                     {formatIg(data.ig_media_diagnostico_dias)}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{t('gestao.blocoPerfilClinico.ultimos90dias')}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t(k('ultimos90dias', 'noPeriodo'))}</p>
                 </div>
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F5F0FF]">
                   <CalendarClock className="h-5 w-5 text-[#9b87f5]" />
