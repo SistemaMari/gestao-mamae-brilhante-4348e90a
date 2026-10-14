@@ -90,6 +90,11 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
                     {data.total_dmg_confirmadas} {t('common.of')} {data.total_acompanhadas}{' '}
                     {t('gestao.blocoPerfilClinico.gestantesDoPeriodo')}
                   </p>
+                  {(data.total_overt ?? 0) > 0 && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {t('gestao.blocoPerfilClinico.overtAParte', { count: data.total_overt })}
+                    </p>
+                  )}
                   <p
                     className={`mt-1 text-xs font-medium ${
                       dentroDoBenchmark
