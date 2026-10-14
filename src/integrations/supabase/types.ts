@@ -2808,6 +2808,10 @@ export type Database = {
         Args: { p_motivo_encerramento: string; p_status_ficha: string }
         Returns: boolean
       }
+      pode_acessar_paciente: {
+        Args: { _paciente_id: string }
+        Returns: boolean
+      }
       pode_criar_ficha: {
         Args: { p_profissional_id: string }
         Returns: boolean
