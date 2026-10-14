@@ -2769,12 +2769,30 @@ export type Database = {
         Args: { p_limit?: number; p_unidade_id: string }
         Returns: Json
       }
-      get_painel_operacao: { Args: { p_unidade_id: string }; Returns: Json }
-      get_painel_perfil_clinico: {
-        Args: { p_unidade_id: string }
+      get_painel_operacao: {
+        Args: {
+          p_data_fim?: string
+          p_data_inicio?: string
+          p_unidade_id: string
+        }
         Returns: Json
       }
-      get_painel_tendencia: { Args: { p_unidade_id: string }; Returns: Json }
+      get_painel_perfil_clinico: {
+        Args: {
+          p_data_fim?: string
+          p_data_inicio?: string
+          p_unidade_id: string
+        }
+        Returns: Json
+      }
+      get_painel_tendencia: {
+        Args: {
+          p_data_fim?: string
+          p_data_inicio?: string
+          p_unidade_id: string
+        }
+        Returns: Json
+      }
       get_profissionais_equipe: {
         Args: { p_unidade_id?: string }
         Returns: {
