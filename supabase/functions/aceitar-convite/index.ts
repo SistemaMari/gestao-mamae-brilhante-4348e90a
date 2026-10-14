@@ -79,7 +79,16 @@ Deno.serve(async (req) => {
 
     if (authError || !newUser.user) {
       console.error("[aceitar-convite] auth create error:", authError);
-      return json({ status: "erro", mensagem: "Erro ao criar conta." }, 500);
+      // Proteção contra senha vazada/fraca do Supabase (mesma recusa tratada na
+      // NovaSenhaPage): resposta de negócio, não erro de servidor — a tela pede
+      // outra senha. O convite segue pendente.
+      const code = (authError as { code?: string } | null)?.code ?? "";
+      const msg = (authError?.message ?? "").toLowerCase();
+      if (code === "weak_password" || msg.includes("weak") || msg.includes("easy to guess") ||
+          msg.includes("pwned") || msg.includes("breach") || msg.includes("compromis")) {
+        return json({ status: "senha_fraca" });
+      }
+      return json({ status: "erro", mensagem: "Erro ao criar conta.", detalhe: authError?.message ?? null }, 500);
     }
 
     // 4. Insert into profissionais — plano_id é NOT NULL, usa Inicial como default institucional
