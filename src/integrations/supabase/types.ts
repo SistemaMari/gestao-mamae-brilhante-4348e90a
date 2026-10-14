@@ -1095,6 +1095,7 @@ export type Database = {
           id: string
           motivo_revogacao: string | null
           nome: string | null
+          receber_resumo_semanal: boolean
           user_id: string
         }
         Insert: {
@@ -1105,6 +1106,7 @@ export type Database = {
           id?: string
           motivo_revogacao?: string | null
           nome?: string | null
+          receber_resumo_semanal?: boolean
           user_id: string
         }
         Update: {
@@ -1115,6 +1117,7 @@ export type Database = {
           id?: string
           motivo_revogacao?: string | null
           nome?: string | null
+          receber_resumo_semanal?: boolean
           user_id?: string
         }
         Relationships: []
@@ -1925,6 +1928,7 @@ export type Database = {
           plano_id: string
           plano_status: string
           proxima_renovacao: string | null
+          receber_resumo_semanal: boolean
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           telefone: string | null
@@ -1964,6 +1968,7 @@ export type Database = {
           plano_id: string
           plano_status?: string
           proxima_renovacao?: string | null
+          receber_resumo_semanal?: boolean
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           telefone?: string | null
@@ -2003,6 +2008,7 @@ export type Database = {
           plano_id?: string
           plano_status?: string
           proxima_renovacao?: string | null
+          receber_resumo_semanal?: boolean
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           telefone?: string | null
@@ -2200,6 +2206,33 @@ export type Database = {
           periodo_inicio?: string
           tipo?: string
           unidade_id?: string
+        }
+        Relationships: []
+      }
+      resumo_semanal_envios: {
+        Row: {
+          email: string
+          enviado_em: string
+          id: string
+          papel: string
+          semana: string
+          user_id: string
+        }
+        Insert: {
+          email: string
+          enviado_em?: string
+          id?: string
+          papel: string
+          semana: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          enviado_em?: string
+          id?: string
+          papel?: string
+          semana?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2638,6 +2671,15 @@ export type Database = {
           unidade_id: string
         }[]
       }
+      _resumo_semanal_unidade: {
+        Args: {
+          p_fim: string
+          p_inicio: string
+          p_unidade_id: string
+          p_user: string
+        }
+        Returns: Json
+      }
       _unidades_gg: {
         Args: { _unidades: string[]; _user: string }
         Returns: string[]
@@ -2683,6 +2725,10 @@ export type Database = {
       definir_meta_rede: {
         Args: { p_contratante_id: string; p_indicador: string; p_valor: number }
         Returns: Json
+        }
+      definir_receber_resumo_semanal: {
+        Args: { p_receber: boolean }
+        Returns: boolean
       }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -2873,6 +2919,7 @@ export type Database = {
         }
         Returns: number
       }
+      obter_receber_resumo_semanal: { Args: never; Returns: boolean }
       paciente_em_acompanhamento: {
         Args: { p_motivo_encerramento: string; p_status_ficha: string }
         Returns: boolean
@@ -2905,6 +2952,14 @@ export type Database = {
         Returns: boolean
       }
       resetar_laudos_aniversario: { Args: never; Returns: Json }
+      resumo_semanal_destinatarios: {
+        Args: {
+          p_cnpj_excluido?: string
+          p_dominio_excluido?: string
+          p_semana: string
+        }
+        Returns: Json
+      }
       seed_pacientes_teste_para_gestores: { Args: never; Returns: Json }
     }
     Enums: {
