@@ -22,7 +22,9 @@ interface Relatorio {
 /** "2026-09-01" → "setembro de 2026" no idioma da tela. */
 function rotuloMes(iso: string, locale: string): string {
   const [a, m] = iso.split("-").map(Number);
-  return new Date(Date.UTC(a, m - 1, 15)).toLocaleDateString(locale, { month: "long", year: "numeric", timeZone: "UTC" });
+  const txt = new Date(Date.UTC(a, m - 1, 15)).toLocaleDateString(locale, { month: "long", year: "numeric", timeZone: "UTC" });
+  // Só a 1ª letra em maiúscula ("Setembro de 2026"; o CSS capitalize fazia "Setembro De 2026").
+  return txt.charAt(0).toUpperCase() + txt.slice(1);
 }
 
 const TODOS = "todos";
@@ -109,7 +111,7 @@ export default function RelatoriosRedePage() {
               <SelectContent>
                 <SelectItem value={TODOS}>{t("consolidar.relatorios.todosMeses")}</SelectItem>
                 {meses.map((m) => (
-                  <SelectItem key={m} value={m} className="capitalize">
+                  <SelectItem key={m} value={m}>
                     {rotuloMes(`${m}-01`, i18n.language)}
                   </SelectItem>
                 ))}
@@ -153,7 +155,7 @@ export default function RelatoriosRedePage() {
               {linhas.map((r, idx) => (
                 <tr key={r.id} className={`border-t border-[#E2E8F0] hover:bg-[#F1F5F9] ${idx % 2 === 1 ? "bg-[#F8FAFC]" : "bg-white"}`}>
                   <td className="px-4 py-3 font-medium text-[#1E293B]">{nomeUnidade.get(r.unidade_id) ?? "—"}</td>
-                  <td className="px-4 py-3 capitalize text-[#334155]">{rotuloMes(r.periodo_inicio, i18n.language)}</td>
+                  <td className="px-4 py-3 text-[#334155]">{rotuloMes(r.periodo_inicio, i18n.language)}</td>
                   <td className="px-4 py-3 text-[#64748B]">
                     {r.origem === "automatico" ? t("gestao.relatorios.origemAutomatico") : t("gestao.relatorios.origemManual")}
                   </td>

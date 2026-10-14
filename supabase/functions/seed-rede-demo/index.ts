@@ -30,7 +30,7 @@ import {
 } from '../_shared/redeDemo.ts';
 import { addDias, planejarRede, type Evento, type PlanoPaciente } from './plano.ts';
 import { PONTOS_4 } from './regras.ts';
-import { agregarMetricas, gerarPdfRelatorio } from '../_shared/relatorioMensal.ts';
+import { agregarMetricas, gerarPdfRelatorioCompleto } from '../_shared/relatorioMensal.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -507,7 +507,7 @@ async function etapaRelatorios(admin: SupabaseClient, hoje: string) {
     const rotuloMes = `${MESES[ini.getUTCMonth()]}/${ini.getUTCFullYear()}`;
     for (const u of unidades!) {
       const metricas = await agregarMetricas(admin, u.id, u.nome, periodoInicio, periodoFim);
-      const pdf = await gerarPdfRelatorio({ metricas, periodoInicio, periodoFim, rotuloMes });
+      const pdf = await gerarPdfRelatorioCompleto(admin, { metricas, periodoInicio, periodoFim, rotuloMes });
       // Mesmo caminho do gerar-relatorios-mensais: salva via salvar-relatorio.
       const fd = new FormData();
       fd.append('pdf_file', new Blob([pdf as unknown as BlobPart], { type: 'application/pdf' }), `relatorio-${u.id}.pdf`);

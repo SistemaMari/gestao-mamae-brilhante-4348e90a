@@ -49,7 +49,7 @@ function frasesLinhaCuidado(lc: LinhaCuidadoBloco, metas: MetasRede | null | und
   if (m.definidas > 0) {
     f.push(
       m.avaliadas > 0
-        ? `Metas da rede: ${num(m.atingidas)} de ${num(m.avaliadas)} ${plural(m.avaliadas, "meta avaliada foi atingida", "metas avaliadas foram atingidas")}` +
+        ? `Metas da rede: ${num(m.atingidas)} de ${num(m.avaliadas)} ${plural(m.avaliadas, "meta avaliada", "metas avaliadas")} ${plural(m.atingidas, "foi atingida", "foram atingidas")}` +
             (m.definidas > m.avaliadas ? ` (${num(m.definidas - m.avaliadas)} com poucos dados para avaliar).` : ".")
         : "Metas da rede: ainda há poucos dados no período para avaliar.",
     );
