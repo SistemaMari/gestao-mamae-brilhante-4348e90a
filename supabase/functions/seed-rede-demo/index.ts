@@ -87,8 +87,12 @@ async function garantirUsuario(admin: SupabaseClient, email: string, nome: strin
   if (data?.user) return data.user.id;
   const id = await encontrarUsuario(admin, email);
   if (!id) falhou(`criar usuário ${email}`, error);
+  // Conta já existe: NÃO redefine a senha. No Supabase, trocar a senha pelo
+  // admin encerra todas as sessões da conta — rodar a carga de novo derrubava
+  // quem estava logado na demo (a tela seguia aberta, mas as chamadas davam
+  // "Não autenticado"). A senha já é SENHA_DEMO desde a criação.
   const { error: upErr } = await admin.auth.admin.updateUserById(id, {
-    password: SENHA_DEMO, email_confirm: true, user_metadata: { nome, rede_demo: true },
+    email_confirm: true, user_metadata: { nome, rede_demo: true },
   });
   if (upErr) falhou(`atualizar usuário ${email}`, upErr);
   return id;
