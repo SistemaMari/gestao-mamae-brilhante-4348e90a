@@ -2215,6 +2215,20 @@
     }
   },
   "gestao": {
+    "relatorios": {
+      "title": "Relatórios mensais",
+      "subtitle": "Relatórios da unidade gerados automaticamente no início de cada mês, com o resumo do mês anterior.",
+      "carregando": "Carregando relatórios…",
+      "erroCarregar": "Não foi possível carregar os relatórios.",
+      "vazio": "Nenhum relatório gerado ainda para esta unidade.",
+      "colMes": "Mês",
+      "colOrigem": "Origem",
+      "colGeradoEm": "Gerado em",
+      "origemAutomatico": "Automático",
+      "origemManual": "Manual",
+      "baixar": "Baixar PDF",
+      "erroBaixar": "Não foi possível baixar o relatório."
+    },
     "composicaoClinica": {
       "gineco": "Ginecologistas/Obstetras",
       "endo": "Endocrinologistas",
@@ -2520,6 +2534,7 @@
   "gestor": {
     "appShell": {
       "fichasUnidade": "Fichas da unidade",
+      "relatorios": "Relatórios",
       "gestorUnidade": "Gestor de Unidade",
       "gestaoUnidade": "Gestão da Unidade",
       "demoNome": "Dra. Demonstração"

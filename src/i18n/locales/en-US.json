@@ -2215,6 +2215,20 @@
     }
   },
   "gestao": {
+    "relatorios": {
+      "title": "Monthly reports",
+      "subtitle": "Unit reports generated automatically at the start of each month, summarizing the previous month.",
+      "carregando": "Loading reports…",
+      "erroCarregar": "Could not load the reports.",
+      "vazio": "No reports generated yet for this unit.",
+      "colMes": "Month",
+      "colOrigem": "Source",
+      "colGeradoEm": "Generated on",
+      "origemAutomatico": "Automatic",
+      "origemManual": "Manual",
+      "baixar": "Download PDF",
+      "erroBaixar": "Could not download the report."
+    },
     "composicaoClinica": {
       "gineco": "Gynecologists/Obstetricians",
       "endo": "Endocrinologists",
@@ -2520,6 +2534,7 @@
   "gestor": {
     "appShell": {
       "fichasUnidade": "Unit forms",
+      "relatorios": "Reports",
       "gestorUnidade": "Unit Manager",
       "gestaoUnidade": "Unit Management",
       "demoNome": "Dr. Demo"

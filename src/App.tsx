@@ -47,6 +47,7 @@ import AppShellGestorGeral from "@/components/gestor-geral/AppShellGestorGeral";
 
 import FichasUnidadePage from "./pages/gestao/FichasUnidadePage";
 import ConfiguracoesPage from "./pages/gestao/ConfiguracoesPage";
+import RelatoriosUnidadePage from "./pages/gestao/RelatoriosUnidadePage";
 import OnboardingPage from "./pages/OnboardingPage";
 import PacientePage from "./pages/PacientePage";
 import MeusCursosPage from "./pages/MeusCursosPage";
@@ -221,6 +222,7 @@ const App = () => (
               <Route path="/gestao/equipe" element={<GestaoEquipePage />} />
               <Route path="/gestao/fichas" element={<FichasUnidadePage />} />
               <Route path="/gestao/fichas/:id" element={<PacientePage />} />
+              <Route path="/gestao/relatorios" element={<RelatoriosUnidadePage />} />
               <Route path="/gestao/configuracoes" element={<ConfiguracoesPage />} />
               <Route path="/gestao/tutorial" element={<TutorialPage />} />
             </Route>

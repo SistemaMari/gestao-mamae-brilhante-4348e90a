@@ -13,9 +13,11 @@ export interface MetricasUnidade {
   unidade_id: string;
   unidade_nome: string;
   // Núcleo
-  total_gestantes: number;            // = total de pacientes ativos no período
-  total_dmg_confirmado: number;
-  taxa_dmg_percent: number;           // derivado: total_dmg_confirmado / total_gestantes * 100
+  total_gestantes: number;            // = gestantes ACOMPANHADAS no mês (com consulta no mês)
+  gestantes_novas: number;            // cadastradas no mês
+  gestantes_rastreadas: number;       // com Retorno 1 ou GTT no mês (denominador da taxa)
+  total_dmg_confirmado: number;       // gestantes com DMG confirmado (1/6/6B) no mês
+  taxa_dmg_percent: number;           // derivado: total_dmg_confirmado / gestantes_rastreadas * 100
   total_overt: number;                // overt diabetes (cenário clínico)
   // Diagnóstico por momento
   dmg_retorno1: number;               // DMG diagnosticado a partir de Retorno 1
@@ -59,6 +61,32 @@ export function ehCenarioOvert(cenario: string | null | undefined): boolean {
   return CENARIOS_OVERT.has(c) || c.includes('overt');
 }
 
+// Busca todas as linhas de uma consulta paginando de 1000 em 1000 (limite do PostgREST).
+async function todasAsLinhas(montar: (de: number, ate: number) => any): Promise<any[]> {
+  const out: any[] = [];
+  for (let de = 0; ; de += 1000) {
+    const { data, error } = await montar(de, de + 999);
+    if (error) throw new Error(error.message);
+    const pagina: any[] = data ?? [];
+    out.push(...pagina);
+    if (pagina.length < 1000) return out;
+  }
+}
+
+/**
+ * Métricas do mês de uma unidade. Definições (revisadas em 14/out/2026, iguais
+ * às dos painéis):
+ *  - total_gestantes = gestantes ACOMPANHADAS no mês (com consulta no mês).
+ *    Antes contava só as cadastradas no mês: quem chegou antes sumia do
+ *    relatório dos meses seguintes. As cadastradas viram `gestantes_novas`.
+ *  - taxa_dmg_percent = gestantes com DMG confirmado (1/6/6B) no mês ÷
+ *    gestantes rastreadas no mês (Retorno 1 ou GTT). Overt (8) à parte.
+ *  - partos = encerramentos por parto no mês (a tabela partos não é mais
+ *    gravada; registros antigos dela seguem contando, sem duplicar).
+ *  - profissionais_ativos = profissionais que atenderam no mês (sem gestores).
+ * As chaves de "com insulina", via de parto, RN e intercorrências seguem no
+ * JSON por compatibilidade (só vêm da tabela partos antiga), mas saíram do PDF.
+ */
 export async function agregarMetricas(
   admin: any,
   unidadeId: string,
@@ -66,129 +94,108 @@ export async function agregarMetricas(
   periodoInicio: string,
   periodoFim: string,
 ): Promise<MetricasUnidade> {
-  // ---------- Pacientes da unidade no período ----------
-  const { data: pacientes } = await admin
-    .from('pacientes')
-    .select('id, status_ficha, dmg_gestacao_anterior, created_at')
-    .eq('unidade_id', unidadeId)
-    .gte('created_at', `${periodoInicio}T00:00:00Z`)
-    .lte('created_at', `${periodoFim}T23:59:59Z`);
+  // ---------- Consultas do mês (base de "acompanhadas" e do rastreio) ----------
+  const consultas = await todasAsLinhas((de, ate) => admin
+    .from('consultas')
+    .select('id, paciente_id, profissional_id, tipo, cenario_clinico, pacientes!inner(unidade_id, is_rascunho)')
+    .eq('pacientes.unidade_id', unidadeId)
+    .eq('pacientes.is_rascunho', false)
+    .eq('is_rascunho', false)
+    .gte('data', periodoInicio)
+    .lte('data', periodoFim)
+    .order('id', { ascending: true })
+    .range(de, ate));
 
-  const pacientesArr: any[] = pacientes ?? [];
-  const total_gestantes = pacientesArr.length;
-  const idsPacientes = pacientesArr.map((p) => p.id as string);
+  const acompanhadas = new Set<string>(consultas.map((c) => c.paciente_id as string));
+  const total_gestantes = acompanhadas.size;
 
-  const encaminhadas_especialista = pacientesArr.filter((p) => {
-    const s = ((p.status_ficha as string | null) ?? '').toLowerCase();
-    return s.includes('encaminh') || s.includes('especialista');
-  }).length;
-
-  // ---------- Laudos do período ----------
-  let total_laudos = 0;
-  let total_dmg_confirmado = 0;
-  let total_overt = 0;
+  const rastreadas = new Set<string>();
   const dmgSet = new Set<string>();
   const overtSet = new Set<string>();
-
-  if (idsPacientes.length > 0) {
-    const { data: laudos } = await admin
-      .from('laudos')
-      .select('paciente_id, cenario_clinico, created_at')
-      .in('paciente_id', idsPacientes)
-      .gte('created_at', `${periodoInicio}T00:00:00Z`)
-      .lte('created_at', `${periodoFim}T23:59:59Z`);
-
-    const laudosArr: any[] = laudos ?? [];
-    total_laudos = laudosArr.length;
-
-    laudosArr.forEach((l) => {
-      const c = l.cenario_clinico as string | null;
-      if (!c) return;
-      if (ehCenarioOvert(c)) {
-        overtSet.add(l.paciente_id as string);
-      }
-      if (ehCenarioDmg(c)) {
-        dmgSet.add(l.paciente_id as string);
-      }
-    });
-    total_dmg_confirmado = dmgSet.size;
-    total_overt = overtSet.size;
+  const retornoSet = new Set<string>();
+  const gttSet = new Set<string>();
+  for (const c of consultas) {
+    const pid = c.paciente_id as string;
+    if (c.tipo === 'retorno_1' || c.tipo === 'gtt') rastreadas.add(pid);
+    if (ehCenarioOvert(c.cenario_clinico)) overtSet.add(pid);
+    if (ehCenarioDmg(c.cenario_clinico)) {
+      dmgSet.add(pid);
+      if (c.tipo === 'retorno_1') retornoSet.add(pid);
+      if (c.tipo === 'gtt') gttSet.add(pid);
+    }
   }
-
-  const taxa_dmg_percent = total_gestantes > 0
-    ? Number(((total_dmg_confirmado / total_gestantes) * 100).toFixed(1))
+  const total_dmg_confirmado = dmgSet.size;
+  const total_overt = overtSet.size;
+  const taxa_dmg_percent = rastreadas.size > 0
+    ? Number(((total_dmg_confirmado / rastreadas.size) * 100).toFixed(1))
     : 0;
 
-  // ---------- Diagnóstico por consulta (retorno 1, gtt) ----------
-  let dmg_retorno1 = 0;
-  let dmg_gtt = 0;
-  if (dmgSet.size > 0) {
-    const dmgIds = Array.from(dmgSet);
-    const { data: consultas } = await admin
-      .from('consultas')
-      .select('paciente_id, tipo, status_gerado, cenario_clinico')
-      .in('paciente_id', dmgIds);
+  // ---------- Novas gestantes (cadastradas no mês) ----------
+  const { count: gestantes_novas } = await admin
+    .from('pacientes')
+    .select('id', { count: 'exact', head: true })
+    .eq('unidade_id', unidadeId)
+    .eq('is_rascunho', false)
+    .gte('created_at', `${periodoInicio}T03:00:00Z`)
+    .lt('created_at', `${proximoDia(periodoFim)}T03:00:00Z`);
 
-    const consultasArr: any[] = consultas ?? [];
-    const retornoSet = new Set<string>();
-    const gttSet = new Set<string>();
-    consultasArr.forEach((c) => {
-      if (!ehCenarioDmg(c.cenario_clinico as string | null)) return;
-      if (c.tipo === 'retorno_1') retornoSet.add(c.paciente_id as string);
-      if (c.tipo === 'gtt') gttSet.add(c.paciente_id as string);
-    });
-    dmg_retorno1 = retornoSet.size;
-    dmg_gtt = gttSet.size;
-  }
-
-  // ---------- Controle glicêmico (perfis_glicemicos) ----------
+  // ---------- Gestantes acompanhadas: status e perfis ----------
+  const idsAcompanhadas = Array.from(acompanhadas);
+  let encaminhadas_especialista = 0;
   let controle_adequado_sem_insulina = 0;
-  let controle_com_insulina = 0;
-  let controle_adequado_com_insulina = 0;
+  const controle_com_insulina = 0;
+  const controle_adequado_com_insulina = 0;
+  for (let i = 0; i < idsAcompanhadas.length; i += 200) {
+    const lote = idsAcompanhadas.slice(i, i + 200);
+    const { data: pacs } = await admin.from('pacientes').select('id, status_ficha').in('id', lote);
+    encaminhadas_especialista += ((pacs ?? []) as any[]).filter((p) => {
+      const s = ((p.status_ficha as string | null) ?? '').toLowerCase();
+      return s.includes('encaminh') || s.includes('especialista');
+    }).length;
 
-  if (idsPacientes.length > 0) {
     const { data: perfis } = await admin
       .from('perfis_glicemicos')
-      .select('paciente_id, decisao, percentual_meta, data_fim')
-      .in('paciente_id', idsPacientes);
-
-    const perfisArr: any[] = perfis ?? [];
-    // Pega o perfil mais recente por paciente (data_fim DESC)
-    const ultimoPorPaciente = new Map<string, { decisao: string | null; percentual_meta: number }>();
-    perfisArr
+      .select('paciente_id, percentual_meta, data_fim')
+      .in('paciente_id', lote)
+      .lte('data_fim', periodoFim);
+    // Perfil mais recente (até o fim do mês) por gestante: adequado = ≥ 70% na meta.
+    const ultimo = new Map<string, number>();
+    ((perfis ?? []) as any[])
       .sort((a, b) => String(b.data_fim).localeCompare(String(a.data_fim)))
-      .forEach((p) => {
-        const pid = p.paciente_id as string;
-        if (!ultimoPorPaciente.has(pid)) {
-          ultimoPorPaciente.set(pid, {
-            decisao: (p.decisao as string | null),
-            percentual_meta: Number(p.percentual_meta) || 0,
-          });
-        }
-      });
-
-    ultimoPorPaciente.forEach((perfil) => {
-      const dec = (perfil.decisao ?? '').toLowerCase();
-      const adequado = perfil.percentual_meta >= 70;
-      if (dec === 'insulina') {
-        controle_com_insulina++;
-        if (adequado) controle_adequado_com_insulina++;
-      } else if (dec === 'manter_dieta' || dec === 'dieta' || adequado) {
-        controle_adequado_sem_insulina++;
-      }
-    });
+      .forEach((p) => { if (!ultimo.has(p.paciente_id)) ultimo.set(p.paciente_id, Number(p.percentual_meta) || 0); });
+    ultimo.forEach((pct) => { if (pct >= 70) controle_adequado_sem_insulina++; });
   }
 
-  // ---------- Partos no período ----------
+  // ---------- Laudos do mês ----------
+  const { count: total_laudos } = await admin
+    .from('laudos')
+    .select('id, pacientes!inner(unidade_id)', { count: 'exact', head: true })
+    .eq('pacientes.unidade_id', unidadeId)
+    .gte('created_at', `${periodoInicio}T03:00:00Z`)
+    .lt('created_at', `${proximoDia(periodoFim)}T03:00:00Z`);
+
+  // ---------- Partos do mês: encerramento por parto (+ tabela partos antiga) ----------
+  const { data: encerradasParto } = await admin
+    .from('pacientes')
+    .select('id, data_encerramento, data_ultima_consulta, motivo_encerramento, status_ficha')
+    .eq('unidade_id', unidadeId)
+    .eq('is_rascunho', false)
+    .or('motivo_encerramento.eq.parto,status_ficha.eq.resultado_parto');
+  const partoPorGestante = new Map<string, string>();
+  for (const p of (encerradasParto ?? []) as any[]) {
+    const d = (p.data_encerramento ?? p.data_ultima_consulta) as string | null;
+    if (d && d >= periodoInicio && d <= periodoFim) partoPorGestante.set(p.id, d);
+  }
   const { data: partos } = await admin
     .from('partos')
-    .select('via_parto, classificacao_rn, intercorrencia_materna, intercorrencia_neonatal')
+    .select('paciente_id, via_parto, classificacao_rn, intercorrencia_materna, intercorrencia_neonatal')
     .eq('unidade_id', unidadeId)
+    .eq('is_rascunho', false)
     .gte('data_parto', periodoInicio)
     .lte('data_parto', periodoFim);
-
   const partosArr: any[] = partos ?? [];
-  const partos_registrados = partosArr.length;
+  for (const p of partosArr) partoPorGestante.set(p.paciente_id, 'tabela');
+  const partos_registrados = partoPorGestante.size;
   const partos_vaginal = partosArr.filter((p) => p.via_parto === 'vaginal').length;
   const partos_cesarea = partosArr.filter((p) => p.via_parto === 'cesarea').length;
   const rn_aig = partosArr.filter((p) => p.classificacao_rn === 'AIG').length;
@@ -197,22 +204,29 @@ export async function agregarMetricas(
   const intercorrencias_maternas = partosArr.filter((p) => p.intercorrencia_materna).length;
   const intercorrencias_neonatais = partosArr.filter((p) => p.intercorrencia_neonatal).length;
 
-  // ---------- Profissionais ativos ----------
-  const { count: profissionais_ativos } = await admin
-    .from('profissionais')
-    .select('id', { count: 'exact', head: true })
-    .eq('unidade_id', unidadeId)
-    .neq('perfil_institucional', 'sistema');
+  // ---------- Profissionais que atenderam no mês (sem gestor/sistema/revogados) ----------
+  const idsProfs = Array.from(new Set(consultas.map((c) => c.profissional_id as string).filter(Boolean)));
+  let profissionais_ativos = 0;
+  if (idsProfs.length > 0) {
+    const { data: profs } = await admin
+      .from('profissionais')
+      .select('id, perfil_institucional, acesso_revogado')
+      .in('id', idsProfs);
+    profissionais_ativos = ((profs ?? []) as any[]).filter((p) =>
+      !p.acesso_revogado && p.perfil_institucional !== 'gestor' && p.perfil_institucional !== 'sistema').length;
+  }
 
   return {
     unidade_id: unidadeId,
     unidade_nome: unidadeNome,
     total_gestantes,
+    gestantes_novas: gestantes_novas ?? 0,
+    gestantes_rastreadas: rastreadas.size,
     total_dmg_confirmado,
     taxa_dmg_percent,
     total_overt,
-    dmg_retorno1,
-    dmg_gtt,
+    dmg_retorno1: retornoSet.size,
+    dmg_gtt: gttSet.size,
     controle_adequado_sem_insulina,
     controle_com_insulina,
     controle_adequado_com_insulina,
@@ -225,9 +239,16 @@ export async function agregarMetricas(
     rn_pig,
     intercorrencias_maternas,
     intercorrencias_neonatais,
-    profissionais_ativos: profissionais_ativos ?? 0,
-    total_laudos,
+    profissionais_ativos,
+    total_laudos: total_laudos ?? 0,
   };
+}
+
+/** 'YYYY-MM-DD' do dia seguinte (para fechar o mês em horário de Brasília). */
+function proximoDia(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
 }
 
 // ============================================================
@@ -280,11 +301,11 @@ export async function gerarPdfRelatorio(params: {
   // KPIs gerais
   y = desenharSecao(page, helvBold, 'Visão Geral', y, cRoxo);
   const kpis: Array<[string, string | number]> = [
-    ['Gestantes no período', metricas.total_gestantes],
-    ['DMG confirmado', metricas.total_dmg_confirmado],
-    ['Taxa de DMG (%)', metricas.taxa_dmg_percent],
-    ['OVERT DM', metricas.total_overt],
-    ['Profissionais', metricas.profissionais_ativos],
+    ['Acompanhadas no mês', metricas.total_gestantes],
+    ['Novas no mês', metricas.gestantes_novas],
+    ['Rastreadas (GJ/GTT)', metricas.gestantes_rastreadas],
+    ['Profissionais atenderam', metricas.profissionais_ativos],
+    ['Laudos no mês', metricas.total_laudos],
   ];
   y = desenharGridKpis(page, helv, helvBold, kpis, y, cBgCard, cTexto, cMuted);
 
@@ -292,51 +313,24 @@ export async function gerarPdfRelatorio(params: {
   y -= 20;
   y = desenharSecao(page, helvBold, 'Diagnóstico de DMG', y, cRoxo);
   const dxKpis: Array<[string, string | number]> = [
+    ['DMG confirmado', metricas.total_dmg_confirmado],
+    ['Taxa de DMG (%)', metricas.taxa_dmg_percent],
     ['DMG via Retorno 1', metricas.dmg_retorno1],
     ['DMG via GTT 75g', metricas.dmg_gtt],
-    ['Total laudos', metricas.total_laudos],
+    ['Overt (à parte)', metricas.total_overt],
   ];
   y = desenharGridKpis(page, helv, helvBold, dxKpis, y, cBgCard, cTexto, cMuted);
 
-  // Controle glicêmico
+  // Controle glicêmico e desfechos. "Com insulina" saiu (o app não registra
+  // uso de insulina — a jornada encerra na indicação), assim como via de parto,
+  // RN e intercorrências (só vinham da tabela partos, que não é mais gravada).
   y -= 20;
-  y = desenharSecao(page, helvBold, 'Controle glicêmico', y, cRoxo);
+  y = desenharSecao(page, helvBold, 'Controle glicêmico e desfechos', y, cRoxo);
   const ctrlKpis: Array<[string, string | number]> = [
-    ['Adequado s/ insulina', metricas.controle_adequado_sem_insulina],
-    ['Em insulina', metricas.controle_com_insulina],
-    ['Adequado c/ insulina', metricas.controle_adequado_com_insulina],
-    ['Encaminhadas', metricas.encaminhadas_especialista],
+    ['Controle adequado (≥70%)', metricas.controle_adequado_sem_insulina],
+    ['Partos no mês', metricas.partos_registrados],
   ];
   y = desenharGridKpis(page, helv, helvBold, ctrlKpis, y, cBgCard, cTexto, cMuted);
-
-  // Partos
-  y -= 20;
-  y = desenharSecao(page, helvBold, 'Partos no período', y, cRoxo);
-  const partosKpis: Array<[string, string | number]> = [
-    ['Total de partos', metricas.partos_registrados],
-    ['Vaginais', metricas.partos_vaginal],
-    ['Cesáreas', metricas.partos_cesarea],
-  ];
-  y = desenharGridKpis(page, helv, helvBold, partosKpis, y, cBgCard, cTexto, cMuted);
-
-  // Classificação RN
-  y -= 20;
-  y = desenharSecao(page, helvBold, 'Classificação do recém-nascido', y, cRoxo);
-  const rnKpis: Array<[string, string | number]> = [
-    ['AIG (adequado)', metricas.rn_aig],
-    ['GIG (grande)', metricas.rn_gig],
-    ['PIG (pequeno)', metricas.rn_pig],
-  ];
-  y = desenharGridKpis(page, helv, helvBold, rnKpis, y, cBgCard, cTexto, cMuted);
-
-  // Intercorrências
-  y -= 20;
-  y = desenharSecao(page, helvBold, 'Intercorrências', y, cRoxo);
-  const interKpis: Array<[string, string | number]> = [
-    ['Maternas', metricas.intercorrencias_maternas],
-    ['Neonatais', metricas.intercorrencias_neonatais],
-  ];
-  y = desenharGridKpis(page, helv, helvBold, interKpis, y, cBgCard, cTexto, cMuted);
 
   // Aviso se vazio
   if (metricas.total_gestantes === 0 && metricas.partos_registrados === 0) {

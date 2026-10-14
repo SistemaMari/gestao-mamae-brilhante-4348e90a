@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, FileText, Settings, LogOut, Building2, Loader2, PlayCircle } from "lucide-react";
+import { LayoutDashboard, Users, FileText, FileBarChart, Settings, LogOut, Building2, Loader2, PlayCircle } from "lucide-react";
 import i18n from "@/i18n";
 import {
   Sidebar,
@@ -23,6 +23,10 @@ const buildItems = (base: string) => [
   { title: i18n.t("nav.dashboard"), path: base, icon: LayoutDashboard, exact: true },
   { title: i18n.t("nav.team"), path: `${base}/equipe`, icon: Users, exact: false },
   { title: i18n.t("gestor.appShell.fichasUnidade"), path: `${base}/fichas`, icon: FileText, exact: false },
+  // Relatórios só no app real (a vitrine não tem relatórios salvos).
+  ...(base.startsWith("/vitrine")
+    ? []
+    : [{ title: i18n.t("gestor.appShell.relatorios"), path: `${base}/relatorios`, icon: FileBarChart, exact: false }]),
   { title: i18n.t("admin.sidebar.settings"), path: `${base}/configuracoes`, icon: Settings, exact: false },
   // Tutorial só no app real; a vitrine não tem rota /vitrine/gestao/tutorial.
   ...(base.startsWith("/vitrine")
