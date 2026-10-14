@@ -1,12 +1,14 @@
 import ExcelJS from 'exceljs';
 import { format } from 'date-fns';
-import { STATUS_CONFIG } from '@/lib/fichaUtils';
+import { getStatusPacienteChip, getChaveStatusPaciente, getChipPorChave, isPacienteEncerrada } from '@/lib/fichaUtils';
+import type { MotivoEncerramento } from '@/lib/motivoEncerramento';
 import { getIgBatch, formatIg } from '@/lib/getIg';
 
 export interface FichaExcel {
   id: string;
   nome: string;
   status_ficha: string;
+  motivo_encerramento?: MotivoEncerramento | null;
   profissional_nome: string;
   data_ultima_consulta: string | null;
   data_proximo_retorno: string | null;
@@ -32,13 +34,17 @@ const ROXO_ESCURO = 'FF5B3A8C';
 const CINZA_BORDA = 'FFD1D5DB';
 const CINZA_TEXTO = 'FF475569';
 
+// Chaves de getChaveStatusPaciente — mesma ordem dos chips da tela.
 const STATUS_ORDEM = [
   'aguardando_gj',
   'aguardando_gtt',
   'dmg_confirmado',
   'dmg_afastado',
-  'resultado_parto',
-  'encaminhada_endocrino',
+  'enc_insulinizacao',
+  'enc_parto',
+  'enc_aborto',
+  'enc_nao_retornou',
+  'enc_outro',
 ];
 
 const fmtBR = (v: string | null) => (v ? new Date(v).toLocaleDateString('pt-BR') : '—');
@@ -82,7 +88,7 @@ export async function exportarFichasExcel({
 
   // L4-L7 metadados
   const filtroDesc = statusFiltro
-    ? `Status: ${STATUS_CONFIG[statusFiltro]?.label || statusFiltro}`
+    ? `Status: ${getChipPorChave(statusFiltro)?.label || statusFiltro}`
     : 'Nenhum (todas as fichas)';
   const filtroComBusca = busca.trim() ? `${filtroDesc} · Busca: ${busca.trim()}` : filtroDesc;
 
@@ -108,14 +114,18 @@ export async function exportarFichasExcel({
 
   // L10-L11 KPIs
   const cont: Record<string, number> = {};
-  for (const f of fichas) cont[f.status_ficha] = (cont[f.status_ficha] || 0) + 1;
+  // Mesma regra da tela (tag efetiva: motivo de encerramento vence o status).
+  for (const f of fichas) {
+    const chave = getChaveStatusPaciente(f);
+    cont[chave] = (cont[chave] || 0) + 1;
+  }
   const total = fichas.length;
+  const encerradas = fichas.filter(f => isPacienteEncerrada(f)).length;
   const aguardandoGj = cont['aguardando_gj'] || 0;
-  const acomp = (cont['aguardando_gtt'] || 0) + (cont['dmg_confirmado'] || 0) + (cont['encaminhada_endocrino'] || 0);
-  const concluidas = (cont['dmg_afastado'] || 0) + (cont['resultado_parto'] || 0);
+  const acomp = total - encerradas - aguardandoGj;
 
-  const kpiHeaders = ['Total', 'Aguardando GJ', 'Em acompanhamento', 'Concluídas'];
-  const kpiValues = [total, aguardandoGj, acomp, concluidas];
+  const kpiHeaders = ['Total', 'Aguardando GJ', 'Em acompanhamento', 'Encerradas'];
+  const kpiValues = [total, aguardandoGj, acomp, encerradas];
   kpiHeaders.forEach((h, i) => {
     const cell = resumo.getRow(10).getCell(i + 1);
     cell.value = h;
@@ -156,7 +166,7 @@ export async function exportarFichasExcel({
     const qtd = cont[key] || 0;
     const pct = total > 0 ? (qtd / total) * 100 : 0;
     const r = resumo.getRow(rowIdx);
-    r.getCell(1).value = STATUS_CONFIG[key]?.label || key;
+    r.getCell(1).value = getChipPorChave(key)?.label || key;
     r.getCell(2).value = qtd;
     r.getCell(3).value = `${pct.toFixed(1)}%`;
     [1, 2, 3].forEach(c => {
@@ -232,7 +242,7 @@ export async function exportarFichasExcel({
     const row = aba.addRow({
       paciente: f.nome,
       ig: formatIg(igMap.get(f.id) ?? null),
-      status: STATUS_CONFIG[f.status_ficha]?.label || f.status_ficha,
+      status: getStatusPacienteChip(f).label,
       profissional: f.profissional_nome,
       ultima: fmtBR(f.data_ultima_consulta),
       proxima: fmtBR(f.data_proximo_retorno),

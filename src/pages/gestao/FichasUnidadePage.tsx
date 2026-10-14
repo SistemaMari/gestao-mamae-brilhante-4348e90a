@@ -10,20 +10,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Search, FileDown, FileSpreadsheet, FileText, ChevronLeft, ChevronRight, AlertTriangle, AlertCircle, AlertOctagon, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { STATUS_CONFIG, getStatusPacienteChip } from '@/lib/fichaUtils';
+import { getStatusPacienteChip, getChaveStatusPaciente, getChipPorChave, isPacienteEncerrada } from '@/lib/fichaUtils';
 import type { MotivoEncerramento } from '@/lib/motivoEncerramento';
 import { useIgBatch, getIgBatch, formatIg } from '@/lib/getIg';
 import { slugify } from '@/lib/slugify';
 import { exportarFichasExcel } from '@/lib/exportarFichasExcel';
 import { formatDateISO, formatDateBR } from '@/lib/dateUtils';
 
+// Chaves de getChaveStatusPaciente (= tag exibida em cada linha). As de
+// encerramento só aparecem quando há gestantes nelas.
 const STATUS_CHIP_KEYS = [
   'aguardando_gj',
   'aguardando_gtt',
   'dmg_confirmado',
   'dmg_afastado',
-  'resultado_parto',
-  'encaminhada_endocrino',
+  'enc_insulinizacao',
+  'enc_parto',
+  'enc_aborto',
+  'enc_nao_retornou',
+  'enc_outro',
 ] as const;
 
 interface Ficha {
@@ -198,28 +203,26 @@ export default function FichasUnidadePage() {
     })();
   }, [isVitrine, user]);
 
+  // Contagens pela TAG efetiva (motivo de encerramento vence o status_ficha),
+  // para KPIs e chips baterem com a tag de cada linha e com o painel.
   const contagensStatus = useMemo(() => {
     const acc: Record<string, number> = {};
     for (const f of fichas) {
-      acc[f.status_ficha] = (acc[f.status_ficha] || 0) + 1;
+      const chave = getChaveStatusPaciente(f);
+      acc[chave] = (acc[chave] || 0) + 1;
     }
     return acc;
   }, [fichas]);
 
   const kpiTotal = fichas.length;
+  const kpiEncerradas = fichas.filter(f => isPacienteEncerrada(f)).length;
   const kpiAguardandoGj = contagensStatus['aguardando_gj'] || 0;
-  const kpiAcompanhamento =
-    (contagensStatus['aguardando_gtt'] || 0) +
-    (contagensStatus['dmg_confirmado'] || 0) +
-    (contagensStatus['encaminhada_endocrino'] || 0);
-  const kpiConcluidas =
-    (contagensStatus['dmg_afastado'] || 0) +
-    (contagensStatus['resultado_parto'] || 0);
+  const kpiAcompanhamento = kpiTotal - kpiEncerradas - kpiAguardandoGj;
 
   const filtradas = useMemo(() => {
     let base = fichas;
     if (idsFiltro) base = base.filter(f => idsFiltro.has(f.id));
-    if (statusFiltro) base = base.filter(f => f.status_ficha === statusFiltro);
+    if (statusFiltro) base = base.filter(f => getChaveStatusPaciente(f) === statusFiltro);
     if (buscaDebounced.trim()) {
       // Item 15 (busca por médico) ADIADO — precisa de RPC que exponha os médicos
       // que atenderam cada paciente (multi-médico por paciente, nomes protegidos
@@ -255,7 +258,7 @@ export default function FichasUnidadePage() {
   );
 
   const fmtBR = (v: string | null) => v ? formatDateBR(v) : '—';
-  const slugFiltro = statusFiltro ? slugify(STATUS_CONFIG[statusFiltro]?.label || statusFiltro) : 'todas';
+  const slugFiltro = statusFiltro ? slugify(getChipPorChave(statusFiltro)?.label || statusFiltro) : 'todas';
   const fileBase = `fichas-unidade-${slugFiltro}_${(unidadeNome || 'unidade').replace(/\s+/g, '')}_${format(new Date(), 'yyyy-MM-dd')}`;
 
   const exportCSV = async () => {
@@ -280,7 +283,7 @@ export default function FichasUnidadePage() {
     const rows = filtradas.map(f => [
       f.nome,
       formatIg(igMapCsv.get(f.id) ?? null),
-      STATUS_CONFIG[f.status_ficha]?.label || f.status_ficha,
+      getStatusPacienteChip(f).label,
       f.profissional_nome,
       fmtBR(f.data_ultima_consulta),
       fmtBR(f.data_proximo_retorno),
@@ -338,7 +341,7 @@ export default function FichasUnidadePage() {
           { label: t('gestao.fichasUnidade.kpiTotal'), valor: kpiTotal },
           { label: t('gestao.fichasUnidade.kpiAguardandoGj'), valor: kpiAguardandoGj },
           { label: t('gestao.fichasUnidade.kpiAcompanhamento'), valor: kpiAcompanhamento },
-          { label: t('gestao.fichasUnidade.kpiConcluidas'), valor: kpiConcluidas },
+          { label: t('gestao.fichasUnidade.kpiConcluidas'), valor: kpiEncerradas },
         ].map((kpi, i) => (
           <div key={kpi.label} className={`flex flex-col px-4 ${i === 0 ? 'sm:pl-0' : ''}`}>
             <span className="font-heading text-3xl font-bold text-foreground">{kpi.valor}</span>
@@ -361,10 +364,11 @@ export default function FichasUnidadePage() {
           {t('gestao.fichasUnidade.chipTodos', { count: kpiTotal })}
         </button>
         {STATUS_CHIP_KEYS.map(key => {
-          const cfg = STATUS_CONFIG[key];
+          const cfg = getChipPorChave(key);
           if (!cfg) return null;
           const ativo = statusFiltro === key;
           const count = contagensStatus[key] || 0;
+          if (key.startsWith('enc_') && count === 0 && !ativo) return null;
           return (
             <button
               key={key}
