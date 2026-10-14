@@ -2725,7 +2725,7 @@ export type Database = {
       definir_meta_rede: {
         Args: { p_contratante_id: string; p_indicador: string; p_valor: number }
         Returns: Json
-        }
+      }
       definir_receber_resumo_semanal: {
         Args: { p_receber: boolean }
         Returns: boolean
