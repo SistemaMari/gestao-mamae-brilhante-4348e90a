@@ -2687,6 +2687,10 @@ export type Database = {
           unidade_id: string
         }[]
       }
+      _relatorio_mensal_dados: {
+        Args: { p_fim: string; p_inicio: string; p_unidade_id: string }
+        Returns: Json
+      }
       _resumo_semanal_unidade: {
         Args: {
           p_fim: string
