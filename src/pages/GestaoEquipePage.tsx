@@ -281,6 +281,25 @@ export default function GestaoEquipePage() {
     email_em_uso_outro: t('gestaoEquipe.status.emailEmUsoOutro'),
   };
 
+  // A edge function responde com status != 2xx em erro; o supabase-js põe o
+  // corpo em error.context. Sem ler ali, a tela só mostrava "Erro ao enviar
+  // convite." e o motivo real se perdia.
+  type RespostaConvite = { status?: string; mensagem?: string; detalhe?: string | null; email_enviado?: boolean };
+  const lerRespostaConvite = async (res: { data: unknown; error: unknown }): Promise<RespostaConvite | null> => {
+    if (res.data) return res.data as RespostaConvite;
+    const ctx = (res.error as { context?: { json?: () => Promise<unknown> } } | null)?.context;
+    try { return ctx?.json ? ((await ctx.json()) as RespostaConvite) : null; } catch { return null; }
+  };
+  const motivoConvite = (d: RespostaConvite | null, padrao: string) =>
+    d?.mensagem ? (d.detalhe ? `${d.mensagem} (${d.detalhe})` : d.mensagem) : padrao;
+  const avisarConviteEnviado = (d: RespostaConvite, email: string, chaveOk: string) => {
+    if (d.email_enviado === false) {
+      toast.warning(t('gestaoEquipe.toast.conviteSemEmail', { email, motivo: d.mensagem ?? '' }));
+    } else {
+      toast.success(t(chaveOk, { email }));
+    }
+  };
+
   const handleEnviarConvite = async () => {
     if (!inviteEmail || !unidadeId || !user) return;
     setInviteError(null);
@@ -292,11 +311,11 @@ export default function GestaoEquipePage() {
         body: { unidade_id: unidadeId, email_convidado: inviteEmail },
       });
 
-      const data = res.data;
+      const data = await lerRespostaConvite(res);
       const status = data?.status;
 
       if (status === 'enviado') {
-        toast.success(t('gestaoEquipe.toast.conviteEnviado', { email: inviteEmail }));
+        avisarConviteEnviado(data!, inviteEmail, 'gestaoEquipe.toast.conviteEnviado');
         setShowInviteModal(false);
         setInviteEmail('');
         fetchEquipe();
@@ -306,7 +325,7 @@ export default function GestaoEquipePage() {
       } else if (status && STATUS_MENSAGENS[status]) {
         setInviteError(STATUS_MENSAGENS[status]);
       } else {
-        setInviteError(data?.mensagem || t('gestaoEquipe.toast.erroEnviarConvite'));
+        setInviteError(motivoConvite(data, t('gestaoEquipe.toast.erroEnviarConvite')));
       }
     } catch {
       setInviteError(t('gestaoEquipe.toast.erroEnviarConvite'));
@@ -321,23 +340,34 @@ export default function GestaoEquipePage() {
       const res = await supabase.functions.invoke('enviar-convite', {
         body: { unidade_id: unidadeId, email_convidado: email, convidado_por: user.id },
       });
-      if (res.data?.status === 'convite_pendente') {
-        await supabase
+      const data = await lerRespostaConvite(res);
+      if (data?.status === 'convite_pendente') {
+        // Expira o pendente para a função aceitar um novo. Se o novo falhar,
+        // devolve o antigo para "pendente" — antes ele sumia da lista em silêncio.
+        const { data: expirados } = await supabase
           .from('convites')
           .update({ status: 'expirado' } as any)
           .eq('email_convidado', email)
           .eq('unidade_id', unidadeId)
-          .eq('status', 'pendente');
+          .eq('status', 'pendente')
+          .select('id');
         const res2 = await supabase.functions.invoke('enviar-convite', {
           body: { unidade_id: unidadeId, email_convidado: email, convidado_por: user.id },
         });
-        if (res2.data?.status === 'enviado') {
-          toast.success(t('gestaoEquipe.toast.conviteReenviado', { email }));
-          fetchEquipe();
+        const data2 = await lerRespostaConvite(res2);
+        if (data2?.status === 'enviado') {
+          avisarConviteEnviado(data2, email, 'gestaoEquipe.toast.conviteReenviado');
+        } else {
+          const ids = ((expirados ?? []) as Array<{ id: string }>).map((c) => c.id);
+          if (ids.length) await supabase.from('convites').update({ status: 'pendente' }).in('id', ids);
+          toast.error(motivoConvite(data2, t('gestaoEquipe.toast.erroReenviarConvite')));
         }
-      } else if (res.data?.status === 'enviado') {
-        toast.success(t('gestaoEquipe.toast.conviteReenviado', { email }));
         fetchEquipe();
+      } else if (data?.status === 'enviado') {
+        avisarConviteEnviado(data, email, 'gestaoEquipe.toast.conviteReenviado');
+        fetchEquipe();
+      } else {
+        toast.error(motivoConvite(data, t('gestaoEquipe.toast.erroReenviarConvite')));
       }
     } catch {
       toast.error(t('gestaoEquipe.toast.erroReenviarConvite'));

@@ -2837,6 +2837,7 @@
       "conviteReenviado": "Invite resent to {{email}}!",
       "erroEnviarConvite": "Error sending invite.",
       "erroReenviarConvite": "Error resending invite.",
+      "conviteSemEmail": "Invite created for {{email}}, but the email was not sent ({{motivo}}). Use \"Resend\" in the team list.",
       "erroRemoverProfissional": "Error removing professional."
     }
   },

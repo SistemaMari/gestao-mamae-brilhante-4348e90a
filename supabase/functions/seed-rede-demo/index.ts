@@ -206,8 +206,10 @@ async function etapaEstrutura(admin: SupabaseClient, hoje: string) {
       u.gestor.email, u.gestor.nome, null, null, 'outro', 'gestor', addDias(criadaEm, 1),
     );
 
-    // Convites: recria os da unidade (a unidade é 100% da rede demo).
-    await admin.from('convites').delete().eq('unidade_id', unidadeId);
+    // Convites: recria SÓ os que a carga cria (e-mails da especificação). Convites
+    // feitos à mão na unidade demo (ex.: um teste real de convite) são preservados.
+    const emailsConviteDemo = [...u.profissionais.map((p) => p.email), ...u.convitesPendentes];
+    await admin.from('convites').delete().eq('unidade_id', unidadeId).in('email_convidado', emailsConviteDemo);
     const convites: Record<string, unknown>[] = [];
     for (const [k, p] of u.profissionais.entries()) {
       const desde = addDias(criadaEm, 3 + k * 2);

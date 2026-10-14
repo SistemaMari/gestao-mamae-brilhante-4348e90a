@@ -1,4 +1,4 @@
-// enviar-convite v3 — auto-limpeza de auth users órfãos
+// enviar-convite v4 — e-mail pela fila transacional; erros com detalhe
 // Status retornados:
 //   - enviado            (com fluxo: 'criacao' | 'vinculacao')
 //   - ja_vinculado
@@ -11,6 +11,7 @@
 //   - erro
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { enfileirarEmailTransacional } from "../_shared/emailTransacional.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -127,7 +128,7 @@ Deno.serve(async (req) => {
         const { error: deleteErr } = await supabaseAdmin.auth.admin.deleteUser(authUser.id);
         if (deleteErr) {
           console.error("[enviar-convite] failed to delete orphaned auth user:", deleteErr);
-          return json({ status: "erro", mensagem: "Não foi possível limpar o usuário órfão. Contate o suporte." }, 500);
+          return json({ status: "erro", mensagem: "Não foi possível limpar o usuário órfão. Contate o suporte.", detalhe: deleteErr.message }, 500);
         }
         console.log(`[enviar-convite] deleted orphaned auth user ${authUser.id} (${email_convidado})`);
         // Fall through to create the invite normally.
@@ -151,17 +152,17 @@ Deno.serve(async (req) => {
     // 5. Generate token + insert
     const token_invite = crypto.randomUUID() + "-" + crypto.randomUUID();
 
-    const { error: insertError } = await supabaseAdmin.from("convites").insert({
+    const { data: convite, error: insertError } = await supabaseAdmin.from("convites").insert({
       unidade_id,
       email_convidado,
       token: token_invite,
       status: "pendente",
       convidado_por: callerUserId,
-    });
+    }).select("id").single();
 
-    if (insertError) {
+    if (insertError || !convite) {
       console.error("[enviar-convite] insert error:", insertError);
-      return json({ status: "erro", mensagem: "Erro ao criar convite." }, 500);
+      return json({ status: "erro", mensagem: "Erro ao criar convite.", detalhe: insertError?.message ?? null }, 500);
     }
 
     const { data: unidade } = await supabaseAdmin
@@ -194,41 +195,28 @@ Deno.serve(async (req) => {
 
     const textBody = `Você foi convidado(a) para ${nomeUnidade} no MARI | Inteligência Clínica.\n\nAcesse o link abaixo para criar sua conta:\n${conviteUrl}\n\nO link expira em 7 dias.`;
 
-    const messageId = crypto.randomUUID();
-
-    await supabaseAdmin.from("email_send_log").insert({
-      message_id: messageId,
-      template_name: "convite_unidade",
-      recipient_email: email_convidado,
-      status: "pending",
+    // Fila transacional (a auth_emails só entrega e-mails do próprio login —
+    // por isso os convites não chegavam).
+    const erroEmail = await enfileirarEmailTransacional(supabaseAdmin, {
+      to: email_convidado,
+      subject: `Convite para ${nomeUnidade} — MARI`,
+      html: htmlBody,
+      text: textBody,
+      templateName: "convite_unidade",
+      label: "convite_unidade",
+      idempotencyKey: `convite-${convite.id}`,
     });
 
-    const { error: enqueueError } = await supabaseAdmin.rpc("enqueue_email", {
-      queue_name: "auth_emails",
-      payload: {
-        message_id: messageId,
-        to: email_convidado,
-        from: `Mari's Health Companion <noreply@notify.maridmg.com.br>`,
-        sender_domain: "notify.maridmg.com.br",
-        subject: `Convite para ${nomeUnidade} — MARI`,
-        html: htmlBody,
-        text: textBody,
-        purpose: "transactional",
-        label: "convite_unidade",
-        queued_at: new Date().toISOString(),
-      },
-    });
-
-    if (enqueueError) {
-      console.error("[enviar-convite] falha ao enfileirar email:", enqueueError);
-      // Convite foi criado — retorna sucesso parcial; o email pode ser reenviado.
-    } else {
-      console.log(`[enviar-convite] email enfileirado para ${email_convidado}`);
+    if (erroEmail) {
+      console.error("[enviar-convite] falha ao enfileirar email:", erroEmail);
+      // O convite foi criado e segue pendente (dá para reenviar); avisa que o e-mail não saiu.
+      return json({ status: "enviado", email_enviado: false, mensagem: erroEmail });
     }
+    console.log(`[enviar-convite] email enfileirado para ${email_convidado}`);
 
-    return json({ status: "enviado" });
+    return json({ status: "enviado", email_enviado: true });
   } catch (err) {
     console.error("[enviar-convite] unexpected error:", err);
-    return json({ status: "erro", mensagem: "Erro interno. Tente novamente." }, 500);
+    return json({ status: "erro", mensagem: "Erro interno. Tente novamente.", detalhe: (err as Error)?.message ?? null }, 500);
   }
 });
