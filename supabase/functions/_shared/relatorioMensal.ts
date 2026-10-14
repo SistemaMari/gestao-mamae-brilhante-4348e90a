@@ -289,11 +289,11 @@ export async function gerarPdfRelatorio(params: {
   y -= 80;
 
   // Subcabeçalho — unidade e período
-  page.drawText(metricas.unidade_nome, {
+  page.drawText(textoPdf(metricas.unidade_nome), {
     x: 40, y, size: 14, font: helvBold, color: cRoxo,
   });
   y -= 18;
-  page.drawText(`Período: ${formatarData(periodoInicio)} a ${formatarData(periodoFim)} (${rotuloMes})`, {
+  page.drawText(textoPdf(`Período: ${formatarData(periodoInicio)} a ${formatarData(periodoFim)} (${rotuloMes})`), {
     x: 40, y, size: 10, font: helv, color: cMuted,
   });
   y -= 30;
@@ -327,7 +327,7 @@ export async function gerarPdfRelatorio(params: {
   y -= 20;
   y = desenharSecao(page, helvBold, 'Controle glicêmico e desfechos', y, cRoxo);
   const ctrlKpis: Array<[string, string | number]> = [
-    ['Controle adequado (≥70%)', metricas.controle_adequado_sem_insulina],
+    ['Controle adequado (70%+)', metricas.controle_adequado_sem_insulina],
     ['Partos no mês', metricas.partos_registrados],
   ];
   y = desenharGridKpis(page, helv, helvBold, ctrlKpis, y, cBgCard, cTexto, cMuted);
@@ -353,7 +353,7 @@ export async function gerarPdfRelatorio(params: {
     thickness: 0.5,
     color: cMuted,
   });
-  page.drawText(`Gerado automaticamente pelo sistema em ${new Date().toLocaleString('pt-BR')}`, {
+  page.drawText(textoPdf(`Gerado automaticamente pelo sistema em ${new Date().toLocaleString('pt-BR')}`), {
     x: 40, y: rodapeY + 5, size: 8, font: helv, color: cMuted,
   });
   page.drawText('Origem: AUTOMÁTICO', {
@@ -361,6 +361,21 @@ export async function gerarPdfRelatorio(params: {
   });
 
   return await pdf.save();
+}
+
+// As fontes padrão do pdf-lib só codificam WinAnsi (Latin-1 + extras do
+// CP1252). Qualquer outro caractere (ex.: "≥") derruba a geração inteira com
+// "WinAnsi cannot encode" — troca pelos equivalentes ou por "?".
+const WINANSI_EXTRAS = new Set([...'€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ']);
+function textoPdf(texto: string): string {
+  return Array.from(String(texto ?? ''))
+    .map((ch) => {
+      if (ch === '≥') return '>=';
+      if (ch === '≤') return '<=';
+      const c = ch.codePointAt(0) ?? 0;
+      return c <= 255 || WINANSI_EXTRAS.has(ch) ? ch : '?';
+    })
+    .join('');
 }
 
 function formatarData(iso: string): string {
@@ -405,7 +420,7 @@ function desenharGridKpis(
     page.drawText(String(kpi[1]), {
       x: x + 8, y: y - 22, size: 18, font: fontBold, color: cTexto,
     });
-    page.drawText(kpi[0], {
+    page.drawText(textoPdf(kpi[0]), {
       x: x + 8, y: y - 40, size: 7, font: fontReg, color: cMuted,
     });
     x += cardW + gap;
