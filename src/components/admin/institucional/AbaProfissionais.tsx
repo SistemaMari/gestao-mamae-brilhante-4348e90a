@@ -18,6 +18,11 @@ import ModalTransferirProfissional from "./ModalTransferirProfissional";
 import AlertRevogarAcesso from "./AlertRevogarAcesso";
 import AlertReativarAcesso from "./AlertReativarAcesso";
 import type { UnidadeRow } from "./AbaUnidades";
+import { encontrarUnidadeImportacao } from "@/lib/encontrarUnidadeImportacao";
+
+const erroUnidade = (e: "naoEncontrada" | "ambigua" | "redeNaoEncontrada") =>
+  e === "ambigua" ? "importar.err.unidadeAmbigua" : e === "redeNaoEncontrada" ? "importar.err.redeNaoEncontrada" : "importar.err.unidadeNaoEncontrada";
+
 
 export interface ProfissionalRow {
   id: string;
@@ -304,25 +309,27 @@ export default function AbaProfissionais() {
           acao: "convidar_profissional_unidade",
           colunas: [
             { chave: "unidade", obrigatoria: true },
+            { chave: "rede" },
             { chave: "nome", obrigatoria: true },
             { chave: "email", obrigatoria: true },
             { chave: "perfil_clinico", obrigatoria: true },
           ],
-          exemplo: { unidade: "UBS Demo Lapa", nome: "Dra. Ana Souza", email: "ana.souza@exemplo.com", perfil_clinico: "Médico" },
+          exemplo: { unidade: "UBS Demo Lapa", rede: "", nome: "Dra. Ana Souza", email: "ana.souza@exemplo.com", perfil_clinico: "Médico" },
           preparar: (linha) => {
             const nome = (linha.nome ?? "").trim();
             const email = (linha.email ?? "").trim().toLowerCase();
             const unidadeNome = (linha.unidade ?? "").trim();
             const perfil = PERFIL_MAP[(linha.perfil_clinico ?? "").trim().toLowerCase()] ?? null;
-            const uni = (unidades ?? []).find((u) => u.nome.trim().toLowerCase() === unidadeNome.toLowerCase());
+            // Unidade pela rede + nome (antes só pelo nome, entre todas as redes).
+            const r = unidadeNome ? encontrarUnidadeImportacao(unidades ?? [], unidadeNome, linha.rede) : null;
             const erros: string[] = [];
             if (!nome) erros.push(t("importar.err.nome"));
             if (!EMAIL_RE.test(email)) erros.push(t("importar.err.email"));
             if (!unidadeNome) erros.push(t("importar.err.unidadeVazia"));
-            else if (!uni) erros.push(t("importar.err.unidadeNaoEncontrada"));
+            else if (r?.erro) erros.push(t(erroUnidade(r.erro)));
             if (!perfil) erros.push(t("importar.err.perfil"));
             return {
-              payload: erros.length ? null : { unidade_id: uni!.id, nome, email, perfil },
+              payload: erros.length ? null : { unidade_id: r!.id!, nome, email, perfil },
               erros,
               rotulo: nome || email || "—",
             };

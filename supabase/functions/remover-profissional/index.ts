@@ -74,10 +74,19 @@ Deno.serve(async (req) => {
       return json({ status: "erro", mensagem: "Profissional não encontrado nesta unidade." }, 404);
     }
 
-    // 4. Remove from unit
+    // 4. Revoga o acesso (decisão 15/out/2026). Antes zerava unidade_id/perfil:
+    //    a pessoa virava conta de consultório e continuava vendo e editando as
+    //    gestantes que atendeu na unidade. Agora a conta fica bloqueada (RLS barra
+    //    acesso_revogado) e as gestantes ficam na unidade, com a equipe. Para
+    //    voltar, a pessoa precisa ser convidada de novo.
     const { error: updateError } = await supabaseAdmin
       .from("profissionais")
-      .update({ unidade_id: null, perfil_institucional: null })
+      .update({
+        acesso_revogado: true,
+        acesso_revogado_em: new Date().toISOString(),
+        acesso_revogado_por: gestor.id,
+        motivo_revogacao: "Removido(a) da unidade pelo gestor",
+      })
       .eq("id", profissional_id);
 
     if (updateError) {
@@ -89,7 +98,7 @@ Deno.serve(async (req) => {
 
     return json({
       status: "removido",
-      mensagem: "Profissional removido da unidade. As fichas criadas por ele permanecem acessíveis.",
+      mensagem: "Profissional removido da unidade. O acesso foi revogado e as gestantes continuam na unidade, com a equipe.",
     });
   } catch (err) {
     console.error("[remover-profissional] unexpected error:", err);

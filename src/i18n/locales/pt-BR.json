@@ -751,9 +751,9 @@
       "selectPlaceholder": "Selecione…",
       "warnBefore": "{{nome}} tem",
       "warnMid": "gestante(s) em acompanhamento ativo na",
-      "warnAfter": ". Após a transferência, essas gestantes ficarão órfãs de profissional responsável. O gestor da unidade origem precisará reatribuí-las.",
+      "warnAfter": ". Elas continuam na unidade de origem, atendidas pela equipe de lá — depois da transferência, a profissional deixa de ter acesso a elas.",
       "confirm": "Confirmar transferência",
-      "success": "{{nome}} transferido para {{destino}}. {{count}} gestantes ficaram para reatribuição na origem."
+      "success": "{{nome}} transferido para {{destino}}. {{count}} gestante(s) continuam na unidade de origem, com a equipe de lá."
     },
     "cadastrarProfissionalConsultorio": {
       "title": "Cadastrar profissional",
@@ -2779,6 +2779,8 @@
       "email": "E-mail inválido",
       "unidadeVazia": "Unidade obrigatória",
       "unidadeNaoEncontrada": "Unidade não encontrada",
+      "unidadeAmbigua": "Há mais de uma unidade com esse nome — preencha a coluna \"rede\"",
+      "redeNaoEncontrada": "Rede não encontrada",
       "perfil": "Perfil clínico inválido",
       "contratanteVazio": "Contratante obrigatório",
       "contratanteNaoEncontrado": "Contratante não encontrado",

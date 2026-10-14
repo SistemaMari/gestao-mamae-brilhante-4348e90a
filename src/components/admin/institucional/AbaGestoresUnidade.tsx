@@ -18,6 +18,11 @@ import AlertRevogarGestorUnidade from "./AlertRevogarGestorUnidade";
 import AlertReativarGestorUnidade from "./AlertReativarGestorUnidade";
 import ModalVincularGestor, { type AlvoVinculacao } from "./ModalVincularGestor";
 import AlertDesvincularGestor from "./AlertDesvincularGestor";
+import { encontrarUnidadeImportacao } from "@/lib/encontrarUnidadeImportacao";
+
+const erroUnidade = (e: "naoEncontrada" | "ambigua" | "redeNaoEncontrada") =>
+  e === "ambigua" ? "importar.err.unidadeAmbigua" : e === "redeNaoEncontrada" ? "importar.err.redeNaoEncontrada" : "importar.err.unidadeNaoEncontrada";
+
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -83,7 +88,7 @@ export default function AbaGestoresUnidade() {
     queryKey: ["institucional", "unidades-opts-gestor"],
     queryFn: async () => {
       const { data } = await supabase.functions.invoke("gerenciar-institucional", { body: { acao: "listar_unidades" } });
-      return ((data?.unidades ?? []) as Array<{ id: string; nome: string }>);
+      return ((data?.unidades ?? []) as Array<{ id: string; nome: string; contratante_nome?: string | null }>);
     },
   });
 
@@ -285,8 +290,9 @@ export default function AbaGestoresUnidade() {
             { chave: "nome", obrigatoria: true },
             { chave: "email", obrigatoria: true },
             { chave: "unidade" },
+            { chave: "rede" },
           ],
-          exemplo: { nome: "Gestor Exemplo", email: "gestor@exemplo.com", unidade: "" },
+          exemplo: { nome: "Gestor Exemplo", email: "gestor@exemplo.com", unidade: "", rede: "" },
           preparar: (linha) => {
             const nome = (linha.nome ?? "").trim();
             const email = (linha.email ?? "").trim().toLowerCase();
@@ -296,9 +302,10 @@ export default function AbaGestoresUnidade() {
             if (!EMAIL_RE.test(email)) erros.push(t("importar.err.email"));
             let unidade_id: string | undefined;
             if (unidadeNome) {
-              const u = unidadesOpt.find((x) => x.nome.trim().toLowerCase() === unidadeNome.toLowerCase());
-              if (!u) erros.push(t("importar.err.unidadeNaoEncontrada"));
-              else unidade_id = u.id;
+              // Unidade pela rede + nome (antes só pelo nome, entre todas as redes).
+              const r = encontrarUnidadeImportacao(unidadesOpt, unidadeNome, linha.rede);
+              if (r.erro) erros.push(t(erroUnidade(r.erro)));
+              else unidade_id = r.id;
             }
             return {
               payload: erros.length ? null : (unidade_id ? { nome, email, unidade_id } : { nome, email }),

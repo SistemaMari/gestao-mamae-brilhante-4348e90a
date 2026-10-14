@@ -174,22 +174,28 @@ export function FiltrosGestorGeralProvider({
       type Vinc = {
         unidades: { id: string; nome: string; contratante_id: string } | null;
       };
-      const list = ((vincs ?? []) as Vinc[])
+      const todas = ((vincs ?? []) as Vinc[])
         .map((v) => v.unidades)
         .filter(Boolean) as { id: string; nome: string; contratante_id: string }[];
+
+      // Rede encerrada pelo admin sai do filtro (o banco já não devolve os dados dela).
+      const ids = Array.from(new Set(todas.map((u) => u.contratante_id))).filter(Boolean);
+      const { data: ctsTodas } = ids.length > 0
+        ? await supabase.from("contratantes").select("id, nome, status").in("id", ids)
+        : { data: [] as { id: string; nome: string; status: string }[] };
+      if (cancelado) return;
+      const cts = (ctsTodas ?? []).filter((c) => c.status !== "encerrado");
+      const redesAtivas = new Set(cts.map((c) => c.id));
+      const list = todas.filter((u) => redesAtivas.has(u.contratante_id));
       list.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
       setUnidades(list.map((u) => ({ id: u.id, nome: u.nome })));
 
-      const ids = Array.from(new Set(list.map((u) => u.contratante_id))).filter(Boolean);
-      if (ids.length > 0) {
-        const { data: cts } = await supabase.from("contratantes").select("id, nome").in("id", ids);
-        if (!cancelado && cts) {
-          const ord = [...cts].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-          setContratantes({
-            primeiro: ord[0]?.nome ?? "",
-            outros: Math.max(0, ord.length - 1),
-          });
-        }
+      if (cts.length > 0) {
+        const ord = [...cts].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+        setContratantes({
+          primeiro: ord[0]?.nome ?? "",
+          outros: Math.max(0, ord.length - 1),
+        });
       }
 
       setCarregandoPerfil(false);

@@ -751,9 +751,9 @@
       "selectPlaceholder": "Select…",
       "warnBefore": "{{nome}} has",
       "warnMid": "patient(s) in active follow-up at",
-      "warnAfter": ". After the transfer, these patients will be left without a responsible professional. The source unit manager will need to reassign them.",
+      "warnAfter": ". They stay at the origin unit, cared for by its team — after the transfer, the professional no longer has access to them.",
       "confirm": "Confirm transfer",
-      "success": "{{nome}} transferred to {{destino}}. {{count}} patients were left for reassignment at the source."
+      "success": "{{nome}} transferred to {{destino}}. {{count}} patient(s) remain at the origin unit, with its team."
     },
     "cadastrarProfissionalConsultorio": {
       "title": "Register professional",
@@ -2779,6 +2779,8 @@
       "email": "Invalid email",
       "unidadeVazia": "Unit required",
       "unidadeNaoEncontrada": "Unit not found",
+      "unidadeAmbigua": "More than one unit has this name — fill in the \"rede\" (network) column",
+      "redeNaoEncontrada": "Network not found",
       "perfil": "Invalid clinical profile",
       "contratanteVazio": "Contractor required",
       "contratanteNaoEncontrado": "Contractor not found",
