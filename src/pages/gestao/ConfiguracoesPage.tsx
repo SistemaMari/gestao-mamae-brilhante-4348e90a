@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Building2, Users, ArrowRight, CalendarCheck, Check, Clock, LifeBuoy, AlertTriangle } from 'lucide-react';
+import { Building2, Users, ArrowRight, CalendarCheck, Check, Clock, LifeBuoy, AlertTriangle, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { ResumoSemanalToggle } from '@/components/ResumoSemanalToggle';
 import i18n from '@/i18n';
 
 interface UnidadeData {
@@ -462,6 +463,16 @@ export default function ConfiguracoesPage() {
             <p className="mt-5 text-xs text-[#64748B]">
               {t('gestao.configuracoes.relatorioNota')}
             </p>
+          </CardShell>
+
+          {/* Resumo semanal por e-mail (interruptor) */}
+          <CardShell>
+            <CardHeader
+              Icon={Mail}
+              title={t('gestao.configuracoes.resumoSemanalTitle')}
+              subtitle={t('gestao.configuracoes.resumoSemanalSubtitle')}
+            />
+            <ResumoSemanalToggle vitrine={isVitrine} descricao={t('gestao.configuracoes.resumoSemanalDescricao')} />
           </CardShell>
 
           {/* Card 4 — Suporte */}
