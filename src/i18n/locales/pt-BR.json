@@ -2837,6 +2837,7 @@
       "conviteReenviado": "Convite reenviado para {{email}}!",
       "erroEnviarConvite": "Erro ao enviar convite.",
       "erroReenviarConvite": "Erro ao reenviar convite.",
+      "conviteSemEmail": "Convite criado para {{email}}, mas o e-mail não saiu ({{motivo}}). Use \"Reenviar\" na lista da equipe.",
       "erroRemoverProfissional": "Erro ao remover profissional."
     }
   },

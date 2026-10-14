@@ -9,45 +9,10 @@
 import * as React from "npm:react@18.3.1";
 import { renderAsync } from "npm:@react-email/components@0.0.22";
 import { template as acessoLiberado } from "./transactional-email-templates/acesso-liberado.tsx";
+import { enfileirarEmailTransacional } from "./emailTransacional.ts";
 
 // deno-lint-ignore no-explicit-any
 type SupabaseAdmin = any;
-
-const SITE_NAME = "Mari's Health Companion";
-// Precisa ser o subdomínio verificado no Lovable (igual ao send-transactional-email).
-const SENDER_DOMAIN = "notify.maridmg.com.br";
-
-function gerarToken(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-/** Token de descadastro do e-mail (exigido na fila transacional). null = bloqueado. */
-async function tokenDescadastro(
-  supabase: SupabaseAdmin,
-  email: string,
-): Promise<{ token: string | null; erro: string | null }> {
-  const { data: bloqueado, error: blqErr } = await supabase
-    .from("suppressed_emails").select("id").eq("email", email).maybeSingle();
-  if (blqErr) return { token: null, erro: `Falha ao checar bloqueio: ${blqErr.message}` };
-  if (bloqueado) return { token: null, erro: "E-mail na lista de bloqueio (descadastrado ou devolvido)" };
-
-  const { data: existente, error: lerErr } = await supabase
-    .from("email_unsubscribe_tokens").select("token, used_at").eq("email", email).maybeSingle();
-  if (lerErr) return { token: null, erro: `Falha ao ler token: ${lerErr.message}` };
-  if (existente?.used_at) return { token: null, erro: "E-mail descadastrado" };
-  if (existente?.token) return { token: existente.token, erro: null };
-
-  await supabase
-    .from("email_unsubscribe_tokens")
-    .upsert({ token: gerarToken(), email }, { onConflict: "email", ignoreDuplicates: true });
-  const { data: salvo } = await supabase
-    .from("email_unsubscribe_tokens").select("token").eq("email", email).maybeSingle();
-  return salvo?.token
-    ? { token: salvo.token, erro: null }
-    : { token: null, erro: "Falha ao criar token de descadastro" };
-}
 
 export interface DadosEmailAcesso {
   email: string;
@@ -95,44 +60,15 @@ export async function enviarEmailAcesso(
     return `Falha ao montar o e-mail de acesso: ${(e as Error).message}`;
   }
 
-  const emailNormalizado = dados.email.toLowerCase();
-  const { token: unsubscribeToken, erro: erroToken } = await tokenDescadastro(supabase, emailNormalizado);
-  if (!unsubscribeToken) return erroToken ?? "Falha ao preparar o e-mail";
-
-  const messageId = crypto.randomUUID();
-  await supabase.from("email_send_log").insert({
-    message_id: messageId,
-    template_name: "acesso-liberado",
-    recipient_email: dados.email,
-    status: "pending",
+  const erro = await enfileirarEmailTransacional(supabase, {
+    to: dados.email,
+    subject: acessoLiberado.subject,
+    html,
+    text,
+    templateName: "acesso-liberado",
+    label: "acesso-liberado",
+    idempotencyKey: dados.idempotencyKey,
   });
-
-  const { error } = await supabase.rpc("enqueue_email", {
-    queue_name: "transactional_emails",
-    payload: {
-      message_id: messageId,
-      to: dados.email,
-      from: `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`,
-      sender_domain: SENDER_DOMAIN,
-      subject: acessoLiberado.subject,
-      html,
-      text,
-      purpose: "transactional",
-      label: "acesso-liberado",
-      idempotency_key: dados.idempotencyKey,
-      unsubscribe_token: unsubscribeToken,
-      queued_at: new Date().toISOString(),
-    },
-  });
-  if (error) {
-    await supabase.from("email_send_log").insert({
-      message_id: messageId,
-      template_name: "acesso-liberado",
-      recipient_email: dados.email,
-      status: "failed",
-      error_message: "Failed to enqueue email",
-    });
-    return `Falha ao enfileirar o e-mail de acesso: ${error.message}`;
-  }
-  return null;
+  return erro ? `Falha ao enfileirar o e-mail de acesso: ${erro}` : null;
 }
+
