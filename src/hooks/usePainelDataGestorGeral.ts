@@ -156,6 +156,43 @@ export function useConsolidadorGargalos() {
   });
 }
 
+/** Uma gestante da lista de um gargalo (drill-down). */
+export interface GargaloGestanteGG {
+  paciente_id: string;
+  nome: string;
+  unidade_id: string;
+  unidade_nome: string | null;
+  ig_atual_dias: number | null;
+  ultima_consulta: string | null;
+  profissional_nome: string | null;
+}
+
+export type ChaveGargaloGG = "sem_gj_primeira_consulta" | "atrasadas_gtt" | "confirmadas_sem_retorno";
+
+export type ConsolidadorGargalosDetalhado = Record<ChaveGargaloGG, GargaloGestanteGG[]>;
+
+/** Limite de linhas por gargalo na lista (a RPC aceita até 2000). */
+export const LIMITE_GARGALO_DETALHADO = 500;
+
+/** Lista das gestantes de cada gargalo da rede (só busca quando `enabled`). */
+export function useConsolidadorGargalosDetalhado(enabled: boolean) {
+  const { unidadesEfetivas, semSelecao } = useFiltrosGestorGeral();
+  return useQuery({
+    queryKey: buildKey(["painel-gg", "cons-gargalos-detalhado"], unidadesEfetivas),
+    enabled: enabled && !semSelecao,
+    queryFn: async (): Promise<ConsolidadorGargalosDetalhado> => {
+      const { data, error } = await supabase.rpc("get_consolidador_gargalos_detalhado_gestor_geral", {
+        p_unidades: unidadesEfetivas ?? undefined,
+        p_limit: LIMITE_GARGALO_DETALHADO,
+      });
+      if (error) throw error;
+      return data as unknown as ConsolidadorGargalosDetalhado;
+    },
+    staleTime: 60_000,
+    gcTime: 60 * 60_000,
+  });
+}
+
 export function useConsolidadorTendencia() {
   const { unidadesEfetivas, semSelecao } = useFiltrosGestorGeral();
   return useQuery({

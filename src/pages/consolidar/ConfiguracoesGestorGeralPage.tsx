@@ -4,6 +4,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ResumoSemanalToggle } from "@/components/ResumoSemanalToggle";
+import MetasRedeCard from "@/components/gestor-geral/MetasRedeCard";
 
 export default function ConfiguracoesGestorGeralPage() {
   const { gestor, unidades, contratantes } = useFiltrosGestorGeral();
@@ -59,6 +60,8 @@ export default function ConfiguracoesGestorGeralPage() {
           ))}
         </ul>
       </div>
+
+      <MetasRedeCard />
 
       <div className="rounded-xl border border-border bg-white p-5 shadow-sm space-y-3">
         <div className="flex items-start gap-3">

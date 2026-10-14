@@ -8,15 +8,23 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { format, subDays, startOfYear } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { calcularPeriodo, type PresetPeriodo } from "@/lib/periodo";
 
-export type PresetPeriodo = "7d" | "30d" | "90d" | "12m" | "ano" | "custom";
+// Presets e cálculo do período ficam em src/lib/periodo.ts (o painel da unidade usa também).
+export { calcularPeriodo, type PresetPeriodo };
 
 export interface UnidadeOpt {
+  id: string;
+  nome: string;
+  /** Rede (contratante) da unidade — as metas da rede são por rede. */
+  contratante_id?: string;
+}
+
+export interface RedeOpt {
   id: string;
   nome: string;
 }
@@ -46,6 +54,8 @@ interface FiltrosCtx {
   gestor: PerfilGestorGeral | null;
   unidades: UnidadeOpt[];
   contratantes: ContratantesInfo;
+  /** Redes ativas do gestor geral (para as metas da rede). */
+  redes: RedeOpt[];
   filtros: FiltrosState;
   setFiltros: (next: FiltrosState) => void;
   // RPCs precisam: null quando todas, array quando subset não vazio.
@@ -56,42 +66,6 @@ interface FiltrosCtx {
 }
 
 const Ctx = createContext<FiltrosCtx | null>(null);
-
-const HOJE = () => new Date();
-
-export function calcularPeriodo(
-  preset: PresetPeriodo,
-  custom?: { from?: Date; to?: Date },
-): { inicio: string; fim: string } {
-  const fim = HOJE();
-  let inicio = subDays(fim, 30);
-  switch (preset) {
-    case "7d":
-      inicio = subDays(fim, 7);
-      break;
-    case "30d":
-      inicio = subDays(fim, 30);
-      break;
-    case "90d":
-      inicio = subDays(fim, 90);
-      break;
-    case "12m":
-      inicio = subDays(fim, 365);
-      break;
-    case "ano":
-      inicio = startOfYear(fim);
-      break;
-    case "custom":
-      if (custom?.from && custom?.to) {
-        return {
-          inicio: format(custom.from, "yyyy-MM-dd"),
-          fim: format(custom.to, "yyyy-MM-dd"),
-        };
-      }
-      break;
-  }
-  return { inicio: format(inicio, "yyyy-MM-dd"), fim: format(fim, "yyyy-MM-dd") };
-}
 
 export function FiltrosGestorGeralProvider({
   children,
@@ -104,6 +78,7 @@ export function FiltrosGestorGeralProvider({
     gestor: PerfilGestorGeral;
     unidades: UnidadeOpt[];
     contratantes: ContratantesInfo;
+    redes?: RedeOpt[];
   };
 }) {
   const { user } = useAuth();
@@ -120,6 +95,8 @@ export function FiltrosGestorGeralProvider({
   const [contratantes, setContratantes] = useState<ContratantesInfo>(
     modoVitrine ? mockData?.contratantes ?? { primeiro: "", outros: 0 } : { primeiro: "", outros: 0 },
   );
+
+  const [redes, setRedes] = useState<RedeOpt[]>(modoVitrine ? mockData?.redes ?? [] : []);
 
   const periodoInicial = useRef(calcularPeriodo("30d"));
   const [filtros, setFiltrosState] = useState<FiltrosState>({
@@ -188,10 +165,11 @@ export function FiltrosGestorGeralProvider({
       const redesAtivas = new Set(cts.map((c) => c.id));
       const list = todas.filter((u) => redesAtivas.has(u.contratante_id));
       list.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-      setUnidades(list.map((u) => ({ id: u.id, nome: u.nome })));
+      setUnidades(list.map((u) => ({ id: u.id, nome: u.nome, contratante_id: u.contratante_id })));
 
       if (cts.length > 0) {
         const ord = [...cts].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+        setRedes(ord.map((c) => ({ id: c.id, nome: c.nome })));
         setContratantes({
           primeiro: ord[0]?.nome ?? "",
           outros: Math.max(0, ord.length - 1),
@@ -229,6 +207,7 @@ export function FiltrosGestorGeralProvider({
     gestor,
     unidades,
     contratantes,
+    redes,
     filtros,
     setFiltros,
     unidadesEfetivas,

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { FiltrosGestorGeralProvider, useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
 import Saudacao from "@/components/shell/Saudacao";
 import FiltrosGlobais from "@/components/gestor-geral/painel/FiltrosGlobais";
+import { VITRINE_REDE_ID } from "@/hooks/useMetasRede";
 
 // Saudação no padrão do admin, só na tela inicial (Visão Geral), acima dos filtros.
 function SaudacaoVisaoGeral() {
@@ -21,12 +22,13 @@ export default function ConsolidarLayout() {
   const VITRINE_MOCK = {
     gestor: { id: "vitrine-gg", nome: t("consolidar.vitrine.gestorNome") },
     unidades: [
-      { id: "u-pinheiros", nome: t("consolidar.vitrine.unidadePinheiros") },
-      { id: "u-moema", nome: t("consolidar.vitrine.unidadeMoema") },
-      { id: "u-lapa", nome: t("consolidar.vitrine.unidadeLapa") },
-      { id: "u-vilanova", nome: t("consolidar.vitrine.unidadeVilaNova") },
+      { id: "u-pinheiros", nome: t("consolidar.vitrine.unidadePinheiros"), contratante_id: VITRINE_REDE_ID },
+      { id: "u-moema", nome: t("consolidar.vitrine.unidadeMoema"), contratante_id: VITRINE_REDE_ID },
+      { id: "u-lapa", nome: t("consolidar.vitrine.unidadeLapa"), contratante_id: VITRINE_REDE_ID },
+      { id: "u-vilanova", nome: t("consolidar.vitrine.unidadeVilaNova"), contratante_id: VITRINE_REDE_ID },
     ],
     contratantes: { primeiro: t("consolidar.vitrine.contratante"), outros: 0 },
+    redes: [{ id: VITRINE_REDE_ID, nome: t("consolidar.vitrine.contratante") }],
   };
 
   return (

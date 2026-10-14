@@ -1486,6 +1486,38 @@ export type Database = {
           },
         ]
       }
+      metas_rede: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          contratante_id: string
+          indicador: string
+          valor: number
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          contratante_id: string
+          indicador: string
+          valor: number
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          contratante_id?: string
+          indicador?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_rede_contratante_id_fkey"
+            columns: ["contratante_id"]
+            isOneToOne: false
+            referencedRelation: "contratantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pacientes: {
         Row: {
           cidade: string | null
@@ -2690,6 +2722,10 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
+      definir_meta_rede: {
+        Args: { p_contratante_id: string; p_indicador: string; p_valor: number }
+        Returns: Json
+      }
       definir_receber_resumo_semanal: {
         Args: { p_receber: boolean }
         Returns: boolean
@@ -2724,6 +2760,13 @@ export type Database = {
           unidade_nome: string
         }[]
       }
+      get_consolidador_gargalos_detalhado_gestor_geral: {
+        Args: {
+          p_limit?: number
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
       get_consolidador_gargalos_gestor_geral: {
         Args: {
           p_data_fim: string
@@ -2752,6 +2795,22 @@ export type Database = {
         Args: { p_unidades?: string[] }
         Returns: Json
       }
+      get_linha_cuidado_gestor_geral: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
+      get_linha_cuidado_por_unidade_gestor_geral: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
       get_metricas_consolidadas_gestor_geral: {
         Args: {
           p_data_fim: string
@@ -2765,12 +2824,22 @@ export type Database = {
         Args: { p_limit?: number; p_unidade_id: string }
         Returns: Json
       }
-      get_painel_operacao: { Args: { p_unidade_id: string }; Returns: Json }
-      get_painel_perfil_clinico: {
-        Args: { p_unidade_id: string }
+      get_painel_linha_cuidado: {
+        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
         Returns: Json
       }
-      get_painel_tendencia: { Args: { p_unidade_id: string }; Returns: Json }
+      get_painel_operacao: {
+        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Returns: Json
+      }
+      get_painel_perfil_clinico: {
+        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Returns: Json
+      }
+      get_painel_tendencia: {
+        Args: { p_data_fim?: string; p_data_inicio?: string; p_unidade_id: string }
+        Returns: Json
+      }
       get_profissionais_equipe: {
         Args: { p_unidade_id?: string }
         Returns: {
@@ -2878,6 +2947,10 @@ export type Database = {
       }
       refresh_mv_metricas_unidade_manual: { Args: never; Returns: Json }
       refresh_mv_metricas_unidade_seed: { Args: never; Returns: Json }
+      remover_meta_rede: {
+        Args: { p_contratante_id: string; p_indicador: string }
+        Returns: boolean
+      }
       resetar_laudos_aniversario: { Args: never; Returns: Json }
       resumo_semanal_destinatarios: {
         Args: {

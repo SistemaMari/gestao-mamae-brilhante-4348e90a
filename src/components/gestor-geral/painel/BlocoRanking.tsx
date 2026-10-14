@@ -16,6 +16,10 @@ import { cn } from "@/lib/utils";
 import type { RankingUnidade } from "@/hooks/usePainelGestorGeral";
 import { fmtNum, fmtPct, humanizeUltimaAtividade } from "./utils/formatters";
 import TooltipInfo from "@/components/gestor-geral/TooltipInfo";
+import BotoesExportarRede from "@/components/gestor-geral/BotoesExportarRede";
+import { useMetaExportRede } from "@/hooks/useMetaExportRede";
+import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
+import { slugArquivo, type TabelaExport } from "@/lib/exportarTabelaRede";
 
 interface Props {
   data: RankingUnidade[] | undefined;
@@ -93,6 +97,42 @@ export default function BlocoRanking({ data, isLoading, isError, onRetry }: Prop
     return copy;
   }, [data, sortKey, sortDir]);
 
+  const { filtros } = useFiltrosGestorGeral();
+  const metaExport = useMetaExportRede();
+  // Exporta as colunas visíveis, na ordem em que estão na tela.
+  const montarExport = (): TabelaExport<RankingUnidade> => ({
+    titulo: t('consolidar.exportar.tituloRanking'),
+    meta: metaExport,
+    aba: t('consolidar.exportar.tituloRanking'),
+    fileBase: `${slugArquivo(t('consolidar.exportar.arquivoRanking'))}_${filtros.dataInicio}_${filtros.dataFim}`,
+    linhas: rows,
+    colunas: [
+      { header: t('gestorGeral.blocoRanking.colUnidade'), valor: (r) => r.unidade_nome, width: 32 },
+      { header: t('gestorGeral.blocoRanking.colPacientes'), valor: (r) => r.pacientes_ativos ?? 0 },
+      { header: t('gestorGeral.blocoRanking.colLaudos'), valor: (r) => r.laudos_emitidos ?? 0 },
+      {
+        header: `${t('gestorGeral.blocoRanking.colTaxaDmg')} (%)`,
+        valor: (r) => (r.taxa_dmg_positivo_pct == null ? null : Number(Number(r.taxa_dmg_positivo_pct).toFixed(1))),
+      },
+      {
+        header: t('gestorGeral.blocoRanking.colTempoMedio'),
+        valor: (r) =>
+          r.tempo_medio_fechamento_dias
+            ? t('gestorGeral.blocoRanking.dias', { valor: r.tempo_medio_fechamento_dias.toFixed(1) })
+            : '—',
+      },
+      {
+        header: t('gestorGeral.blocoRanking.colUltimaAtividade'),
+        valor: (r) => (r.ultima_atividade ? new Date(r.ultima_atividade).toLocaleDateString('pt-BR') : '—'),
+        width: 18,
+      },
+      {
+        header: t('gestorGeral.blocoRanking.colStatus'),
+        valor: (r) => t((STATUS_MAP[r.status_operacional] ?? STATUS_MAP.nao_iniciada).labelKey),
+      },
+    ],
+  });
+
   const onSort = (k: SortKey) => {
     if (sortKey === k) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -140,16 +180,19 @@ export default function BlocoRanking({ data, isLoading, isError, onRetry }: Prop
 
   return (
     <div className="rounded-xl border border-border bg-white shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-border">
-        <h2
-          className="text-base font-semibold text-[#1E293B]"
-          style={{ fontFamily: "Sora, sans-serif" }}
-        >
-          {t('gestorGeral.blocoRanking.title')}
-        </h2>
-        <p className="text-xs text-[#64748B] mt-0.5">
-          {t('gestorGeral.blocoRanking.subtitle')}
-        </p>
+      <div className="px-5 py-4 border-b border-border flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2
+            className="text-base font-semibold text-[#1E293B]"
+            style={{ fontFamily: "Sora, sans-serif" }}
+          >
+            {t('gestorGeral.blocoRanking.title')}
+          </h2>
+          <p className="text-xs text-[#64748B] mt-0.5">
+            {t('gestorGeral.blocoRanking.subtitle')}
+          </p>
+        </div>
+        <BotoesExportarRede montar={montarExport} disabled={isLoading || rows.length === 0} />
       </div>
 
       {isLoading ? (

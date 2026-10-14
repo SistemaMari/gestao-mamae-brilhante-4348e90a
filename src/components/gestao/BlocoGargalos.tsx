@@ -10,6 +10,11 @@ interface Props {
   error?: string | null;
   hideVerPacientesLink?: boolean;
   subtitle?: string;
+  /**
+   * Quando informado, "Ver gestantes" (e o número) chamam isto em vez de abrir a
+   * lista de fichas da unidade — usado pelo painel da rede (gestor geral).
+   */
+  onVerGestantes?: (chave: 'sem_gj_primeira_consulta' | 'atrasadas_gtt' | 'confirmadas_sem_retorno') => void;
 }
 
 type Severidade = 'amarelo' | 'laranja' | 'vermelho';
@@ -35,7 +40,7 @@ const PALETA: Record<Severidade, { border: string; bg: string; iconBg: string; i
   },
 };
 
-export default function BlocoGargalos({ data, loading, error, hideVerPacientesLink, subtitle }: Props) {
+export default function BlocoGargalos({ data, loading, error, hideVerPacientesLink, subtitle, onVerGestantes }: Props) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -49,6 +54,7 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
 
   const itens: Array<{
     key: string;
+    chave: 'sem_gj_primeira_consulta' | 'atrasadas_gtt' | 'confirmadas_sem_retorno';
     filtroParam: 'sem_gj_primeira' | 'atrasadas_gtt' | 'sem_retorno';
     titulo: string;
     descricao: string;
@@ -57,6 +63,7 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
   }> = [
     {
       key: 'sem_gj',
+      chave: 'sem_gj_primeira_consulta',
       filtroParam: 'sem_gj_primeira',
       titulo: t('gestao.blocoGargalos.semGjTitulo'),
       descricao: t('gestao.blocoGargalos.semGjDescricao'),
@@ -65,6 +72,7 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
     },
     {
       key: 'gtt',
+      chave: 'atrasadas_gtt',
       filtroParam: 'atrasadas_gtt',
       titulo: t('gestao.blocoGargalos.gttTitulo'),
       descricao: t('gestao.blocoGargalos.gttDescricao'),
@@ -73,6 +81,7 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
     },
     {
       key: 'sem_retorno',
+      chave: 'confirmadas_sem_retorno',
       filtroParam: 'sem_retorno',
       titulo: t('gestao.blocoGargalos.semRetornoTitulo'),
       descricao: t('gestao.blocoGargalos.semRetornoDescricao'),
@@ -127,18 +136,33 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
                       className={`h-5 w-5 ${tem ? p.iconText : 'text-muted-foreground'}`}
                     />
                   </div>
-                  <span className="font-heading text-2xl font-bold text-foreground tabular-nums">
-                    {it.data.count}
-                  </span>
+                  {tem && onVerGestantes ? (
+                    <button
+                      type="button"
+                      onClick={() => onVerGestantes(it.chave)}
+                      className="font-heading text-2xl font-bold text-foreground tabular-nums underline decoration-dotted underline-offset-4 hover:text-primary"
+                      aria-label={`${it.titulo}: ${t('gestao.blocoGargalos.verPacientes')}`}
+                    >
+                      {it.data.count}
+                    </button>
+                  ) : (
+                    <span className="font-heading text-2xl font-bold text-foreground tabular-nums">
+                      {it.data.count}
+                    </span>
+                  )}
                 </div>
                 <div className="mt-3 flex items-center gap-1.5">
                   <p className="text-sm font-semibold text-foreground">{it.titulo}</p>
                   <CardInfoTooltip text={TOOLTIPS[it.key]} />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">{it.descricao}</p>
-                {tem && !hideVerPacientesLink && (
+                {tem && (onVerGestantes || !hideVerPacientesLink) && (
                   <button
                     onClick={() => {
+                      if (onVerGestantes) {
+                        onVerGestantes(it.chave);
+                        return;
+                      }
                       const ids = it.data.paciente_ids.join(',');
                       navigate(`${basePath}/fichas?filtro=${it.filtroParam}&ids=${ids}`);
                     }}

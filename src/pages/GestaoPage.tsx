@@ -24,6 +24,13 @@ import BlocoOperacao from '@/components/gestao/BlocoOperacao';
 import BlocoPerfilClinico from '@/components/gestao/BlocoPerfilClinico';
 import BlocoGargalos from '@/components/gestao/BlocoGargalos';
 import BlocoTendencia from '@/components/gestao/BlocoTendencia';
+import FiltroPeriodoPainel, { type FiltroPeriodoValor } from '@/components/gestao/FiltroPeriodoPainel';
+import LinhaDeCuidado from '@/components/gestao/LinhaDeCuidado';
+import { calcularPeriodo } from '@/lib/periodo';
+import type { LinhaCuidadoResposta } from '@/lib/linhaCuidado';
+import { mockLinhaCuidado } from '@/lib/mockLinhaCuidado';
+import { temMetas } from '@/lib/metas';
+import { useMetasRedes, VITRINE_REDE_ID } from '@/hooks/useMetasRede';
 import { exportarPainelPdf } from '@/lib/exportarPainelPdf';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -83,6 +90,14 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
   );
   const [loadingBlocos, setLoadingBlocos] = useState(!isVitrine);
   const [erroBlocos, setErroBlocos] = useState<string | null>(null);
+  // Filtro de período (mesmos presets do gestor geral). Gargalos e gestantes ativas = hoje.
+  const [periodo, setPeriodo] = useState<FiltroPeriodoValor>(() => ({ preset: '30d', ...calcularPeriodo('30d') }));
+  const [linhaCuidado, setLinhaCuidado] = useState<LinhaCuidadoResposta | null>(null);
+  const [erroLinha, setErroLinha] = useState<string | null>(null);
+  // Metas da rede da unidade (definidas pelo gestor geral; aqui só leitura).
+  const [redeId, setRedeId] = useState<string | null>(isVitrine ? VITRINE_REDE_ID : null);
+  const metasQ = useMetasRedes([redeId]);
+  const metasUnidade = redeId ? metasQ.data?.[redeId] ?? null : null;
 
   useEffect(() => {
     if (isVitrine) return;
@@ -95,7 +110,7 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
     if (isVitrine) return;
     if (!user || !unidadeId) return;
     fetchPainel();
-  }, [user, unidadeId, isVitrine]);
+  }, [user, unidadeId, isVitrine, periodo.inicio, periodo.fim]);
 
   const initContext = async () => {
     if (!user) return;
@@ -136,17 +151,30 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
     try {
       const { data: u } = await supabase
         .from('unidades')
-        .select('nome')
+        .select('nome, contratante_id')
         .eq('id', unidadeId)
         .single();
       setUnidadeNome(u?.nome || '');
+      setRedeId(u?.contratante_id ?? null);
 
-      const [opRes, peRes, gaRes, teRes] = await Promise.all([
-        supabase.rpc('get_painel_operacao', { p_unidade_id: unidadeId }),
-        supabase.rpc('get_painel_perfil_clinico', { p_unidade_id: unidadeId }),
+      const comPeriodo = { p_unidade_id: unidadeId, p_data_inicio: periodo.inicio, p_data_fim: periodo.fim };
+      const [opRes, peRes, gaRes, teRes, lcRes] = await Promise.all([
+        supabase.rpc('get_painel_operacao', comPeriodo),
+        supabase.rpc('get_painel_perfil_clinico', comPeriodo),
         supabase.rpc('get_painel_gargalos', { p_unidade_id: unidadeId }),
-        supabase.rpc('get_painel_tendencia', { p_unidade_id: unidadeId }),
+        supabase.rpc('get_painel_tendencia', comPeriodo),
+        supabase.rpc('get_painel_linha_cuidado', comPeriodo),
       ]);
+
+      // Linha de cuidado com erro próprio: se falhar, o resto do painel continua.
+      if (lcRes.error) {
+        console.error('Erro RPC linha de cuidado:', lcRes.error);
+        setErroLinha(t('gestao.linhaCuidado.loadError'));
+        setLinhaCuidado(null);
+      } else {
+        setErroLinha(null);
+        setLinhaCuidado(lcRes.data as unknown as LinhaCuidadoResposta);
+      }
 
       const erro = opRes.error || peRes.error || gaRes.error || teRes.error;
       if (erro) {
@@ -288,6 +316,10 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
         </div>
       )}
 
+      <div className="mb-6">
+        <FiltroPeriodoPainel value={periodo} onChange={setPeriodo} />
+      </div>
+
       <div className="space-y-8">
         {/* Os blocos só aparecem com dados; se a carga falhar (ex.: unidade sem
             acesso no drill-down do gestor geral) a página ficava em branco. */}
@@ -303,10 +335,33 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
 
         {perfil && <BlocoPerfilClinico data={perfil} loading={loadingBlocos} error={erroBlocos} />}
 
-        {/* No drill-down do gestor geral (readonly) o link leva a /gestao/fichas, rota só do gestor → esconde. */}
-        {gargalos && <BlocoGargalos data={gargalos} loading={loadingBlocos} error={erroBlocos} hideVerPacientesLink={readonly} />}
+        <LinhaDeCuidado
+          data={isVitrine ? mockLinhaCuidado(periodo) : linhaCuidado}
+          loading={loadingBlocos}
+          error={erroLinha}
+          metas={metasUnidade}
+          notaMetas={temMetas(metasUnidade) ? t('gestao.metas.definidaPelaRede') : null}
+        />
 
-        {tendencia && <BlocoTendencia data={tendencia} loading={loadingBlocos} error={erroBlocos} />}
+        {/* No drill-down do gestor geral (readonly) o link leva a /gestao/fichas, rota só do gestor → esconde. */}
+        {gargalos && (
+          <BlocoGargalos
+            data={gargalos}
+            loading={loadingBlocos}
+            error={erroBlocos}
+            hideVerPacientesLink={readonly}
+            subtitle={t('gestao.blocoGargalos.subtitleHoje')}
+          />
+        )}
+
+        {tendencia && (
+          <BlocoTendencia
+            data={tendencia}
+            loading={loadingBlocos}
+            error={erroBlocos}
+            noDataText={t('gestao.blocoTendencia.noDataPeriodo')}
+          />
+        )}
 
         {/* Quick actions — escondidas em modo readonly (drill-down do gestor geral) */}
         {!readonly && (

@@ -10,6 +10,7 @@ import EmptyStateSemSelecao from "@/components/gestor-geral/EmptyStateSemSelecao
 import BlocoKpis from "@/components/gestor-geral/painel/BlocoKpis";
 import BlocoRanking from "@/components/gestor-geral/painel/BlocoRanking";
 import BlocoAlertas from "@/components/gestor-geral/painel/BlocoAlertas";
+import BlocoMetasPorUnidade from "@/components/gestor-geral/painel/BlocoMetasPorUnidade";
 import BlocoTopDestaques from "@/components/gestor-geral/painel/BlocoTopDestaques";
 
 export default function DiagnosticoPage() {
@@ -49,6 +50,7 @@ export default function DiagnosticoPage() {
         isError={ranking.isError}
         onRetry={() => ranking.refetch()}
       />
+      <BlocoMetasPorUnidade />
       <BlocoAlertas
         data={alertas.data}
         isLoading={alertas.isLoading}
