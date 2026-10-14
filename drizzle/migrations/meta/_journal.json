@@ -113,6 +113,13 @@
       "when": 1792012017924,
       "tag": "0015_resumo_semanal_email",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792013272163,
+      "tag": "0016_agendar_resumo_semanal",
+      "breakpoints": true
     }
   ]
 }
