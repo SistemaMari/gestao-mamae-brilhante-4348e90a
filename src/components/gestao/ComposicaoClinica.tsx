@@ -9,27 +9,32 @@ export interface ProfissionalEquipe {
   perfil_clinico?: string | null;
 }
 
-type Categoria = 'gineco' | 'endo' | 'enfermeira' | 'nutri' | 'outros';
+// Mesmas especialidades do cadastro (src/data/locationData.ts): antes Clínico
+// Geral e Médico de Família caíam em "Outros" e havia uma linha de
+// Nutricionistas, especialidade que o cadastro não oferece (sempre 0).
+type Categoria = 'gineco' | 'endo' | 'clinico' | 'familia' | 'enfermeira' | 'outros';
 
 function classificar(p: ProfissionalEquipe): Categoria {
   const esp = (p.especialidade || '').toLowerCase();
   const pc = (p.perfil_clinico || '').toLowerCase();
   if (/ginec|obstetr/.test(esp)) return 'gineco';
   if (/endocrin/.test(esp)) return 'endo';
-  if (pc === 'enfermeira' || /enferm/.test(esp)) return 'enfermeira';
-  if (pc === 'nutricionista' || /nutri/.test(esp)) return 'nutri';
+  if (/enferm/.test(esp) || pc === 'enfermeiro') return 'enfermeira';
+  if (/cl[ií]nico/.test(esp)) return 'clinico';
+  if (/fam[ií]lia/.test(esp)) return 'familia';
   return 'outros';
 }
 
 const LABEL_KEYS: Record<Categoria, string> = {
   gineco: 'gestao.composicaoClinica.gineco',
   endo: 'gestao.composicaoClinica.endo',
+  clinico: 'gestao.composicaoClinica.clinico',
+  familia: 'gestao.composicaoClinica.familia',
   enfermeira: 'gestao.composicaoClinica.enfermeira',
-  nutri: 'gestao.composicaoClinica.nutri',
   outros: 'gestao.composicaoClinica.outros',
 };
 
-const ORDEM: Categoria[] = ['gineco', 'endo', 'enfermeira', 'nutri', 'outros'];
+const ORDEM: Categoria[] = ['gineco', 'endo', 'clinico', 'familia', 'enfermeira', 'outros'];
 
 interface Props {
   profissionais: ProfissionalEquipe[];
@@ -40,7 +45,7 @@ interface Props {
 export default function ComposicaoClinica({ profissionais, loading, erro }: Props) {
   const { t } = useTranslation();
   const counts: Record<Categoria, number> = {
-    gineco: 0, endo: 0, enfermeira: 0, nutri: 0, outros: 0,
+    gineco: 0, endo: 0, clinico: 0, familia: 0, enfermeira: 0, outros: 0,
   };
   profissionais.forEach(p => { counts[classificar(p)] += 1; });
   const max = Math.max(...ORDEM.map(c => counts[c]), 1);

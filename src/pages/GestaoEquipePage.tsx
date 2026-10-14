@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
+import { buscarLaudosDaUnidade } from '@/lib/laudosDaUnidade';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -165,12 +166,7 @@ export default function GestaoEquipePage() {
     // Card 4 + Bloco 3 (laudos por prof) + Bloco 4 esquerdo (tempo médio)
     let laudosDaUnidade: Array<{ profissional_id: string; paciente_id: string; created_at: string }> = [];
     try {
-      const { data, error } = await supabase
-        .from('laudos')
-        .select('profissional_id, paciente_id, created_at, pacientes!inner(unidade_id)')
-        .eq('pacientes.unidade_id', prof.unidade_id);
-      if (error) throw error;
-      laudosDaUnidade = (data || []) as any;
+      laudosDaUnidade = await buscarLaudosDaUnidade(prof.unidade_id);
       setTotalLaudos(laudosDaUnidade.length);
     } catch (e) {
       console.error('[card laudos]', e);

@@ -16,7 +16,7 @@ import { Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
-import { useDiagnosticoRanking } from "@/hooks/usePainelDataGestorGeral";
+import { useDiagnosticoRanking, useVisaoGeralRede } from "@/hooks/usePainelDataGestorGeral";
 import EmptyStateSemSelecao from "@/components/gestor-geral/EmptyStateSemSelecao";
 import TooltipInfo from "@/components/gestor-geral/TooltipInfo";
 
@@ -27,18 +27,24 @@ type MetricaKey =
   | "tempo_medio_fechamento_dias"
   | "profissionais_ativos";
 
+// "faixa": não há melhor/pior — compara com a faixa esperada (taxa de DMG).
+type Direcao = "maior" | "menor" | "faixa";
+
+// Faixa esperada de DMG (Febrasgo), a mesma do painel da unidade.
+const FAIXA_DMG = { min: 7, max: 18 };
+
 interface MetricaCfg {
   key: MetricaKey;
   label: string;
   labelLong: string;
-  direcao: "maior" | "menor";
+  direcao: Direcao;
   format: (v: number) => string;
   tooltip: string;
 }
 
 interface MetricaBase {
   key: MetricaKey;
-  direcao: "maior" | "menor";
+  direcao: Direcao;
   format: (v: number, locale: string) => string;
 }
 
@@ -55,7 +61,7 @@ const METRICAS_BASE: MetricaBase[] = [
   },
   {
     key: "taxa_dmg_positivo_pct",
-    direcao: "maior",
+    direcao: "faixa",
     format: (v) => `${v.toFixed(1)}%`,
   },
   {
@@ -93,12 +99,25 @@ function buildRows(data: any[] | undefined, m: MetricaCfg): Row[] {
   const rows = data
     .map((r) => ({ nome: r.unidade_nome as string, valor: r[m.key] as number | null }))
     .filter((r) => r.valor !== null && r.valor !== undefined) as Row[];
-  rows.sort((a, b) => (m.direcao === "maior" ? b.valor - a.valor : a.valor - b.valor));
+  rows.sort((a, b) => (m.direcao === "menor" ? a.valor - b.valor : b.valor - a.valor));
   return rows;
 }
 
+const naFaixa = (v: number) => v >= FAIXA_DMG.min && v <= FAIXA_DMG.max;
+
 function buildInsight(rows: Row[], m: MetricaCfg, t: TFunction): string | null {
   if (rows.length === 0) return null;
+  if (m.direcao === "faixa") {
+    const nomes = (lista: Row[]) => (lista.length ? lista.map((r) => r.nome).join(", ") : t("consolidar.comparador.insight.nenhuma"));
+    return t("consolidar.comparador.insight.faixa", {
+      dentro: rows.filter((r) => naFaixa(r.valor)).length,
+      total: rows.length,
+      min: FAIXA_DMG.min,
+      max: FAIXA_DMG.max,
+      abaixo: nomes(rows.filter((r) => r.valor < FAIXA_DMG.min)),
+      acima: nomes(rows.filter((r) => r.valor > FAIXA_DMG.max)),
+    });
+  }
   const top = rows[0];
   const media = rows.reduce((s, r) => s + r.valor, 0) / rows.length;
   const diff = top.valor - media;
@@ -132,9 +151,11 @@ function GraficoMetrica({ m, rows, isLoading }: { m: MetricaCfg; rows: Row[]; is
         </h3>
         <TooltipInfo text={m.tooltip} />
         <span className="ml-auto text-[11px] uppercase tracking-wide text-[#94A3B8]">
-          {m.direcao === "maior"
-            ? t("consolidar.comparador.maiorMelhor")
-            : t("consolidar.comparador.menorMelhor")}
+          {m.direcao === "faixa"
+            ? t("consolidar.comparador.faixaEsperada", { min: FAIXA_DMG.min, max: FAIXA_DMG.max })
+            : m.direcao === "maior"
+              ? t("consolidar.comparador.maiorMelhor")
+              : t("consolidar.comparador.menorMelhor")}
         </span>
       </div>
       {isLoading ? (
@@ -162,8 +183,11 @@ function GraficoMetrica({ m, rows, isLoading }: { m: MetricaCfg; rows: Row[]; is
                 contentStyle={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, fontSize: 13 }}
               />
               <Bar dataKey="valor" radius={[0, 4, 4, 0]}>
-                {rows.map((_, i) => (
-                  <Cell key={i} fill={i === 0 ? "#7E69AB" : "#9b87f5"} />
+                {rows.map((r, i) => (
+                  <Cell
+                    key={i}
+                    fill={m.direcao === "faixa" ? (naFaixa(r.valor) ? "#9b87f5" : "#D97706") : i === 0 ? "#7E69AB" : "#9b87f5"}
+                  />
                 ))}
                 <LabelList
                   dataKey="valor"
@@ -183,7 +207,17 @@ function GraficoMetrica({ m, rows, isLoading }: { m: MetricaCfg; rows: Row[]; is
 export default function ComparadorPage() {
   const { t, i18n } = useTranslation();
   const { semSelecao } = useFiltrosGestorGeral();
-  const { data, isLoading, isError } = useDiagnosticoRanking();
+  const { data: ranking, isLoading: loadingRanking, isError } = useDiagnosticoRanking();
+  // O ranking não traz "profissionais ativos": vem da Visão Geral (mesma
+  // definição: com gestante em acompanhamento). Antes a pílula dizia sempre
+  // "sem dados".
+  const { data: visaoGeral, isLoading: loadingVisao } = useVisaoGeralRede();
+  const isLoading = loadingRanking || loadingVisao;
+  const data = useMemo(() => {
+    if (!ranking) return undefined;
+    const prof = new Map((visaoGeral ?? []).map((v) => [v.unidade_id, v.profissionais_ativos]));
+    return ranking.map((r) => ({ ...r, profissionais_ativos: prof.get(r.unidade_id) ?? null }));
+  }, [ranking, visaoGeral]);
   const [ativas, setAtivas] = useState<MetricaKey[]>(DEFAULT_ATIVAS);
 
   const METRICAS = useMemo(() => buildMetricas(t, i18n.language), [t, i18n.language]);

@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
+import { buscarLaudosDaUnidade } from '@/lib/laudosDaUnidade';
 import type { ProfissionalEquipe } from '@/components/gestao/ComposicaoClinica';
 import type { ProfPerformance } from '@/components/gestao/PerformanceIndividual';
 import type { Sobrecarregado } from '@/components/gestao/IndicadoresFluxo';
@@ -71,12 +72,7 @@ export async function fetchDadosEquipe(unidadeId: string): Promise<DadosEquipe> 
   // Laudos da unidade
   let laudosDaUnidade: Array<{ profissional_id: string; paciente_id: string; created_at: string }> = [];
   try {
-    const { data, error } = await supabase
-      .from('laudos')
-      .select('profissional_id, paciente_id, created_at, pacientes!inner(unidade_id)')
-      .eq('pacientes.unidade_id', unidadeId);
-    if (error) throw error;
-    laudosDaUnidade = (data || []) as any;
+    laudosDaUnidade = await buscarLaudosDaUnidade(unidadeId);
     out.totalLaudos = laudosDaUnidade.length;
   } catch (e) {
     console.error('[card laudos]', e);
