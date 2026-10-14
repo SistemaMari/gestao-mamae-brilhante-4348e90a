@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useReadOnly } from '@/contexts/ReadOnlyContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
+import Saudacao from '@/components/shell/Saudacao';
 import {
   ArrowRight,
   Building2,
@@ -51,6 +52,8 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { readonly } = useReadOnly();
+  // Nome do gestor vem do menu (AppShellGestor); no drill-down do gestor geral não há.
+  const nomeGestor = useOutletContext<{ nomeGestor?: string } | undefined>()?.nomeGestor;
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isVitrine = pathname.startsWith('/vitrine');
@@ -208,9 +211,47 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
     }
   };
 
+  const botaoExportar = (
+  <>
+        {podeExportar && !readonly && (
+          <button
+            onClick={handleExportar}
+            disabled={exportando}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#7E69AB] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6B5A96] disabled:opacity-60"
+          >
+            {exportando ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> {t('management.generating')}
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" /> {t('management.exportPdf')}
+              </>
+            )}
+          </button>
+        )}
+  </>
+  );
+
   return (
     <div className="px-6 py-8 lg:px-10">
-      {/* Header */}
+      {/* Header — gestor: saudação no padrão do admin; drill-down do gestor geral
+          (readonly) mantém o título da unidade. */}
+      {!readonly && nomeGestor ? (
+        <div className="mb-8 space-y-6">
+          <Saudacao nome={nomeGestor} subtitulo={t('shell.panoramaUnidade')} acao={botaoExportar} />
+          <div>
+            <div className="mb-1 flex items-center gap-2 text-sm text-[#64748B]">
+              <Building2 className="h-4 w-4" />
+              <span>{contextoCarregado ? unidadeNome || '—' : t('common.loading')}</span>
+            </div>
+            <h2 className="text-2xl font-semibold text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>
+              {t('management.unitPanelTitle')}
+            </h2>
+            <p className="mt-1 text-sm text-[#64748B]">{t('management.unitPanelSubtitle')}</p>
+          </div>
+        </div>
+      ) : (
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <div className="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
@@ -224,24 +265,9 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
             {t('management.unitPanelSubtitle')}
           </p>
         </div>
-        {podeExportar && !readonly && (
-          <button
-            onClick={handleExportar}
-            disabled={exportando}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#7C4DBA] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6A3FA0] disabled:opacity-60"
-          >
-            {exportando ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> {t('management.generating')}
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" /> {t('management.exportPdf')}
-              </>
-            )}
-          </button>
-        )}
+        {botaoExportar}
       </div>
+      )}
 
       {/* Seletor de unidade — só aparece para gestor geral, nunca em modo forçado/readonly */}
       {isGestorGeral && !isForced && !readonly && unidadesDisponiveis.length > 0 && (

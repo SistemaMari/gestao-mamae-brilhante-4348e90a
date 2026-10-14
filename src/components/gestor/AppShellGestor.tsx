@@ -182,7 +182,7 @@ export default function AppShellGestor() {
             </div>
           </header>
           <main className="flex-1 min-w-0">
-            <Outlet />
+            <Outlet context={{ nomeGestor: nome }} />
           </main>
         </div>
       </div>

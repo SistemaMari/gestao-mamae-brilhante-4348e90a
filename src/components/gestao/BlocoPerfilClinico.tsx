@@ -62,7 +62,7 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
           )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-xl border border-border bg-card p-5">
+            <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between">
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -70,7 +70,7 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
                     <CardInfoTooltip text={t('gestao.blocoPerfilClinico.ttPrevalencia')} />
                   </div>
                   <div className="mt-1 flex items-center gap-2">
-                    <p className="font-heading text-2xl font-bold text-foreground">
+                    <p className="font-heading text-[32px] font-bold leading-none text-[#1E293B]">
                       {data.prevalencia_pct}%
                     </p>
                     {status === 'subnotificacao' && (
@@ -113,60 +113,60 @@ export default function BlocoPerfilClinico({ data, loading, error }: Props) {
               </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-5">
+            <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium text-muted-foreground">{t('gestao.blocoPerfilClinico.emInsulina')}</p>
                     <CardInfoTooltip text={t('gestao.blocoPerfilClinico.ttInsulina')} />
                   </div>
-                  <p className="mt-1 font-heading text-2xl font-bold text-foreground">
+                  <p className="mt-1 font-heading text-[32px] font-bold leading-none text-[#1E293B]">
                     {data.em_insulina}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {t('gestao.blocoPerfilClinico.pctDasDmg', { pct: data.em_insulina_pct })}
                   </p>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Syringe className="h-5 w-5 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F5F0FF]">
+                  <Syringe className="h-5 w-5 text-[#9b87f5]" />
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-5">
+            <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium text-muted-foreground">{t('management.dmgPriorPregnancy')}</p>
                     <CardInfoTooltip text={t('gestao.blocoPerfilClinico.ttDmgAnterior')} />
                   </div>
-                  <p className="mt-1 font-heading text-2xl font-bold text-foreground">
+                  <p className="mt-1 font-heading text-[32px] font-bold leading-none text-[#1E293B]">
                     {data.dmg_anterior}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {t('gestao.blocoPerfilClinico.pctDasAtivas', { pct: data.dmg_anterior_pct })}
                   </p>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Activity className="h-5 w-5 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F5F0FF]">
+                  <Activity className="h-5 w-5 text-[#9b87f5]" />
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-border bg-card p-5">
+            <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium text-muted-foreground">{t('gestao.blocoPerfilClinico.igMediaDiagnostico')}</p>
                     <CardInfoTooltip text={t('gestao.blocoPerfilClinico.ttIgMedia')} />
                   </div>
-                  <p className="mt-1 font-heading text-2xl font-bold text-foreground">
+                  <p className="mt-1 font-heading text-[32px] font-bold leading-none text-[#1E293B]">
                     {formatIg(data.ig_media_diagnostico_dias)}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">{t('gestao.blocoPerfilClinico.ultimos90dias')}</p>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <CalendarClock className="h-5 w-5 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F5F0FF]">
+                  <CalendarClock className="h-5 w-5 text-[#9b87f5]" />
                 </div>
               </div>
             </div>

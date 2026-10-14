@@ -61,8 +61,8 @@ function CardShell({ children, className = '' }: { children: React.ReactNode; cl
 function CardHeader({ Icon, title, subtitle }: { Icon: React.ElementType; title: string; subtitle: string }) {
   return (
     <div className="mb-5 flex items-start gap-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F5F3FA]">
-        <Icon className="h-5 w-5 text-[#7C4DBA]" />
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F5F0FF]">
+        <Icon className="h-5 w-5 text-[#9b87f5]" />
       </div>
       <div>
         <h2 className="font-heading text-lg font-semibold text-foreground">{title}</h2>
@@ -98,7 +98,7 @@ function IdentidadeGestor({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="mb-6 flex items-center gap-4 rounded-xl border border-[#E9E3F2] bg-[#F5F3FA] p-4">
+    <div className="mb-6 flex items-center gap-4 rounded-xl border border-[#E9E3FA] bg-[#F5F0FF] p-4">
       {loading ? (
         <>
           <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
@@ -111,14 +111,15 @@ function IdentidadeGestor({
       ) : (
         <>
           <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#7C4DBA] text-sm font-semibold text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+            style={{ background: 'linear-gradient(135deg, #7E69AB, #9b87f5)' }}
             aria-hidden="true"
           >
             {obterIniciais(nome || '?')}
           </div>
           <div className="flex min-w-0 flex-col">
             <span
-              className="font-heading font-bold text-[#5B3A8C] text-[14px] md:text-[16px] leading-tight truncate"
+              className="font-heading font-bold text-[#1E293B] text-[14px] md:text-[16px] leading-tight truncate"
             >
               {nome || '—'}
             </span>
@@ -385,7 +386,7 @@ export default function ConfiguracoesPage() {
             ) : (
               <>
                 <div className="flex items-baseline gap-3">
-                  <span className="font-heading font-bold text-[#5B3A8C] text-[28px] md:text-[36px] leading-none">
+                  <span className="font-heading font-bold text-[#1E293B] text-[28px] md:text-[36px] leading-none">
                     {equipe.total}
                   </span>
                   <span className="text-sm text-foreground">
@@ -452,7 +453,7 @@ export default function ConfiguracoesPage() {
               {/* Próximo — cronograma puro */}
               <li className="flex items-center gap-3 text-sm">
                 <Clock className="h-4 w-4 shrink-0 text-[#9b87f5]" />
-                <span className="font-semibold text-[#5B3A8C]">
+                <span className="font-semibold text-[#7E69AB]">
                   {labelProximo} <span className="font-semibold">{t('gestao.configuracoes.proximo')}</span>
                 </span>
               </li>
@@ -470,7 +471,7 @@ export default function ConfiguracoesPage() {
               {t('gestao.configuracoes.falarComSuporte')}{' '}
               <a
                 href={`mailto:${SUPORTE_EMAIL}`}
-                className="font-medium text-[#7C4DBA] hover:underline"
+                className="font-medium text-[#7E69AB] hover:underline"
               >
                 {SUPORTE_EMAIL}
               </a>

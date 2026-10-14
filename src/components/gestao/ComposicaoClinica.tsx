@@ -83,7 +83,7 @@ export default function ComposicaoClinica({ profissionais, loading, erro }: Prop
                   <div className="h-[18px] flex-1 overflow-hidden rounded-full bg-slate-100">
                     <div
                       className="h-full rounded-full transition-all"
-                      style={{ width: `${pct}%`, backgroundColor: '#7F77DD' }}
+                      style={{ width: `${pct}%`, backgroundColor: '#9b87f5' }}
                     />
                   </div>
                   <span

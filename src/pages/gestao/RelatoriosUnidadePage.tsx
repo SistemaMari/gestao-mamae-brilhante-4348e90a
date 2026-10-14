@@ -100,23 +100,27 @@ export default function RelatoriosUnidadePage() {
           {t('gestao.relatorios.erroCarregar')}
         </div>
       ) : relatorios.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
-          {t('gestao.relatorios.vazio')}
+        <div className="rounded-xl border border-dashed border-[#E2E8F0] bg-white p-12 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#F5F0FF]">
+            <FileBarChart className="h-6 w-6 text-[#9b87f5]" />
+          </div>
+          <p className="font-heading text-lg font-semibold text-[#1E293B]">{t('gestao.relatorios.vazioTitulo')}</p>
+          <p className="mt-1 text-sm text-[#64748B]">{t('gestao.relatorios.vazio')}</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-[#5B3A8C] text-left text-white">
+            <thead className="bg-[#E8E0FF] text-left text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>
               <tr>
-                <th className="px-4 py-3 font-medium">{t('gestao.relatorios.colMes')}</th>
-                <th className="px-4 py-3 font-medium">{t('gestao.relatorios.colOrigem')}</th>
-                <th className="px-4 py-3 font-medium">{t('gestao.relatorios.colGeradoEm')}</th>
+                <th className="px-4 py-3 font-semibold">{t('gestao.relatorios.colMes')}</th>
+                <th className="px-4 py-3 font-semibold">{t('gestao.relatorios.colOrigem')}</th>
+                <th className="px-4 py-3 font-semibold">{t('gestao.relatorios.colGeradoEm')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
-              {relatorios.map((r) => (
-                <tr key={r.id} className="border-t border-border">
+              {relatorios.map((r, idx) => (
+                <tr key={r.id} className={`border-t border-[#E2E8F0] hover:bg-[#F1F5F9] ${idx % 2 === 1 ? 'bg-[#F8FAFC]' : 'bg-white'}`}>
                   <td className="px-4 py-3 font-medium capitalize text-foreground">
                     {rotuloMes(r.periodo_inicio, i18n.language)}
                   </td>

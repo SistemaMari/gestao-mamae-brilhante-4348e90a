@@ -1,7 +1,17 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FiltrosGestorGeralProvider } from "@/contexts/FiltrosGestorGeralContext";
+import { FiltrosGestorGeralProvider, useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
+import Saudacao from "@/components/shell/Saudacao";
 import FiltrosGlobais from "@/components/gestor-geral/painel/FiltrosGlobais";
+
+// Saudação no padrão do admin, só na tela inicial (Visão Geral), acima dos filtros.
+function SaudacaoVisaoGeral() {
+  const { t } = useTranslation();
+  const { pathname } = useLocation();
+  const { gestor } = useFiltrosGestorGeral();
+  if (!pathname.endsWith("/visao-geral") || !gestor?.nome) return null;
+  return <Saudacao nome={gestor.nome} subtitulo={t("shell.panoramaRede")} />;
+}
 
 export default function ConsolidarLayout() {
   const { t } = useTranslation();
@@ -22,6 +32,7 @@ export default function ConsolidarLayout() {
   return (
     <FiltrosGestorGeralProvider modoVitrine={modoVitrine} mockData={VITRINE_MOCK}>
       <div className="flex flex-col gap-5 p-5 md:p-6">
+        <SaudacaoVisaoGeral />
         <FiltrosGlobais />
         <Outlet />
       </div>
