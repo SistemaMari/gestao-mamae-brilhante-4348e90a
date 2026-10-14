@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  UserCog, Loader2, Camera, Lock, MessageSquareHeart, Heart, Star,
-  AlertTriangle, Eye, EyeOff, Paperclip, ChevronDown, ChevronUp, Trash2, Building2, Info,
+  UserCog, Loader2, Camera, MessageSquareHeart, Heart, Star,
+  AlertTriangle, Paperclip, ChevronDown, ChevronUp, Trash2, Building2, Info,
 } from 'lucide-react';
+import { especialidades } from '@/data/locationData';
+import { PerfilCard as Card, PerfilCardTitle as CardTitle } from '@/components/perfil/PerfilCard';
+import CardAlterarSenha from '@/components/perfil/CardAlterarSenha';
+import PerfilGestorGeral from '@/components/perfil/PerfilGestorGeral';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +23,11 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const ESPECIALIDADES = ['Médico(a)', 'Enfermeiro(a) Obstétrica', 'Outros'];
+// Mesma lista do cadastro e do convite (src/data/locationData.ts). Antes o perfil
+// tinha uma lista própria (Médico(a)/Enfermeiro(a) Obstétrica/Outros): quem se
+// cadastrou como "Ginecologista-Obstetra" via o campo vazio e, ao salvar, perdia
+// a especialidade — e saía da composição clínica da equipe.
+const ESPECIALIDADES = especialidades;
 const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 
 interface PerfilData {
@@ -42,23 +50,6 @@ const DUMMY_PROFILE: PerfilData = {
   pais: 'Brasil',
 };
 const DUMMY_EMAIL = 'mari.exemplo@dramari.com';
-
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-2xl border border-border bg-card p-6 shadow-sm ${className}`}>
-      {children}
-    </section>
-  );
-}
-
-function CardTitle({ icon: Icon, children }: { icon?: React.ComponentType<{ className?: string }>; children: React.ReactNode }) {
-  return (
-    <h2 className="mb-4 flex items-center gap-2 font-heading text-lg font-semibold text-foreground">
-      {Icon && <Icon className="h-5 w-5 text-primary" />}
-      {children}
-    </h2>
-  );
-}
 
 /* -------------------- Read-only fallback (institucional / preview) -------------------- */
 function PerfilReadOnly({ data, email }: { data: PerfilData; email: string | undefined }) {
@@ -95,9 +86,12 @@ function PerfilReadOnly({ data, email }: { data: PerfilData; email: string | und
 }
 
 /* -------------------- Consultório / Institucional: editor -------------------- */
-function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: { initial: PerfilData; email: string; userId: string; perfilTipo: 'consultorio' | 'institucional'; unidadeNome?: string | null }) {
+function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: { initial: PerfilData; email: string; userId: string; perfilTipo: 'consultorio' | 'institucional' | 'gestor'; unidadeNome?: string | null }) {
   const { t } = useTranslation();
-  const isInstitucional = perfilTipo === 'institucional';
+  // Vínculo com unidade: profissional institucional e gestor de unidade.
+  const isInstitucional = perfilTipo !== 'consultorio';
+  // Gestor de unidade não atende: sem CRM/especialidade no perfil.
+  const isGestor = perfilTipo === 'gestor';
   const [data, setData] = useState<PerfilData>(initial);
 
   const parseConselho = (raw: string | null) => {
@@ -121,12 +115,6 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
   const [conselhoUf, setConselhoUf] = useState(initConselho.uf || initial.estado || '');
   const [savingProf, setSavingProf] = useState(false);
 
-  const [senhaAtual, setSenhaAtual] = useState('');
-  const [senha1, setSenha1] = useState('');
-  const [senha2, setSenha2] = useState('');
-  const [showSenhaAtual, setShowSenhaAtual] = useState(false);
-  const [showSenha, setShowSenha] = useState(false);
-  const [savingSenha, setSavingSenha] = useState(false);
 
   const [fbTipo, setFbTipo] = useState('sugestao');
   const [fbTexto, setFbTexto] = useState('');
@@ -227,26 +215,6 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
     toast.success(t('profile.toasts.professionalUpdated'));
   };
 
-  const salvarSenha = async () => {
-    if (!senhaAtual) { toast.error(t('profile.errors.currentPasswordRequired')); return; }
-    if (!senha1 || !senha2) { toast.error(t('profile.errors.bothFieldsRequired')); return; }
-    if (senha1 !== senha2) { toast.error(t('profile.errors.passwordsDontMatch')); return; }
-    setSavingSenha(true);
-    // Reautentica com a senha atual
-    if (!email) { setSavingSenha(false); toast.error(t('profile.errors.invalidSession')); return; }
-    const { error: reauthErr } = await supabase.auth.signInWithPassword({ email, password: senhaAtual });
-    if (reauthErr) {
-      setSavingSenha(false);
-      toast.error(t('profile.errors.currentPasswordWrong'));
-      return;
-    }
-    const { error } = await supabase.auth.updateUser({ password: senha1 });
-    setSavingSenha(false);
-    if (error) { toast.error(error.message || t('profile.errors.passwordChange')); return; }
-    setSenhaAtual(''); setSenha1(''); setSenha2('');
-    toast.success(t('profile.toasts.passwordUpdated'));
-  };
-
   const enviarFeedback = async () => {
     const msg = fbTexto.trim();
     if (!msg) { toast.error(t('profile.errors.messageRequired')); return; }
@@ -316,11 +284,11 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
               <p className="mt-1 font-medium text-foreground">{unidadeNome || '—'}</p>
             </div>
             <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-              {t('profile.managedByUnitManager')}
+              {isGestor ? t('profile.unitManagerRole') : t('profile.managedByUnitManager')}
             </span>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            {t('profile.unitChangeNote')}
+            {isGestor ? t('profile.unitManagerNote') : t('profile.unitChangeNote')}
           </p>
         </Card>
       )}
@@ -403,7 +371,8 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
         </div>
       </Card>
 
-      {/* 2. Dados profissionais */}
+      {/* 2. Dados profissionais — não se aplica ao gestor de unidade */}
+      {!isGestor && (
       <Card>
         <CardTitle icon={UserCog}>{t('profile.professionalInfo')}</CardTitle>
         <div className="grid gap-4">
@@ -412,7 +381,9 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
             <Select value={especialidade} onValueChange={setEspecialidade}>
               <SelectTrigger><SelectValue placeholder={t('profile.selectPlaceholder')} /></SelectTrigger>
               <SelectContent>
-                {ESPECIALIDADES.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+                {/* Valor salvo fora da lista (ex.: "Médico(a)", da lista antiga do perfil) segue visível. */}
+                {[...ESPECIALIDADES, ...(especialidade && !ESPECIALIDADES.includes(especialidade) ? [especialidade] : [])]
+                  .map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -447,45 +418,10 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
         </div>
       </Card>
 
+      )}
+
       {/* 3. Alterar senha */}
-      <Card>
-        <CardTitle icon={Lock}>{t('profile.changePassword')}</CardTitle>
-        <div className="grid gap-4">
-          <div>
-            <Label>{t('profile.currentPassword')}</Label>
-            <div className="relative">
-              <Input
-                type={showSenhaAtual ? 'text' : 'password'}
-                value={senhaAtual}
-                onChange={(e) => setSenhaAtual(e.target.value)}
-                placeholder={t('profile.currentPasswordPlaceholder')}
-                autoComplete="current-password"
-              />
-              <button type="button" onClick={() => setShowSenhaAtual(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                {showSenhaAtual ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-          <div>
-            <Label>{t('profile.newPassword')}</Label>
-            <div className="relative">
-              <Input type={showSenha ? 'text' : 'password'} value={senha1} onChange={(e) => setSenha1(e.target.value)} placeholder={t('profile.newPasswordPlaceholder')} />
-              <button type="button" onClick={() => setShowSenha(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                {showSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-          <div>
-            <Label>{t('profile.confirmNewPassword')}</Label>
-            <Input type={showSenha ? 'text' : 'password'} value={senha2} onChange={(e) => setSenha2(e.target.value)} placeholder={t('profile.repeatNewPasswordPlaceholder')} />
-          </div>
-          <div>
-            <Button onClick={salvarSenha} disabled={savingSenha} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              {savingSenha && <Loader2 className="h-4 w-4 animate-spin" />} {t('profile.saveNewPassword')}
-            </Button>
-          </div>
-        </div>
-      </Card>
+      <CardAlterarSenha email={email} />
 
       {/* 4. Feedback */}
       <Card>
@@ -550,7 +486,7 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
       </Card>
 
       {/* 6. Zona de perigo — apenas consultório */}
-      {!isInstitucional && (
+      {perfilTipo === 'consultorio' && (
         <Card className="border-destructive/30">
           <button type="button" onClick={() => setZonaAberta(v => !v)}
             className="flex w-full items-center justify-between text-left">
@@ -633,6 +569,12 @@ export default function PerfilPage() {
     return () => { cancel = true; };
   }, [authLoading, isPreview, user]);
 
+  // Gestores têm o Meu perfil dentro do próprio menu (antes /perfil os levava
+  // para o menu das profissionais).
+  if (!isPreview && profile === 'gestor' && location.pathname === '/perfil') return <Navigate to="/gestao/perfil" replace />;
+  if (!isPreview && profile === 'gestor_geral' && location.pathname === '/perfil') return <Navigate to="/consolidar/perfil" replace />;
+  if (!isPreview && profile === 'gestor_geral' && user) return <PerfilGestorGeral userId={user.id} email={user.email || ''} />;
+
   if (loading) {
     return <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
@@ -641,14 +583,14 @@ export default function PerfilPage() {
     return <div className="mx-auto max-w-md p-8 text-center text-muted-foreground">{t('profile.notFound')}</div>;
   }
 
-  // Editor completo para consultório e institucional
-  if (!isPreview && (profile === 'consultorio' || profile === 'institucional') && user) {
+  // Editor completo para consultório, institucional e gestor de unidade
+  if (!isPreview && (profile === 'consultorio' || profile === 'institucional' || profile === 'gestor') && user) {
     return (
       <PerfilConsultorio
         initial={data}
         email={user.email || ''}
         userId={user.id}
-        perfilTipo={profile as 'consultorio' | 'institucional'}
+        perfilTipo={profile as 'consultorio' | 'institucional' | 'gestor'}
         unidadeNome={unidadeNome}
       />
     );

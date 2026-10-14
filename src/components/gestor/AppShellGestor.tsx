@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, FileText, FileBarChart, Settings, LogOut, Building2, Loader2, PlayCircle } from "lucide-react";
+import { LayoutDashboard, Users, FileText, FileBarChart, Settings, Building2, Loader2, PlayCircle, UserRound } from "lucide-react";
 import i18n from "@/i18n";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { SidebarLogo, SidebarRodapeUsuario } from "@/components/shell/SidebarMarca";
 import {
   Sidebar,
   SidebarContent,
@@ -15,34 +17,24 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
+// Chaves i18n (traduzidas no render — antes i18n.t no módulo não trocava de idioma).
 const buildItems = (base: string) => [
-  { title: i18n.t("nav.dashboard"), path: base, icon: LayoutDashboard, exact: true },
-  { title: i18n.t("nav.team"), path: `${base}/equipe`, icon: Users, exact: false },
-  { title: i18n.t("gestor.appShell.fichasUnidade"), path: `${base}/fichas`, icon: FileText, exact: false },
+  { titleKey: "nav.dashboard", path: base, icon: LayoutDashboard, exact: true },
+  { titleKey: "nav.team", path: `${base}/equipe`, icon: Users, exact: false },
+  { titleKey: "gestor.appShell.fichasUnidade", path: `${base}/fichas`, icon: FileText, exact: false },
   // Relatórios só no app real (a vitrine não tem relatórios salvos).
   ...(base.startsWith("/vitrine")
     ? []
-    : [{ title: i18n.t("gestor.appShell.relatorios"), path: `${base}/relatorios`, icon: FileBarChart, exact: false }]),
-  { title: i18n.t("admin.sidebar.settings"), path: `${base}/configuracoes`, icon: Settings, exact: false },
+    : [{ titleKey: "gestor.appShell.relatorios", path: `${base}/relatorios`, icon: FileBarChart, exact: false }]),
+  { titleKey: "admin.sidebar.settings", path: `${base}/configuracoes`, icon: Settings, exact: false },
   // Tutorial só no app real; a vitrine não tem rota /vitrine/gestao/tutorial.
   ...(base.startsWith("/vitrine")
     ? []
-    : [{ title: i18n.t("admin.sidebar.tutorial"), path: `${base}/tutorial`, icon: PlayCircle, exact: false }]),
+    : [{ titleKey: "admin.sidebar.tutorial", path: `${base}/tutorial`, icon: PlayCircle, exact: false, separar: true }]),
 ];
-
-function iniciais(nome?: string | null) {
-  if (!nome) return "GU";
-  return nome
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join("");
-}
 
 function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: string; unidade: string; email: string; basePath: string; onSair: () => void }) {
   const { t } = useTranslation();
@@ -50,6 +42,7 @@ function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: strin
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
   const items = buildItems(basePath);
+  const isVitrine = basePath.startsWith("/vitrine");
   const isActive = (url: string, exact: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(`${url}/`);
 
@@ -64,77 +57,55 @@ function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: strin
         ["--sidebar-accent-foreground" as string]: "260 25% 54%",
       }}
     >
-      <SidebarContent className="bg-white border-r border-[#E2E8F0] flex flex-col overflow-hidden">
-        {/* Identidade */}
-        <div className="border-b border-[#E2E8F0] p-4">
-          <div className="flex items-center gap-3">
-            <div
-              className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-white font-semibold text-sm"
-              style={{ background: "linear-gradient(135deg, #7E69AB, #9b87f5)", fontFamily: "Sora, sans-serif" }}
-            >
-              {iniciais(nome)}
-            </div>
-            {!collapsed && (
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
-                  {nome || "—"}
-                </p>
-                <p className="text-xs text-[#7E69AB]">{t('gestor.appShell.gestorUnidade')}</p>
-              </div>
-            )}
+      <SidebarLogo collapsed={collapsed} />
+      <SidebarContent className="bg-white border-r border-[#E2E8F0]">
+        {/* Unidade gerida — contexto fixo do gestor, logo abaixo do logo */}
+        {!collapsed && unidade && (
+          <div className="mx-3 mt-1 flex items-center gap-2 rounded-lg bg-[#F5F0FF] px-3 py-2 text-xs font-medium text-[#7E69AB]">
+            <Building2 className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{unidade}</span>
           </div>
-          {!collapsed && unidade && (
-            <div className="mt-3 flex items-center gap-2 text-xs text-[#64748B]">
-              <Building2 className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{unidade}</span>
-            </div>
-          )}
-        </div>
-
-        <SidebarGroup className="flex-1 min-h-0 overflow-y-auto">
+        )}
+        <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
                 const active = isActive(item.path, item.exact);
                 return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={active}>
-                      <NavLink
-                        to={item.path}
-                        end={item.exact}
-                        className={
-                          active
-                            ? "flex items-center gap-3 bg-[#E8E0FF] text-[#7E69AB] font-medium rounded-md"
-                            : "flex items-center gap-3 text-[#64748B] hover:bg-[#F1F5F9] rounded-md"
-                        }
-                      >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span className="text-sm">{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <div key={item.path}>
+                    {"separar" in item && item.separar && <div className="my-1 border-t border-[#E2E8F0]" />}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={active}>
+                        <NavLink
+                          to={item.path}
+                          end={item.exact}
+                          className={
+                            active
+                              ? "flex items-center gap-3 bg-[#E8E0FF] text-[#7E69AB] font-medium rounded-md"
+                              : "flex items-center gap-3 text-[#64748B] hover:bg-[#F1F5F9] rounded-md"
+                          }
+                        >
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          {!collapsed && <span className="text-sm">{t(item.titleKey)}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </div>
                 );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {/* Rodapé */}
-        <div className="shrink-0 border-t border-[#E2E8F0] p-3 space-y-2 bg-white">
-          {!collapsed && email && (
-            <p className="truncate px-2 text-xs text-[#94A3B8]">{email}</p>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onSair}
-            className="w-full justify-start border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            {!collapsed && t('common.logout')}
-          </Button>
-        </div>
       </SidebarContent>
+
+      <SidebarRodapeUsuario
+        collapsed={collapsed}
+        nome={nome}
+        papel={t("gestor.appShell.gestorUnidade")}
+        email={email}
+        links={isVitrine ? [] : [{ to: `${basePath}/perfil`, label: t("appShell.myProfile"), icon: UserRound }]}
+        onSair={onSair}
+      />
     </Sidebar>
   );
 }
@@ -206,6 +177,9 @@ export default function AppShellGestor() {
             <span className="text-sm text-[#64748B]" style={{ fontFamily: "Sora, sans-serif" }}>
               {t('gestor.appShell.gestaoUnidade')}
             </span>
+            <div className="ml-auto">
+              <LanguageSwitcher variant="compact" />
+            </div>
           </header>
           <main className="flex-1 min-w-0">
             <Outlet />

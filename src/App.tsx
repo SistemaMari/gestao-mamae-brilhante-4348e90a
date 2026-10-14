@@ -223,6 +223,7 @@ const App = () => (
               <Route path="/gestao/fichas" element={<FichasUnidadePage />} />
               <Route path="/gestao/fichas/:id" element={<PacientePage />} />
               <Route path="/gestao/relatorios" element={<RelatoriosUnidadePage />} />
+              <Route path="/gestao/perfil" element={<PerfilPage />} />
               <Route path="/gestao/configuracoes" element={<ConfiguracoesPage />} />
               <Route path="/gestao/tutorial" element={<TutorialPage />} />
             </Route>
@@ -256,6 +257,7 @@ const App = () => (
               </Route>
               <Route path="/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />
               <Route path="/consolidar/tutorial" element={<TutorialPage />} />
+              <Route path="/consolidar/perfil" element={<PerfilPage />} />
             </Route>
 
             {/* POC dev — Etapa 0 PDF gráfico */}
