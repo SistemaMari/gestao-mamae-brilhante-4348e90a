@@ -1467,11 +1467,15 @@ Deno.serve(async (req) => {
 
       const { data: prof } = await admin
         .from("profissionais")
-        .select("id, nome, unidade_id, user_id")
+        .select("id, nome, unidade_id, user_id, perfil_institucional")
         .eq("id", profissional_id)
         .maybeSingle();
       if (!prof) return jsonResponse({ error: "Profissional não encontrado." }, 404);
       if (!prof.unidade_id) return jsonResponse({ error: "Profissional não tem unidade." }, 400);
+      // Gestor muda de unidade pela troca/vinculação de gestor (1 gestor ativo por unidade).
+      if (prof.perfil_institucional === "gestor") {
+        return jsonResponse({ error: "Para mudar um gestor de unidade, use a troca de gestor da unidade." }, 400);
+      }
       if (prof.unidade_id === unidade_destino_id) {
         return jsonResponse({ error: "Unidade destino igual à atual." }, 400);
       }

@@ -751,9 +751,9 @@
       "selectPlaceholder": "Selecciona…",
       "warnBefore": "{{nome}} tiene",
       "warnMid": "gestante(s) en seguimiento activo en",
-      "warnAfter": ". Tras la transferencia, estas gestantes quedarán sin profesional responsable. El gestor de la unidad de origen deberá reasignarlas.",
+      "warnAfter": ". Permanecen en la unidad de origen, atendidas por su equipo — tras la transferencia, la profesional deja de tener acceso a ellas.",
       "confirm": "Confirmar transferencia",
-      "success": "{{nome}} transferido a {{destino}}. {{count}} gestantes quedaron para reasignación en el origen."
+      "success": "{{nome}} transferido a {{destino}}. {{count}} gestante(s) permanecen en la unidad de origen, con su equipo."
     },
     "cadastrarProfissionalConsultorio": {
       "title": "Registrar profesional",
@@ -2779,6 +2779,8 @@
       "email": "Correo inválido",
       "unidadeVazia": "Unidad obligatoria",
       "unidadeNaoEncontrada": "Unidad no encontrada",
+      "unidadeAmbigua": "Hay más de una unidad con ese nombre — complete la columna \"rede\" (red)",
+      "redeNaoEncontrada": "Red no encontrada",
       "perfil": "Perfil clínico inválido",
       "contratanteVazio": "Contratante obligatorio",
       "contratanteNaoEncontrado": "Contratante no encontrado",

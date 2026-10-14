@@ -303,7 +303,10 @@ export default function AbaUnidades({ onIrParaContratantes }: { onIrParaContrata
             if (!estado) erros.push(t("importar.err.estado"));
             if (!cidade) erros.push(t("importar.err.cidade"));
             return {
-              payload: erros.length ? null : { contratante_id: ct!.id, nome, tipo, cnes: cnes || null, pais, estado, cidade },
+              // gestor_modo 'em_aberto': a planilha não traz gestor (o servidor exigia os
+              // dados de um gestor novo e TODAS as linhas falhavam). O gestor é vinculado
+              // ou convidado depois, pela própria tela de Unidades.
+              payload: erros.length ? null : { contratante_id: ct!.id, nome, tipo, cnes: cnes || null, pais, estado, cidade, gestor_modo: "em_aberto" },
               erros,
               rotulo: nome || "—",
             };
