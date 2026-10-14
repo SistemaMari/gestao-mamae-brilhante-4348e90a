@@ -2173,7 +2173,18 @@
     },
     "gargalos": {
       "loadError": "Failed to load bottlenecks.",
-      "subtitle": "Where there are screening gaps in your network."
+      "subtitle": "Where there are screening gaps in your network.",
+      "detalheSubtitulo": "Pregnant patients in your network who are in this bottleneck today. This list shows the current situation and does not change with the period chosen in the filter.",
+      "colGestante": "Patient",
+      "colUnidade": "Unit",
+      "colIg": "GA today",
+      "colIgTip": "Gestational age today: weeks and days of pregnancy, counted from the LMP (last menstrual period) or the ultrasound.",
+      "colProfissional": "Professional",
+      "colUltimaConsulta": "Last visit",
+      "semConsulta": "None",
+      "detalheVazio": "No patients in this bottleneck right now.",
+      "detalheErro": "Could not load the patient list.",
+      "detalheLimite": "Showing the first {{mostrando}} of {{total}} patients."
     },
     "tendencia": {
       "title": "Network trend (12 months)",
@@ -2199,6 +2210,25 @@
       "readOnlyBanner": "Read-only view",
       "readOnlyBannerUnit": "Read-only view — {{unidade}}",
       "voltarVisaoGeral": "Back to overview"
+    },
+    "exportar": {
+      "csv": "Export CSV",
+      "excel": "Export Excel",
+      "gerando": "Generating...",
+      "gerado": "Spreadsheet generated.",
+      "erro": "Could not generate the spreadsheet.",
+      "vazio": "There are no rows to export.",
+      "metaPeriodo": "Period",
+      "metaUnidades": "Units",
+      "metaTodas": "All network units ({{count}})",
+      "metaGestor": "Network manager",
+      "metaGeradoEm": "Generated on",
+      "metaObservacao": "Note",
+      "tituloVisaoGeral": "Network overview",
+      "tituloRanking": "Unit ranking",
+      "arquivoVisaoGeral": "network-overview",
+      "arquivoRanking": "unit-ranking",
+      "arquivoGargalo": "bottleneck"
     },
     "visaoGeralRede": {
       "colUnidade": "Unit",
@@ -2514,23 +2544,6 @@
       "presetCustom": "Custom",
       "intervaloLabel": "Range",
       "selecione": "Select"
-    },
-    "painelHeader": {
-      "title": "Network Panel — MARI",
-      "greeting": "Hello, {{nome}}.",
-      "gestorFallback": "Manager",
-      "outrasContratantes_one": "+{{count}} other",
-      "outrasContratantes_other": "+{{count}} others",
-      "unidadesVinculadas_one": "{{count}} linked unit",
-      "unidadesVinculadas_other": "{{count}} linked units",
-      "atualizado": "Updated {{tempo}}",
-      "cooldownAguarde": "Wait {{min}}m before refreshing again",
-      "cooldownAtualizar": "Refresh data (1h cache)",
-      "atualizarDados": "Refresh data",
-      "exportarVisaoAtual": "Export current view",
-      "exportarCsv": "Export as CSV",
-      "exportarPdf": "Export as PDF",
-      "emBreve": "Coming soon"
     },
     "appShell": {
       "navVisaoGeral": "Overview",

@@ -2173,7 +2173,18 @@
     },
     "gargalos": {
       "loadError": "Error al cargar los cuellos de botella.",
-      "subtitle": "Dónde hay fallas de tamizaje en su red."
+      "subtitle": "Dónde hay fallas de tamizaje en su red.",
+      "detalheSubtitulo": "Gestantes de su red que están en este cuello de botella hoy. Esta lista muestra la situación actual y no cambia con el período elegido en el filtro.",
+      "colGestante": "Gestante",
+      "colUnidade": "Unidad",
+      "colIg": "EG hoy",
+      "colIgTip": "Edad gestacional hoy: semanas y días de gestación, contados desde la FUM (fecha de la última menstruación) o la ecografía.",
+      "colProfissional": "Profesional",
+      "colUltimaConsulta": "Última consulta",
+      "semConsulta": "Ninguna",
+      "detalheVazio": "Ninguna gestante en este cuello de botella ahora.",
+      "detalheErro": "No fue posible cargar la lista de gestantes.",
+      "detalheLimite": "Mostrando las primeras {{mostrando}} de {{total}} gestantes."
     },
     "tendencia": {
       "title": "Tendencia de la red (12 meses)",
@@ -2199,6 +2210,25 @@
       "readOnlyBanner": "Vista de solo lectura",
       "readOnlyBannerUnit": "Vista de solo lectura — {{unidade}}",
       "voltarVisaoGeral": "Volver a la visión general"
+    },
+    "exportar": {
+      "csv": "Exportar CSV",
+      "excel": "Exportar Excel",
+      "gerando": "Generando...",
+      "gerado": "Planilla generada.",
+      "erro": "No fue posible generar la planilla.",
+      "vazio": "No hay filas para exportar.",
+      "metaPeriodo": "Período",
+      "metaUnidades": "Unidades",
+      "metaTodas": "Todas las unidades de la red ({{count}})",
+      "metaGestor": "Gestor(a) general",
+      "metaGeradoEm": "Generado el",
+      "metaObservacao": "Observación",
+      "tituloVisaoGeral": "Visión general de la red",
+      "tituloRanking": "Ranking de unidades",
+      "arquivoVisaoGeral": "vision-general-red",
+      "arquivoRanking": "ranking-unidades",
+      "arquivoGargalo": "cuello-de-botella"
     },
     "visaoGeralRede": {
       "colUnidade": "Unidad",
@@ -2514,23 +2544,6 @@
       "presetCustom": "Personalizado",
       "intervaloLabel": "Intervalo",
       "selecione": "Seleccione"
-    },
-    "painelHeader": {
-      "title": "Panel de la Red — MARI",
-      "greeting": "Hola, {{nome}}.",
-      "gestorFallback": "Gestor(a)",
-      "outrasContratantes_one": "+{{count}} otra",
-      "outrasContratantes_other": "+{{count}} otras",
-      "unidadesVinculadas_one": "{{count}} unidad vinculada",
-      "unidadesVinculadas_other": "{{count}} unidades vinculadas",
-      "atualizado": "Actualizado {{tempo}}",
-      "cooldownAguarde": "Espere {{min}}m antes de actualizar nuevamente",
-      "cooldownAtualizar": "Actualizar datos (caché de 1h)",
-      "atualizarDados": "Actualizar datos",
-      "exportarVisaoAtual": "Exportar vista actual",
-      "exportarCsv": "Exportar como CSV",
-      "exportarPdf": "Exportar como PDF",
-      "emBreve": "Próximamente"
     },
     "appShell": {
       "navVisaoGeral": "Visión general",
