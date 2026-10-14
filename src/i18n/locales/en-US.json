@@ -2123,8 +2123,8 @@
           "tooltip": "Higher is better: diagnostic productivity in the period."
         },
         "taxa_dmg_positivo_pct": {
-          "label": "GDM rate",
-          "labelLong": "positive GDM rate",
+          "label": "Diagnosis rate",
+          "labelLong": "diagnosis rate (GDM + overt)",
           "tooltip": "Direct comparison between units. Febrasgo expected range: 7-18% — interpret with context."
         },
         "tempo_medio_fechamento_dias": {
@@ -2141,7 +2141,7 @@
     },
     "configuracoesGestorGeral": {
       "title": "Settings",
-      "subtitle": "Information about your general manager account. To make changes, contact support.",
+      "subtitle": "Your account and network details. Name, email and units are changed by support; network goals and the weekly summary you adjust here.",
       "contratante": "Contracting party",
       "maisOutras": "+{{count}} others",
       "unidadesVinculadas": "Linked units ({{count}})",
@@ -2164,7 +2164,7 @@
     "perfilClinico": {
       "title": "Consolidated clinical profile",
       "loadError": "Failed to load clinical profile.",
-      "taxaDmgPositivo": "Positive GDM rate",
+      "taxaDmgPositivo": "Diagnosis rate",
       "taxaDmgPositivoTip": "Patients with confirmed GDM ÷ patients screened (Return 1 or OGTT) in the period. Includes overt diabetes (diabetes that existed before pregnancy). Febrasgo expected range: 7-18%.",
       "diagnosticosNoCalculo": "{{valor}} of {{rastreadas}} patients screened (incl. {{overt}} overt)",
       "igMediaDiagnostico": "Average GA at diagnosis",
@@ -2213,6 +2213,13 @@
       "readOnlyBannerUnit": "Read-only view — {{unidade}}",
       "voltarVisaoGeral": "Back to overview"
     },
+    "relatorios": {
+      "subtitle": "Monthly reports (PDF) for each unit in the network, generated automatically at the start of each month with the previous month summary. The unit filter at the top applies here; the period filter does not (each report is already for one month).",
+      "vazio": "No reports generated yet for the selected units.",
+      "colUnidade": "Unit",
+      "filtroMes": "Filter by month",
+      "todosMeses": "All months"
+    },
     "exportar": {
       "csv": "Export CSV",
       "excel": "Export Excel",
@@ -2220,6 +2227,10 @@
       "gerado": "Spreadsheet generated.",
       "erro": "Could not generate the spreadsheet.",
       "vazio": "There are no rows to export.",
+      "pdf": "Export PDF",
+      "pdfGerando": "Generating PDF...",
+      "pdfGerado": "PDF generated in {{seconds}}s",
+      "pdfRedeSemNome": "Network",
       "metaPeriodo": "Period",
       "metaUnidades": "Units",
       "metaTodas": "All network units ({{count}})",
@@ -2244,7 +2255,7 @@
       "colPartosTooltip": "Patients closed by birth in the selected period.",
       "colProfissionais": "Professionals",
       "colProfissionaisTooltip": "Professionals with at least 1 patient under follow-up in the unit.",
-      "colTaxaDmg": "GDM+ rate",
+      "colTaxaDmg": "Diagnosis rate",
       "colTaxaDmgTooltip": "Patients with confirmed GDM ÷ patients screened (Return 1 or OGTT) in the period. Includes overt diabetes (diabetes that existed before pregnancy). Febrasgo expected range: 7-18%.",
       "title": "Network overview",
       "subtitle": "One row per unit. Click to open the full panel in read-only mode.",
@@ -2489,6 +2500,7 @@
       "diagInsulinaDesc": "Days between the confirmed diabetes and the referral for insulin, for those who needed it.",
       "dias": "{{valor}} days",
       "baseN": "based on {{n}} women",
+      "baseN_one": "based on 1 woman",
       "semCasos": "no cases in the period",
       "perfilTitle": "Profile of women seen",
       "perfilTip": "Pregnant women with any visit recorded in the period. Age is counted on the date of the 1st visit in the period.",
@@ -2637,7 +2649,7 @@
       "pacientesAtivosTip": "Pregnant women under follow-up (LMP in the last 280 days, excluding closed) at the selected units. Current snapshot — independent of the filter window.",
       "laudosEmitidos": "Reports issued",
       "laudosEmitidosTip": "Reports generated in the selected period by the selected units.",
-      "taxaDmgPositivo": "Positive GDM rate",
+      "taxaDmgPositivo": "Diagnosis rate",
       "taxaDmgPositivoTip": "Patients with confirmed GDM (Return 1 or OGTT) ÷ patients screened in the period. Includes overt diabetes (diabetes that existed before pregnancy). Febrasgo expected range: 7-18%.",
       "partosRegistrados": "Registered births",
       "partosRegistradosTip": "Patients closed by birth in the period, at the selected units.",
@@ -2659,7 +2671,7 @@
       "tipPacientes": "Pregnant patients under follow-up (LMP in the last 280 days, excluding closed).",
       "colLaudos": "Reports",
       "tipLaudos": "Reports generated in the selected period.",
-      "colTaxaDmg": "GDM+ rate",
+      "colTaxaDmg": "Diagnosis rate",
       "tipTaxaDmg": "Patients with confirmed GDM ÷ patients screened (Return 1 or OGTT) in the period. Includes overt diabetes (diabetes that existed before pregnancy).",
       "colTempoMedio": "Average time",
       "tipTempoMedio": "Average days from LMP to birth, for patients closed by birth in the period. '—' when there are no births in the period.",
@@ -2702,6 +2714,7 @@
       "navConsolidador": "Consolidator",
       "navDiagnostico": "Diagnosis",
       "navComparador": "Comparator",
+      "navRelatorios": "Reports",
       "navConfiguracoes": "Settings",
       "navTutorial": "Tutorial",
       "roleLabel": "General Manager",

@@ -2123,8 +2123,8 @@
           "tooltip": "Mayor es mejor: productividad de diagnóstico en el período."
         },
         "taxa_dmg_positivo_pct": {
-          "label": "Tasa DMG",
-          "labelLong": "tasa de DMG positivo",
+          "label": "Tasa de diagnóstico",
+          "labelLong": "tasa de diagnóstico (DMG + overt)",
           "tooltip": "Comparación directa entre unidades. Rango esperado Febrasgo: 7-18% — interprétalo con contexto."
         },
         "tempo_medio_fechamento_dias": {
@@ -2141,7 +2141,7 @@
     },
     "configuracoesGestorGeral": {
       "title": "Configuración",
-      "subtitle": "Información de su cuenta de gestor general. Para cambios, contacte al soporte.",
+      "subtitle": "Datos de su cuenta y de su red. Nombre, email y unidades los cambia el soporte; las metas de la red y el resumen semanal los ajusta aquí.",
       "contratante": "Contratante",
       "maisOutras": "+{{count}} otras",
       "unidadesVinculadas": "Unidades vinculadas ({{count}})",
@@ -2164,7 +2164,7 @@
     "perfilClinico": {
       "title": "Perfil clínico consolidado",
       "loadError": "Error al cargar el perfil clínico.",
-      "taxaDmgPositivo": "Tasa de DMG positivo",
+      "taxaDmgPositivo": "Tasa de diagnóstico",
       "taxaDmgPositivoTip": "Gestantes con DMG confirmado ÷ gestantes cribadas (Retorno 1 o PTOG) en el período. Incluye la diabetes manifiesta (overt), que ya existía antes del embarazo. Rango esperado Febrasgo: 7-18%.",
       "diagnosticosNoCalculo": "{{valor}} de {{rastreadas}} gestantes cribadas (incl. {{overt}} overt)",
       "igMediaDiagnostico": "EG promedio al diagnóstico",
@@ -2213,6 +2213,13 @@
       "readOnlyBannerUnit": "Vista de solo lectura — {{unidade}}",
       "voltarVisaoGeral": "Volver a la visión general"
     },
+    "relatorios": {
+      "subtitle": "Informes mensuales (PDF) de cada unidad de la red, generados automáticamente al inicio de cada mes con el resumen del mes anterior. El filtro de unidades de arriba aplica aquí; el de período no (cada informe ya es de un mes).",
+      "vazio": "Aún no hay informes para las unidades seleccionadas.",
+      "colUnidade": "Unidad",
+      "filtroMes": "Filtrar por mes",
+      "todosMeses": "Todos los meses"
+    },
     "exportar": {
       "csv": "Exportar CSV",
       "excel": "Exportar Excel",
@@ -2220,6 +2227,10 @@
       "gerado": "Planilla generada.",
       "erro": "No fue posible generar la planilla.",
       "vazio": "No hay filas para exportar.",
+      "pdf": "Exportar PDF",
+      "pdfGerando": "Generando PDF...",
+      "pdfGerado": "PDF generado en {{seconds}}s",
+      "pdfRedeSemNome": "Red",
       "metaPeriodo": "Período",
       "metaUnidades": "Unidades",
       "metaTodas": "Todas las unidades de la red ({{count}})",
@@ -2244,7 +2255,7 @@
       "colPartosTooltip": "Gestantes cerradas por parto en el período seleccionado.",
       "colProfissionais": "Profesionales",
       "colProfissionaisTooltip": "Profesionales con al menos 1 gestante en seguimiento en la unidad.",
-      "colTaxaDmg": "Tasa DMG+",
+      "colTaxaDmg": "Tasa de diagnóstico",
       "colTaxaDmgTooltip": "Gestantes con DMG confirmado ÷ gestantes cribadas (Retorno 1 o PTOG) en el período. Incluye la diabetes manifiesta (overt), que ya existía antes del embarazo. Rango esperado Febrasgo: 7-18%.",
       "title": "Visión general de la red",
       "subtitle": "Una fila por unidad. Haga clic para abrir el panel completo en modo solo lectura.",
@@ -2489,6 +2500,7 @@
       "diagInsulinaDesc": "Días entre la diabetes confirmada y la derivación a insulina, para quien la necesitó.",
       "dias": "{{valor}} días",
       "baseN": "base: {{n}} gestantes",
+      "baseN_one": "base: 1 gestante",
       "semCasos": "sin casos en el período",
       "perfilTitle": "Perfil de las gestantes atendidas",
       "perfilTip": "Gestantes con cualquier consulta registrada en el período. La edad se cuenta en la fecha de la 1.ª consulta del período.",
@@ -2637,7 +2649,7 @@
       "pacientesAtivosTip": "Gestantes en seguimiento (FUM en los últimos 280 días, sin las cerradas) en las unidades seleccionadas. Instantánea actual — no depende de la ventana del filtro.",
       "laudosEmitidos": "Informes emitidos",
       "laudosEmitidosTip": "Informes generados en el período seleccionado por las unidades seleccionadas.",
-      "taxaDmgPositivo": "Tasa de DMG positivo",
+      "taxaDmgPositivo": "Tasa de diagnóstico",
       "taxaDmgPositivoTip": "Gestantes con DMG confirmado (Retorno 1 o PTOG) ÷ gestantes cribadas en el período. Incluye la diabetes manifiesta (overt), que ya existía antes del embarazo. Rango esperado Febrasgo: 7-18%.",
       "partosRegistrados": "Partos registrados",
       "partosRegistradosTip": "Gestantes cerradas por parto en el período, en las unidades seleccionadas.",
@@ -2659,7 +2671,7 @@
       "tipPacientes": "Gestantes en seguimiento (FUM en los últimos 280 días, sin las cerradas).",
       "colLaudos": "Informes",
       "tipLaudos": "Informes generados en el período seleccionado.",
-      "colTaxaDmg": "Tasa DMG+",
+      "colTaxaDmg": "Tasa de diagnóstico",
       "tipTaxaDmg": "Gestantes con DMG confirmado ÷ gestantes cribadas (Retorno 1 o PTOG) en el período. Incluye la diabetes manifiesta (overt), que ya existía antes del embarazo.",
       "colTempoMedio": "Tiempo promedio",
       "tipTempoMedio": "Días promedio entre la FUM y el parto, en las gestantes cerradas por parto en el período. '—' cuando no hay partos en el período.",
@@ -2702,6 +2714,7 @@
       "navConsolidador": "Consolidador",
       "navDiagnostico": "Diagnóstico",
       "navComparador": "Comparador",
+      "navRelatorios": "Informes",
       "navConfiguracoes": "Configuración",
       "navTutorial": "Tutorial",
       "roleLabel": "Gestor General",

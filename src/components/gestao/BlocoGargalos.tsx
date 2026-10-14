@@ -158,6 +158,7 @@ export default function BlocoGargalos({ data, loading, error, hideVerPacientesLi
                 <p className="mt-1 text-xs text-muted-foreground">{it.descricao}</p>
                 {tem && (onVerGestantes || !hideVerPacientesLink) && (
                   <button
+                    data-pdf-ocultar
                     onClick={() => {
                       if (onVerGestantes) {
                         onVerGestantes(it.chave);

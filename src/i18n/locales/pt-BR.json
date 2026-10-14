@@ -2123,8 +2123,8 @@
           "tooltip": "Maior é melhor: produtividade de diagnóstico no período."
         },
         "taxa_dmg_positivo_pct": {
-          "label": "Taxa DMG",
-          "labelLong": "taxa de DMG positivo",
+          "label": "Taxa de diagnóstico",
+          "labelLong": "taxa de diagnóstico (DMG + overt)",
           "tooltip": "Comparação direta entre unidades. Faixa esperada Febrasgo: 7-18% — interprete com contexto."
         },
         "tempo_medio_fechamento_dias": {
@@ -2141,7 +2141,7 @@
     },
     "configuracoesGestorGeral": {
       "title": "Configurações",
-      "subtitle": "Informações da sua conta de gestor geral. Para alterações, contate o suporte.",
+      "subtitle": "Dados da sua conta e da sua rede. Nome, e-mail e unidades são alterados pelo suporte; as metas da rede e o resumo semanal você ajusta aqui.",
       "contratante": "Contratante",
       "maisOutras": "+{{count}} outras",
       "unidadesVinculadas": "Unidades vinculadas ({{count}})",
@@ -2164,7 +2164,7 @@
     "perfilClinico": {
       "title": "Perfil clínico consolidado",
       "loadError": "Falha ao carregar perfil clínico.",
-      "taxaDmgPositivo": "Taxa DMG positivo",
+      "taxaDmgPositivo": "Taxa de diagnóstico",
       "taxaDmgPositivoTip": "Gestantes com DMG confirmado ÷ gestantes rastreadas (Retorno 1 ou GTT) no período. Inclui overt (diabetes que já existia antes da gravidez). Faixa esperada Febrasgo: 7-18%.",
       "diagnosticosNoCalculo": "{{valor}} de {{rastreadas}} gestantes rastreadas (incl. {{overt}} overt)",
       "igMediaDiagnostico": "IG média ao diagnóstico",
@@ -2213,6 +2213,13 @@
       "readOnlyBannerUnit": "Visualização somente leitura — {{unidade}}",
       "voltarVisaoGeral": "Voltar à visão geral"
     },
+    "relatorios": {
+      "subtitle": "Relatórios mensais (PDF) de cada unidade da rede, gerados automaticamente no início de cada mês com o resumo do mês anterior. O filtro de unidades do topo vale aqui; o de período não (cada relatório já é de um mês).",
+      "vazio": "Nenhum relatório gerado ainda para as unidades selecionadas.",
+      "colUnidade": "Unidade",
+      "filtroMes": "Filtrar por mês",
+      "todosMeses": "Todos os meses"
+    },
     "exportar": {
       "csv": "Exportar CSV",
       "excel": "Exportar Excel",
@@ -2220,6 +2227,10 @@
       "gerado": "Planilha gerada.",
       "erro": "Não foi possível gerar a planilha.",
       "vazio": "Não há linhas para exportar.",
+      "pdf": "Exportar PDF",
+      "pdfGerando": "Gerando PDF...",
+      "pdfGerado": "PDF gerado em {{seconds}}s",
+      "pdfRedeSemNome": "Rede",
       "metaPeriodo": "Período",
       "metaUnidades": "Unidades",
       "metaTodas": "Todas as unidades da rede ({{count}})",
@@ -2244,7 +2255,7 @@
       "colPartosTooltip": "Gestantes encerradas por parto no período selecionado.",
       "colProfissionais": "Profissionais",
       "colProfissionaisTooltip": "Profissionais com pelo menos 1 gestante em acompanhamento na unidade.",
-      "colTaxaDmg": "Taxa DMG+",
+      "colTaxaDmg": "Taxa de diagnóstico",
       "colTaxaDmgTooltip": "Gestantes com DMG confirmado ÷ gestantes rastreadas (Retorno 1 ou GTT) no período. Inclui overt (diabetes que já existia antes da gravidez). Faixa esperada Febrasgo: 7-18%.",
       "title": "Visão geral da rede",
       "subtitle": "Linha por unidade. Clique para abrir o painel completo em modo somente leitura.",
@@ -2489,6 +2500,7 @@
       "diagInsulinaDesc": "Dias entre o diabetes confirmado e o encaminhamento para insulina, para quem precisou.",
       "dias": "{{valor}} dias",
       "baseN": "base: {{n}} gestantes",
+      "baseN_one": "base: 1 gestante",
       "semCasos": "sem casos no período",
       "perfilTitle": "Perfil das gestantes atendidas",
       "perfilTip": "Gestantes com qualquer consulta registrada no período. A idade é contada na data da 1ª consulta do período.",
@@ -2637,7 +2649,7 @@
       "pacientesAtivosTip": "Gestantes em acompanhamento (DUM nos últimos 280 dias, sem as encerradas) nas unidades selecionadas. Snapshot atual — não depende da janela do filtro.",
       "laudosEmitidos": "Laudos emitidos",
       "laudosEmitidosTip": "Laudos gerados no período selecionado pelas unidades selecionadas.",
-      "taxaDmgPositivo": "Taxa DMG positivo",
+      "taxaDmgPositivo": "Taxa de diagnóstico",
       "taxaDmgPositivoTip": "Gestantes com DMG confirmado (Retorno 1 ou GTT) ÷ gestantes rastreadas no período. Inclui overt (diabetes que já existia antes da gravidez). Faixa esperada Febrasgo: 7-18%.",
       "partosRegistrados": "Partos registrados",
       "partosRegistradosTip": "Gestantes encerradas por parto no período, nas unidades selecionadas.",
@@ -2659,7 +2671,7 @@
       "tipPacientes": "Gestantes em acompanhamento (DUM nos últimos 280 dias, sem as encerradas).",
       "colLaudos": "Laudos",
       "tipLaudos": "Laudos gerados no período selecionado.",
-      "colTaxaDmg": "Taxa DMG+",
+      "colTaxaDmg": "Taxa de diagnóstico",
       "tipTaxaDmg": "Gestantes com DMG confirmado ÷ gestantes rastreadas (Retorno 1 ou GTT) no período. Inclui overt (diabetes que já existia antes da gravidez).",
       "colTempoMedio": "Tempo médio",
       "tipTempoMedio": "Dias médios entre a DUM e o parto, nas gestantes encerradas por parto no período. '—' quando não há partos no período.",
@@ -2702,6 +2714,7 @@
       "navConsolidador": "Consolidador",
       "navDiagnostico": "Diagnóstico",
       "navComparador": "Comparador",
+      "navRelatorios": "Relatórios",
       "navConfiguracoes": "Configurações",
       "navTutorial": "Tutorial",
       "roleLabel": "Gestor Geral",

@@ -8,7 +8,7 @@ import {
   YAxis,
   Legend,
 } from "recharts";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, FileText, Activity, Stethoscope, FlaskConical } from "lucide-react";
@@ -25,6 +25,7 @@ import EmptyStateSemSelecao from "@/components/gestor-geral/EmptyStateSemSelecao
 import TooltipInfo from "@/components/gestor-geral/TooltipInfo";
 import BlocoGargalos from "@/components/gestao/BlocoGargalos";
 import LinhaDeCuidadoRede from "@/components/gestao/LinhaDeCuidadoRede";
+import BotaoExportarPdfRede from "@/components/gestor-geral/BotaoExportarPdfRede";
 import { formatNum, formatPctOrDash, formatIg } from "@/lib/formatters";
 
 interface MetricCardProps {
@@ -62,9 +63,14 @@ function MetricCard({ label, value, Icon, tooltip, subtitle }: MetricCardProps) 
 
 export default function ConsolidadorPage() {
   const { semSelecao } = useFiltrosGestorGeral();
+  // Contêiner capturado pelo "Exportar PDF" (cada bloco tem data-pdf-section).
+  const raiz = useRef<HTMLDivElement>(null);
   if (semSelecao) return <EmptyStateSemSelecao />;
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" ref={raiz}>
+      <div className="flex justify-end -mb-4">
+        <BotaoExportarPdfRede raiz={raiz} />
+      </div>
       <BlocoOperacaoConsolidado />
       <BlocoPerfilClinicoConsolidado />
       <LinhaDeCuidadoRede />
@@ -78,7 +84,7 @@ function BlocoOperacaoConsolidado() {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorOperacao();
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" data-pdf-section="operacao-rede">
       <h2 className="text-lg font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
         {t('consolidar.operacao.title')}
       </h2>
@@ -134,7 +140,7 @@ function BlocoPerfilClinicoConsolidado() {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorPerfilClinico();
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" data-pdf-section="perfil-rede">
       <h2 className="text-lg font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
         {t('consolidar.perfilClinico.title')}
       </h2>
@@ -220,7 +226,7 @@ function BlocoTendenciaConsolidado() {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorTendencia();
   return (
-    <section className="space-y-3">
+    <section className="space-y-3" data-pdf-section="tendencia-rede">
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
           {t('consolidar.tendencia.title')}

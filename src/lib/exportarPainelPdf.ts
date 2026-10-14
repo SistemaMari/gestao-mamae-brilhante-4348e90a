@@ -1,4 +1,3 @@
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { createRoot, type Root } from 'react-dom/client';
 import { createElement } from 'react';
@@ -7,6 +6,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { gerarResumoExecutivo } from './gerarResumoExecutivo';
 import { slugify } from './slugify';
 import { formatDateISO } from './dateUtils';
+import {
+  addCanvasPaginated,
+  addFootersAllPages,
+  baixarPdf,
+  captureToCanvas,
+  carregarFontes,
+  escapeHtml,
+  formatDateBr as formatDate,
+  formatIgDias as formatIg,
+  formatPeriodo,
+} from './pdfCaptura';
 import { fetchDadosEquipe } from './fetchDadosEquipe';
 import { PdfModeContext } from '@/components/gestao/PdfModeContext';
 import BlocoOperacao from '@/components/gestao/BlocoOperacao';
@@ -53,48 +63,7 @@ export interface ExportarPainelInput {
   periodo?: { inicio: string; fim: string } | null;
 }
 
-const A4 = { w: 595.28, h: 841.89 }; // pt
-const MARGIN = 32;
-const FOOTER_H = 24;
 const OFFSCREEN_WIDTH_PX = 1024;
-// JPEG em vez de PNG: o PNG sem compressão deixava o PDF com dezenas de MB.
-// Fundo é sempre branco (html2canvas), então não há transparência a perder.
-const JPEG_QUALIDADE = 0.92;
-
-async function carregarFontes() {
-  try {
-    await Promise.all([
-      document.fonts.load('600 16px "Sora"'),
-      document.fonts.load('700 20px "Sora"'),
-      document.fonts.load('400 14px "Plus Jakarta Sans"'),
-      document.fonts.load('600 14px "Plus Jakarta Sans"'),
-    ]);
-    await document.fonts.ready;
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  } catch {
-    /* fallback Helvetica */
-  }
-}
-
-function formatIg(dias: number) {
-  const w = Math.floor(dias / 7);
-  const d = dias % 7;
-  return `${w}s ${d}d`;
-}
-
-function formatDate(s: string | null) {
-  if (!s) return '—';
-  const d = new Date(s);
-  if (isNaN(d.getTime())) return s;
-  return d.toLocaleDateString('pt-BR');
-}
-
-function formatPeriodo(p: { inicio: string; fim: string } | null | undefined): string | null {
-  if (!p?.inicio || !p?.fim) return null;
-  const br = (s: string) => s.split('-').reverse().join('/');
-  return `${br(p.inicio)} a ${br(p.fim)}`;
-}
-
 function buildResumoElement(
   unidadeNome: string,
   frases: string[],
@@ -186,67 +155,6 @@ function buildApendiceElement(detalhes: DetalhesGargalos): HTMLDivElement {
     ${blocos}
   `;
   return el;
-}
-
-function escapeHtml(s: string): string {
-  return String(s ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-async function captureToCanvas(el: HTMLElement): Promise<HTMLCanvasElement> {
-  return await html2canvas(el, {
-    scale: 2,
-    backgroundColor: '#ffffff',
-    useCORS: true,
-    logging: false,
-  });
-}
-
-function addCanvasPaginated(
-  pdf: jsPDF,
-  canvas: HTMLCanvasElement,
-  opts: { firstPage?: boolean } = {},
-): void {
-  const usableW = A4.w - MARGIN * 2;
-  const usableH = A4.h - MARGIN * 2 - FOOTER_H;
-  const ratio = canvas.width / usableW;
-  const imgFullH = canvas.height / ratio;
-
-  if (imgFullH <= usableH) {
-    if (!opts.firstPage) pdf.addPage();
-    pdf.addImage(canvas.toDataURL('image/jpeg', JPEG_QUALIDADE), 'JPEG', MARGIN, MARGIN, usableW, imgFullH);
-    return;
-  }
-
-  const sliceHpx = Math.floor(usableH * ratio);
-  let yPx = 0;
-  let firstSlice = true;
-  while (yPx < canvas.height) {
-    const h = Math.min(sliceHpx, canvas.height - yPx);
-    const slice = document.createElement('canvas');
-    slice.width = canvas.width;
-    slice.height = h;
-    const ctx = slice.getContext('2d')!;
-    ctx.drawImage(canvas, 0, yPx, canvas.width, h, 0, 0, canvas.width, h);
-    if (!(firstSlice && opts.firstPage)) pdf.addPage();
-    pdf.addImage(slice.toDataURL('image/jpeg', JPEG_QUALIDADE), 'JPEG', MARGIN, MARGIN, usableW, h / ratio);
-    yPx += h;
-    firstSlice = false;
-  }
-}
-
-function addFootersAllPages(pdf: jsPDF, unidadeNome: string, geradoEm: Date) {
-  const totalPages = pdf.getNumberOfPages();
-  const footer = `${unidadeNome} · Gerado em ${geradoEm.toLocaleDateString('pt-BR')} ${geradoEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-  for (let i = 1; i <= totalPages; i++) {
-    pdf.setPage(i);
-    pdf.setFontSize(8);
-    pdf.setTextColor(120);
-    pdf.text(footer, MARGIN, A4.h - 14);
-    pdf.text(`Página ${i} de ${totalPages}`, A4.w - MARGIN, A4.h - 14, { align: 'right' });
-  }
 }
 
 export async function exportarPainelPdf(
@@ -367,13 +275,7 @@ export async function exportarPainelPdf(
     addFootersAllPages(pdf, input.unidadeNome, geradoEm);
 
     const filename = `painel-${slugify(input.unidadeNome)}-${formatDateISO(geradoEm)}.pdf`;
-    const blob = pdf.output('blob');
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    baixarPdf(pdf, filename);
 
     const tempoMs = Math.round(performance.now() - t0);
     return { ok: true, tempoMs };

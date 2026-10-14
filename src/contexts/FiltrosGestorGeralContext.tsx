@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { calcularPeriodo, type PresetPeriodo } from "@/lib/periodo";
+import { calcularPeriodo, PERIODO_PADRAO_PAINEL, type PresetPeriodo } from "@/lib/periodo";
 
 // Presets e cálculo do período ficam em src/lib/periodo.ts (o painel da unidade usa também).
 export { calcularPeriodo, type PresetPeriodo };
@@ -98,10 +98,10 @@ export function FiltrosGestorGeralProvider({
 
   const [redes, setRedes] = useState<RedeOpt[]>(modoVitrine ? mockData?.redes ?? [] : []);
 
-  const periodoInicial = useRef(calcularPeriodo("30d"));
+  const periodoInicial = useRef(calcularPeriodo(PERIODO_PADRAO_PAINEL));
   const [filtros, setFiltrosState] = useState<FiltrosState>({
     unidadesSelecionadas: null,
-    preset: "30d",
+    preset: PERIODO_PADRAO_PAINEL,
     dataInicio: periodoInicial.current.inicio,
     dataFim: periodoInicial.current.fim,
   });
