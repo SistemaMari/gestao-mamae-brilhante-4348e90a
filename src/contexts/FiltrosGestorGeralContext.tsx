@@ -20,6 +20,13 @@ export { calcularPeriodo, type PresetPeriodo };
 export interface UnidadeOpt {
   id: string;
   nome: string;
+  /** Rede (contratante) da unidade — as metas da rede são por rede. */
+  contratante_id?: string;
+}
+
+export interface RedeOpt {
+  id: string;
+  nome: string;
 }
 
 export interface PerfilGestorGeral {
@@ -47,6 +54,8 @@ interface FiltrosCtx {
   gestor: PerfilGestorGeral | null;
   unidades: UnidadeOpt[];
   contratantes: ContratantesInfo;
+  /** Redes ativas do gestor geral (para as metas da rede). */
+  redes: RedeOpt[];
   filtros: FiltrosState;
   setFiltros: (next: FiltrosState) => void;
   // RPCs precisam: null quando todas, array quando subset não vazio.
@@ -69,6 +78,7 @@ export function FiltrosGestorGeralProvider({
     gestor: PerfilGestorGeral;
     unidades: UnidadeOpt[];
     contratantes: ContratantesInfo;
+    redes?: RedeOpt[];
   };
 }) {
   const { user } = useAuth();
@@ -85,6 +95,8 @@ export function FiltrosGestorGeralProvider({
   const [contratantes, setContratantes] = useState<ContratantesInfo>(
     modoVitrine ? mockData?.contratantes ?? { primeiro: "", outros: 0 } : { primeiro: "", outros: 0 },
   );
+
+  const [redes, setRedes] = useState<RedeOpt[]>(modoVitrine ? mockData?.redes ?? [] : []);
 
   const periodoInicial = useRef(calcularPeriodo("30d"));
   const [filtros, setFiltrosState] = useState<FiltrosState>({
@@ -153,10 +165,11 @@ export function FiltrosGestorGeralProvider({
       const redesAtivas = new Set(cts.map((c) => c.id));
       const list = todas.filter((u) => redesAtivas.has(u.contratante_id));
       list.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-      setUnidades(list.map((u) => ({ id: u.id, nome: u.nome })));
+      setUnidades(list.map((u) => ({ id: u.id, nome: u.nome, contratante_id: u.contratante_id })));
 
       if (cts.length > 0) {
         const ord = [...cts].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+        setRedes(ord.map((c) => ({ id: c.id, nome: c.nome })));
         setContratantes({
           primeiro: ord[0]?.nome ?? "",
           outros: Math.max(0, ord.length - 1),
@@ -194,6 +207,7 @@ export function FiltrosGestorGeralProvider({
     gestor,
     unidades,
     contratantes,
+    redes,
     filtros,
     setFiltros,
     unidadesEfetivas,

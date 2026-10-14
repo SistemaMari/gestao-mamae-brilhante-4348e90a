@@ -1,6 +1,7 @@
 // Dados fictícios da linha de cuidado para as rotas /vitrine (sem banco).
 import type { LinhaCuidadoBloco, LinhaCuidadoResposta } from '@/lib/linhaCuidado';
 import { periodoAnterior, type Periodo } from '@/lib/periodo';
+import type { LinhaCuidadoPorUnidade } from '@/lib/metas';
 
 const CRITERIOS: LinhaCuidadoBloco['criterios'] = { perfil_min_dias: 7, meta_pct: 70, ig_limite_semanas: 28, provisorio: true };
 
@@ -53,6 +54,28 @@ function bloco(periodo: Periodo, fator: number): LinhaCuidadoBloco {
       dmg_anterior_pct: pct(k(10), atendidas),
     },
   };
+}
+
+// Uma unidade de cada jeito (metas da vitrine em useMetasRede: METAS_VITRINE),
+// incluindo uma unidade pequena que cai em "poucos dados".
+const AJUSTES_UNIDADE = [
+  { fator: 0.45, gjGtt: 52, antes28: 91 },
+  { fator: 0.4, gjGtt: 78, antes28: 72 },
+  { fator: 0.5, gjGtt: 58, antes28: 86 },
+  { fator: 0.08, gjGtt: 41, antes28: 100 },
+];
+
+export function mockLinhaCuidadoPorUnidade(
+  periodo: Periodo,
+  unidades: { id: string; nome: string; contratante_id?: string }[],
+): LinhaCuidadoPorUnidade[] {
+  return unidades.map((u, i) => {
+    const aj = AJUSTES_UNIDADE[i % AJUSTES_UNIDADE.length];
+    const b = bloco(periodo, aj.fator);
+    b.tempos.gj_gtt_mediana_dias = aj.gjGtt;
+    b.tempos.diag_antes_28s_pct = b.tempos.diag_com_ig > 0 ? aj.antes28 : null;
+    return { unidade_id: u.id, unidade_nome: u.nome, contratante_id: u.contratante_id ?? null, atual: b };
+  });
 }
 
 export function mockLinhaCuidado(periodo: Periodo): LinhaCuidadoResposta {

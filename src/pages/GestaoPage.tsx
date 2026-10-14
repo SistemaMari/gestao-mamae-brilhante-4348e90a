@@ -29,6 +29,8 @@ import LinhaDeCuidado from '@/components/gestao/LinhaDeCuidado';
 import { calcularPeriodo } from '@/lib/periodo';
 import type { LinhaCuidadoResposta } from '@/lib/linhaCuidado';
 import { mockLinhaCuidado } from '@/lib/mockLinhaCuidado';
+import { temMetas } from '@/lib/metas';
+import { useMetasRedes, VITRINE_REDE_ID } from '@/hooks/useMetasRede';
 import { exportarPainelPdf } from '@/lib/exportarPainelPdf';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -92,6 +94,10 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
   const [periodo, setPeriodo] = useState<FiltroPeriodoValor>(() => ({ preset: '30d', ...calcularPeriodo('30d') }));
   const [linhaCuidado, setLinhaCuidado] = useState<LinhaCuidadoResposta | null>(null);
   const [erroLinha, setErroLinha] = useState<string | null>(null);
+  // Metas da rede da unidade (definidas pelo gestor geral; aqui só leitura).
+  const [redeId, setRedeId] = useState<string | null>(isVitrine ? VITRINE_REDE_ID : null);
+  const metasQ = useMetasRedes([redeId]);
+  const metasUnidade = redeId ? metasQ.data?.[redeId] ?? null : null;
 
   useEffect(() => {
     if (isVitrine) return;
@@ -145,10 +151,11 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
     try {
       const { data: u } = await supabase
         .from('unidades')
-        .select('nome')
+        .select('nome, contratante_id')
         .eq('id', unidadeId)
         .single();
       setUnidadeNome(u?.nome || '');
+      setRedeId(u?.contratante_id ?? null);
 
       const comPeriodo = { p_unidade_id: unidadeId, p_data_inicio: periodo.inicio, p_data_fim: periodo.fim };
       const [opRes, peRes, gaRes, teRes, lcRes] = await Promise.all([
@@ -332,6 +339,8 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
           data={isVitrine ? mockLinhaCuidado(periodo) : linhaCuidado}
           loading={loadingBlocos}
           error={erroLinha}
+          metas={metasUnidade}
+          notaMetas={temMetas(metasUnidade) ? t('gestao.metas.definidaPelaRede') : null}
         />
 
         {/* No drill-down do gestor geral (readonly) o link leva a /gestao/fichas, rota só do gestor → esconde. */}

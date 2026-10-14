@@ -54,10 +54,12 @@ interface CardProps extends VariacaoProps {
   detalhe?: string;
   Icon: React.ElementType;
   destaque?: boolean;
+  /** Abaixo da variação (ex.: selo da meta da rede). */
+  rodape?: React.ReactNode;
 }
 
 /** Card de indicador no padrão dos blocos do painel + variação do período. */
-export default function LinhaDeCuidadoIndicador({ titulo, tooltip, valor, detalhe, Icon, destaque, ...variacao }: CardProps) {
+export default function LinhaDeCuidadoIndicador({ titulo, tooltip, valor, detalhe, Icon, destaque, rodape, ...variacao }: CardProps) {
   return (
     <div
       className={`rounded-xl border bg-white p-5 shadow-sm ${
@@ -75,6 +77,7 @@ export default function LinhaDeCuidadoIndicador({ titulo, tooltip, valor, detalh
           <div className="mt-2">
             <VariacaoPeriodo {...variacao} />
           </div>
+          {rodape}
         </div>
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${destaque ? 'bg-rose-50' : 'bg-[#F5F0FF]'}`}>
           <Icon className={`h-5 w-5 ${destaque ? 'text-rose-500' : 'text-[#9b87f5]'}`} />

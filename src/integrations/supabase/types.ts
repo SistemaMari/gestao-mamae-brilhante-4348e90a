@@ -1483,6 +1483,38 @@ export type Database = {
           },
         ]
       }
+      metas_rede: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          contratante_id: string
+          indicador: string
+          valor: number
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          contratante_id: string
+          indicador: string
+          valor: number
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          contratante_id?: string
+          indicador?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_rede_contratante_id_fkey"
+            columns: ["contratante_id"]
+            isOneToOne: false
+            referencedRelation: "contratantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pacientes: {
         Row: {
           cidade: string | null
@@ -2648,6 +2680,10 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
+      definir_meta_rede: {
+        Args: { p_contratante_id: string; p_indicador: string; p_valor: number }
+        Returns: Json
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2714,6 +2750,14 @@ export type Database = {
         Returns: Json
       }
       get_linha_cuidado_gestor_geral: {
+        Args: {
+          p_data_fim: string
+          p_data_inicio: string
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
+      get_linha_cuidado_por_unidade_gestor_geral: {
         Args: {
           p_data_fim: string
           p_data_inicio: string
@@ -2856,6 +2900,10 @@ export type Database = {
       }
       refresh_mv_metricas_unidade_manual: { Args: never; Returns: Json }
       refresh_mv_metricas_unidade_seed: { Args: never; Returns: Json }
+      remover_meta_rede: {
+        Args: { p_contratante_id: string; p_indicador: string }
+        Returns: boolean
+      }
       resetar_laudos_aniversario: { Args: never; Returns: Json }
       seed_pacientes_teste_para_gestores: { Args: never; Returns: Json }
     }

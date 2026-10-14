@@ -1,10 +1,12 @@
-import { CalendarCheck, HeartPulse, Search, UserMinus } from 'lucide-react';
+import { CalendarCheck, HeartPulse, Search, Target, UserMinus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { faixasComPct, type LinhaCuidadoBloco, type LinhaCuidadoResposta } from '@/lib/linhaCuidado';
+import { avaliarIndicador, type IndicadorMeta, type MetasRede } from '@/lib/metas';
 import { formatarPeriodoCurto } from '@/lib/periodo';
 import CardInfoTooltip from './CardInfoTooltip';
 import LinhaDeCuidadoFunil from './LinhaDeCuidadoFunil';
 import LinhaDeCuidadoIndicador, { VariacaoPeriodo } from './LinhaDeCuidadoIndicador';
+import SeloMeta from './SeloMeta';
 
 interface Props {
   data: LinhaCuidadoResposta | null | undefined;
@@ -12,7 +14,13 @@ interface Props {
   error?: string | null;
   /** 'unidade' = painel do gestor de unidade (e drill-down); 'rede' = consolidado do gestor geral. */
   escopo?: 'unidade' | 'rede';
+  /** Metas da rede (metas_rede). Sem meta no indicador = sem selo. */
+  metas?: MetasRede | null;
+  /** Linha explicativa sobre as metas (ex.: "Meta definida pela gestão da rede"). */
+  notaMetas?: string | null;
 }
+
+type RenderSelo = (indicador: IndicadorMeta) => React.ReactNode;
 
 const pct = (v: number | null | undefined, locale?: string) =>
   v == null ? '—' : `${v.toLocaleString(locale, { maximumFractionDigits: 1 })}%`;
@@ -29,11 +37,12 @@ function CaixaSecao({ titulo, tooltip, children }: { titulo: string; tooltip: st
   );
 }
 
-function Adesao({ a, b, criterios }: { a: LinhaCuidadoBloco['adesao']; b: LinhaCuidadoBloco['adesao']; criterios: LinhaCuidadoBloco['criterios'] }) {
+function Adesao({ a, b, criterios, selo }: { a: LinhaCuidadoBloco['adesao']; b: LinhaCuidadoBloco['adesao']; criterios: LinhaCuidadoBloco['criterios']; selo: RenderSelo }) {
   const { t, i18n } = useTranslation();
   const itens = [
     {
       chave: 'completo',
+      indicador: 'perfil_completo_pct' as const,
       titulo: t('gestao.linhaCuidado.completo'),
       tip: t('gestao.linhaCuidado.completoTip'),
       valor: a.perfil_completo_pct,
@@ -42,6 +51,7 @@ function Adesao({ a, b, criterios }: { a: LinhaCuidadoBloco['adesao']; b: LinhaC
     },
     {
       chave: 'meta',
+      indicador: 'ultimo_na_meta_pct' as const,
       titulo: t('gestao.linhaCuidado.meta'),
       tip: t('gestao.linhaCuidado.metaTip'),
       valor: a.ultimo_na_meta_pct,
@@ -68,6 +78,7 @@ function Adesao({ a, b, criterios }: { a: LinhaCuidadoBloco['adesao']; b: LinhaC
             <div className="mt-1.5">
               <VariacaoPeriodo atual={it.valor} anterior={it.anterior} unidade="pct" sentido="bom_subir" />
             </div>
+            {selo(it.indicador)}
           </div>
         ))}
       </div>
@@ -79,10 +90,10 @@ function Adesao({ a, b, criterios }: { a: LinhaCuidadoBloco['adesao']; b: LinhaC
   );
 }
 
-function Tempos({ a, b }: { a: LinhaCuidadoBloco['tempos']; b: LinhaCuidadoBloco['tempos'] }) {
+function Tempos({ a, b, selo }: { a: LinhaCuidadoBloco['tempos']; b: LinhaCuidadoBloco['tempos']; selo: RenderSelo }) {
   const { t, i18n } = useTranslation();
-  const itens = [
-    { chave: 'gjGtt', valor: a.gj_gtt_mediana_dias, anterior: b.gj_gtt_mediana_dias, n: a.gj_gtt_n },
+  const itens: { chave: string; valor: number | null; anterior: number | null; n: number; indicador?: IndicadorMeta }[] = [
+    { chave: 'gjGtt', valor: a.gj_gtt_mediana_dias, anterior: b.gj_gtt_mediana_dias, n: a.gj_gtt_n, indicador: 'gj_gtt_mediana_dias' },
     { chave: 'diagPerfil', valor: a.diag_perfil_mediana_dias, anterior: b.diag_perfil_mediana_dias, n: a.diag_perfil_n },
     { chave: 'diagInsulina', valor: a.diag_insulina_mediana_dias, anterior: b.diag_insulina_mediana_dias, n: a.diag_insulina_n },
   ];
@@ -94,6 +105,7 @@ function Tempos({ a, b }: { a: LinhaCuidadoBloco['tempos']; b: LinhaCuidadoBloco
             <div className="min-w-0">
               <p className="text-sm font-medium text-[#1E293B]">{t(`gestao.linhaCuidado.${it.chave}`)}</p>
               <p className="text-xs text-muted-foreground">{t(`gestao.linhaCuidado.${it.chave}Desc`)}</p>
+              {it.indicador && selo(it.indicador)}
             </div>
             <div className="shrink-0 sm:text-right">
               <p className="font-heading text-xl font-bold text-[#1E293B]">
@@ -164,10 +176,16 @@ function PerfilGestantes({ a, b }: { a: LinhaCuidadoBloco['perfil_gestantes']; b
  * perda de seguimento, adesão ao perfil glicêmico, tempos e perfil das
  * gestantes — tudo no período, com comparação ao período anterior.
  */
-export default function LinhaDeCuidado({ data, loading, error, escopo = 'unidade' }: Props) {
+export default function LinhaDeCuidado({ data, loading, error, escopo = 'unidade', metas, notaMetas }: Props) {
   const { t, i18n } = useTranslation();
   const a = data?.atual;
   const b = data?.anterior;
+  // Selo da meta da rede (só nos indicadores com meta definida).
+  const selo: RenderSelo = (indicador) => {
+    if (!a || metas?.[indicador] == null) return null;
+    const r = avaliarIndicador(a, indicador, metas);
+    return <SeloMeta indicador={indicador} situacao={r.situacao} meta={r.meta} />;
+  };
 
   return (
     <section className="space-y-3" data-pdf-section="linha-cuidado">
@@ -182,6 +200,12 @@ export default function LinhaDeCuidado({ data, loading, error, escopo = 'unidade
               periodo: formatarPeriodoCurto(a.periodo),
             })}{' '}
             {t('gestao.linhaCuidado.comparacao', { periodo: formatarPeriodoCurto(b.periodo) })}
+          </p>
+        )}
+        {notaMetas && (
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-[#64748B]">
+            <Target className="h-3.5 w-3.5 shrink-0 text-[#9b87f5]" aria-hidden />
+            {notaMetas}
           </p>
         )}
       </div>
@@ -242,6 +266,7 @@ export default function LinhaDeCuidado({ data, loading, error, escopo = 'unidade
               anterior={b.funil.perda_seguimento_pct}
               unidade="pct"
               sentido="ruim_subir"
+              rodape={selo('perda_seguimento_pct')}
             />
             <LinhaDeCuidadoIndicador
               titulo={t('gestao.linhaCuidado.antes28')}
@@ -256,6 +281,7 @@ export default function LinhaDeCuidado({ data, loading, error, escopo = 'unidade
               anterior={b.tempos.diag_antes_28s_pct}
               unidade="pct"
               sentido="bom_subir"
+              rodape={selo('diag_antes_28s_pct')}
             />
           </div>
 
@@ -264,12 +290,12 @@ export default function LinhaDeCuidado({ data, loading, error, escopo = 'unidade
               <LinhaDeCuidadoFunil funil={a.funil} />
             </div>
             <div className="lg:col-span-2">
-              <Adesao a={a.adesao} b={b.adesao} criterios={a.criterios} />
+              <Adesao a={a.adesao} b={b.adesao} criterios={a.criterios} selo={selo} />
             </div>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <Tempos a={a.tempos} b={b.tempos} />
+            <Tempos a={a.tempos} b={b.tempos} selo={selo} />
             <PerfilGestantes a={a.perfil_gestantes} b={b.perfil_gestantes} />
           </div>
         </>
