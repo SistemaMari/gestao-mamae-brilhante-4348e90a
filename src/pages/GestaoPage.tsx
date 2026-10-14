@@ -161,6 +161,10 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
     }
   };
 
+  // Hook ANTES do early return abaixo (regras dos hooks): antes ficava depois,
+  // e o gestor sem unidade quebrava com "Rendered fewer hooks than expected".
+  const [exportando, setExportando] = useState(false);
+
   if (contextoCarregado && gestorSemUnidade) {
     return (
       <div className="flex min-h-full items-center justify-center px-6 py-12">
@@ -179,7 +183,6 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
     );
   }
 
-  const [exportando, setExportando] = useState(false);
   const podeExportar = !!operacao && !!perfil && !!gargalos && !!tendencia && !loadingBlocos;
 
   const handleExportar = async () => {
@@ -267,7 +270,8 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
 
         {perfil && <BlocoPerfilClinico data={perfil} loading={loadingBlocos} error={erroBlocos} />}
 
-        {gargalos && <BlocoGargalos data={gargalos} loading={loadingBlocos} error={erroBlocos} />}
+        {/* No drill-down do gestor geral (readonly) o link leva a /gestao/fichas, rota só do gestor → esconde. */}
+        {gargalos && <BlocoGargalos data={gargalos} loading={loadingBlocos} error={erroBlocos} hideVerPacientesLink={readonly} />}
 
         {tendencia && <BlocoTendencia data={tendencia} loading={loadingBlocos} error={erroBlocos} />}
 

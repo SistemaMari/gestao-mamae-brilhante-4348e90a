@@ -96,7 +96,10 @@ Deno.serve(async (req) => {
       especialidade,
       idioma: idioma_preferido,
       unidade_id: convite.unidade_id,
-      perfil_institucional: "profissional",
+      // 'institucional' é o perfil do profissional de unidade (CHECK de
+      // profissionais.perfil_institucional). 'profissional' não existe e fazia
+      // todo aceite de convite falhar.
+      perfil_institucional: "institucional",
       plano_id: planoInicial?.id,
       laudos_limite: planoInicial?.laudos_por_mes ?? 10,
       plano_status: "ativo",
@@ -104,6 +107,10 @@ Deno.serve(async (req) => {
 
     if (profError) {
       console.error("[aceitar-convite] profissional insert error:", profError);
+      // Desfaz a conta criada no passo 3: sem isso o convite ficava preso —
+      // nova tentativa respondia "email_existente" para uma conta sem perfil.
+      const { error: rollbackError } = await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
+      if (rollbackError) console.error("[aceitar-convite] rollback auth user error:", rollbackError);
       return json({ status: "erro", mensagem: "Erro ao criar perfil profissional." }, 500);
     }
 

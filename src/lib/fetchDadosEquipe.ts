@@ -37,15 +37,12 @@ export async function fetchDadosEquipe(unidadeId: string): Promise<DadosEquipe> 
     erroSobrecarga: false,
   };
 
-  // Equipe via view segura
-  const profRes = await supabase
-    .from('equipe_unidade_view' as any)
-    .select('id, nome, crm, especialidade, perfil_clinico, created_at')
-    .eq('unidade_id', unidadeId);
-  const profissionais = ((profRes.data ?? []) as unknown) as Array<{
+  // Equipe via RPC SECURITY DEFINER (mesma fonte da GestaoEquipePage).
+  const profRes = await supabase.rpc('get_profissionais_equipe', { p_unidade_id: unidadeId });
+  const profissionais = (((profRes.data ?? []) as unknown) as Array<{
     id: string; nome: string; crm: string | null; especialidade: string | null;
-    perfil_clinico: string | null; created_at: string;
-  }>;
+    perfil_clinico: string | null; created_at: string; acesso_revogado: boolean | null;
+  }>).filter(p => !p.acesso_revogado);
 
   out.profissionaisEquipe = profissionais.map(p => ({
     id: p.id, nome: p.nome, especialidade: p.especialidade, perfil_clinico: p.perfil_clinico,
