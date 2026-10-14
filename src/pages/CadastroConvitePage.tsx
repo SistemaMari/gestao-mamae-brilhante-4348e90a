@@ -121,7 +121,13 @@ export default function CadastroConvitePage() {
         },
       });
 
-      const data = res.data;
+      // Em resposta de erro (não 2xx) o corpo vem em error.context; sem ler ali
+      // o motivo se perdia e a tela só dizia "Erro ao criar conta.".
+      let data = res.data as { status?: string; mensagem?: string; detalhe?: string | null } | null;
+      if (!data) {
+        const ctx = (res.error as { context?: { json?: () => Promise<unknown> } } | null)?.context;
+        try { data = ctx?.json ? ((await ctx.json()) as typeof data) : null; } catch { data = null; }
+      }
 
       if (data?.status === 'sucesso') {
         toast.success(t('invite.accountCreated'));
@@ -130,8 +136,13 @@ export default function CadastroConvitePage() {
         // E-mail já tem conta no MARI. Fluxo de vinculação foi descontinuado:
         // cada e-mail = um único modelo (consultório OU institucional).
         setStatus('email_existente');
+      } else if (data?.status === 'senha_fraca') {
+        toast.error(t('auth.passwordBreached'));
       } else {
-        toast.error(data?.mensagem || t('invite.createError'));
+        const motivo = data?.mensagem
+          ? (data.detalhe ? `${data.mensagem} (${data.detalhe})` : data.mensagem)
+          : t('invite.createError');
+        toast.error(motivo);
       }
     } catch {
       toast.error(t('invite.createError'));
