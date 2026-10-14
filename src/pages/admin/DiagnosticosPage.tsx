@@ -971,7 +971,7 @@ export default function DiagnosticosPage() {
             colunas={[
               { key: "estado", label: t("patient.state") },
               { key: "gestantes", label: t("admin.diagnosticos.colGestantes"), numerica: true },
-              { key: "dmg", label: "DMG", numerica: true },
+              { key: "dmg", label: t("admin.diagnosticos.colDiagnosticos"), numerica: true },
               { key: "taxa_dmg", label: t("admin.diagnosticos.colDmgRate"), numerica: true, format: (v) => `${v}%` },
             ]}
             linhas={regionalFiltrado.por_estado as unknown as Array<Record<string, unknown>>}
@@ -983,7 +983,7 @@ export default function DiagnosticosPage() {
               { key: "cidade", label: t("patient.city") },
               { key: "estado", label: t("patient.state") },
               { key: "gestantes", label: t("admin.diagnosticos.colGestantes"), numerica: true },
-              { key: "dmg", label: "DMG", numerica: true },
+              { key: "dmg", label: t("admin.diagnosticos.colDiagnosticos"), numerica: true },
               { key: "taxa_dmg", label: t("admin.diagnosticos.colDmgRate"), numerica: true, format: (v) => `${v}%` },
             ]}
             linhas={
@@ -1006,7 +1006,7 @@ export default function DiagnosticosPage() {
               { key: "cidade", label: t("patient.city") },
               { key: "estado", label: t("patient.state") },
               { key: "gestantes", label: t("admin.diagnosticos.colGestantes"), numerica: true },
-              { key: "dmg", label: "DMG", numerica: true },
+              { key: "dmg", label: t("admin.diagnosticos.colDiagnosticos"), numerica: true },
               { key: "taxa_dmg", label: t("admin.diagnosticos.colDmgRate"), numerica: true, format: (v) => `${v}%` },
             ]}
             linhas={regionalFiltrado.por_unidade as unknown as Array<Record<string, unknown>>}
@@ -1018,7 +1018,7 @@ export default function DiagnosticosPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm" style={{ fontFamily: FONT_CORPO, color: "#475569" }}>
                   <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">{t("admin.diagnosticos.detailLocation")}</span>{r.cidade} / {r.estado}</div>
                   <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">{t("admin.diagnosticos.colGestantes")}</span>{r.gestantes}</div>
-                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">DMG</span>{r.dmg} ({r.taxa_dmg}%)</div>
+                  <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">{t("admin.diagnosticos.colDiagnosticos")}</span>{r.dmg} ({r.taxa_dmg}%)</div>
                   <div><span className="block text-xs uppercase tracking-wide text-[#7E69AB]">{t("admin.diagnosticos.detailNoDmg")}</span>{Math.max(0, r.gestantes - r.dmg)}</div>
                 </div>
             );
