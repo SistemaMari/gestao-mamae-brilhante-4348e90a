@@ -8,7 +8,7 @@
 // para regerar um período específico.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-import { agregarMetricas, gerarPdfRelatorio } from '../_shared/relatorioMensal.ts';
+import { agregarMetricas, gerarPdfRelatorioCompleto } from '../_shared/relatorioMensal.ts';
 import { papelDoToken } from '../_shared/papelDoToken.ts';
 
 const SYSTEM_USER_UUID = '00000000-0000-0000-0000-000000000001';
@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
 
         const ehVazia = metricas.total_gestantes === 0 && metricas.partos_registrados === 0;
 
-        const pdfBytes = await gerarPdfRelatorio({
+        const pdfBytes = await gerarPdfRelatorioCompleto(admin, {
           metricas, periodoInicio, periodoFim, rotuloMes,
         });
 
@@ -206,7 +206,7 @@ Deno.serve(async (req) => {
             admin, uni.id as string, uni.nome as string, periodoInicio, periodoFim,
           );
           const ehVazia = metricas.total_gestantes === 0 && metricas.partos_registrados === 0;
-          const pdfBytes = await gerarPdfRelatorio({ metricas, periodoInicio, periodoFim, rotuloMes });
+          const pdfBytes = await gerarPdfRelatorioCompleto(admin, { metricas, periodoInicio, periodoFim, rotuloMes });
 
           const fd = new FormData();
           fd.append('pdf_file', new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' }), `relatorio-${uni.id}.pdf`);

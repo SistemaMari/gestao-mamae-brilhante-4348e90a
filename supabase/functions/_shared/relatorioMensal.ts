@@ -3,7 +3,11 @@
 // geração para todas as unidades (ex.: carga da Rede de Demonstração, que
 // gera só as unidades dela). Comportamento idêntico ao que estava inline.
 
-import { PDFDocument, StandardFonts, rgb, type Color, type PDFFont, type PDFPage } from 'https://esm.sh/pdf-lib@1.17.1';
+import { gerarPdfRelatorio, textoPdf, type DadosExtrasRelatorio } from './relatorioMensalPdf.ts';
+
+// O desenho do PDF mora em relatorioMensalPdf.ts (mesmo visual do PDF do painel).
+export { gerarPdfRelatorio, textoPdf };
+export type { DadosExtrasRelatorio };
 
 // ============================================================
 // Agregação de métricas por unidade — schema 18A (21 chaves)
@@ -267,213 +271,52 @@ function proximoDia(iso: string): string {
 }
 
 // ============================================================
-// Geração de PDF programático com pdf-lib
+// PDF completo: métricas do mês + mês anterior + linha de cuidado/tendência/metas
 // ============================================================
-export async function gerarPdfRelatorio(params: {
-  metricas: MetricasUnidade;
-  periodoInicio: string;
-  periodoFim: string;
-  rotuloMes: string;
-}): Promise<Uint8Array> {
+
+/** Primeiro e último dia do mês-calendário anterior ao período. */
+export function mesAnterior(periodoInicio: string): { inicio: string; fim: string } {
+  const [a, m] = periodoInicio.split('-').map(Number);
+  const ini = new Date(Date.UTC(a, m - 2, 1));
+  const fim = new Date(Date.UTC(a, m - 1, 0));
+  return { inicio: ini.toISOString().slice(0, 10), fim: fim.toISOString().slice(0, 10) };
+}
+
+/** Linha de cuidado, 6 meses e metas da rede (migration 20261015200000). Null se ainda não existir. */
+export async function buscarExtrasRelatorio(
+  admin: any,
+  unidadeId: string,
+  periodoInicio: string,
+  periodoFim: string,
+): Promise<DadosExtrasRelatorio | null> {
+  const { data, error } = await admin.rpc('_relatorio_mensal_dados', {
+    p_unidade_id: unidadeId,
+    p_inicio: periodoInicio,
+    p_fim: periodoFim,
+  });
+  if (error) {
+    console.warn('[relatorioMensal] _relatorio_mensal_dados indisponível:', error.message);
+    return null;
+  }
+  return (data ?? null) as DadosExtrasRelatorio | null;
+}
+
+/**
+ * Gera o PDF do mês com a comparação com o mês anterior e os dados extras.
+ * Se algo extra falhar, o PDF sai mesmo assim (só sem aquela parte).
+ */
+export async function gerarPdfRelatorioCompleto(
+  admin: any,
+  params: { metricas: MetricasUnidade; periodoInicio: string; periodoFim: string; rotuloMes: string },
+): Promise<Uint8Array> {
   const { metricas, periodoInicio, periodoFim, rotuloMes } = params;
-
-  const pdf = await PDFDocument.create();
-  const page = pdf.addPage([595, 842]); // A4
-  const { width, height } = page.getSize();
-  const helv = await pdf.embedFont(StandardFonts.Helvetica);
-  const helvBold = await pdf.embedFont(StandardFonts.HelveticaBold);
-
-  // Cores semânticas (lilás/roxo da marca)
-  const cLilas = rgb(0.608, 0.529, 0.961);   // #9b87f5
-  const cRoxo = rgb(0.494, 0.412, 0.671);    // #7E69AB
-  const cTexto = rgb(0.15, 0.15, 0.18);
-  const cMuted = rgb(0.45, 0.45, 0.5);
-  const cBgCard = rgb(0.97, 0.97, 1);
-
-  let y = height - 50;
-
-  // Cabeçalho
-  page.drawRectangle({ x: 0, y: y - 10, width, height: 60, color: cLilas });
-  page.drawText('MARI', {
-    x: 40, y: y + 25, size: 18, font: helvBold, color: rgb(1, 1, 1),
-  });
-  page.drawText('Relatório Mensal de Gestão (gerado automaticamente)', {
-    x: 40, y: y + 5, size: 10, font: helv, color: rgb(1, 1, 1),
-  });
-
-  y -= 80;
-
-  // Subcabeçalho — unidade e período
-  page.drawText(textoPdf(metricas.unidade_nome), {
-    x: 40, y, size: 14, font: helvBold, color: cRoxo,
-  });
-  y -= 18;
-  page.drawText(textoPdf(`Período: ${formatarData(periodoInicio)} a ${formatarData(periodoFim)} (${rotuloMes})`), {
-    x: 40, y, size: 10, font: helv, color: cMuted,
-  });
-  y -= 30;
-
-  // KPIs gerais
-  y = desenharSecao(page, helvBold, 'Visão Geral', y, cRoxo);
-  const kpis: Array<[string, string | number]> = [
-    ['Acompanhadas no mês', metricas.total_gestantes],
-    ['Novas no mês', metricas.gestantes_novas],
-    ['Rastreadas (GJ/GTT)', metricas.gestantes_rastreadas],
-    ['Profissionais atenderam', metricas.profissionais_ativos],
-    ['Laudos no mês', metricas.total_laudos],
-  ];
-  y = desenharGridKpis(page, helv, helvBold, kpis, y, cBgCard, cTexto, cMuted);
-
-  // Diagnóstico por momento
-  y -= 20;
-  y = desenharSecao(page, helvBold, 'Diagnóstico de DMG', y, cRoxo);
-  const dxKpis: Array<[string, string | number]> = [
-    ['Diabetes confirmado', metricas.total_dmg_confirmado],
-    ['Taxa de DMG (%)', metricas.taxa_dmg_percent],
-    ['DMG via Retorno 1', metricas.dmg_retorno1],
-    ['DMG via GTT 75g', metricas.dmg_gtt],
-    ['Desses, overt', metricas.total_overt],
-  ];
-  y = desenharGridKpis(page, helv, helvBold, dxKpis, y, cBgCard, cTexto, cMuted);
-
-  // Controle glicêmico e desfechos. "Controle com insulina" saiu (o app não
-  // acompanha a gestante em insulina — a indicação encerra a MARI); no lugar
-  // entra "Encaminhadas p/ insulina". Via de parto, RN e intercorrências também
-  // saíram (só vinham da tabela partos, que não é mais gravada).
-  y -= 20;
-  y = desenharSecao(page, helvBold, 'Controle glicêmico e desfechos', y, cRoxo);
-  const ctrlKpis: Array<[string, string | number]> = [
-    ['Controle adequado (70%+)', metricas.controle_adequado_sem_insulina],
-    ['Encaminhadas p/ insulina', metricas.encaminhadas_insulina ?? 0],
-    ['Partos no mês', metricas.partos_registrados],
-  ];
-  y = desenharGridKpis(page, helv, helvBold, ctrlKpis, y, cBgCard, cTexto, cMuted);
-  y = desenharNotas(page, helv, [
-    'Controle adequado: gestantes cujo perfil glicêmico mais recente teve 70% ou mais das medidas dentro da meta.',
-    'Encaminhadas p/ insulina: gestantes que, no mês, tiveram indicação de insulina. Isso encerra o acompanhamento na MARI e elas seguem no serviço que cuida da insulina.',
-    'Partos no mês: gestantes cujo acompanhamento foi encerrado por parto no mês.',
-  ], y, width - 80, cMuted);
-
-  // Aviso se vazio
-  if (metricas.total_gestantes === 0 && metricas.partos_registrados === 0 && !metricas.encaminhadas_insulina) {
-    y -= 30;
-    page.drawRectangle({
-      x: 40, y: y - 5, width: width - 80, height: 30,
-      color: rgb(1, 0.97, 0.85),
-    });
-    page.drawText('Nenhum atendimento registrado para esta unidade no período.', {
-      x: 50, y: y + 8, size: 10, font: helvBold, color: rgb(0.6, 0.4, 0),
-    });
-    y -= 40;
-  }
-
-  // Rodapé
-  const rodapeY = 40;
-  page.drawLine({
-    start: { x: 40, y: rodapeY + 20 },
-    end: { x: width - 40, y: rodapeY + 20 },
-    thickness: 0.5,
-    color: cMuted,
-  });
-  page.drawText(textoPdf(`Gerado automaticamente pelo sistema em ${new Date().toLocaleString('pt-BR')}`), {
-    x: 40, y: rodapeY + 5, size: 8, font: helv, color: cMuted,
-  });
-  page.drawText('Origem: AUTOMÁTICO', {
-    x: width - 150, y: rodapeY + 5, size: 8, font: helvBold, color: cLilas,
-  });
-
-  return await pdf.save();
+  const ant = mesAnterior(periodoInicio);
+  const [anterior, extras] = await Promise.all([
+    agregarMetricas(admin, metricas.unidade_id, metricas.unidade_nome, ant.inicio, ant.fim).catch((e) => {
+      console.warn('[relatorioMensal] métricas do mês anterior:', e?.message ?? e);
+      return null;
+    }),
+    buscarExtrasRelatorio(admin, metricas.unidade_id, periodoInicio, periodoFim).catch(() => null),
+  ]);
+  return gerarPdfRelatorio({ metricas, periodoInicio, periodoFim, rotuloMes, anterior, extras });
 }
-
-// As fontes padrão do pdf-lib só codificam WinAnsi (Latin-1 + extras do
-// CP1252). Qualquer outro caractere (ex.: "≥") derruba a geração inteira com
-// "WinAnsi cannot encode" — troca pelos equivalentes ou por "?".
-const WINANSI_EXTRAS = new Set([...'€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ']);
-export function textoPdf(texto: string): string {
-  return Array.from(String(texto ?? ''))
-    .map((ch) => {
-      if (ch === '≥') return '>=';
-      if (ch === '≤') return '<=';
-      const c = ch.codePointAt(0) ?? 0;
-      return c <= 255 || WINANSI_EXTRAS.has(ch) ? ch : '?';
-    })
-    .join('');
-}
-
-function formatarData(iso: string): string {
-  const [a, m, d] = iso.split('-');
-  return `${d}/${m}/${a}`;
-}
-
-function desenharSecao(page: any, font: any, titulo: string, y: number, cor: any): number {
-  page.drawText(titulo, { x: 40, y, size: 12, font, color: cor });
-  page.drawLine({
-    start: { x: 40, y: y - 4 },
-    end: { x: Math.max(200, 40 + font.widthOfTextAtSize(titulo, 12)), y: y - 4 },
-    thickness: 1,
-    color: cor,
-  });
-  return y - 22;
-}
-
-/** Notas explicativas (texto corrido, quebrado na largura). Devolve o novo y. */
-function desenharNotas(page: PDFPage, font: PDFFont, notas: string[], yStart: number, largura: number, cor: Color): number {
-  const size = 7.5;
-  let y = yStart - 2;
-  for (const nota of notas) {
-    const palavras = textoPdf(nota).split(' ');
-    let linha = '';
-    for (const p of palavras) {
-      const tentativa = linha ? `${linha} ${p}` : p;
-      if (linha && font.widthOfTextAtSize(tentativa, size) > largura) {
-        page.drawText(linha, { x: 40, y, size, font, color: cor });
-        y -= size + 3;
-        linha = p;
-      } else {
-        linha = tentativa;
-      }
-    }
-    if (linha) {
-      page.drawText(linha, { x: 40, y, size, font, color: cor });
-      y -= size + 3;
-    }
-    y -= 2;
-  }
-  return y;
-}
-
-function desenharGridKpis(
-  page: any,
-  fontReg: any,
-  fontBold: any,
-  kpis: Array<[string, string | number]>,
-  yStart: number,
-  cBg: any,
-  cTexto: any,
-  cMuted: any,
-): number {
-  const cardW = 95; // 5 cards + 4 gaps = 515 = largura útil do A4 (595 - 2*40)
-  const cardH = 50;
-  const gap = 10;
-  const startX = 40;
-  let x = startX;
-  let y = yStart;
-
-  kpis.forEach((kpi, i) => {
-    if (i > 0 && i % 5 === 0) {
-      x = startX;
-      y -= cardH + gap;
-    }
-    page.drawRectangle({ x, y: y - cardH, width: cardW, height: cardH, color: cBg });
-    page.drawText(String(kpi[1]), {
-      x: x + 8, y: y - 22, size: 18, font: fontBold, color: cTexto,
-    });
-    page.drawText(textoPdf(kpi[0]), {
-      x: x + 8, y: y - 40, size: 7, font: fontReg, color: cMuted,
-    });
-    x += cardW + gap;
-  });
-
-  return y - cardH - gap;
-}
-
