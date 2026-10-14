@@ -2,7 +2,7 @@
 // Apaga TUDO o que a seed-rede-demo criou — e só isso.
 //
 // O que é apagado é localizado exclusivamente pelas chaves da especificação
-// (seed-rede-demo/rede.ts): o contratante pelo CNPJ fictício, as unidades
+// (_shared/redeDemo.ts): o contratante pelo CNPJ fictício, as unidades
 // ligadas a ele (e tudo o que pertence a essas unidades) e as contas pelos
 // e-mails @demo.mari.health listados lá. Nenhum outro dado é tocado.
 //
@@ -10,7 +10,7 @@
 // { "confirmar": true } — sem ele, só mostra o que SERIA apagado.
 
 import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
-import { CONTRATANTE, DOMINIO_EMAIL, todosEmailsDemo } from '../seed-rede-demo/rede.ts';
+import { CONTRATANTE, DOMINIO_EMAIL, todosEmailsDemo } from '../_shared/redeDemo.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
