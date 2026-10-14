@@ -120,6 +120,13 @@
       "when": 1792013272163,
       "tag": "0016_agendar_resumo_semanal",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792014262282,
+      "tag": "0017_gargalos_detalhado_gestor_geral",
+      "breakpoints": true
     }
   ]
 }
