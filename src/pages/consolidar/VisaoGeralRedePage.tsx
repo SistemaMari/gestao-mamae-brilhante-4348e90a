@@ -17,6 +17,9 @@ import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
 import EmptyStateSemSelecao from "@/components/gestor-geral/EmptyStateSemSelecao";
 import TooltipInfo from "@/components/gestor-geral/TooltipInfo";
 import { formatNum, formatPctOrDash } from "@/lib/formatters";
+import BotoesExportarRede from "@/components/gestor-geral/BotoesExportarRede";
+import { useMetaExportRede } from "@/hooks/useMetaExportRede";
+import { slugArquivo, type TabelaExport } from "@/lib/exportarTabelaRede";
 
 type SortKey = keyof VisaoGeralRow;
 type SortDir = "asc" | "desc";
@@ -61,7 +64,7 @@ export default function VisaoGeralRedePage() {
       tooltip: t("consolidar.visaoGeralRede.colTaxaDmgTooltip"),
     },
   ];
-  const { semSelecao } = useFiltrosGestorGeral();
+  const { semSelecao, filtros } = useFiltrosGestorGeral();
   const { data, isLoading, isError } = useVisaoGeralRede();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -87,6 +90,29 @@ export default function VisaoGeralRedePage() {
     return copy;
   }, [data, sortKey, sortDir, i18n.language]);
 
+  const metaExport = useMetaExportRede();
+  // Exporta exatamente o que está na tela: mesmas colunas, mesma ordenação,
+  // mesmo filtro de período/unidades.
+  const montarExport = (): TabelaExport<VisaoGeralRow> => ({
+    titulo: t("consolidar.exportar.tituloVisaoGeral"),
+    meta: metaExport,
+    aba: t("consolidar.exportar.tituloVisaoGeral"),
+    fileBase: `${slugArquivo(t("consolidar.exportar.arquivoVisaoGeral"))}_${filtros.dataInicio}_${filtros.dataFim}`,
+    linhas: rows,
+    colunas: [
+      { header: t("consolidar.visaoGeralRede.colUnidade"), valor: (r) => r.unidade_nome, width: 32 },
+      { header: t("consolidar.visaoGeralRede.colGestor"), valor: (r) => r.gestor_nome ?? t("consolidar.visaoGeralRede.semGestor"), width: 28 },
+      { header: t("consolidar.visaoGeralRede.colPacientesAtivos"), valor: (r) => r.pacientes_ativos },
+      { header: t("consolidar.visaoGeralRede.colLaudosEmitidos"), valor: (r) => r.laudos_emitidos },
+      { header: t("consolidar.visaoGeralRede.colPartos"), valor: (r) => r.partos_registrados },
+      { header: t("consolidar.visaoGeralRede.colProfissionais"), valor: (r) => r.profissionais_ativos },
+      {
+        header: `${t("consolidar.visaoGeralRede.colTaxaDmg")} (%)`,
+        valor: (r) => (r.taxa_dmg_positivo_pct == null ? null : Number(Number(r.taxa_dmg_positivo_pct).toFixed(1))),
+      },
+    ],
+  });
+
   const onSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else {
@@ -99,16 +125,19 @@ export default function VisaoGeralRedePage() {
 
   return (
     <section className="space-y-3">
-      <div>
-        <h2
-          className="text-2xl font-semibold text-[#1E293B]"
-          style={{ fontFamily: "Sora, sans-serif" }}
-        >
-          {t("consolidar.visaoGeralRede.title")}
-        </h2>
-        <p className="mt-1 text-sm text-[#64748B]">
-          {t("consolidar.visaoGeralRede.subtitle")}
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2
+            className="text-2xl font-semibold text-[#1E293B]"
+            style={{ fontFamily: "Sora, sans-serif" }}
+          >
+            {t("consolidar.visaoGeralRede.title")}
+          </h2>
+          <p className="mt-1 text-sm text-[#64748B]">
+            {t("consolidar.visaoGeralRede.subtitle")}
+          </p>
+        </div>
+        <BotoesExportarRede montar={montarExport} disabled={isLoading || isError || rows.length === 0} />
       </div>
 
       <div className="rounded-xl border border-border bg-white shadow-sm overflow-hidden">

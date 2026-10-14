@@ -2175,7 +2175,18 @@
     },
     "gargalos": {
       "loadError": "Falha ao carregar gargalos.",
-      "subtitle": "Onde há falha de rastreamento na sua rede hoje — não muda com o filtro de período."
+      "subtitle": "Onde há falha de rastreamento na sua rede hoje — não muda com o filtro de período.",
+      "detalheSubtitulo": "Gestantes da sua rede que estão neste gargalo hoje. Esta lista mostra a situação atual e não muda com o período escolhido no filtro.",
+      "colGestante": "Gestante",
+      "colUnidade": "Unidade",
+      "colIg": "IG hoje",
+      "colIgTip": "Idade gestacional hoje: semanas e dias de gestação, contados a partir da DUM (data da última menstruação) ou do ultrassom.",
+      "colProfissional": "Profissional",
+      "colUltimaConsulta": "Última consulta",
+      "semConsulta": "Nenhuma",
+      "detalheVazio": "Nenhuma gestante neste gargalo agora.",
+      "detalheErro": "Não foi possível carregar a lista de gestantes.",
+      "detalheLimite": "Mostrando as primeiras {{mostrando}} de {{total}} gestantes."
     },
     "tendencia": {
       "title": "Tendência da rede (12 meses)",
@@ -2201,6 +2212,25 @@
       "readOnlyBanner": "Visualização somente leitura",
       "readOnlyBannerUnit": "Visualização somente leitura — {{unidade}}",
       "voltarVisaoGeral": "Voltar à visão geral"
+    },
+    "exportar": {
+      "csv": "Exportar CSV",
+      "excel": "Exportar Excel",
+      "gerando": "Gerando...",
+      "gerado": "Planilha gerada.",
+      "erro": "Não foi possível gerar a planilha.",
+      "vazio": "Não há linhas para exportar.",
+      "metaPeriodo": "Período",
+      "metaUnidades": "Unidades",
+      "metaTodas": "Todas as unidades da rede ({{count}})",
+      "metaGestor": "Gestor(a) geral",
+      "metaGeradoEm": "Gerado em",
+      "metaObservacao": "Observação",
+      "tituloVisaoGeral": "Visão geral da rede",
+      "tituloRanking": "Ranking de unidades",
+      "arquivoVisaoGeral": "visao-geral-rede",
+      "arquivoRanking": "ranking-unidades",
+      "arquivoGargalo": "gargalo"
     },
     "visaoGeralRede": {
       "colUnidade": "Unidade",
@@ -2609,23 +2639,6 @@
       "presetCustom": "Personalizado",
       "intervaloLabel": "Intervalo",
       "selecione": "Selecione"
-    },
-    "painelHeader": {
-      "title": "Painel da Rede — MARI",
-      "greeting": "Olá, {{nome}}.",
-      "gestorFallback": "Gestor(a)",
-      "outrasContratantes_one": "+{{count}} outra",
-      "outrasContratantes_other": "+{{count}} outras",
-      "unidadesVinculadas_one": "{{count}} unidade vinculada",
-      "unidadesVinculadas_other": "{{count}} unidades vinculadas",
-      "atualizado": "Atualizado {{tempo}}",
-      "cooldownAguarde": "Aguarde {{min}}m antes de atualizar novamente",
-      "cooldownAtualizar": "Atualizar dados (cache de 1h)",
-      "atualizarDados": "Atualizar dados",
-      "exportarVisaoAtual": "Exportar visão atual",
-      "exportarCsv": "Exportar como CSV",
-      "exportarPdf": "Exportar como PDF",
-      "emBreve": "Em breve"
     },
     "appShell": {
       "navVisaoGeral": "Visão geral",

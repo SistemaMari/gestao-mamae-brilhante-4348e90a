@@ -3,7 +3,7 @@
 // geração para todas as unidades (ex.: carga da Rede de Demonstração, que
 // gera só as unidades dela). Comportamento idêntico ao que estava inline.
 
-import { PDFDocument, StandardFonts, rgb } from 'https://esm.sh/pdf-lib@1.17.1';
+import { PDFDocument, StandardFonts, rgb, type Color, type PDFFont, type PDFPage } from 'https://esm.sh/pdf-lib@1.17.1';
 
 // ============================================================
 // Agregação de métricas por unidade — schema 18A (21 chaves)
@@ -27,6 +27,9 @@ export interface MetricasUnidade {
   controle_com_insulina: number;
   controle_adequado_com_insulina: number;
   encaminhadas_especialista: number;
+  // Gestantes encerradas na MARI por indicação de insulina no mês (motivo
+  // 'insulinizacao'): a insulina encerra o acompanhamento da MARI.
+  encaminhadas_insulina: number;
   // Partos
   partos_registrados: number;
   partos_vaginal: number;
@@ -81,13 +84,19 @@ async function todasAsLinhas(montar: (de: number, ate: number) => any): Promise<
  *  - total_gestantes = gestantes ACOMPANHADAS no mês (com consulta no mês).
  *    Antes contava só as cadastradas no mês: quem chegou antes sumia do
  *    relatório dos meses seguintes. As cadastradas viram `gestantes_novas`.
- *  - taxa_dmg_percent = gestantes com DMG confirmado (1/6/6B) no mês ÷
- *    gestantes rastreadas no mês (Retorno 1 ou GTT). Overt (8) à parte.
+ *  - taxa_dmg_percent = gestantes com diabetes confirmado no mês — DMG (1/6/6B)
+ *    E overt (8), que conta DENTRO da taxa — ÷ gestantes rastreadas no mês
+ *    (Retorno 1 ou GTT). total_overt mostra quantos desses são overt.
  *  - partos = encerramentos por parto no mês (a tabela partos não é mais
  *    gravada; registros antigos dela seguem contando, sem duplicar).
+ *  - encaminhadas_insulina = encerramentos por insulinização no mês (a
+ *    indicação de insulina encerra a MARI; a gestante segue no serviço de
+ *    insulina).
  *  - profissionais_ativos = profissionais que atenderam no mês (sem gestores).
- * As chaves de "com insulina", via de parto, RN e intercorrências seguem no
- * JSON por compatibilidade (só vêm da tabela partos antiga), mas saíram do PDF.
+ * As chaves controle_com_insulina / controle_adequado_com_insulina, via de
+ * parto, RN e intercorrências seguem no JSON por compatibilidade (o
+ * consolidar-relatorios ainda as lê; só vêm da tabela partos antiga ou ficam
+ * 0), mas NÃO aparecem no PDF — não há dado para elas.
  */
 export async function agregarMetricas(
   admin: any,
@@ -176,17 +185,20 @@ export async function agregarMetricas(
     .gte('created_at', `${periodoInicio}T03:00:00Z`)
     .lt('created_at', `${proximoDia(periodoFim)}T03:00:00Z`);
 
-  // ---------- Partos do mês: encerramento por parto (+ tabela partos antiga) ----------
-  const { data: encerradasParto } = await admin
+  // ---------- Encerramentos do mês: parto (+ tabela partos antiga) e insulina ----------
+  const { data: encerradas } = await admin
     .from('pacientes')
     .select('id, data_encerramento, data_ultima_consulta, motivo_encerramento, status_ficha')
     .eq('unidade_id', unidadeId)
     .eq('is_rascunho', false)
-    .or('motivo_encerramento.eq.parto,status_ficha.eq.resultado_parto');
+    .or('motivo_encerramento.in.(parto,insulinizacao),status_ficha.eq.resultado_parto');
   const partoPorGestante = new Map<string, string>();
-  for (const p of (encerradasParto ?? []) as any[]) {
-    const d = (p.data_encerramento ?? p.data_ultima_consulta) as string | null;
-    if (d && d >= periodoInicio && d <= periodoFim) partoPorGestante.set(p.id, d);
+  let encaminhadas_insulina = 0;
+  for (const p of (encerradas ?? []) as any[]) {
+    const d = String(p.data_encerramento ?? p.data_ultima_consulta ?? '').slice(0, 10);
+    if (!d || d < periodoInicio || d > periodoFim) continue;
+    if (p.motivo_encerramento === 'insulinizacao') encaminhadas_insulina++;
+    else partoPorGestante.set(p.id, d);
   }
   const { data: partos } = await admin
     .from('partos')
@@ -233,6 +245,7 @@ export async function agregarMetricas(
     controle_com_insulina,
     controle_adequado_com_insulina,
     encaminhadas_especialista,
+    encaminhadas_insulina,
     partos_registrados,
     partos_vaginal,
     partos_cesarea,
@@ -323,19 +336,26 @@ export async function gerarPdfRelatorio(params: {
   ];
   y = desenharGridKpis(page, helv, helvBold, dxKpis, y, cBgCard, cTexto, cMuted);
 
-  // Controle glicêmico e desfechos. "Com insulina" saiu (o app não registra
-  // uso de insulina — a jornada encerra na indicação), assim como via de parto,
-  // RN e intercorrências (só vinham da tabela partos, que não é mais gravada).
+  // Controle glicêmico e desfechos. "Controle com insulina" saiu (o app não
+  // acompanha a gestante em insulina — a indicação encerra a MARI); no lugar
+  // entra "Encaminhadas p/ insulina". Via de parto, RN e intercorrências também
+  // saíram (só vinham da tabela partos, que não é mais gravada).
   y -= 20;
   y = desenharSecao(page, helvBold, 'Controle glicêmico e desfechos', y, cRoxo);
   const ctrlKpis: Array<[string, string | number]> = [
     ['Controle adequado (70%+)', metricas.controle_adequado_sem_insulina],
+    ['Encaminhadas p/ insulina', metricas.encaminhadas_insulina ?? 0],
     ['Partos no mês', metricas.partos_registrados],
   ];
   y = desenharGridKpis(page, helv, helvBold, ctrlKpis, y, cBgCard, cTexto, cMuted);
+  y = desenharNotas(page, helv, [
+    'Controle adequado: gestantes cujo perfil glicêmico mais recente teve 70% ou mais das medidas dentro da meta.',
+    'Encaminhadas p/ insulina: gestantes que, no mês, tiveram indicação de insulina. Isso encerra o acompanhamento na MARI e elas seguem no serviço que cuida da insulina.',
+    'Partos no mês: gestantes cujo acompanhamento foi encerrado por parto no mês.',
+  ], y, width - 80, cMuted);
 
   // Aviso se vazio
-  if (metricas.total_gestantes === 0 && metricas.partos_registrados === 0) {
+  if (metricas.total_gestantes === 0 && metricas.partos_registrados === 0 && !metricas.encaminhadas_insulina) {
     y -= 30;
     page.drawRectangle({
       x: 40, y: y - 5, width: width - 80, height: 30,
@@ -369,7 +389,7 @@ export async function gerarPdfRelatorio(params: {
 // CP1252). Qualquer outro caractere (ex.: "≥") derruba a geração inteira com
 // "WinAnsi cannot encode" — troca pelos equivalentes ou por "?".
 const WINANSI_EXTRAS = new Set([...'€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ']);
-function textoPdf(texto: string): string {
+export function textoPdf(texto: string): string {
   return Array.from(String(texto ?? ''))
     .map((ch) => {
       if (ch === '≥') return '>=';
@@ -389,11 +409,37 @@ function desenharSecao(page: any, font: any, titulo: string, y: number, cor: any
   page.drawText(titulo, { x: 40, y, size: 12, font, color: cor });
   page.drawLine({
     start: { x: 40, y: y - 4 },
-    end: { x: 200, y: y - 4 },
+    end: { x: Math.max(200, 40 + font.widthOfTextAtSize(titulo, 12)), y: y - 4 },
     thickness: 1,
     color: cor,
   });
   return y - 22;
+}
+
+/** Notas explicativas (texto corrido, quebrado na largura). Devolve o novo y. */
+function desenharNotas(page: PDFPage, font: PDFFont, notas: string[], yStart: number, largura: number, cor: Color): number {
+  const size = 7.5;
+  let y = yStart - 2;
+  for (const nota of notas) {
+    const palavras = textoPdf(nota).split(' ');
+    let linha = '';
+    for (const p of palavras) {
+      const tentativa = linha ? `${linha} ${p}` : p;
+      if (linha && font.widthOfTextAtSize(tentativa, size) > largura) {
+        page.drawText(linha, { x: 40, y, size, font, color: cor });
+        y -= size + 3;
+        linha = p;
+      } else {
+        linha = tentativa;
+      }
+    }
+    if (linha) {
+      page.drawText(linha, { x: 40, y, size, font, color: cor });
+      y -= size + 3;
+    }
+    y -= 2;
+  }
+  return y;
 }
 
 function desenharGridKpis(
@@ -406,7 +452,7 @@ function desenharGridKpis(
   cTexto: any,
   cMuted: any,
 ): number {
-  const cardW = 100;
+  const cardW = 95; // 5 cards + 4 gaps = 515 = largura útil do A4 (595 - 2*40)
   const cardH = 50;
   const gap = 10;
   const startX = 40;

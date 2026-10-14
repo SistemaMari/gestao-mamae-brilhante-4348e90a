@@ -2678,6 +2678,13 @@ export type Database = {
           unidade_nome: string
         }[]
       }
+      get_consolidador_gargalos_detalhado_gestor_geral: {
+        Args: {
+          p_limit?: number
+          p_unidades?: string[]
+        }
+        Returns: Json
+      }
       get_consolidador_gargalos_gestor_geral: {
         Args: {
           p_data_fim: string

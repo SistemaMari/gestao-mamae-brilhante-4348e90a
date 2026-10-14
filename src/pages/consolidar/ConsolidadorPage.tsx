@@ -8,6 +8,7 @@ import {
   YAxis,
   Legend,
 } from "recharts";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, FileText, Activity, Stethoscope, FlaskConical } from "lucide-react";
@@ -16,7 +17,9 @@ import {
   useConsolidadorPerfilClinico,
   useConsolidadorGargalos,
   useConsolidadorTendencia,
+  type ChaveGargaloGG,
 } from "@/hooks/usePainelDataGestorGeral";
+import GargalosDetalheDialog from "@/components/gestor-geral/GargalosDetalheDialog";
 import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
 import EmptyStateSemSelecao from "@/components/gestor-geral/EmptyStateSemSelecao";
 import TooltipInfo from "@/components/gestor-geral/TooltipInfo";
@@ -184,7 +187,10 @@ function BlocoPerfilClinicoConsolidado() {
 function BlocoGargalosConsolidado() {
   const { t } = useTranslation();
   const { data, isLoading, isError } = useConsolidadorGargalos();
-  // Adapt para shape do BlocoGargalos da unidade (paciente_ids vazios — sem drill-down).
+  // Gargalo aberto no drill-down (lista nominal via RPC própria do gestor geral).
+  const [aberto, setAberto] = useState<ChaveGargaloGG | null>(null);
+  // Adapt para shape do BlocoGargalos da unidade (paciente_ids vazios: a lista
+  // vem de get_consolidador_gargalos_detalhado_gestor_geral, no diálogo).
   const adaptado = data
     ? {
         sem_gj_primeira_consulta: { count: data.sem_gj_primeira_consulta.count, paciente_ids: [] },
@@ -193,13 +199,20 @@ function BlocoGargalosConsolidado() {
       }
     : null;
   return (
-    <BlocoGargalos
-      data={adaptado ?? { sem_gj_primeira_consulta: { count: 0, paciente_ids: [] }, atrasadas_gtt: { count: 0, paciente_ids: [] }, confirmadas_sem_retorno: { count: 0, paciente_ids: [] } }}
-      loading={isLoading}
-      error={isError ? t('consolidar.gargalos.loadError') : null}
-      hideVerPacientesLink
-      subtitle={t('consolidar.gargalos.subtitle')}
-    />
+    <>
+      <BlocoGargalos
+        data={adaptado ?? { sem_gj_primeira_consulta: { count: 0, paciente_ids: [] }, atrasadas_gtt: { count: 0, paciente_ids: [] }, confirmadas_sem_retorno: { count: 0, paciente_ids: [] } }}
+        loading={isLoading}
+        error={isError ? t('consolidar.gargalos.loadError') : null}
+        subtitle={t('consolidar.gargalos.subtitle')}
+        onVerGestantes={setAberto}
+      />
+      <GargalosDetalheDialog
+        chave={aberto}
+        total={aberto && data ? data[aberto].count : 0}
+        onClose={() => setAberto(null)}
+      />
+    </>
   );
 }
 
