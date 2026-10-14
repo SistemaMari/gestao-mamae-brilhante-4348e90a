@@ -2787,6 +2787,10 @@ export type Database = {
         }
         Returns: number
       }
+      paciente_em_acompanhamento: {
+        Args: { p_motivo_encerramento: string; p_status_ficha: string }
+        Returns: boolean
+      }
       pode_criar_ficha: {
         Args: { p_profissional_id: string }
         Returns: boolean
