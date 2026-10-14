@@ -64,6 +64,13 @@
       "when": 1791988475317,
       "tag": "0008_gestor_fora_da_equipe_clinica",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791995934729,
+      "tag": "0009_pin_search_path_gargalos_detalhado",
+      "breakpoints": true
     }
   ]
 }
