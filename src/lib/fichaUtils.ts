@@ -93,6 +93,29 @@ export function getStatusPacienteChip(p: {
   return STATUS_CONFIG[p.status_ficha] ?? STATUS_CONFIG.aguardando_gj;
 }
 
+/**
+ * Chave da TAG efetiva (a mesma que `getStatusPacienteChip` exibe), para contar
+ * e filtrar listas sem divergir da tag de cada linha: encerramento por motivo →
+ * `enc_<motivo>`; legados `resultado_parto` → `enc_parto` e
+ * `encaminhada_endocrino` → `enc_insulinizacao`; senão o próprio `status_ficha`.
+ */
+export function getChaveStatusPaciente(p: {
+  status_ficha: string;
+  motivo_encerramento?: MotivoEncerramento | null;
+}): string {
+  const motivo = resolverMotivoEfetivo(p);
+  if (motivo) return `enc_${motivo}`;
+  if (p.status_ficha === 'resultado_parto') return 'enc_parto';
+  if (p.status_ficha === 'encaminhada_endocrino') return 'enc_insulinizacao';
+  return STATUS_CONFIG[p.status_ficha] ? p.status_ficha : 'aguardando_gj';
+}
+
+/** Tag (rótulo/cor) de uma chave de `getChaveStatusPaciente`. */
+export function getChipPorChave(chave: string): { label: string; color: string; meaning: string } | undefined {
+  if (chave.startsWith('enc_')) return ENCERRAMENTO_CHIP[chave.slice(4) as MotivoEncerramento];
+  return STATUS_CONFIG[chave];
+}
+
 /** Status_ficha terminais (fora os encerramentos por motivo) — DMG afastado e
  *  encaminhamento ao endócrino também tiram a paciente do acompanhamento ativo. */
 const STATUS_TERMINAIS = ['resultado_parto', 'dmg_afastado', 'encaminhada_endocrino'];
