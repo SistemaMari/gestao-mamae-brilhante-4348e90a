@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     // 1. Auth check
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return json({ status: "erro", mensagem: "Não autenticado." }, 401);
+      return json({ status: "erro", mensagem: "Sessão não encontrada. Saia e entre de novo na MARI." }, 401);
     }
 
     const supabaseUser = createClient(
@@ -42,7 +42,12 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userErr } = await supabaseUser.auth.getUser();
     if (userErr || !userData?.user?.id) {
-      return json({ status: "erro", mensagem: "Não autenticado." }, 401);
+      // Token vencido ou sessão encerrada (ex.: senha trocada em outro lugar).
+      return json({
+        status: "erro",
+        mensagem: "Sua sessão expirou. Saia e entre de novo na MARI.",
+        detalhe: userErr?.message ?? null,
+      }, 401);
     }
     const callerUserId = userData.user.id;
 
