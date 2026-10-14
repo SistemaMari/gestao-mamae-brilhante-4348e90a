@@ -340,16 +340,17 @@ export default function FichasUnidadePage() {
       </div>
 
       {/* Header de KPIs operacionais */}
-      <div className="mb-4 grid grid-cols-2 divide-x divide-border rounded-xl border border-border bg-card p-5 sm:grid-cols-4">
+      {/* KPIs no mesmo card de número do restante do painel */}
+      <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { label: t('gestao.fichasUnidade.kpiTotal'), valor: kpiTotal },
           { label: t('gestao.fichasUnidade.kpiAguardandoGj'), valor: kpiAguardandoGj },
           { label: t('gestao.fichasUnidade.kpiAcompanhamento'), valor: kpiAcompanhamento },
           { label: t('gestao.fichasUnidade.kpiConcluidas'), valor: kpiEncerradas },
-        ].map((kpi, i) => (
-          <div key={kpi.label} className={`flex flex-col px-4 ${i === 0 ? 'sm:pl-0' : ''}`}>
-            <span className="font-heading text-3xl font-bold text-foreground">{kpi.valor}</span>
-            <span className="mt-1 text-xs text-muted-foreground">{kpi.label}</span>
+        ].map((kpi) => (
+          <div key={kpi.label} className="flex flex-col rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+            <span className="font-heading text-[32px] font-bold leading-none text-[#1E293B]">{kpi.valor}</span>
+            <span className="mt-2 text-sm text-[#64748B]">{kpi.label}</span>
           </div>
         ))}
       </div>
@@ -361,7 +362,7 @@ export default function FichasUnidadePage() {
           onClick={() => statusFiltro !== null && setStatusFiltro(null)}
           className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm whitespace-nowrap transition ${
             statusFiltro === null
-              ? 'bg-[#EDE7F6] border-[#7C4DBA] text-[#5B3A8C] font-medium'
+              ? 'bg-[#E8E0FF] border-[#7E69AB] text-[#7E69AB] font-medium'
               : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] cursor-pointer'
           }`}
         >
@@ -380,7 +381,7 @@ export default function FichasUnidadePage() {
               onClick={() => !ativo && setStatusFiltro(key)}
               className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-sm whitespace-nowrap transition ${
                 ativo
-                  ? 'bg-[#EDE7F6] border-[#7C4DBA] text-[#5B3A8C] font-medium'
+                  ? 'bg-[#E8E0FF] border-[#7E69AB] text-[#7E69AB] font-medium'
                   : 'bg-white border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] cursor-pointer'
               }`}
             >
@@ -456,13 +457,13 @@ export default function FichasUnidadePage() {
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#5B3A8E] hover:bg-[#5B3A8E]">
-              <TableHead className="text-white py-4 pl-6 pr-8">{t('gestao.fichasUnidade.colPaciente')}</TableHead>
-              <TableHead className="text-white py-4 px-8">{t('gestao.fichasUnidade.colIg')}</TableHead>
-              <TableHead className="text-white py-4 px-8">{t('common.status')}</TableHead>
-              <TableHead className="text-white py-4 px-8">{t('gestao.fichasUnidade.colProfissional')}</TableHead>
-              <TableHead className="text-white py-4 px-8">{t('gestao.fichasUnidade.colUltimaConsulta')}</TableHead>
-              <TableHead className="text-white py-4 px-8 pr-6">{t('gestao.fichasUnidade.colProximaConsulta')}</TableHead>
+            <TableRow className="bg-[#E8E0FF] hover:bg-[#E8E0FF]">
+              <TableHead style={{ fontFamily: 'Sora, sans-serif' }} className="text-[#1E293B] font-semibold py-4 pl-6 pr-8">{t('gestao.fichasUnidade.colPaciente')}</TableHead>
+              <TableHead style={{ fontFamily: 'Sora, sans-serif' }} className="text-[#1E293B] font-semibold py-4 px-8">{t('gestao.fichasUnidade.colIg')}</TableHead>
+              <TableHead style={{ fontFamily: 'Sora, sans-serif' }} className="text-[#1E293B] font-semibold py-4 px-8">{t('common.status')}</TableHead>
+              <TableHead style={{ fontFamily: 'Sora, sans-serif' }} className="text-[#1E293B] font-semibold py-4 px-8">{t('gestao.fichasUnidade.colProfissional')}</TableHead>
+              <TableHead style={{ fontFamily: 'Sora, sans-serif' }} className="text-[#1E293B] font-semibold py-4 px-8">{t('gestao.fichasUnidade.colUltimaConsulta')}</TableHead>
+              <TableHead style={{ fontFamily: 'Sora, sans-serif' }} className="text-[#1E293B] font-semibold py-4 px-8 pr-6">{t('gestao.fichasUnidade.colProximaConsulta')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -502,7 +503,7 @@ export default function FichasUnidadePage() {
                 return (
                   <TableRow
                     key={f.id}
-                    className={`cursor-pointer ${idx % 2 === 1 ? 'bg-[#F5F3FA]' : ''}`}
+                    className={`cursor-pointer ${idx % 2 === 1 ? 'bg-[#F8FAFC]' : ''}`}
                     onClick={() => navigate(`${basePath}/fichas/${f.id}`)}
                   >
                     <TableCell className="font-medium">{f.nome}</TableCell>

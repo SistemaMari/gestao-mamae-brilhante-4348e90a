@@ -19,18 +19,18 @@ interface CardProps {
 
 function Card({ title, tooltip, value, subtitle, Icon }: CardProps) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-1.5">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
             <CardInfoTooltip text={tooltip} />
           </div>
-          <p className="mt-1 font-heading text-2xl font-bold text-foreground">{value}</p>
+          <p className="mt-1 font-heading text-[32px] font-bold leading-none text-[#1E293B]">{value}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-          <Icon className="h-5 w-5 text-primary" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F5F0FF]">
+          <Icon className="h-5 w-5 text-[#9b87f5]" />
         </div>
       </div>
     </div>

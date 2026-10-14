@@ -2228,6 +2228,7 @@
       "carregando": "Cargando informes…",
       "erroCarregar": "No se pudieron cargar los informes.",
       "vazio": "Aún no hay informes generados para esta unidad.",
+      "vazioTitulo": "Aún no hay informes",
       "colMes": "Mes",
       "colOrigem": "Origen",
       "colGeradoEm": "Generado el",
@@ -4274,5 +4275,11 @@
     "usedOfLimit": "{{usados}} de {{limite}} gestantes registradas en este plan.",
     "upgradePlan": "Mejorar plan",
     "viewPlans": "Ver planes"
+  },
+  "shell": {
+    "saudacaoTitulo": "Hola, {{nome}} ✨",
+    "saudacaoSubtitulo": "{{periodo}}, {{texto}}",
+    "panoramaUnidade": "este es el panorama de su unidad.",
+    "panoramaRede": "este es el panorama de su red."
   }
 }

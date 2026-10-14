@@ -16,7 +16,7 @@ export default function CardResumoEquipe({
   titulo, valor, sublabel, tooltip, icon: Icon, loading, erro,
 }: Props) {
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
@@ -37,8 +37,8 @@ export default function CardResumoEquipe({
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground">{sublabel}</p>
         </div>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-          <Icon className="h-5 w-5 text-primary" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F5F0FF]">
+          <Icon className="h-5 w-5 text-[#9b87f5]" />
         </div>
       </div>
     </div>

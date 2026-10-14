@@ -242,7 +242,7 @@ export default function ComparadorPage() {
   return (
     <section className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
+        <h1 className="text-2xl font-semibold text-[#1E293B]" style={{ fontFamily: "Sora, sans-serif" }}>
           {t("consolidar.comparador.title")}
         </h1>
         <p className="mt-1 text-sm text-[#64748B]">

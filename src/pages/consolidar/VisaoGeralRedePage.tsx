@@ -100,12 +100,12 @@ export default function VisaoGeralRedePage() {
   return (
     <section className="space-y-3">
       <div>
-        <h1
-          className="text-xl font-semibold text-[#1E293B]"
+        <h2
+          className="text-2xl font-semibold text-[#1E293B]"
           style={{ fontFamily: "Sora, sans-serif" }}
         >
           {t("consolidar.visaoGeralRede.title")}
-        </h1>
+        </h2>
         <p className="mt-1 text-sm text-[#64748B]">
           {t("consolidar.visaoGeralRede.subtitle")}
         </p>
@@ -127,7 +127,7 @@ export default function VisaoGeralRedePage() {
         ) : (
           <Table>
             <TableHeader>
-              <TableRow className="bg-[#F8FAFC]">
+              <TableRow className="bg-[#E8E0FF] hover:bg-[#E8E0FF] [&>th]:font-semibold [&>th]:text-[#1E293B]">
                 {COLS.map((c) => (
                   <TableHead
                     key={c.key}

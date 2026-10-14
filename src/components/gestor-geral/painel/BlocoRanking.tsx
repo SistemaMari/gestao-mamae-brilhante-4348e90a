@@ -165,7 +165,7 @@ export default function BlocoRanking({ data, isLoading, isError, onRetry }: Prop
       ) : (
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#F8FAFC]">
+            <TableRow className="bg-[#E8E0FF] hover:bg-[#E8E0FF] [&>th]:font-semibold [&>th]:text-[#1E293B]">
               <Header k="unidade_nome" label={t('gestorGeral.blocoRanking.colUnidade')} />
               <Header k="pacientes_ativos" label={t('gestorGeral.blocoRanking.colPacientes')} tooltip={t('gestorGeral.blocoRanking.tipPacientes')} />
               <Header k="laudos_emitidos" label={t('gestorGeral.blocoRanking.colLaudos')} tooltip={t('gestorGeral.blocoRanking.tipLaudos')} />

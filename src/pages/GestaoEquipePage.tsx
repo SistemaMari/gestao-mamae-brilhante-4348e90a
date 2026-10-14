@@ -512,21 +512,21 @@ export default function GestaoEquipePage() {
             </Button>
           </div>
         ) : (
-          <div className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>{t('gestaoEquipe.teamTable.colNameEmail')}</TableHead>
-                  <TableHead>{t('gestaoEquipe.teamTable.colCrm')}</TableHead>
-                  <TableHead>{t('gestaoEquipe.teamTable.colSpecialty')}</TableHead>
-                  <TableHead>{t('common.status')}</TableHead>
-                  <TableHead>{t('gestaoEquipe.teamTable.colJoinDate')}</TableHead>
-                  <TableHead className="text-right">{t('common.actions')}</TableHead>
+                <TableRow className="bg-[#E8E0FF] hover:bg-[#E8E0FF]">
+                  <TableHead className="font-semibold text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>{t('gestaoEquipe.teamTable.colNameEmail')}</TableHead>
+                  <TableHead className="font-semibold text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>{t('gestaoEquipe.teamTable.colCrm')}</TableHead>
+                  <TableHead className="font-semibold text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>{t('gestaoEquipe.teamTable.colSpecialty')}</TableHead>
+                  <TableHead className="font-semibold text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>{t('common.status')}</TableHead>
+                  <TableHead className="font-semibold text-[#1E293B]" style={{ fontFamily: 'Sora, sans-serif' }}>{t('gestaoEquipe.teamTable.colJoinDate')}</TableHead>
+                  <TableHead className="font-semibold text-[#1E293B] text-right" style={{ fontFamily: 'Sora, sans-serif' }}>{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {membros.map((m) => (
-                  <TableRow key={m.id}>
+                {membros.map((m, idx) => (
+                  <TableRow key={m.id} className={idx % 2 === 1 ? 'bg-[#F8FAFC]' : ''}>
                     <TableCell className="font-medium">{m.nome}</TableCell>
                     <TableCell>{m.crm || '—'}</TableCell>
                     <TableCell>{m.especialidade || '—'}</TableCell>
@@ -616,9 +616,9 @@ export default function GestaoEquipePage() {
 
             <div
               className="flex items-start gap-2 rounded-md p-3 text-xs leading-relaxed"
-              style={{ backgroundColor: '#F5F3FA', color: '#4B3F66' }}
+              style={{ backgroundColor: '#F5F0FF', color: '#475569' }}
             >
-              <Info className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#7C4DBA' }} />
+              <Info className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#7E69AB' }} />
               <span>
                 {t('gestaoEquipe.inviteModal.uniqueEmailInfo')}
               </span>

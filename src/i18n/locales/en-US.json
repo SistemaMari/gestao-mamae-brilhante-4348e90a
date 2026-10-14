@@ -2228,6 +2228,7 @@
       "carregando": "Loading reports…",
       "erroCarregar": "Could not load the reports.",
       "vazio": "No reports generated yet for this unit.",
+      "vazioTitulo": "No reports yet",
       "colMes": "Month",
       "colOrigem": "Source",
       "colGeradoEm": "Generated on",
@@ -4274,5 +4275,11 @@
     "usedOfLimit": "{{usados}} of {{limite}} patients registered in this plan.",
     "upgradePlan": "Upgrade plan",
     "viewPlans": "View plans"
+  },
+  "shell": {
+    "saudacaoTitulo": "Hi, {{nome}} ✨",
+    "saudacaoSubtitulo": "{{periodo}}, {{texto}}",
+    "panoramaUnidade": "here is the overview of your unit.",
+    "panoramaRede": "here is the overview of your network."
   }
 }
