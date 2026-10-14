@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileText, AlertTriangle, Info, Loader2 } from 'lucide-react';
+import { FileText, AlertTriangle, Info, Lightbulb, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import {
   getPreviewPacienteById,
   updatePreviewPaciente,
 } from '@/lib/previewPatients';
+import { arredondarDoseInteira, doseQuebrada } from '@/lib/doseInteira';
 
 interface FichaACResultCardProps {
   percentual: number;
@@ -228,6 +229,19 @@ export default function FichaACResultCard({
             {dManha != null && dNoite != null && (
               <p className="text-sm text-[#7E69AB]">
                 {t('fichaACResult.doseSplit', { morning: dManha, night: dNoite })}
+              </p>
+            )}
+            {/* Sugestão de dose inteira — mantém o valor exato acima e propõe o
+                ajuste para facilitar a aplicação (x,5 arredonda para cima). */}
+            {dManha != null && dNoite != null && (doseQuebrada(dManha) || doseQuebrada(dNoite)) && (
+              <p className="flex items-start gap-1.5 rounded-lg bg-white/70 px-3 py-2 text-sm text-[#7E69AB]">
+                <Lightbulb className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span>
+                  {t('fichaACResult.doseRoundSuggestion', {
+                    morning: arredondarDoseInteira(dManha),
+                    night: arredondarDoseInteira(dNoite),
+                  })}
+                </span>
               </p>
             )}
             <p className="text-xs text-[#7E69AB]/80">
