@@ -14,6 +14,9 @@ import BlocoPerfilClinico from '@/components/gestao/BlocoPerfilClinico';
 import BlocoGargalos from '@/components/gestao/BlocoGargalos';
 import BlocoTendencia from '@/components/gestao/BlocoTendencia';
 import SecaoEquipePdf from '@/components/gestao/SecaoEquipePdf';
+import LinhaDeCuidado from '@/components/gestao/LinhaDeCuidado';
+import type { LinhaCuidadoResposta } from './linhaCuidado';
+import type { MetasRede } from './metas';
 import type {
   PainelOperacao,
   PainelPerfilClinico,
@@ -42,12 +45,21 @@ export interface ExportarPainelInput {
   perfil: PainelPerfilClinico;
   gargalos: PainelGargalos;
   tendencia: PainelTendencia;
+  /** Seção "Linha de cuidado" (opcional: sem dados, o PDF sai sem ela). */
+  linhaCuidado?: LinhaCuidadoResposta | null;
+  metas?: MetasRede | null;
+  notaMetas?: string | null;
+  /** Período escolhido no filtro do painel (datas AAAA-MM-DD). */
+  periodo?: { inicio: string; fim: string } | null;
 }
 
 const A4 = { w: 595.28, h: 841.89 }; // pt
 const MARGIN = 32;
 const FOOTER_H = 24;
 const OFFSCREEN_WIDTH_PX = 1024;
+// JPEG em vez de PNG: o PNG sem compressão deixava o PDF com dezenas de MB.
+// Fundo é sempre branco (html2canvas), então não há transparência a perder.
+const JPEG_QUALIDADE = 0.92;
 
 async function carregarFontes() {
   try {
@@ -77,11 +89,19 @@ function formatDate(s: string | null) {
   return d.toLocaleDateString('pt-BR');
 }
 
+function formatPeriodo(p: { inicio: string; fim: string } | null | undefined): string | null {
+  if (!p?.inicio || !p?.fim) return null;
+  const br = (s: string) => s.split('-').reverse().join('/');
+  return `${br(p.inicio)} a ${br(p.fim)}`;
+}
+
 function buildResumoElement(
   unidadeNome: string,
   frases: string[],
   geradoEm: Date,
+  periodo?: { inicio: string; fim: string } | null,
 ): HTMLDivElement {
+  const periodoTxt = formatPeriodo(periodo);
   const el = document.createElement('div');
   el.style.cssText = `width: 794px; padding: 32px; background: #ffffff; font-family: 'Plus Jakarta Sans', system-ui, Arial, sans-serif; color: #1E293B;`;
   el.innerHTML = `
@@ -92,6 +112,7 @@ function buildResumoElement(
       <div style="margin-top: 6px; font-size: 13px; color: #64748B;">
         Relatório gerado em ${geradoEm.toLocaleDateString('pt-BR')} às ${geradoEm.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
       </div>
+      ${periodoTxt ? `<div style="margin-top: 4px; font-size: 13px; color: #64748B;">Período analisado: ${escapeHtml(periodoTxt)} (gargalos e gestantes ativas: situação no dia do relatório)</div>` : ''}
     </div>
     <div style="background: #F8FAFC; border-left: 4px solid #7E69AB; padding: 18px 22px; border-radius: 8px;">
       <div style="font-family: 'Sora', system-ui, sans-serif; font-weight: 600; font-size: 15px; color: #7E69AB; margin-bottom: 12px;">
@@ -195,7 +216,7 @@ function addCanvasPaginated(
 
   if (imgFullH <= usableH) {
     if (!opts.firstPage) pdf.addPage();
-    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', MARGIN, MARGIN, usableW, imgFullH);
+    pdf.addImage(canvas.toDataURL('image/jpeg', JPEG_QUALIDADE), 'JPEG', MARGIN, MARGIN, usableW, imgFullH);
     return;
   }
 
@@ -210,7 +231,7 @@ function addCanvasPaginated(
     const ctx = slice.getContext('2d')!;
     ctx.drawImage(canvas, 0, yPx, canvas.width, h, 0, 0, canvas.width, h);
     if (!(firstSlice && opts.firstPage)) pdf.addPage();
-    pdf.addImage(slice.toDataURL('image/png'), 'PNG', MARGIN, MARGIN, usableW, h / ratio);
+    pdf.addImage(slice.toDataURL('image/jpeg', JPEG_QUALIDADE), 'JPEG', MARGIN, MARGIN, usableW, h / ratio);
     yPx += h;
     firstSlice = false;
   }
@@ -272,7 +293,7 @@ export async function exportarPainelPdf(
     document.body.appendChild(off);
 
     // 1) Resumo (HTML puro)
-    const resumoEl = buildResumoElement(input.unidadeNome, frases, geradoEm);
+    const resumoEl = buildResumoElement(input.unidadeNome, frases, geradoEm, input.periodo);
     off.appendChild(resumoEl);
 
     // 2) React root para os blocos do painel + equipe (com PdfModeContext = true)
@@ -291,6 +312,15 @@ export async function exportarPainelPdf(
           createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: 24 } },
             createElement(BlocoOperacao, { data: input.operacao }),
             createElement(BlocoPerfilClinico, { data: input.perfil }),
+            input.linhaCuidado
+              ? createElement(LinhaDeCuidado, {
+                  data: input.linhaCuidado,
+                  loading: false,
+                  error: null,
+                  metas: input.metas ?? null,
+                  notaMetas: input.notaMetas ?? null,
+                })
+              : null,
             createElement(BlocoGargalos, { data: input.gargalos, hideVerPacientesLink: true }),
             createElement(BlocoTendencia, { data: input.tendencia, showDataLabels: true }),
             dadosEquipe ? createElement(SecaoEquipePdf, { dados: dadosEquipe }) : null,
@@ -315,7 +345,7 @@ export async function exportarPainelPdf(
     addCanvasPaginated(pdf, cResumo, { firstPage: true });
 
     // Seções renderizadas pelo React (cada uma vira uma página)
-    const sections = ['operacao', 'perfil', 'gargalos', 'tendencia', 'equipe'];
+    const sections = ['operacao', 'perfil', 'linha-cuidado', 'gargalos', 'tendencia', 'equipe'];
     for (const sec of sections) {
       const node = reactHost.querySelector(`[data-pdf-section="${sec}"]`) as HTMLElement | null;
       if (!node) {
