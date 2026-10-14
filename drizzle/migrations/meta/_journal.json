@@ -50,6 +50,13 @@
       "when": 1791987014741,
       "tag": "0006_sync_gestor_geral_unidades",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791987962630,
+      "tag": "0007_paineis_gestantes_em_acompanhamento",
+      "breakpoints": true
     }
   ]
 }
