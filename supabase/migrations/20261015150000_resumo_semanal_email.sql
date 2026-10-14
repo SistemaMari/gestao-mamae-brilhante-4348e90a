@@ -24,36 +24,9 @@
 --
 -- ⚠️ Aplicar via chat do Lovable OU à mão no SQL Editor do Supabase.
 --
--- ⚠️ AGENDAMENTO (passo manual, DEPOIS de implantar a edge function
---    enviar-resumo-semanal e de testar com {"dry_run": true}): rodar no SQL
---    Editor do Supabase. Segunda 10:00 UTC = 07:00 em Brasília. Usa a mesma
---    chave guardada no vault pela fila de e-mails (email_queue_service_role_key).
---    Se o job do relatório mensal usar outro cabeçalho de autorização, copie o
---    dele:  SELECT command FROM cron.job WHERE jobname ILIKE '%relatorio%';
---
---    SELECT cron.unschedule('enviar-resumo-semanal')
---    WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'enviar-resumo-semanal');
---
---    SELECT cron.schedule(
---      'enviar-resumo-semanal',
---      '0 10 * * 1',
---      $cron$
---      SELECT net.http_post(
---        url := 'https://ywldvotfgbxufcyjdvnq.supabase.co/functions/v1/enviar-resumo-semanal',
---        headers := jsonb_build_object(
---          'Content-Type', 'application/json',
---          'Authorization', 'Bearer ' || (
---            SELECT decrypted_secret FROM vault.decrypted_secrets
---            WHERE name = 'email_queue_service_role_key'
---          )
---        ),
---        body := '{}'::jsonb,
---        timeout_milliseconds := 60000
---      );
---      $cron$
---    );
---
---    Para desligar tudo: SELECT cron.unschedule('enviar-resumo-semanal');
+-- ⚠️ AGENDAMENTO: passo manual à parte, DEPOIS de implantar a edge function
+--    enviar-resumo-semanal e testar com {"dry_run": true}. Ver
+--    scripts/agendar-resumo-semanal.sql (rodar à mão no SQL Editor do Supabase).
 -- ============================================================
 
 -- 1) Interruptor ------------------------------------------------------------------
