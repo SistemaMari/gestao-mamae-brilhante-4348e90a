@@ -150,7 +150,12 @@ function BlocoPerfilClinicoConsolidado() {
             value={formatPctOrDash(data.taxa_dmg_positivo_pct, 1)}
             Icon={Activity}
             tooltip={t('consolidar.perfilClinico.taxaDmgPositivoTip')}
-            subtitle={t('consolidar.perfilClinico.diagnosticosNoCalculo', { count: data.total_diagnosticos_no_calculo, valor: formatNum(data.total_diagnosticos_no_calculo) })}
+            subtitle={t('consolidar.perfilClinico.diagnosticosNoCalculo', {
+              count: data.total_diagnosticos_no_calculo,
+              valor: formatNum(data.total_diagnosticos_no_calculo),
+              rastreadas: formatNum(data.gestantes_rastreadas ?? 0),
+              overt: formatNum(data.total_overt ?? 0),
+            })}
           />
           <MetricCard
             label={t('consolidar.perfilClinico.igMediaDiagnostico')}

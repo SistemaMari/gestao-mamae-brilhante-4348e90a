@@ -14,6 +14,8 @@ export interface PainelPerfilClinico {
   total_acompanhadas: number;
   total_dmg_confirmadas: number;
   prevalencia_pct: number;
+  /** Overt (diabetes prévio, cenário 8) — à parte da prevalência, como no admin. */
+  total_overt?: number;
   benchmark_min_pct: number;
   benchmark_max_pct: number;
   em_insulina: number;

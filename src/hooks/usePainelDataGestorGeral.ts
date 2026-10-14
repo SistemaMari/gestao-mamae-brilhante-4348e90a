@@ -33,7 +33,12 @@ export interface IgObj {
 
 export interface ConsolidadorPerfilClinico {
   taxa_dmg_positivo_pct: number;
+  /** Gestantes com DMG confirmado no período (numerador da taxa). */
   total_diagnosticos_no_calculo: number;
+  /** Gestantes rastreadas no período (Retorno 1 ou GTT) — denominador da taxa. */
+  gestantes_rastreadas?: number;
+  /** Overt (cenário 8), contado à parte da taxa, como no admin. */
+  total_overt?: number;
   ig_media_diagnostico: IgObj | null;
   tempo_medio_dum_diagnostico: IgObj | null;
   tempo_medio_fechamento_dias: number | null;
