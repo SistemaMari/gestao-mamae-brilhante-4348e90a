@@ -42,12 +42,15 @@ export async function fetchDadosEquipe(unidadeId: string): Promise<DadosEquipe> 
   const profissionais = (((profRes.data ?? []) as unknown) as Array<{
     id: string; nome: string; crm: string | null; especialidade: string | null;
     perfil_clinico: string | null; created_at: string; acesso_revogado: boolean | null;
+    perfil_institucional: string | null;
   }>).filter(p => !p.acesso_revogado);
+  // Gestor de unidade não atende gestantes: fora das métricas da equipe clínica.
+  const equipeClinica = profissionais.filter(p => p.perfil_institucional !== 'gestor');
 
-  out.profissionaisEquipe = profissionais.map(p => ({
+  out.profissionaisEquipe = equipeClinica.map(p => ({
     id: p.id, nome: p.nome, especialidade: p.especialidade, perfil_clinico: p.perfil_clinico,
   }));
-  try { out.totalAtivos = profissionais.length; } catch { out.errosCards.ativos = true; }
+  try { out.totalAtivos = equipeClinica.length; } catch { out.errosCards.ativos = true; }
 
   // Convites
   const { data: convites } = await supabase
@@ -102,7 +105,7 @@ export async function fetchDadosEquipe(unidadeId: string): Promise<DadosEquipe> 
     });
     const pacPorProf = new Map<string, number>();
     distribuicao.forEach(d => pacPorProf.set(d.profissional_id, d.total_pacientes_ativos));
-    out.performance = profissionais.map(p => ({
+    out.performance = equipeClinica.map(p => ({
       id: p.id,
       nome: p.nome,
       crm: p.crm,

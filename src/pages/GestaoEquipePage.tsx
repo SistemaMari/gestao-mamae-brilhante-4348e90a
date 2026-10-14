@@ -112,7 +112,12 @@ export default function GestaoEquipePage() {
     const profissionais = (((profRes.data ?? []) as unknown) as Array<{
       id: string; nome: string; crm: string | null; especialidade: string | null;
       perfil_clinico: string | null; created_at: string; acesso_revogado: boolean | null;
+      perfil_institucional: string | null;
     }>).filter(p => !p.acesso_revogado);
+    // Gestor de unidade não atende gestantes: fica fora das métricas da equipe
+    // clínica (cards, composição, desempenho). A tabela da equipe abaixo segue
+    // mostrando todo mundo, exceto o próprio usuário.
+    const equipeClinica = profissionais.filter(p => p.perfil_institucional !== 'gestor');
 
     const ativos: Membro[] = (profissionais || [])
       .filter(p => p.id !== prof.id)
@@ -140,13 +145,13 @@ export default function GestaoEquipePage() {
 
     setMembros([...ativos, ...conviteMembros]);
     setProfissionaisEquipe(
-      (profissionais || []).map(p => ({
+      equipeClinica.map(p => ({
         id: p.id, nome: p.nome, especialidade: p.especialidade, perfil_clinico: p.perfil_clinico,
       }))
     );
 
     // Card 1
-    try { setTotalAtivos(profissionais.length); }
+    try { setTotalAtivos(equipeClinica.length); }
     catch (e) { console.error(e); setErrosCards(p => ({ ...p, ativos: true })); }
 
     // Cards 2/3
@@ -195,7 +200,7 @@ export default function GestaoEquipePage() {
       });
       const pacPorProf = new Map<string, number>();
       distribuicao.forEach(d => pacPorProf.set(d.profissional_id, d.total_pacientes_ativos));
-      const perf: ProfPerformance[] = (profissionais || []).map(p => ({
+      const perf: ProfPerformance[] = equipeClinica.map(p => ({
         id: p.id,
         nome: p.nome,
         crm: p.crm,

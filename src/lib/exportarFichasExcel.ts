@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import { format } from 'date-fns';
-import { getStatusPacienteChip, getChaveStatusPaciente, getChipPorChave, isPacienteEncerrada } from '@/lib/fichaUtils';
+import { getStatusPacienteChip, getChaveStatusPaciente, getChipPorChave, isPacienteEncerrada, dataAlvoIgLista } from '@/lib/fichaUtils';
+import { formatDateISO } from '@/lib/dateUtils';
 import type { MotivoEncerramento } from '@/lib/motivoEncerramento';
 import { getIgBatch, formatIg } from '@/lib/getIg';
 
@@ -9,6 +10,7 @@ export interface FichaExcel {
   nome: string;
   status_ficha: string;
   motivo_encerramento?: MotivoEncerramento | null;
+  data_encerramento?: string | null;
   profissional_nome: string;
   data_ultima_consulta: string | null;
   data_proximo_retorno: string | null;
@@ -231,11 +233,11 @@ export async function exportarFichasExcel({
     cell.border = thinBorder();
   });
 
-  // 34C-B: IG vem da função única `calcular_ig` (RPC), com data_alvo = data
-  // da última consulta da paciente (estável — não muda a cada dia, ao contrário
-  // de "IG hoje"). Pacientes sem âncora ou sem última consulta ficam com "—".
+  // IG via `calcular_ig` (RPC). Mesma regra da tela: em acompanhamento = IG de
+  // hoje; encerrada = IG no encerramento (ou na última consulta, sem data).
+  const hojeISO = formatDateISO(new Date());
   const igMap = await getIgBatch(
-    fichas.map(f => ({ key: f.id, pacienteId: f.id, dataAlvo: f.data_ultima_consulta })),
+    fichas.map(f => ({ key: f.id, pacienteId: f.id, dataAlvo: dataAlvoIgLista(f, hojeISO) })),
   );
 
   fichas.forEach(f => {

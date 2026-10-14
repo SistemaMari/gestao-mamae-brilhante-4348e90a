@@ -182,7 +182,7 @@ async function etapaEstrutura(admin: SupabaseClient, hoje: string) {
       unidade_id: unidadeId, acesso_revogado: false,
     };
     const upsertProf = async (
-      email: string, nome: string, crm: string, especialidade: string, perfilClinico: string,
+      email: string, nome: string, crm: string | null, especialidade: string | null, perfilClinico: string,
       perfilInst: 'gestor' | 'institucional', desde: string,
     ) => {
       const userId = await garantirUsuario(admin, email, nome);
@@ -202,7 +202,8 @@ async function etapaEstrutura(admin: SupabaseClient, hoje: string) {
     };
 
     const gestorUser = await upsertProf(
-      u.gestor.email, u.gestor.nome, u.gestor.crm, u.gestor.especialidade, 'medico', 'gestor', addDias(criadaEm, 1),
+      // Gestor de unidade é cargo administrativo: sem CRM/especialidade.
+      u.gestor.email, u.gestor.nome, null, null, 'outro', 'gestor', addDias(criadaEm, 1),
     );
 
     // Convites: recria os da unidade (a unidade é 100% da rede demo).

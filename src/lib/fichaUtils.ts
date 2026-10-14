@@ -116,6 +116,24 @@ export function getChipPorChave(chave: string): { label: string; color: string; 
   return STATUS_CONFIG[chave];
 }
 
+/**
+ * Data-alvo da coluna IG das listas: gestante em acompanhamento → IG de HOJE;
+ * encerrada → IG no encerramento (data_encerramento ou, sem ela, a última
+ * consulta — ex.: DMG afastado, que encerra no próprio GTT).
+ */
+export function dataAlvoIgLista(
+  p: {
+    status_ficha: string;
+    motivo_encerramento?: MotivoEncerramento | null;
+    data_encerramento?: string | null;
+    data_ultima_consulta: string | null;
+  },
+  hojeISO: string,
+): string | null {
+  if (!isPacienteEncerrada(p)) return hojeISO;
+  return p.data_encerramento ?? p.data_ultima_consulta;
+}
+
 /** Status_ficha terminais (fora os encerramentos por motivo) — DMG afastado e
  *  encaminhamento ao endócrino também tiram a paciente do acompanhamento ativo. */
 const STATUS_TERMINAIS = ['resultado_parto', 'dmg_afastado', 'encaminhada_endocrino'];

@@ -176,8 +176,7 @@ describe('plano da Rede Demonstração', () => {
 
   it('Norte sem endocrinologista; demais com', () => {
     for (const u of UNIDADES) {
-      const temEndo = u.profissionais.some((p) => /endocrin/i.test(p.especialidade))
-        || /endocrin/i.test(u.gestor.especialidade);
+      const temEndo = u.profissionais.some((p) => /endocrin/i.test(p.especialidade));
       expect(temEndo, u.nome).toBe(u.chave !== 'norte');
     }
   });

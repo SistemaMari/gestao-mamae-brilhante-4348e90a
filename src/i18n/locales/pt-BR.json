@@ -2295,7 +2295,7 @@
       "equipePequena": "Equipe pequena — sem distinção de menos ativos."
     },
     "secaoEquipePdf": {
-      "incluindoVoce": "incluindo você",
+      "incluindoVoce": "equipe clínica (sem gestores)",
       "convitesExpirados": "Convites expirados",
       "reenviarDisponivel": "reenviar disponível",
       "laudosGeradosEquipe": "Laudos gerados pela equipe",
@@ -2768,8 +2768,8 @@
     "cards": {
       "ativos": {
         "titulo": "Profissionais ativos",
-        "sublabel": "incluindo você",
-        "tooltip": "Total de profissionais ativos vinculados à sua unidade, incluindo você. Profissionais com acesso revogado não são contabilizados."
+        "sublabel": "equipe clínica (sem gestores)",
+        "tooltip": "Profissionais ativos que atendem gestantes na sua unidade. Gestores de unidade e profissionais com acesso revogado não são contabilizados."
       },
       "pendentes": {
         "titulo": "Convites pendentes",
