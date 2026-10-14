@@ -301,16 +301,23 @@ export default function ConfiguracoesPage() {
     return '—';
   })();
 
-  // Card 3 — duas linhas: mês anterior (com status real) + próximo (cronograma puro).
-  // Borda do dia 1: se hoje for dia 1, "próximo" = dia 1 do mês corrente.
+  // Card 3 — duas linhas: relatório do mês anterior (status real) + data da
+  // próxima geração. Antes a 1ª linha mostrava "01 de <mês anterior>" (parecia a
+  // data de geração) e a 2ª, o dia 1 do mês CORRENTE — data já passada.
+  // O cron roda todo dia 1 (00:00 BRT): hoje dia 1 → próximo = hoje; senão,
+  // dia 1 do mês seguinte.
   const { labelMesAnterior, labelProximo } = useMemo(() => {
     const hoje = new Date();
-    const base = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-    const ant = new Date(base.getFullYear(), base.getMonth() - 1, 1);
-    const fmt = (d: Date) =>
-      d.toLocaleDateString(i18n.language, { day: '2-digit', month: 'long', year: 'numeric' });
-    return { labelMesAnterior: fmt(ant), labelProximo: fmt(base) };
-  }, [i18n.language]);
+    const ant = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+    const proximo = hoje.getDate() === 1
+      ? new Date(hoje.getFullYear(), hoje.getMonth(), 1)
+      : new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+    const mesAno = ant.toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' });
+    return {
+      labelMesAnterior: t('gestao.configuracoes.relatorioDoMes', { mes: mesAno.charAt(0).toUpperCase() + mesAno.slice(1) }),
+      labelProximo: proximo.toLocaleDateString(i18n.language, { day: '2-digit', month: 'long', year: 'numeric' }),
+    };
+  }, [i18n.language, t]);
 
   return (
     <div className="px-6 py-8 lg:px-10">
