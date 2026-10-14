@@ -26,7 +26,7 @@ import BlocoGargalos from '@/components/gestao/BlocoGargalos';
 import BlocoTendencia from '@/components/gestao/BlocoTendencia';
 import FiltroPeriodoPainel, { type FiltroPeriodoValor } from '@/components/gestao/FiltroPeriodoPainel';
 import LinhaDeCuidado from '@/components/gestao/LinhaDeCuidado';
-import { calcularPeriodo } from '@/lib/periodo';
+import { calcularPeriodo, PERIODO_PADRAO_PAINEL } from '@/lib/periodo';
 import type { LinhaCuidadoResposta } from '@/lib/linhaCuidado';
 import { mockLinhaCuidado } from '@/lib/mockLinhaCuidado';
 import { temMetas } from '@/lib/metas';
@@ -91,7 +91,7 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
   const [loadingBlocos, setLoadingBlocos] = useState(!isVitrine);
   const [erroBlocos, setErroBlocos] = useState<string | null>(null);
   // Filtro de período (mesmos presets do gestor geral). Gargalos e gestantes ativas = hoje.
-  const [periodo, setPeriodo] = useState<FiltroPeriodoValor>(() => ({ preset: '30d', ...calcularPeriodo('30d') }));
+  const [periodo, setPeriodo] = useState<FiltroPeriodoValor>(() => ({ preset: PERIODO_PADRAO_PAINEL, ...calcularPeriodo(PERIODO_PADRAO_PAINEL) }));
   const [linhaCuidado, setLinhaCuidado] = useState<LinhaCuidadoResposta | null>(null);
   const [erroLinha, setErroLinha] = useState<string | null>(null);
   // Metas da rede da unidade (definidas pelo gestor geral; aqui só leitura).
@@ -226,6 +226,10 @@ export default function GestaoPage({ forcedUnidadeId }: GestaoPageProps = {}) {
       perfil,
       gargalos,
       tendencia,
+      linhaCuidado: isVitrine ? mockLinhaCuidado(periodo) : linhaCuidado,
+      metas: metasUnidade,
+      notaMetas: temMetas(metasUnidade) ? t('gestao.metas.definidaPelaRede') : null,
+      periodo: { inicio: periodo.inicio, fim: periodo.fim },
     });
     setExportando(false);
     if (res.ok) {

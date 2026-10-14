@@ -9,6 +9,10 @@ export type PresetPeriodo = "7d" | "30d" | "90d" | "12m" | "ano" | "custom";
 
 export const PRESETS_PERIODO: PresetPeriodo[] = ["7d", "30d", "90d", "12m", "ano", "custom"];
 
+/** Período com que o painel da unidade abre (decisão 14/out/2026: 90 dias — com
+ *  poucas gestantes por mês, 30 dias fazia a taxa oscilar demais). */
+export const PERIODO_PADRAO_PAINEL: PresetPeriodo = "90d";
+
 export interface Periodo {
   inicio: string; // YYYY-MM-DD
   fim: string; // YYYY-MM-DD
