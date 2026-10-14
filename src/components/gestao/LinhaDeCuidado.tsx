@@ -114,7 +114,7 @@ function Tempos({ a, b, selo }: { a: LinhaCuidadoBloco['tempos']; b: LinhaCuidad
                   : t('gestao.linhaCuidado.dias', { valor: Number(it.valor).toLocaleString(i18n.language, { maximumFractionDigits: 1 }) })}
               </p>
               <p className="text-[11px] text-muted-foreground">
-                {it.n > 0 ? t('gestao.linhaCuidado.baseN', { n: it.n }) : t('gestao.linhaCuidado.semCasos')}
+                {it.n > 0 ? t('gestao.linhaCuidado.baseN', { count: it.n, n: it.n }) : t('gestao.linhaCuidado.semCasos')}
               </p>
               <div className="mt-1">
                 <VariacaoPeriodo atual={it.valor} anterior={it.anterior} unidade="dias" sentido="ruim_subir" />

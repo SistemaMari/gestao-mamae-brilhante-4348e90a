@@ -34,6 +34,7 @@ import ConsolidadorPage from "./pages/consolidar/ConsolidadorPage";
 import DiagnosticoPage from "./pages/consolidar/DiagnosticoPage";
 import ComparadorPage from "./pages/consolidar/ComparadorPage";
 import ConfiguracoesGestorGeralPage from "./pages/consolidar/ConfiguracoesGestorGeralPage";
+import RelatoriosRedePage from "./pages/consolidar/RelatoriosRedePage";
 import UnidadeDrillDownPage from "./pages/consolidar/UnidadeDrillDownPage";
 import PlanosPage from "./pages/PlanosPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -134,6 +135,7 @@ const App = () => (
                   <Route path="/vitrine/consolidar/consolidador" element={<ConsolidadorPage />} />
                   <Route path="/vitrine/consolidar/diagnostico" element={<DiagnosticoPage />} />
                   <Route path="/vitrine/consolidar/comparador" element={<ComparadorPage />} />
+                  <Route path="/vitrine/consolidar/relatorios" element={<RelatoriosRedePage />} />
                   <Route path="/vitrine/consolidar/configuracoes" element={<ConfiguracoesGestorGeralPage />} />
                 </Route>
                 <Route path="/vitrine/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />
@@ -253,6 +255,7 @@ const App = () => (
                 <Route path="/consolidar/consolidador" element={<ConsolidadorPage />} />
                 <Route path="/consolidar/diagnostico" element={<DiagnosticoPage />} />
                 <Route path="/consolidar/comparador" element={<ComparadorPage />} />
+                <Route path="/consolidar/relatorios" element={<RelatoriosRedePage />} />
                 <Route path="/consolidar/configuracoes" element={<ConfiguracoesGestorGeralPage />} />
               </Route>
               <Route path="/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />

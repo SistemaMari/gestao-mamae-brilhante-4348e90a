@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LayoutGrid, FileBarChart, Activity, BarChart3, Settings, Loader2, PlayCircle, UserRound } from "lucide-react";
+import { LayoutGrid, FileBarChart, FileText, Activity, BarChart3, Settings, Loader2, PlayCircle, UserRound } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +24,7 @@ const buildItems = (base: string, t: (key: string) => string) => [
   { title: t("gestorGeral.appShell.navConsolidador"), path: `${base}/consolidador`, icon: FileBarChart, exact: false },
   { title: t("gestorGeral.appShell.navDiagnostico"), path: `${base}/diagnostico`, icon: Activity, exact: false },
   { title: t("gestorGeral.appShell.navComparador"), path: `${base}/comparador`, icon: BarChart3, exact: false },
+  { title: t("gestorGeral.appShell.navRelatorios"), path: `${base}/relatorios`, icon: FileText, exact: false },
   { title: t("gestorGeral.appShell.navConfiguracoes"), path: `${base}/configuracoes`, icon: Settings, exact: false },
   // Tutorial só no app real; a vitrine não tem rota /vitrine/consolidar/tutorial.
   ...(base.startsWith("/vitrine")
