@@ -119,8 +119,8 @@ REGRAS
    Se a data estiver sem ano, assuma o ano do período de interesse.
    Se um dia aparecer duas vezes, registre em "observacoes" e devolva a
    primeira ocorrência.
-   Devolva também as linhas fora do período de interesse, com a data que
-   estiver escrita — o sistema separa o que pertence a esta ficha.
+   Devolva TODAS as linhas da tabela, na ordem em que aparecem no papel,
+   com a data que estiver escrita — mesmo fora do período de interesse.
    Se o papel NÃO tiver datas, use a ordem das linhas a partir de
    ${params.dataInicio} e registre em "observacoes" que a data foi inferida.
 3. MAPEIE OS RÓTULOS que encontrar para os nossos pontos:
@@ -146,6 +146,46 @@ REGRAS
    "observacoes". Não tente inventar estrutura.
 8. Escreva "incertos" e "observacoes" em português do Brasil, em
    linguagem direta, para um profissional de saúde ler na tela.`;
+}
+
+function isoParaBr(dataIso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dataIso);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : dataIso;
+}
+
+/**
+ * Coloca os dias lidos na grade pela ORDEM do papel: 1ª linha → Dia 1 da
+ * ficha, 2ª → Dia 2... Usado quando as datas escritas não batem com o período
+ * da ficha. Os incertos acompanham o dia deles; o que passar do número de dias
+ * da ficha fica de fora, com aviso.
+ */
+function alinharPelaOrdem(r: ResultadoModelo, dataInicio: string, dias: number): ResultadoModelo {
+  const datasPapel = r.leituras.map((l) => l.data).filter(Boolean);
+  const novaData = new Map<string, string>();
+  const leituras = r.leituras.slice(0, dias).map((l, i) => {
+    const nova = somarDias(dataInicio, i);
+    if (l.data && !novaData.has(l.data)) novaData.set(l.data, nova);
+    return { ...l, data: nova };
+  });
+  const incertos = r.incertos
+    .filter((inc) => novaData.has(inc.data))
+    .map((inc) => ({ ...inc, data: novaData.get(inc.data)! }));
+
+  const observacoes = [...r.observacoes];
+  if (datasPapel.length > 0) {
+    observacoes.push(
+      `As datas do papel (${isoParaBr(datasPapel[0])} a ${isoParaBr(datasPapel[datasPapel.length - 1])}) ` +
+        `são diferentes do período desta ficha. Os valores foram colocados na ordem do papel, ` +
+        `a partir do Dia 1 (${isoParaBr(dataInicio)}). Confira a data de início do perfil.`,
+    );
+  }
+  if (r.leituras.length > dias) {
+    observacoes.push(
+      `O papel tem ${r.leituras.length} dias e esta ficha tem ${dias}. ` +
+        `Os ${r.leituras.length - dias} últimos dias do papel ficaram de fora.`,
+    );
+  }
+  return { ...r, leituras, incertos, observacoes };
 }
 
 function somarDias(dataIso: string, dias: number): string {
@@ -518,22 +558,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Separa as datas fora do período pedido (o front também filtra).
-    const todasLidas = resultado.leituras;
-    resultado.leituras = todasLidas.filter((l) => l.data >= (dataInicio as string) && l.data <= dataFim);
-
-    // A foto tinha tabela, mas nenhum dia cai no período desta ficha (ex.: a
-    // data de início digitada não é a do papel). Antes isso virava "imagem
-    // ilegível" calado; agora a tela mostra as datas da foto e as da ficha.
-    if (todasLidas.length > 0 && resultado.leituras.length === 0) {
-      const datasFoto = todasLidas.map((l) => l.data).filter(Boolean).sort();
-      await registrarAuditoria(resultado, "descartada");
-      return jsonResp({
-        ok: false,
-        codigo: "fora_do_periodo",
-        datas_foto: { de: datasFoto[0] ?? null, ate: datasFoto[datasFoto.length - 1] ?? null },
-        periodo: { de: dataInicio, ate: dataFim },
-      }, 422);
+    // O papel pode ser de qualquer dia (decisão out/2026): se alguma data da
+    // foto não cai no período desta ficha, os dias entram NA ORDEM do papel a
+    // partir do Dia 1, em vez de serem descartados. Com todas as datas dentro
+    // do período, continua alinhando pela data (respeita dia pulado no papel).
+    const algumaForaDoPeriodo = resultado.leituras.some(
+      (l) => !(l.data >= (dataInicio as string) && l.data <= dataFim),
+    );
+    if (algumaForaDoPeriodo) {
+      resultado = alinharPelaOrdem(resultado, dataInicio as string, dias as number);
     }
 
     await registrarAuditoria(resultado, "extraida");
