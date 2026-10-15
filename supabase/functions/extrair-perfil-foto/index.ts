@@ -19,6 +19,12 @@ const corsHeaders = {
 };
 
 function jsonResp(body: unknown, status = 200) {
+  // Toda recusa vai para o log com o código. Antes, um 403/422 voltava sem
+  // deixar rastro e a tela só dizia "a leitura falhou" — em out/2026 foram
+  // várias tentativas sem nenhuma pista do motivo. Só o código, nunca dado clínico.
+  if (status >= 400) {
+    console.warn(`[extrair-perfil-foto] resposta ${status}:`, (body as { codigo?: string })?.codigo ?? "?");
+  }
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -113,7 +119,8 @@ REGRAS
    Se a data estiver sem ano, assuma o ano do período de interesse.
    Se um dia aparecer duas vezes, registre em "observacoes" e devolva a
    primeira ocorrência.
-   Descarte linhas fora do período de interesse.
+   Devolva também as linhas fora do período de interesse, com a data que
+   estiver escrita — o sistema separa o que pertence a esta ficha.
    Se o papel NÃO tiver datas, use a ordem das linhas a partir de
    ${params.dataInicio} e registre em "observacoes" que a data foi inferida.
 3. MAPEIE OS RÓTULOS que encontrar para os nossos pontos:
@@ -430,6 +437,26 @@ Deno.serve(async (req) => {
     const dataFim = somarDias(dataInicio as string, (dias as number) - 1);
     const pontos = tipoPerfil === "6_pontos" ? PONTOS : (["jejum", "pos_cafe", "pos_almoco", "pos_jantar"] as const);
 
+    // Auditoria de uso e custo — nunca o conteúdo clínico, nunca a imagem.
+    // Também quando a leitura não serve: o modelo foi chamado e cobrou.
+    const registrarAuditoria = async (r: ResultadoModelo, status: "extraida" | "descartada") => {
+      const { error: insertErro } = await supabaseAdmin.from("fotos_perfil").insert({
+        consulta_id: consultaId,
+        paciente_id: pacienteId,
+        profissional_id: profissional.id,
+        storage_path: storagePath,
+        modelo: r.modelo,
+        tokens_entrada: r.tokens_entrada,
+        tokens_saida: r.tokens_saida,
+        custo_usd: r.custo_usd,
+        status,
+      });
+      if (insertErro) {
+        console.error("[extrair-perfil-foto] falha ao registrar auditoria:", insertErro.message);
+        // Não bloqueia a resposta ao profissional por causa disso — mas fica no log.
+      }
+    };
+
     let resultado: ResultadoModelo;
     if (!apiKey) {
       // Nenhum dado clínico real é lido nem logado neste modo — é só o
@@ -457,8 +484,16 @@ Deno.serve(async (req) => {
         janelaPos: janelaPos as "1h" | "2h",
       });
 
+      // Marca de início e fim da chamada: se o log mostrar o início sem o fim,
+      // a função foi interrompida no meio (tempo/limite da plataforma).
+      console.log(`[extrair-perfil-foto] chamando o modelo (imagem de ${Math.round(bytes.length / 1024)} KB)`);
+      const inicioChamada = Date.now();
       try {
         resultado = await chamarModelo({ apiKey, imagemBase64, mediaType, prompt });
+        console.log(
+          `[extrair-perfil-foto] modelo respondeu em ${((Date.now() - inicioChamada) / 1000).toFixed(1)} s ` +
+            `(${resultado.leituras.length} dias lidos)`,
+        );
       } catch (err) {
         // Registra a chamada que falhou (com custo — mesmo em erro, se soubermos)
         // mas nunca conteúdo clínico nem a imagem.
@@ -478,29 +513,30 @@ Deno.serve(async (req) => {
       // (com observação explicando). Isso não é sucesso — vira erro para o
       // front sugerir refazer a foto, como o contrato define.
       if (resultado.leituras.length === 0) {
+        await registrarAuditoria(resultado, "descartada");
         return jsonResp({ ok: false, codigo: "imagem_ilegivel", observacoes: resultado.observacoes }, 422);
       }
     }
 
-    // Descarta datas fora do período pedido (defesa extra — o front também filtra).
-    resultado.leituras = resultado.leituras.filter((l) => l.data >= (dataInicio as string) && l.data <= dataFim);
+    // Separa as datas fora do período pedido (o front também filtra).
+    const todasLidas = resultado.leituras;
+    resultado.leituras = todasLidas.filter((l) => l.data >= (dataInicio as string) && l.data <= dataFim);
 
-    // Auditoria de uso e custo — nunca o conteúdo clínico, nunca a imagem.
-    const { error: insertErro } = await supabaseAdmin.from("fotos_perfil").insert({
-      consulta_id: consultaId,
-      paciente_id: pacienteId,
-      profissional_id: profissional.id,
-      storage_path: storagePath,
-      modelo: resultado.modelo,
-      tokens_entrada: resultado.tokens_entrada,
-      tokens_saida: resultado.tokens_saida,
-      custo_usd: resultado.custo_usd,
-      status: "extraida",
-    });
-    if (insertErro) {
-      console.error("[extrair-perfil-foto] falha ao registrar auditoria:", insertErro.message);
-      // Não bloqueia a resposta ao profissional por causa disso — mas fica no log.
+    // A foto tinha tabela, mas nenhum dia cai no período desta ficha (ex.: a
+    // data de início digitada não é a do papel). Antes isso virava "imagem
+    // ilegível" calado; agora a tela mostra as datas da foto e as da ficha.
+    if (todasLidas.length > 0 && resultado.leituras.length === 0) {
+      const datasFoto = todasLidas.map((l) => l.data).filter(Boolean).sort();
+      await registrarAuditoria(resultado, "descartada");
+      return jsonResp({
+        ok: false,
+        codigo: "fora_do_periodo",
+        datas_foto: { de: datasFoto[0] ?? null, ate: datasFoto[datasFoto.length - 1] ?? null },
+        periodo: { de: dataInicio, ate: dataFim },
+      }, 422);
     }
+
+    await registrarAuditoria(resultado, "extraida");
 
     return jsonResp({
       ok: true,

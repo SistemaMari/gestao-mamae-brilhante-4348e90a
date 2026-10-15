@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { comprimirImagem } from '@/lib/comprimirImagem';
+import { formatDateBR } from '@/lib/dateUtils';
 import {
   extrairPerfilFoto, ErroExtracao, USAR_SIMULACAO, SALVAR_FOTO_NO_SERVIDOR,
 } from '@/lib/extrairPerfilFoto';
@@ -152,9 +153,28 @@ export default function PerfilPorFotoCard({
       setPreviewUrl(null);
       setEtapa('inicial');
       const codigo = err instanceof ErroExtracao ? err.codigo : 'desconhecido';
+      const det = err instanceof ErroExtracao ? err.detalhes : {};
+      const datasFoto = det.datas_foto as { de?: string; ate?: string } | undefined;
+      const periodo = det.periodo as { de?: string; ate?: string } | undefined;
+      const observacoes = Array.isArray(det.observacoes) ? (det.observacoes as string[]) : [];
+
+      // Abaixo da mensagem, o que ajuda a entender o motivo: o que o leitor
+      // viu na foto, ou o código técnico (sem ele, toda falha era igual).
+      const descricao = codigo === 'imagem_ilegivel' && observacoes.length > 0
+        ? observacoes[0]
+        : codigo !== 'fora_do_periodo'
+          ? t('fichaAC.perfilFoto.erro.detalhe', {
+              detalhe: [codigo, err instanceof Error ? err.message : ''].filter(Boolean).join(' · '),
+            })
+          : undefined;
+
       toast.error(t(`fichaAC.perfilFoto.erro.${codigo}`, {
         defaultValue: t('fichaAC.perfilFoto.erro.desconhecido'),
-      }));
+        fotoDe: formatDateBR(datasFoto?.de),
+        fotoAte: formatDateBR(datasFoto?.ate),
+        fichaDe: formatDateBR(periodo?.de),
+        fichaAte: formatDateBR(periodo?.ate),
+      }), { description: descricao, duration: 12000 });
     }
   };
 
