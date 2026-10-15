@@ -176,6 +176,13 @@
       "when": 1792029802490,
       "tag": "0024_pedidos_nao_renovacao_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792033503813,
+      "tag": "0025_admin_audit_log_libera_acoes",
+      "breakpoints": true
     }
   ]
 }
