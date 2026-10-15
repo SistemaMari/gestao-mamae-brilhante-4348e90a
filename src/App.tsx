@@ -25,6 +25,7 @@ import LaudoTextosPage from "./pages/admin/LaudoTextosPage";
 import TutoriaisAdminPage from "./pages/admin/TutoriaisAdminPage";
 import ConfiguracoesAdminPage from "./pages/admin/ConfiguracoesAdminPage";
 import PlanosAdminPage from "./pages/admin/PlanosAdminPage";
+import RenovacoesAdminPage from "./pages/admin/RenovacoesAdminPage";
 import DicasAdminPage from "./pages/admin/DicasAdminPage";
 import FeedbacksAdminPage from "./pages/admin/FeedbacksAdminPage";
 import DepoimentosAdminPage from "./pages/admin/DepoimentosAdminPage";
@@ -242,6 +243,7 @@ const App = () => (
               <Route path="/admin/tutoriais" element={<TutoriaisAdminPage />} />
               <Route path="/admin/configuracoes" element={<ConfiguracoesAdminPage />} />
               <Route path="/admin/planos" element={<PlanosAdminPage />} />
+              <Route path="/admin/renovacoes" element={<RenovacoesAdminPage />} />
               <Route path="/admin/dicas" element={<DicasAdminPage />} />
               <Route path="/admin/feedbacks" element={<FeedbacksAdminPage />} />
               <Route path="/admin/depoimentos" element={<DepoimentosAdminPage />} />

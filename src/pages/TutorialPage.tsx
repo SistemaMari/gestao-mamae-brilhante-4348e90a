@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import CardSuporte from '@/components/CardSuporte';
 import {
   Dialog,
   DialogContent,
@@ -238,6 +239,9 @@ export default function TutorialPage() {
           })}
         </div>
       )}
+
+      {/* Os vídeos não responderam? Fale com o suporte. */}
+      {!loading && <CardSuporte variante="tutorial" />}
 
       {/* Player */}
       <Dialog open={!!selecionado} onOpenChange={(open) => !open && setSelecionado(null)}>

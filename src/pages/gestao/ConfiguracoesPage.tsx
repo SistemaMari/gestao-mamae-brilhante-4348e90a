@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ResumoSemanalToggle } from '@/components/ResumoSemanalToggle';
 import i18n from '@/i18n';
+import { SUPORTE_EMAIL } from '@/lib/suporte';
 
 interface UnidadeData {
   nome: string;
@@ -24,7 +25,6 @@ interface EquipeData {
   ultimaInclusao: { nome: string; created_at: string } | null;
 }
 
-const SUPORTE_EMAIL = 'SuporteMari@novodmg.com.br';
 const HONORIFICOS = /^(dr|dra|prof|profa|sr|sra)\.?$/i;
 
 const formatCNPJ = (raw: string | null) => {

@@ -5,6 +5,7 @@ import { useFiltrosGestorGeral } from "@/contexts/FiltrosGestorGeralContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ResumoSemanalToggle } from "@/components/ResumoSemanalToggle";
 import MetasRedeCard from "@/components/gestor-geral/MetasRedeCard";
+import { SUPORTE_EMAIL } from "@/lib/suporte";
 
 export default function ConfiguracoesGestorGeralPage() {
   const { gestor, unidades, contratantes } = useFiltrosGestorGeral();
@@ -79,7 +80,7 @@ export default function ConfiguracoesGestorGeralPage() {
           <Trans
             i18nKey="consolidar.configuracoesGestorGeral.suporte"
             components={{
-              mailLink: <a href="mailto:suporte@mari.health" className="font-medium text-[#7E69AB] hover:underline" />,
+              mailLink: <a href={`mailto:${SUPORTE_EMAIL}`} className="font-medium text-[#7E69AB] hover:underline" />,
             }}
           />
         </p>

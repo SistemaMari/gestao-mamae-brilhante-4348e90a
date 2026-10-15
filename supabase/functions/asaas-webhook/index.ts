@@ -21,6 +21,7 @@ import {
   asaasBaseUrl, MESES_COMPRA_ANUAL,
 } from "../_shared/compraAsaas.ts";
 import { enviarEmailAcesso } from "../_shared/emailAcesso.ts";
+import { inicioDaRenovacao } from "../_shared/renovacao.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -201,7 +202,7 @@ Deno.serve(async (req) => {
       }
 
       const camposProf =
-        "id, user_id, data_inicio_assinatura, asaas_subscription_id, asaas_compra_id, unidade_id, perfil_institucional";
+        "id, user_id, data_inicio_assinatura, asaas_subscription_id, asaas_compra_id, unidade_id, perfil_institucional, plano_status, proxima_renovacao";
 
       // Já é cliente? Pelo cliente Asaas e, se não achar, pelo e-mail: quem troca
       // de plano pelo link pode virar um cliente Asaas novo.
@@ -277,7 +278,12 @@ Deno.serve(async (req) => {
         }
 
         // Compra anual NOVA (renovação ou troca de plano): começa um ano novo,
-        // no plano comprado, a partir de hoje.
+        // no plano comprado. Quem renova ANTES de vencer não perde os meses que
+        // ainda tinha: o ano novo conta a partir do fim do atual.
+        const proxRenovAnual = somarMeses(
+          inicioDaRenovacao(profExistente.proxima_renovacao, profExistente.plano_status, agora),
+          MESES_COMPRA_ANUAL,
+        );
         const { error: upErr } = await supabase
           .from("profissionais")
           .update({
@@ -288,7 +294,7 @@ Deno.serve(async (req) => {
             asaas_customer_id: customerId,
             asaas_compra_id: compraId,
             data_inicio_assinatura: agora.toISOString(),
-            proxima_renovacao: proxRenov.toISOString(),
+            proxima_renovacao: proxRenovAnual.toISOString(),
             aviso_fim_ciclo_enviado_em: null,
           })
           .eq("id", profExistente.id);
@@ -297,10 +303,18 @@ Deno.serve(async (req) => {
           return json({ error: "Failed to update profissional" }, 500);
         }
 
+        // Renovou: encerra o pedido de "não quero renovar", se houver.
+        const { error: pedidoErr } = await supabase
+          .from("pedidos_nao_renovacao")
+          .update({ desfeito_em: agora.toISOString(), desfeito_motivo: "renovou" })
+          .eq("profissional_id", profExistente.id)
+          .is("desfeito_em", null);
+        if (pedidoErr) console.warn("[asaas-webhook] pedido de não renovação:", pedidoErr.message);
+
         // Conta criada antes (ex.: pelo admin) por quem nunca entrou: manda o acesso.
         if (authUser && nuncaEntrou) {
           const erroEmail = await enviarEmailAcesso(supabase, {
-            email, nome, nomePlano: plano.nome ?? null, validade: proxRenov,
+            email, nome, nomePlano: plano.nome ?? null, validade: proxRenovAnual,
             idempotencyKey: `acesso-liberado-${compraId ?? payment.id}`,
           });
           if (erroEmail) {
