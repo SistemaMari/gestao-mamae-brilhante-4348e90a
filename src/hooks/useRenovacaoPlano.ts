@@ -21,7 +21,8 @@ export function useRenovacaoPlano() {
   const [loadingPedido, setLoadingPedido] = useState(true);
 
   const profId = profissionalData?.id ?? null;
-  const aplica = Boolean(profissionalData && !profissionalData.unidade_id && fimDoCiclo(profissionalData));
+  // Toda conta de consultório (mesmo sem data de vencimento, ex.: criada pelo admin).
+  const aplica = Boolean(profissionalData && !profissionalData.unidade_id);
 
   const recarregar = useCallback(async () => {
     if (!profId) { setPedido(null); setLoadingPedido(false); return; }

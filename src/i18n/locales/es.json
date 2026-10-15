@@ -10,6 +10,7 @@
   },
   "meuPlano": {
     "titulo": "Mi plan",
+    "fimDoPeriodo": "el fin del período contratado",
     "plano": "Plan",
     "anoAtual": "Año contratado",
     "mesDeUso": "Uso",
