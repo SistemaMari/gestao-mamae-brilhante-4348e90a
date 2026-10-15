@@ -1,4 +1,44 @@
 {
+  "pagamentos": {
+    "titulo": "Pagos",
+    "subtitulo": "Sigue las cuotas de tu plan: lo que ya se pagó y lo que está pendiente.",
+    "resumoPagas": "Cuotas pagadas",
+    "xDeY": "{{x}} de {{y}}",
+    "resumoTotalPago": "Total pagado",
+    "resumoEmAberto": "Pendientes",
+    "comoFunciona": "Con tarjeta, las cuotas se cobran automáticamente en el resumen de tu tarjeta. Con Pix o boleto, el pago se hace aquí: descarga el boleto, copia el código Pix o abre la factura en Asaas, nuestra plataforma de pagos.",
+    "parcela": "Cuota {{n}}",
+    "pagamentoUnico": "Pago único",
+    "pagoEm": "pagado el {{data}}",
+    "venceEm": "vence el {{data}}",
+    "baixarBoleto": "Descargar boleto",
+    "pagarPix": "Pagar con Pix",
+    "abrirFatura": "Abrir factura",
+    "verComprovante": "Comprobante",
+    "situacao": {
+      "pago": "Pagado",
+      "a_vencer": "Por vencer",
+      "vencido": "Vencido",
+      "estornado": "Reembolsado",
+      "em_analise": "En análisis"
+    },
+    "forma": {
+      "CREDIT_CARD": "Tarjeta de crédito",
+      "PIX": "Pix",
+      "BOLETO": "Boleto",
+      "UNDEFINED": "Boleto, Pix o tarjeta"
+    },
+    "vazioTitulo": "No se encontraron pagos",
+    "vazioTexto": "Los pagos aparecen aquí después de la compra por el enlace de pago. Si pagaste con otro correo, habla con soporte.",
+    "erroCarregar": "No fue posible cargar tus pagos ahora.",
+    "pixTitulo": "Pagar con Pix",
+    "pixQrAlt": "Código QR del Pix",
+    "copiarPix": "Copiar código Pix",
+    "pixCopiado": "Código Pix copiado. Pégalo en la app de tu banco.",
+    "pixAviso": "Abre la app de tu banco, elige Pix copia y pega (o lee el código QR) y confirma.",
+    "erroPix": "No fue posible generar el Pix. Intenta abrir la factura.",
+    "erroCopiar": "No fue posible copiar. Selecciona el código y cópialo a mano."
+  },
   "suporte": {
     "titulo": "¿Necesitas ayuda?",
     "texto": "¿Dudas sobre la herramienta o cualquier otra cosa? Habla con nuestro equipo de atención.",
@@ -9,6 +49,7 @@
     "ouEscreva": "O escribe a"
   },
   "meuPlano": {
+    "verPagamentos": "Ver mis pagos",
     "titulo": "Mi plan",
     "fimDoPeriodo": "el fin del período contratado",
     "plano": "Plan",
@@ -114,6 +155,7 @@
     "consolidate": "Consolidar",
     "knowledgeBase": "Base de conocimientos",
     "plans": "Planes",
+    "payments": "Pagos",
     "profile": "Perfil",
     "units": "Unidades",
     "admins": "Administradores"

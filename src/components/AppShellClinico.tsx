@@ -7,7 +7,7 @@ import { useSyncLanguageWithProfile } from '@/hooks/useSyncLanguageWithProfile';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Users, UserPlus, CreditCard, UserCog, LogOut, Menu, X,
-  ChevronRight, User, Loader2, BarChart3, FileText, Lock, PlayCircle
+  ChevronRight, User, Loader2, BarChart3, FileText, Lock, PlayCircle, Receipt
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -53,6 +53,7 @@ function useBreadcrumb() {
   if (path === '/paciente/nova') return { parent: patientsParent, current: t('nav.newPatient') };
   if (path.startsWith('/paciente/')) return { parent: patientsParent, current: pacienteNome || '...' };
   if (path === '/planos') return { parent: null, current: t('nav.plans') };
+  if (path === '/pagamentos') return { parent: null, current: t('nav.payments') };
   if (path === '/perfil') return { parent: null, current: t('nav.profile') };
   if (path === '/completar-perfil') return { parent: null, current: t('profile.title') };
   if (path === '/dashboard/metricas') return { parent: null, current: t('nav.metrics') };
@@ -317,6 +318,20 @@ export default function AppShellClinico() {
             >
               <CreditCard className="h-4 w-4 shrink-0" />
               {t('nav.plans')}
+            </button>
+          )}
+          {ehConsultorio && (
+            <button
+              onClick={() => navigate('/pagamentos')}
+              className={cn(
+                'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors',
+                location.pathname === '/pagamentos'
+                  ? 'bg-[#E8E0FF] text-[#7E69AB] font-medium'
+                  : 'text-[#64748B] hover:bg-[#F1F5F9]'
+              )}
+            >
+              <Receipt className="h-4 w-4 shrink-0" />
+              {t('nav.payments')}
             </button>
           )}
           <Button
