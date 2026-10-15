@@ -2139,6 +2139,61 @@
         }
       }
     },
+    "equipeRede": {
+      "title": "Network team",
+      "subtitle": "Managers and professionals of the units in your network. Invite professionals and register each unit's manager.",
+      "convidar": "Invite professional",
+      "cadastrarGestor": "Register manager",
+      "buscar": "Search by name or email",
+      "todasUnidades": "All units",
+      "gestor": "Unit manager",
+      "semGestor": "Unit without a manager",
+      "semGestorDica": "Register who will manage this unit.",
+      "profissionais_one": "{{count}} professional",
+      "profissionais_other": "{{count}} professionals",
+      "semProfissionais": "No professionals in this unit yet.",
+      "convitePendente": "Invite pending",
+      "ativo": "Active",
+      "conviteSemConta": "Invite sent, awaiting sign-up",
+      "vazio": "No units linked to your network.",
+      "nadaEncontrado": "No one matches this search.",
+      "erro": "Could not load the team. Please try again.",
+      "vitrineAviso": "Demo: invites are not sent.",
+      "resumo": {
+        "unidades": "Units",
+        "semGestor": "Without manager",
+        "profissionais": "Professionals",
+        "pendentes": "Pending invites"
+      },
+      "perfis": {
+        "medico": "Physician",
+        "enfermeiro": "Nurse",
+        "tecnico_enfermagem": "Nursing technician",
+        "outro": "Other"
+      },
+      "modalConvidar": {
+        "title": "Invite professional",
+        "description": "The person receives an email to create a password and is linked to the chosen unit.",
+        "unidade": "Unit",
+        "selecione": "Select the unit",
+        "perfil": "Clinical profile",
+        "enviar": "Send invite",
+        "sucesso": "Invite sent to {{email}}."
+      },
+      "modalGestor": {
+        "title": "Register unit manager",
+        "description": "The manager receives an email to create a password and starts managing the unit's team and records. Each unit has a single manager.",
+        "unidade": "Unit",
+        "selecione": "Select the unit",
+        "nenhumaSemGestor": "All units in your network already have a manager.",
+        "enviar": "Register manager",
+        "sucesso": "Manager registered. Invite sent to {{email}}."
+      },
+      "erros": {
+        "unidade_ja_tem_gestor": "This unit already has an active manager. To replace the manager, contact MARI support.",
+        "unidade_fora_da_rede": "This unit is not part of your network."
+      }
+    },
     "configuracoesGestorGeral": {
       "title": "Settings",
       "subtitle": "Your account and network details. Name, email and units are changed by support; network goals and the weekly summary you adjust here.",
@@ -2716,6 +2771,7 @@
       "navComparador": "Comparator",
       "navRelatorios": "Reports",
       "navConfiguracoes": "Settings",
+      "navEquipe": "Team",
       "navTutorial": "Tutorial",
       "roleLabel": "General Manager",
       "headerLabel": "General Consolidation",

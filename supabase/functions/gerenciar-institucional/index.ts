@@ -1,6 +1,8 @@
 // Edge Function: gerenciar-institucional (v3)
 // 9 ações para gestão de contas institucionais e gestores gerais.
 // Toda operação exige admin (auth.uid() em `admins`). Auditoria em `admin_audit_log`.
+// Exceção: o gestor geral ativo pode usar ACOES_GESTOR_GERAL, sempre restrito às
+// unidades da própria rede (gestores_gerais_unidades, rede não encerrada).
 //
 // Notas de schema:
 // - Gestor de unidade = profissionais com perfil_institucional='gestor' e unidade_id=X.
@@ -43,7 +45,44 @@ function jsonResponse(body: unknown, status = 200) {
 // amplo — a validação de acesso é feita no banco (RLS/has_role), não no tipo.
 type Admin = any;
 
+// Ações liberadas ao gestor geral. Criar unidade continua só com o admin.
+const ACOES_GESTOR_GERAL = new Set([
+  "listar_equipe_rede",
+  "convidar_profissional_unidade",
+  "cadastrar_gestor_unidade",
+]);
+
 // ----------------- Helpers -----------------
+
+interface UnidadeDaRede {
+  id: string;
+  nome: string;
+  contratante_nome: string | null;
+}
+
+// Mesmo critério de gestor_geral_tem_unidade(): vínculo em gestores_gerais_unidades
+// e rede (contratante) não encerrada.
+async function unidadesDoGestorGeral(
+  admin: Admin,
+  gestorGeralId: string,
+): Promise<UnidadeDaRede[]> {
+  const { data, error } = await admin
+    .from("gestores_gerais_unidades")
+    .select("unidade_id, unidades(id, nome, contratantes(nome, status))")
+    .eq("gestor_geral_id", gestorGeralId);
+  if (error) {
+    console.error("Erro unidades do gestor geral:", error);
+    return [];
+  }
+  return (data ?? [])
+    .filter((r: any) => r.unidades && r.unidades.contratantes?.status !== "encerrado")
+    .map((r: any) => ({
+      id: r.unidades.id,
+      nome: r.unidades.nome,
+      contratante_nome: r.unidades.contratantes?.nome ?? null,
+    }))
+    .sort((a: UnidadeDaRede, b: UnidadeDaRede) => a.nome.localeCompare(b.nome, "pt-BR"));
+}
 
 async function findAuthUserByEmail(
   admin: Admin,
@@ -243,9 +282,6 @@ Deno.serve(async (req) => {
       .select("id")
       .eq("user_id", callerUserId)
       .maybeSingle();
-    if (!callerAdmin) {
-      return jsonResponse({ error: "Acesso não autorizado." }, 401);
-    }
 
     let body: any;
     try {
@@ -254,6 +290,32 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "JSON inválido." }, 400);
     }
     const acao = body?.acao;
+
+    // Gestor geral: só as ações de equipe, e só em unidades da própria rede.
+    // null = chamador é admin (sem restrição de unidade).
+    let unidadesDaRede: UnidadeDaRede[] | null = null;
+    if (!callerAdmin) {
+      const { data: gg } = await admin
+        .from("gestores_gerais")
+        .select("id, acesso_revogado")
+        .eq("user_id", callerUserId)
+        .maybeSingle();
+      if (!gg || gg.acesso_revogado || !ACOES_GESTOR_GERAL.has(acao)) {
+        return jsonResponse({ error: "Acesso não autorizado." }, 401);
+      }
+      unidadesDaRede = await unidadesDoGestorGeral(admin, gg.id);
+      if (acao !== "listar_equipe_rede") {
+        // Vale também para cadastrar_gestor_unidade: o gestor geral não cria
+        // gestor "solto" (sem unidade), só para uma unidade da rede.
+        const alvo = String(body.unidade_id ?? "").trim();
+        if (!unidadesDaRede.some((u) => u.id === alvo)) {
+          return jsonResponse({
+            codigo: "unidade_fora_da_rede",
+            mensagem: "Escolha uma unidade da sua rede.",
+          }, 403);
+        }
+      }
+    }
 
     // ============= criar_unidade =============
     if (acao === "criar_unidade") {
@@ -1301,6 +1363,80 @@ Deno.serve(async (req) => {
       return jsonResponse({ status: "ok", profissionais });
     }
 
+    // ============= listar_equipe_rede (gestor geral) =============
+    // Unidades da rede do gestor geral com gestor, profissionais e convites
+    // pendentes. Acesso revogado = removido da equipe → não aparece.
+    if (acao === "listar_equipe_rede") {
+      const unidades = unidadesDaRede ?? [];
+      const ids = unidades.map((u) => u.id);
+      if (ids.length === 0) return jsonResponse({ status: "ok", unidades: [] });
+
+      const { data: profs, error: errProfs } = await admin
+        .from("profissionais")
+        .select("id, user_id, nome, perfil_clinico, perfil_institucional, unidade_id, created_at")
+        .in("unidade_id", ids)
+        .eq("acesso_revogado", false)
+        .order("nome", { ascending: true });
+      if (errProfs) {
+        console.error("Erro listar equipe rede:", errProfs);
+        return jsonResponse({ error: "Erro ao listar." }, 500);
+      }
+
+      const emailMap = await getEmailMap(
+        admin,
+        (profs ?? []).map((p: any) => p.user_id).filter(Boolean),
+      );
+
+      const { data: convs } = await admin
+        .from("convites")
+        .select("unidade_id, email_convidado, created_at, expires_at")
+        .in("unidade_id", ids)
+        .eq("status", "pendente")
+        .gt("expires_at", new Date().toISOString());
+
+      const resposta = unidades.map((u) => {
+        const pessoas = (profs ?? [])
+          .filter((p: any) => p.unidade_id === u.id)
+          .map((p: any) => {
+            const auth = emailMap.get(p.user_id);
+            return {
+              id: p.id,
+              nome: p.nome,
+              email: auth?.email ?? null,
+              perfil_clinico: p.perfil_clinico,
+              gestor: p.perfil_institucional === "gestor",
+              // Convidado pelo admin/gestor geral: conta criada, mas nunca entrou.
+              pendente: !auth?.last_sign_in_at,
+              created_at: p.created_at,
+            };
+          });
+        const emailsComConta = new Set(
+          pessoas.map((p: any) => (p.email ?? "").toLowerCase()).filter(Boolean),
+        );
+        // Convites do gestor de unidade (enviar-convite) ainda sem conta criada.
+        const convitesPendentes = (convs ?? [])
+          .filter((c: any) =>
+            c.unidade_id === u.id &&
+            !emailsComConta.has((c.email_convidado ?? "").toLowerCase())
+          )
+          .map((c: any) => ({
+            email: c.email_convidado,
+            created_at: c.created_at,
+            expires_at: c.expires_at,
+          }));
+        return {
+          id: u.id,
+          nome: u.nome,
+          contratante_nome: u.contratante_nome,
+          gestor: pessoas.find((p: any) => p.gestor) ?? null,
+          profissionais: pessoas.filter((p: any) => !p.gestor),
+          convites_pendentes: convitesPendentes,
+        };
+      });
+
+      return jsonResponse({ status: "ok", unidades: resposta });
+    }
+
     // ============= convidar_profissional_unidade =============
     if (acao === "convidar_profissional_unidade") {
       const unidade_id = String(body.unidade_id ?? "").trim();
@@ -1402,7 +1538,10 @@ Deno.serve(async (req) => {
         admin, callerUserId, callerEmail,
         "convidar_profissional_unidade",
         email, nome, null,
-        { unidade_id, unidade_nome: uni.nome, perfil_clinico: perfil, profissional_id: prof.id },
+        {
+          unidade_id, unidade_nome: uni.nome, perfil_clinico: perfil, profissional_id: prof.id,
+          executado_como: unidadesDaRede ? "gestor_geral" : "admin",
+        },
       );
 
       return jsonResponse({
@@ -1754,7 +1893,11 @@ Deno.serve(async (req) => {
 
       await inserirAuditoria(
         admin, callerUserId, callerEmail, "cadastrar_gestor_unidade",
-        email, nome, null, { gestor_id: prof.id, unidade_id: unidadeIdOpt },
+        email, nome, null,
+        {
+          gestor_id: prof.id, unidade_id: unidadeIdOpt,
+          executado_como: unidadesDaRede ? "gestor_geral" : "admin",
+        },
       );
 
       return jsonResponse({

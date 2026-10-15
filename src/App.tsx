@@ -35,6 +35,7 @@ import DiagnosticoPage from "./pages/consolidar/DiagnosticoPage";
 import ComparadorPage from "./pages/consolidar/ComparadorPage";
 import ConfiguracoesGestorGeralPage from "./pages/consolidar/ConfiguracoesGestorGeralPage";
 import RelatoriosRedePage from "./pages/consolidar/RelatoriosRedePage";
+import EquipeRedePage from "./pages/consolidar/EquipeRedePage";
 import UnidadeDrillDownPage from "./pages/consolidar/UnidadeDrillDownPage";
 import PlanosPage from "./pages/PlanosPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -139,6 +140,7 @@ const App = () => (
                   <Route path="/vitrine/consolidar/configuracoes" element={<ConfiguracoesGestorGeralPage />} />
                 </Route>
                 <Route path="/vitrine/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />
+                <Route path="/vitrine/consolidar/equipe" element={<EquipeRedePage />} />
               </Route>
               <Route path="/vitrine/cadastro-convite" element={<PreviewCadastroConvitePage />} />
               <Route path="/vitrine/ficha-carimbada" element={<FichaCarimbadaDemo />} />
@@ -259,6 +261,7 @@ const App = () => (
                 <Route path="/consolidar/configuracoes" element={<ConfiguracoesGestorGeralPage />} />
               </Route>
               <Route path="/consolidar/unidade/:unidadeId" element={<UnidadeDrillDownPage />} />
+              <Route path="/consolidar/equipe" element={<EquipeRedePage />} />
               <Route path="/consolidar/tutorial" element={<TutorialPage />} />
               <Route path="/consolidar/perfil" element={<PerfilPage />} />
             </Route>
