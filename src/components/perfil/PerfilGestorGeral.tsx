@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PerfilCard, PerfilCardTitle } from './PerfilCard';
 import CardAlterarSenha from './CardAlterarSenha';
+import CardSuporte from '@/components/CardSuporte';
 
 /**
  * Meu perfil do gestor geral. Os dados dele ficam em `gestores_gerais` (não em
@@ -98,6 +99,8 @@ export default function PerfilGestorGeral({ userId, email }: { userId: string; e
       </PerfilCard>
 
       <CardAlterarSenha email={email} />
+
+      <CardSuporte />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Container, Head, Heading, Html, Preview, Section, Text, Hr,
+  Body, Button, Container, Head, Heading, Html, Preview, Section, Text, Hr,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -9,9 +9,12 @@ interface Props {
   nomeProfissional?: string
   nomePlano?: string
   dataFimFormatada?: string
+  linkRenovar?: string
 }
 
-const Email = ({ nomeProfissional, nomePlano, dataFimFormatada }: Props) => (
+// Enviado 60 dias antes do fim do ano pago (verificar-inadimplencia). A MARI
+// não renova sozinha: sem renovar, o acesso termina na data.
+const Email = ({ nomeProfissional, nomePlano, dataFimFormatada, linkRenovar }: Props) => (
   <Html lang="pt-BR" dir="ltr">
     <Head />
     <Preview>Seu plano anual do MARI está chegando ao fim</Preview>
@@ -30,19 +33,29 @@ const Email = ({ nomeProfissional, nomePlano, dataFimFormatada }: Props) => (
 
           <Hr style={hr} />
 
-          <Text style={label}>Última cobrança prevista</Text>
+          <Text style={label}>Seu plano vale até</Text>
           <Text style={value}>{dataFimFormatada || '—'}</Text>
         </Section>
 
         <Text style={text}>
-          Após essa data, nenhuma nova cobrança será gerada automaticamente e
-          o acesso à ferramenta será encerrado ao fim do período já pago. Para
-          continuar usando o MARI sem interrupção, entre em contato com a
-          nossa equipe para renovar o seu plano.
+          A renovação não é automática: nenhuma cobrança nova é feita sem você
+          pedir. Para continuar usando a MARI sem interrupção, renove pelo app,
+          em Meu perfil → Meu plano → Renovar. Se você renovar antes do
+          vencimento, o novo ano começa só quando o atual terminar: você não
+          perde nenhum dia.
+        </Text>
+        {linkRenovar && (
+          <Button href={linkRenovar} style={button}>Renovar meu plano</Button>
+        )}
+        <Text style={text}>
+          Não quer renovar? Avise pelo mesmo lugar (Meu perfil → Meu plano →
+          Não quero renovar). Sem renovação, o acesso termina em
+          {' '}{dataFimFormatada || 'a data acima'}.
         </Text>
 
         <Text style={footer}>
-          Dúvidas sobre a renovação? Responda este e-mail que a equipe MARI te ajuda.
+          Dúvidas sobre a renovação? Responda este e-mail ou escreva para
+          SuporteMari@novodmg.com.br.
         </Text>
       </Container>
     </Body>
@@ -57,6 +70,7 @@ export const template = {
     nomeProfissional: 'Dra. Exemplo',
     nomePlano: 'Inicial',
     dataFimFormatada: '15/09/2026',
+    linkRenovar: 'https://maridmg.com.br/perfil',
   },
 } satisfies TemplateEntry
 
@@ -69,4 +83,5 @@ const card = { backgroundColor: '#F5F0FF', borderRadius: '12px', padding: '16px 
 const label = { fontSize: '11px', color: '#7E69AB', textTransform: 'uppercase' as const, letterSpacing: '1px', margin: '0 0 4px', fontWeight: 'bold' as const }
 const value = { fontSize: '14px', color: '#1e293b', margin: '0 0 4px', lineHeight: '1.5' }
 const hr = { borderColor: '#E9E3FA', margin: '12px 0' }
+const button = { backgroundColor: '#7E69AB', color: '#ffffff', borderRadius: '8px', padding: '10px 18px', fontSize: '14px', fontWeight: 'bold' as const, textDecoration: 'none', margin: '0 0 20px' }
 const footer = { fontSize: '12px', color: '#94a3b8', margin: '24px 0 0' }

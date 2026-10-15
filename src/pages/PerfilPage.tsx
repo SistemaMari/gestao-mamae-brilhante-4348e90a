@@ -12,6 +12,8 @@ import { especialidades } from '@/data/locationData';
 import { PerfilCard as Card, PerfilCardTitle as CardTitle } from '@/components/perfil/PerfilCard';
 import CardAlterarSenha from '@/components/perfil/CardAlterarSenha';
 import PerfilGestorGeral from '@/components/perfil/PerfilGestorGeral';
+import CardSuporte from '@/components/CardSuporte';
+import CardMeuPlano from '@/components/perfil/CardMeuPlano';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -423,6 +425,9 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
       {/* 3. Alterar senha */}
       <CardAlterarSenha email={email} />
 
+      {/* Meu plano (renovar / não renovar) — apenas consultório */}
+      {perfilTipo === 'consultorio' && <CardMeuPlano />}
+
       {/* 4. Feedback */}
       <Card>
         <CardTitle icon={MessageSquareHeart}>{t('profile.sendFeedback')}</CardTitle>
@@ -509,6 +514,9 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
           )}
         </Card>
       )}
+
+      {/* 7. Suporte (WhatsApp + e-mail) */}
+      <CardSuporte />
 
       {/* Confirmação — remover foto */}
       <AlertDialog open={confirmRemoverFoto} onOpenChange={setConfirmRemoverFoto}>

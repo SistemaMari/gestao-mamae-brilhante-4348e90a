@@ -5,25 +5,16 @@
 // Lógica:
 //   1. Busca profissionais com plano_status = 'ativo' e proxima_renovacao < agora
 //   2. Marca plano_status = 'inadimplente'
-//   3. Avisa por e-mail quem está a até 15 dias da última cobrança do plano
-//      anual (a 12ª, ver maxPayments em criar-assinatura-asaas) — aviso único,
+//   3. Avisa por e-mail quem está a até 60 dias do fim do ano pago (renovar
+//      ou não pelo app, em Meu perfil → Meu plano) — aviso único por ano,
 //      controlado por aviso_fim_ciclo_enviado_em.
 //
 // A reativação acontece via webhook asaas-webhook quando PAYMENT_RECEIVED chegar.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
-// Plano anual = 12 cobranças mensais a partir de data_inicio_assinatura; a
-// última é 11 meses depois da primeira.
-const MESES_CICLO_ANUAL = 11;
-// Quantos dias antes da última cobrança o aviso é disparado.
-const DIAS_AVISO_FIM_CICLO = 15;
-
-function addMeses(dataIso: string, meses: number): Date {
-  const d = new Date(dataIso);
-  d.setMonth(d.getMonth() + meses);
-  return d;
-}
+import { DIAS_AVISO_RENOVACAO, diasParaVencer, fimDoCiclo } from "../_shared/renovacao.ts";
+import { enviarEmailDeModelo } from "../_shared/emailModelo.ts";
+import { template as planoAnualAcabando } from "../_shared/transactional-email-templates/plano-anual-acabando.tsx";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,29 +71,36 @@ Deno.serve(async (req) => {
   const totalAVencer = aVencer?.length ?? 0;
   console.log(`[verificar-inadimplencia] ${totalAVencer} profissional(is) renovam em até 5 dias`);
 
-  // 3. Avisa por e-mail quem está a até 15 dias da última cobrança (12ª) do
-  // plano anual. Candidatos: ativos, com ciclo iniciado e ainda não avisados
-  // — o filtro fino (dias restantes) é feito aqui embaixo, pois a data da
-  // última cobrança é calculada a partir de data_inicio_assinatura, não uma
-  // coluna própria.
+  // 3. Avisa por e-mail quem está a até 60 dias do fim do ano pago (a MARI não
+  // renova sozinha). Aviso único por ano, controlado por
+  // aviso_fim_ciclo_enviado_em (o webhook zera a cada compra nova). Quem já
+  // pediu para não renovar não recebe. O filtro fino (dias restantes) é feito
+  // aqui embaixo: o fim do ano depende do tipo de compra (ver fimDoCiclo).
   const { data: candidatosAviso, error: errCandidatos } = await supabase
     .from("profissionais")
-    .select("id, user_id, nome, plano_id, data_inicio_assinatura")
+    .select("id, user_id, nome, plano_id, data_inicio_assinatura, proxima_renovacao, asaas_subscription_id")
     .eq("plano_status", "ativo")
-    .not("data_inicio_assinatura", "is", null)
+    .is("unidade_id", null)
     .is("aviso_fim_ciclo_enviado_em", null);
 
   if (errCandidatos) {
     console.error("[verificar-inadimplencia] erro ao buscar candidatos ao aviso de fim de ciclo:", errCandidatos);
   }
 
+  const { data: pedidosAbertos } = await supabase
+    .from("pedidos_nao_renovacao")
+    .select("profissional_id")
+    .is("desfeito_em", null);
+  const naoRenovam = new Set((pedidosAbertos ?? []).map((p: { profissional_id: string }) => p.profissional_id));
+
+  const appUrl = Deno.env.get("APP_PUBLIC_URL") ?? "https://maridmg.com.br";
   let totalAvisados = 0;
-  const agoraMs = Date.now();
 
   for (const prof of candidatosAviso ?? []) {
-    const dataFimCiclo = addMeses(prof.data_inicio_assinatura as string, MESES_CICLO_ANUAL);
-    const diasRestantes = Math.ceil((dataFimCiclo.getTime() - agoraMs) / (24 * 60 * 60 * 1000));
-    if (diasRestantes > DIAS_AVISO_FIM_CICLO) continue; // ainda longe do fim
+    if (naoRenovam.has(prof.id)) continue;
+    const dias = diasParaVencer(prof);
+    if (dias === null || dias < 0 || dias > DIAS_AVISO_RENOVACAO) continue;
+    const dataFimCiclo = fimDoCiclo(prof)!;
 
     try {
       const { data: plano } = await supabase
@@ -118,18 +116,22 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "plano-anual-acabando",
-          recipientEmail: email,
-          idempotencyKey: `plano-anual-acabando-${prof.id}-${prof.data_inicio_assinatura}`,
-          templateData: {
-            nomeProfissional: prof.nome,
-            nomePlano: plano?.nome ?? "MARI",
-            dataFimFormatada: dataFimCiclo.toLocaleDateString("pt-BR"),
-          },
+      const erro = await enviarEmailDeModelo(supabase, {
+        modelo: planoAnualAcabando,
+        nomeModelo: "plano-anual-acabando",
+        para: email,
+        idempotencyKey: `plano-anual-acabando-${prof.id}-${dataFimCiclo.toISOString()}`,
+        props: {
+          nomeProfissional: prof.nome,
+          nomePlano: plano?.nome ?? "MARI",
+          dataFimFormatada: dataFimCiclo.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }),
+          linkRenovar: `${appUrl}/perfil`,
         },
       });
+      if (erro) {
+        console.error(`[verificar-inadimplencia] aviso de fim de ciclo para ${prof.id}:`, erro);
+        continue;
+      }
 
       await supabase
         .from("profissionais")
