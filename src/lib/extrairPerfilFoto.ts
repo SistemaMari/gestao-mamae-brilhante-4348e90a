@@ -65,10 +65,31 @@ export interface ParametrosExtracao {
 }
 
 export class ErroExtracao extends Error {
-  constructor(public codigo: string, mensagem: string) {
+  constructor(
+    public codigo: string,
+    mensagem: string,
+    /** Corpo da resposta de erro do serviço (ex.: datas da foto × período). */
+    public detalhes: Record<string, unknown> = {},
+  ) {
     super(mensagem);
     this.name = 'ErroExtracao';
   }
+}
+
+/**
+ * Quando a função responde com status de erro (403, 422, 429...), o
+ * `functions.invoke` devolve só "non-2xx status code" e joga fora o corpo —
+ * que é justamente onde está o motivo ({ codigo }). Lê o corpo da resposta
+ * para a tela mostrar o motivo real em vez de "a leitura falhou".
+ */
+async function erroDoServico(error: { message: string; context?: unknown }): Promise<ErroExtracao> {
+  const resp = error.context;
+  if (resp instanceof Response) {
+    const corpo = await resp.clone().json().catch(() => null);
+    if (corpo?.codigo) return new ErroExtracao(corpo.codigo, `HTTP ${resp.status}`, corpo);
+    return new ErroExtracao('falha_servico', `HTTP ${resp.status}`);
+  }
+  return new ErroExtracao('falha_servico', error.message);
 }
 
 export async function extrairPerfilFoto(p: ParametrosExtracao): Promise<ResultadoExtracao> {
@@ -86,7 +107,7 @@ export async function extrairPerfilFoto(p: ParametrosExtracao): Promise<Resultad
     },
   });
 
-  if (error) throw new ErroExtracao('falha_servico', error.message);
+  if (error) throw await erroDoServico(error);
   if (!data?.ok) throw new ErroExtracao(data?.codigo ?? 'desconhecido', data?.mensagem ?? '');
 
   return {

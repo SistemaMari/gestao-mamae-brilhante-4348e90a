@@ -3745,7 +3745,11 @@
         "limite_diario": "Daily reading limit reached. Type the values by hand.",
         "modelo_indisponivel": "The reading service is unavailable right now. Type the values by hand.",
         "paciente_nao_vinculada": "You do not have access to this patient.",
-        "desconhecido": "The photo could not be read. You can type the values by hand."
+        "desconhecido": "The photo could not be read. You can type the values by hand.",
+        "fora_do_periodo": "The dates in the photo ({{fotoDe}} to {{fotoAte}}) are outside this form's period ({{fichaDe}} to {{fichaAte}}). Check the profile start date and try again.",
+        "nao_autenticado": "Your session has expired. Sign out, sign in again and try once more.",
+        "extracao_desativada": "Photo reading is turned off right now. Type the values by hand.",
+        "detalhe": "Technical detail: {{detalhe}}"
       }
     },
     "pontos": {

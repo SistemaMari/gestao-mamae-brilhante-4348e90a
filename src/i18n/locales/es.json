@@ -3745,7 +3745,11 @@
         "limite_diario": "Límite diario de lecturas alcanzado. Escriba los valores a mano.",
         "modelo_indisponivel": "El servicio de lectura no está disponible ahora. Escriba los valores a mano.",
         "paciente_nao_vinculada": "Usted no tiene acceso a esta gestante.",
-        "desconhecido": "No fue posible leer la foto. Puede escribir los valores a mano."
+        "desconhecido": "No fue posible leer la foto. Puede escribir los valores a mano.",
+        "fora_do_periodo": "Las fechas de la foto ({{fotoDe}} a {{fotoAte}}) no están en el período de esta ficha ({{fichaDe}} a {{fichaAte}}). Revise la fecha de inicio del perfil e intente de nuevo.",
+        "nao_autenticado": "Su sesión expiró. Salga del sistema, vuelva a entrar e intente otra vez.",
+        "extracao_desativada": "La lectura por foto está desactivada en este momento. Escriba los valores a mano.",
+        "detalhe": "Detalle técnico: {{detalhe}}"
       }
     },
     "pontos": {
