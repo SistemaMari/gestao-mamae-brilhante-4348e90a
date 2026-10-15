@@ -129,6 +129,9 @@ export default function CardMeuPlano() {
             {t('meuPlano.naoRenovar')}
           </Button>
         )}
+        <Button variant="ghost" className="text-[#7E69AB]" onClick={() => navigate('/pagamentos')}>
+          {t('meuPlano.verPagamentos')}
+        </Button>
       </div>
       <p className="mt-2 text-xs text-muted-foreground">{t('meuPlano.notaRenovarAntes')}</p>
 

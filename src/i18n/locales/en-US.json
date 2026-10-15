@@ -1,4 +1,44 @@
 {
+  "pagamentos": {
+    "titulo": "Payments",
+    "subtitulo": "Track your plan's installments: what has been paid and what is still open.",
+    "resumoPagas": "Installments paid",
+    "xDeY": "{{x}} of {{y}}",
+    "resumoTotalPago": "Total paid",
+    "resumoEmAberto": "Open",
+    "comoFunciona": "By card, installments are charged automatically on your card statement. By Pix or bank slip, you pay here: download the slip, copy the Pix code or open the invoice on Asaas, our payment platform.",
+    "parcela": "Installment {{n}}",
+    "pagamentoUnico": "Single payment",
+    "pagoEm": "paid on {{data}}",
+    "venceEm": "due on {{data}}",
+    "baixarBoleto": "Download bank slip",
+    "pagarPix": "Pay with Pix",
+    "abrirFatura": "Open invoice",
+    "verComprovante": "Receipt",
+    "situacao": {
+      "pago": "Paid",
+      "a_vencer": "Upcoming",
+      "vencido": "Overdue",
+      "estornado": "Refunded",
+      "em_analise": "Under review"
+    },
+    "forma": {
+      "CREDIT_CARD": "Credit card",
+      "PIX": "Pix",
+      "BOLETO": "Bank slip",
+      "UNDEFINED": "Bank slip, Pix or card"
+    },
+    "vazioTitulo": "No payments found",
+    "vazioTexto": "Payments show up here after purchasing through the payment link. If you paid with another email, contact support.",
+    "erroCarregar": "Couldn't load your payments right now.",
+    "pixTitulo": "Pay with Pix",
+    "pixQrAlt": "Pix QR Code",
+    "copiarPix": "Copy Pix code",
+    "pixCopiado": "Pix code copied. Paste it in your bank's app.",
+    "pixAviso": "Open your bank's app, choose Pix copy and paste (or scan the QR Code) and confirm.",
+    "erroPix": "Couldn't generate the Pix. Try opening the invoice.",
+    "erroCopiar": "Couldn't copy. Select the code and copy it manually."
+  },
   "suporte": {
     "titulo": "Need help?",
     "texto": "Questions about the tool or anything else? Talk to our support team.",
@@ -9,6 +49,7 @@
     "ouEscreva": "Or write to"
   },
   "meuPlano": {
+    "verPagamentos": "See my payments",
     "titulo": "My plan",
     "fimDoPeriodo": "the end of the contracted period",
     "plano": "Plan",
@@ -114,6 +155,7 @@
     "consolidate": "Consolidate",
     "knowledgeBase": "Knowledge base",
     "plans": "Plans",
+    "payments": "Payments",
     "profile": "Profile",
     "units": "Units",
     "admins": "Administrators"

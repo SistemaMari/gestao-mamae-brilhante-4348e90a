@@ -39,6 +39,7 @@ import RelatoriosRedePage from "./pages/consolidar/RelatoriosRedePage";
 import EquipeRedePage from "./pages/consolidar/EquipeRedePage";
 import UnidadeDrillDownPage from "./pages/consolidar/UnidadeDrillDownPage";
 import PlanosPage from "./pages/PlanosPage";
+import PagamentosPage from "./pages/PagamentosPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import InstitucionalPage from "./pages/InstitucionalPage";
 import CompletarPerfilPage from "./pages/CompletarPerfilPage";
@@ -198,6 +199,7 @@ const App = () => (
             {/* Planos — exclusivo do consultório */}
             <Route element={<ProtectedRoute allowedProfiles={['consultorio']}><AppShellClinico /></ProtectedRoute>}>
               <Route path="/planos" element={<PlanosPage />} />
+              <Route path="/pagamentos" element={<PagamentosPage />} />
             </Route>
 
             {/* Perfil — todos os perfis autenticados */}
