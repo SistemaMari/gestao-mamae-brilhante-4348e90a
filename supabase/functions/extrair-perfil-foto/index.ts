@@ -144,8 +144,23 @@ REGRAS
    médias, não sugira conduta. Só transcreva.
 7. SEM GRADE NENHUMA na imagem: devolva "leituras" vazio e explique em
    "observacoes". Não tente inventar estrutura.
-8. Escreva "incertos" e "observacoes" em português do Brasil, em
-   linguagem direta, para um profissional de saúde ler na tela.`;
+8. PAPEL SEM CABEÇALHO (só números em linhas, sem o nome das colunas):
+   se cada linha tiver exatamente ${params.pontos.length} valores de glicemia
+   (sem contar uma eventual coluna de data), leia as colunas da esquerda para
+   a direita na ordem da lista de pontos acima e registre em "observacoes":
+   "O papel não tem cabeçalho: as colunas foram lidas na ordem da ficha
+   (${params.pontos.join(", ")}). Confira se a ordem é a mesma do papel."
+   Se o número de valores por linha for diferente de ${params.pontos.length},
+   aí sim devolva "leituras" vazio e explique em "observacoes".
+9. Escreva "incertos" e "observacoes" em português do Brasil, em
+   linguagem direta, para um profissional de saúde ler na tela.
+10. OBSERVAÇÕES CURTAS: registre só o que o profissional precisa saber
+   para conferir (rotação ou má qualidade da foto que atrapalhou a
+   leitura, coluna ignorada, janela pós-prandial diferente, data inferida,
+   cabeçalho ausente). NÃO registre o que está normal (ex.: "não há datas
+   duplicadas", "a janela coincide com a ficha", área vazia no papel),
+   NÃO comente datas fora do período (o sistema avisa sozinho) e NÃO cite
+   pontos que esta ficha não coleta.`;
 }
 
 function isoParaBr(dataIso: string): string {

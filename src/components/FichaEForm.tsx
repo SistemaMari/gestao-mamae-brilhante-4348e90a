@@ -851,7 +851,7 @@ export default function FichaEForm({
           tipoPerfil="6_pontos"
           janelaPos="1h"
           dataInicio={dataInicio}
-          dias={DAYS.length}
+          dias={datasDias.filter(Boolean).length || DAYS.length}
           datasDias={datasDias}
           habilitado={!!dataInicio && !saving}
           onLeitura={aplicarLeituraDaFoto}
