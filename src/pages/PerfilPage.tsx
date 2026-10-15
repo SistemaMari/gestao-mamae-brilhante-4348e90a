@@ -425,9 +425,6 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
       {/* 3. Alterar senha */}
       <CardAlterarSenha email={email} />
 
-      {/* Meu plano (renovar / não renovar) — apenas consultório */}
-      {perfilTipo === 'consultorio' && <CardMeuPlano />}
-
       {/* 4. Feedback */}
       <Card>
         <CardTitle icon={MessageSquareHeart}>{t('profile.sendFeedback')}</CardTitle>
@@ -489,6 +486,9 @@ function PerfilConsultorio({ initial, email, userId, perfilTipo, unidadeNome }: 
           </div>
         </div>
       </Card>
+
+      {/* Meu plano (renovar / não renovar) — apenas consultório */}
+      {perfilTipo === 'consultorio' && <CardMeuPlano />}
 
       {/* 6. Zona de perigo — apenas consultório */}
       {perfilTipo === 'consultorio' && (

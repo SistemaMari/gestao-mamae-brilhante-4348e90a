@@ -38,11 +38,13 @@ export default function CardMeuPlano() {
     if (pronto && location.hash === '#meu-plano') ancora.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [pronto, location.hash]);
 
-  if (r.loading || !r.aplica || !r.fim) return null;
+  if (r.loading || !r.aplica) return null;
 
   const fmt = (d: Date | string) => new Date(d).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: 'numeric' });
-  const fimTxt = fmt(r.fim);
-  const vencido = (r.dias ?? 0) < 0;
+  // Conta sem data de vencimento (ex.: criada pelo admin): o card aparece
+  // igual, com "o fim do período contratado" no lugar da data.
+  const fimTxt = r.fim ? fmt(r.fim) : t('meuPlano.fimDoPeriodo');
+  const vencido = r.dias !== null && r.dias < 0;
 
   const confirmar = async () => {
     setEnviando(true);
@@ -81,13 +83,13 @@ export default function CardMeuPlano() {
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{t('meuPlano.anoAtual')}</p>
           <p className="mt-1 font-medium text-foreground">
-            {r.inicio ? fmt(r.inicio) : '—'} → {fimTxt}
+            {r.inicio && r.fim ? `${fmt(r.inicio)} → ${fmt(r.fim)}` : '—'}
           </p>
         </div>
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{t('meuPlano.mesDeUso')}</p>
           <p className="mt-1 font-medium text-foreground">
-            {vencido ? t('meuPlano.vencido') : t('meuPlano.mesDe12', { mes: r.mes })}
+            {vencido ? t('meuPlano.vencido') : r.mes ? t('meuPlano.mesDe12', { mes: r.mes }) : '—'}
           </p>
         </div>
       </div>

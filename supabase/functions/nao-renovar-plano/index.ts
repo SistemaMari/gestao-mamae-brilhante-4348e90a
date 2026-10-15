@@ -101,7 +101,8 @@ Deno.serve(async (req) => {
   const agora = new Date();
   const fim = fimDoCiclo(prof);
   const inicio = inicioDoCiclo(prof);
-  if (!fim || fim.getTime() < agora.getTime()) {
+  // Sem data de vencimento (conta criada pelo admin): registra igual, sem data.
+  if (fim && fim.getTime() < agora.getTime()) {
     return json({ error: "Seu plano já venceu: não há renovação para cancelar." }, 400);
   }
   const mes = mesDeUso(prof, agora);
@@ -121,7 +122,7 @@ Deno.serve(async (req) => {
       plano_id: prof.plano_id,
       plano_nome: planoNome,
       ciclo_inicio: inicio?.toISOString() ?? null,
-      ciclo_fim: fim.toISOString(),
+      ciclo_fim: fim?.toISOString() ?? null,
       mes_de_uso: mes,
       dentro_garantia: garantia,
       motivo: motivoTexto,
@@ -145,7 +146,7 @@ Deno.serve(async (req) => {
       props: {
         nomeProfissional: prof.nome,
         nomePlano: planoNome ?? "MARI",
-        acessoAteFormatado: fmtData(fim),
+        acessoAteFormatado: fim ? fmtData(fim) : undefined,
         pedidoEmFormatado: fmtData(agora),
         dentroGarantia: garantia,
         linkRenovar: `${APP_URL}/perfil`,
@@ -165,7 +166,7 @@ Deno.serve(async (req) => {
       telefone: prof.telefone,
       nomePlano: planoNome,
       mesDeUso: mes,
-      acessoAteFormatado: fmtData(fim),
+      acessoAteFormatado: fim ? fmtData(fim) : "sem data de vencimento cadastrada",
       motivo: motivoTexto,
       comentario,
       dentroGarantia: garantia,
@@ -177,7 +178,7 @@ Deno.serve(async (req) => {
   return json({
     status: "ok",
     pedido_id: pedido.id,
-    acesso_ate: fim.toISOString(),
+    acesso_ate: fim?.toISOString() ?? null,
     dentro_garantia: garantia,
     email_enviado: errosEmail.length === 0,
   });

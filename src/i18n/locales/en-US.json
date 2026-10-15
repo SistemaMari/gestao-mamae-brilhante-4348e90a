@@ -10,6 +10,7 @@
   },
   "meuPlano": {
     "titulo": "My plan",
+    "fimDoPeriodo": "the end of the contracted period",
     "plano": "Plan",
     "anoAtual": "Contracted year",
     "mesDeUso": "Usage",
