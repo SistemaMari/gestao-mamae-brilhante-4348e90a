@@ -2139,6 +2139,61 @@
         }
       }
     },
+    "equipeRede": {
+      "title": "Equipe da rede",
+      "subtitle": "Gestores e profissionais das unidades da sua rede. Convide profissionais e cadastre o gestor de cada unidade.",
+      "convidar": "Convidar profissional",
+      "cadastrarGestor": "Cadastrar gestor",
+      "buscar": "Buscar por nome ou e-mail",
+      "todasUnidades": "Todas as unidades",
+      "gestor": "Gestor da unidade",
+      "semGestor": "Unidade sem gestor",
+      "semGestorDica": "Cadastre quem vai gerir esta unidade.",
+      "profissionais_one": "{{count}} profissional",
+      "profissionais_other": "{{count}} profissionais",
+      "semProfissionais": "Nenhum profissional nesta unidade ainda.",
+      "convitePendente": "Convite pendente",
+      "ativo": "Ativo",
+      "conviteSemConta": "Convite enviado, aguardando cadastro",
+      "vazio": "Nenhuma unidade vinculada à sua rede.",
+      "nadaEncontrado": "Ninguém encontrado com essa busca.",
+      "erro": "Não foi possível carregar a equipe. Tente de novo.",
+      "vitrineAviso": "Demonstração: os convites não são enviados.",
+      "resumo": {
+        "unidades": "Unidades",
+        "semGestor": "Sem gestor",
+        "profissionais": "Profissionais",
+        "pendentes": "Convites pendentes"
+      },
+      "perfis": {
+        "medico": "Médico(a)",
+        "enfermeiro": "Enfermeiro(a)",
+        "tecnico_enfermagem": "Técnico(a) de Enfermagem",
+        "outro": "Outro"
+      },
+      "modalConvidar": {
+        "title": "Convidar profissional",
+        "description": "A pessoa recebe um e-mail para criar a senha e já entra vinculada à unidade escolhida.",
+        "unidade": "Unidade",
+        "selecione": "Selecione a unidade",
+        "perfil": "Perfil clínico",
+        "enviar": "Enviar convite",
+        "sucesso": "Convite enviado para {{email}}."
+      },
+      "modalGestor": {
+        "title": "Cadastrar gestor de unidade",
+        "description": "O gestor recebe um e-mail para criar a senha e passa a gerir a equipe e as fichas da unidade. Cada unidade tem um gestor só.",
+        "unidade": "Unidade",
+        "selecione": "Selecione a unidade",
+        "nenhumaSemGestor": "Todas as unidades da sua rede já têm gestor.",
+        "enviar": "Cadastrar gestor",
+        "sucesso": "Gestor cadastrado. Convite enviado para {{email}}."
+      },
+      "erros": {
+        "unidade_ja_tem_gestor": "Esta unidade já tem um gestor ativo. Para trocar o gestor, fale com o suporte da MARI.",
+        "unidade_fora_da_rede": "Esta unidade não faz parte da sua rede."
+      }
+    },
     "configuracoesGestorGeral": {
       "title": "Configurações",
       "subtitle": "Dados da sua conta e da sua rede. Nome, e-mail e unidades são alterados pelo suporte; as metas da rede e o resumo semanal você ajusta aqui.",
@@ -2716,6 +2771,7 @@
       "navComparador": "Comparador",
       "navRelatorios": "Relatórios",
       "navConfiguracoes": "Configurações",
+      "navEquipe": "Equipe",
       "navTutorial": "Tutorial",
       "roleLabel": "Gestor Geral",
       "headerLabel": "Consolidação Geral",

@@ -2139,6 +2139,61 @@
         }
       }
     },
+    "equipeRede": {
+      "title": "Equipo de la red",
+      "subtitle": "Gestores y profesionales de las unidades de su red. Invite profesionales y registre el gestor de cada unidad.",
+      "convidar": "Invitar profesional",
+      "cadastrarGestor": "Registrar gestor",
+      "buscar": "Buscar por nombre o correo",
+      "todasUnidades": "Todas las unidades",
+      "gestor": "Gestor de la unidad",
+      "semGestor": "Unidad sin gestor",
+      "semGestorDica": "Registre quién va a gestionar esta unidad.",
+      "profissionais_one": "{{count}} profesional",
+      "profissionais_other": "{{count}} profesionales",
+      "semProfissionais": "Aún no hay profesionales en esta unidad.",
+      "convitePendente": "Invitación pendiente",
+      "ativo": "Activo",
+      "conviteSemConta": "Invitación enviada, esperando registro",
+      "vazio": "Ninguna unidad vinculada a su red.",
+      "nadaEncontrado": "Nadie coincide con esta búsqueda.",
+      "erro": "No fue posible cargar el equipo. Intente de nuevo.",
+      "vitrineAviso": "Demostración: las invitaciones no se envían.",
+      "resumo": {
+        "unidades": "Unidades",
+        "semGestor": "Sin gestor",
+        "profissionais": "Profesionales",
+        "pendentes": "Invitaciones pendientes"
+      },
+      "perfis": {
+        "medico": "Médico(a)",
+        "enfermeiro": "Enfermero(a)",
+        "tecnico_enfermagem": "Técnico(a) de enfermería",
+        "outro": "Otro"
+      },
+      "modalConvidar": {
+        "title": "Invitar profesional",
+        "description": "La persona recibe un correo para crear la contraseña y queda vinculada a la unidad elegida.",
+        "unidade": "Unidad",
+        "selecione": "Seleccione la unidad",
+        "perfil": "Perfil clínico",
+        "enviar": "Enviar invitación",
+        "sucesso": "Invitación enviada a {{email}}."
+      },
+      "modalGestor": {
+        "title": "Registrar gestor de unidad",
+        "description": "El gestor recibe un correo para crear la contraseña y pasa a gestionar el equipo y las fichas de la unidad. Cada unidad tiene un solo gestor.",
+        "unidade": "Unidad",
+        "selecione": "Seleccione la unidad",
+        "nenhumaSemGestor": "Todas las unidades de su red ya tienen gestor.",
+        "enviar": "Registrar gestor",
+        "sucesso": "Gestor registrado. Invitación enviada a {{email}}."
+      },
+      "erros": {
+        "unidade_ja_tem_gestor": "Esta unidad ya tiene un gestor activo. Para cambiar el gestor, contacte al soporte de MARI.",
+        "unidade_fora_da_rede": "Esta unidad no forma parte de su red."
+      }
+    },
     "configuracoesGestorGeral": {
       "title": "Configuración",
       "subtitle": "Datos de su cuenta y de su red. Nombre, email y unidades los cambia el soporte; las metas de la red y el resumen semanal los ajusta aquí.",
@@ -2716,6 +2771,7 @@
       "navComparador": "Comparador",
       "navRelatorios": "Informes",
       "navConfiguracoes": "Configuración",
+      "navEquipe": "Equipo",
       "navTutorial": "Tutorial",
       "roleLabel": "Gestor General",
       "headerLabel": "Consolidación General",
