@@ -237,7 +237,7 @@ async function inserirAuditoria(
   alvoAdminId: string | null,
   metadata: Record<string, unknown>,
 ) {
-  await admin.from("admin_audit_log").insert({
+  const { error } = await admin.from("admin_audit_log").insert({
     acao,
     executado_por: callerUserId,
     executado_por_email: callerEmail,
@@ -246,6 +246,8 @@ async function inserirAuditoria(
     alvo_nome: alvoNome,
     metadata,
   });
+  // Não derruba a operação (já feita), mas deixa rastro no log da função.
+  if (error) console.error(`[auditoria] falha ao gravar "${acao}":`, error);
 }
 
 // ----------------- Handler -----------------
