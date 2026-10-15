@@ -162,6 +162,20 @@
       "when": 1792020736470,
       "tag": "0022_relatorio_mensal_dados",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792029784350,
+      "tag": "0023_pedidos_nao_renovacao",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792029802490,
+      "tag": "0024_pedidos_nao_renovacao_grants",
+      "breakpoints": true
     }
   ]
 }

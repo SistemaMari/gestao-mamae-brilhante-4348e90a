@@ -1783,7 +1783,28 @@ export type Database = {
             foreignKeyName: "pedidos_nao_renovacao_plano_id_fkey"
             columns: ["plano_id"]
             isOneToOne: false
+            referencedRelation: "mv_admin_evolucao_mensal_planos"
+            referencedColumns: ["plano_id"]
+          },
+          {
+            foreignKeyName: "pedidos_nao_renovacao_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "mv_admin_profissionais_por_plano"
+            referencedColumns: ["plano_id"]
+          },
+          {
+            foreignKeyName: "pedidos_nao_renovacao_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
             referencedRelation: "planos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_nao_renovacao_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "equipe_unidade_view"
             referencedColumns: ["id"]
           },
           {
