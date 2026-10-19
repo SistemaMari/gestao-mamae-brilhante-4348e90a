@@ -12,13 +12,16 @@ import {
   BarChart3, Download, Loader2, Users, AlertTriangle, ChevronRight,
   FileText, Activity, Baby, Clock, Stethoscope, CheckCircle, HelpCircle,
 } from 'lucide-react';
-import { format, subDays, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, differenceInDays } from 'date-fns';
+import { format, subDays, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ptBR, enUS, es } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend, LabelList
 } from 'recharts';
+import { parseDateLocal } from '@/lib/dateUtils';
+import { isPacienteEncerrada } from '@/lib/fichaUtils';
+import { resolverMotivoEfetivo, type MotivoEncerramento } from '@/lib/motivoEncerramento';
 
 interface Paciente {
   id: string;
@@ -149,11 +152,12 @@ export default function DashboardMetricasPage() {
     setLoading(false);
   };
 
-  // Filter by date range
+  // Filter by date range. As datas do filtro são 'yyyy-MM-dd' e precisam ser lidas
+  // no fuso LOCAL: `new Date('2026-10-19')` vira 18/10 21:00 em BRT e o "até hoje"
+  // deixava de fora as gestantes cadastradas no próprio dia.
   const filteredPacientes = useMemo(() => {
-    const start = new Date(dateStart);
-    const end = new Date(dateEnd);
-    end.setHours(23, 59, 59);
+    const start = startOfDay(parseDateLocal(dateStart) ?? new Date());
+    const end = endOfDay(parseDateLocal(dateEnd) ?? new Date());
     return pacientes.filter(p => {
       const d = new Date(p.created_at);
       return d >= start && d <= end;
@@ -183,19 +187,20 @@ export default function DashboardMetricasPage() {
 
   const pct = (n: number) => allPacientesCount > 0 ? Math.round((n / allPacientesCount) * 100) : 0;
 
-  // Operational bar data
-  const retornosVencidos = pacientes.filter(p => {
-    if (!p.data_proximo_retorno) return false;
-    return differenceInDays(new Date(), new Date(p.data_proximo_retorno)) > 0;
-  }).length;
+  const encerrada = (p: Paciente) =>
+    isPacienteEncerrada({ status_ficha: p.status_ficha, motivo_encerramento: p.motivo_encerramento as MotivoEncerramento | null });
+
+  // Operational bar data — mesma regra do selo "Vencido há N dias" da lista de
+  // gestantes (DMG confirmado, não encerrada, retorno antes de hoje).
+  const hoje = startOfDay(new Date());
+  const pacsRetornoVencido = pacientes.filter(p => {
+    if (p.status_ficha !== 'dmg_confirmado' || encerrada(p)) return false;
+    const retorno = parseDateLocal(p.data_proximo_retorno);
+    return !!retorno && retorno < hoje;
+  });
+  const retornosVencidos = pacsRetornoVencido.length;
 
   const laudosUsados = isPreview ? 5 : (profissionalData?.laudos_usados ?? 0);
-
-  // --- DIAGNÓSTICO ---
-  const dmgConfirmados = filteredPacientes.filter(p =>
-    p.status_ficha === 'dmg_confirmado' || p.status_ficha === 'encaminhada_endocrino' || p.status_ficha === 'resultado_parto'
-  );
-  const dmgCount = dmgConfirmados.length;
 
   const filteredConsultas = useMemo(() => {
     const patientIds = new Set(filteredPacientes.map(p => p.id));
@@ -206,6 +211,29 @@ export default function DashboardMetricasPage() {
   // (Mesmo bug corrigido no admin #57 — aqui nunca tinha sido.) Normaliza p/ maiúsculo.
   const cc = (c: Consulta) => (c.cenario_clinico ?? '').toUpperCase();
   const ehGtt = (c: Consulta) => cc(c) === '6' || cc(c) === '6B';
+
+  // --- DIAGNÓSTICO ---
+  // DMG = a gestante teve o diagnóstico em algum momento, não só "status atual é
+  // dmg_confirmado": quem encerrou por insulinização (status encerrada_insulinizacao)
+  // ficava de fora, e todo parto (resultado_parto) contava como DMG mesmo sem
+  // diagnóstico. Agora vale o histórico: GJ ≥92 no Retorno 1 ('1'), GTT alterado
+  // ('6'/'6B'), Overt ('8'), insulina ('3'/'7') ou qualquer ficha de perfil glicêmico
+  // (A–E, que só existem no caminho do DMG).
+  const consultaIndicaDmg = (c: Consulta) =>
+    c.tipo.startsWith('ficha_') ||
+    (cc(c) === '1' && c.tipo === 'retorno_1') ||
+    ehGtt(c) || cc(c) === '8' || cc(c) === '3' || cc(c) === '7';
+  const idsComDmgNoHistorico = new Set(consultas.filter(consultaIndicaDmg).map(c => c.paciente_id));
+  const motivoEfetivo = (p: Paciente) =>
+    resolverMotivoEfetivo({ status_ficha: p.status_ficha, motivo_encerramento: p.motivo_encerramento as MotivoEncerramento | null });
+  const temDmg = (p: Paciente) =>
+    p.status_ficha === 'dmg_confirmado' ||
+    p.status_ficha === 'encaminhada_endocrino' ||
+    motivoEfetivo(p) === 'insulinizacao' ||
+    idsComDmgNoHistorico.has(p.id);
+
+  const dmgConfirmados = filteredPacientes.filter(temDmg);
+  const dmgCount = dmgConfirmados.length;
 
   // DMG na GJ: cenário 1, ou 8 (overt) no retorno_1
   const dmgByGJ = filteredConsultas.filter(c =>
@@ -242,11 +270,12 @@ export default function DashboardMetricasPage() {
   ].filter(d => d.value > 0);
 
   // --- TRATAMENTO ---
-  const patientsWithInsulin = new Set(
-    filteredConsultas
+  const patientsWithInsulin = new Set([
+    ...filteredConsultas
       .filter(c => cc(c) === '3' || cc(c) === '7')
-      .map(c => c.paciente_id)
-  );
+      .map(c => c.paciente_id),
+    ...filteredPacientes.filter(p => motivoEfetivo(p) === 'insulinizacao').map(p => p.id),
+  ]);
   const withInsulin = patientsWithInsulin.size;
   const endocrino = filteredPacientes.filter(p => p.status_ficha === 'encaminhada_endocrino').length;
   const dietOnly = dmgConfirmados.filter(p => !patientsWithInsulin.has(p.id)).length;
@@ -258,11 +287,12 @@ export default function DashboardMetricasPage() {
 
   // --- ENCERRAMENTOS & ACOMPANHAMENTO ---
   // Motivo derivado: status resultado_parto → parto; encaminhada_endocrino ou
-  // motivo insulinizacao → insulinização; senão o motivo_encerramento cru.
+  // insulinização (motivo OU status encerrada_insulinizacao) → insulinização;
+  // senão o motivo_encerramento cru.
   const motivoDe = (p: Paciente): string | null => {
     if (p.status_ficha === 'resultado_parto') return 'parto';
-    if (p.status_ficha === 'encaminhada_endocrino' || p.motivo_encerramento === 'insulinizacao') return 'insulinizacao';
-    return p.motivo_encerramento ?? null;
+    if (p.status_ficha === 'encaminhada_endocrino') return 'insulinizacao';
+    return motivoEfetivo(p);
   };
   const encerramentos = { parto: 0, aborto: 0, insulinizacao: 0, nao_retornou: 0, outro: 0 };
   let encerradasCount = 0;
@@ -273,14 +303,19 @@ export default function DashboardMetricasPage() {
       encerradasCount++;
     }
   });
-  const ativasCount = Math.max(allPacientesCount - encerradasCount, 0);
+  // "Em acompanhamento" = a mesma regra do filtro "Mostrar fichas encerradas" da
+  // lista (DMG afastado também encerra o acompanhamento, no próprio GTT).
+  const pacsAtivas = filteredPacientes.filter(p => !encerrada(p));
+  const ativasCount = pacsAtivas.length;
+  const pacsAfastadasEncerradas = filteredPacientes.filter(p => encerrada(p) && !motivoDe(p));
+  encerradasCount += pacsAfastadasEncerradas.length;
   const naoRetornouTaxa = encerradasCount > 0 ? Math.round((encerramentos.nao_retornou / encerradasCount) * 100) : 0;
   const taxaDmg = allPacientesCount > 0 ? Math.round((dmgCount / allPacientesCount) * 100) : 0;
   const temEncerramentos = encerradasCount > 0;
 
   // --- EVOLUÇÃO MENSAL ---
-  const startDate = new Date(dateStart);
-  const endDate = new Date(dateEnd);
+  const startDate = parseDateLocal(dateStart) ?? new Date();
+  const endDate = parseDateLocal(dateEnd) ?? new Date();
   const months = eachMonthOfInterval({ start: startDate, end: endDate });
   const showChart = months.length >= 2;
 
@@ -293,16 +328,14 @@ export default function DashboardMetricasPage() {
         return isWithinInterval(d, { start: mStart, end: mEnd });
       });
       const total = monthPacs.length;
-      const dmg = monthPacs.filter(p =>
-        p.status_ficha === 'dmg_confirmado' || p.status_ficha === 'encaminhada_endocrino' || p.status_ficha === 'resultado_parto'
-      ).length;
+      const dmg = monthPacs.filter(temDmg).length;
       return {
         name: format(m, 'MMM/yy', { locale: dateLocale }),
         novas: total - dmg,
         dmg,
       };
     });
-  }, [pacientes, months, dateLocale]);
+  }, [pacientes, months, dateLocale, consultas]);
 
   // PDF export
   const handleExportPDF = async () => {
@@ -321,7 +354,7 @@ export default function DashboardMetricasPage() {
     pdf.setFontSize(16);
     pdf.text(t('dashboardMetricas.pdf.title', { nome: isPreview ? 'Mari' : profissionalData?.nome || '' }), 14, 20);
     pdf.setFontSize(10);
-    pdf.text(t('dashboardMetricas.pdf.period', { inicio: format(new Date(dateStart), 'dd/MM/yyyy'), fim: format(new Date(dateEnd), 'dd/MM/yyyy') }), 14, 28);
+    pdf.text(t('dashboardMetricas.pdf.period', { inicio: format(parseDateLocal(dateStart) ?? new Date(), 'dd/MM/yyyy'), fim: format(parseDateLocal(dateEnd) ?? new Date(), 'dd/MM/yyyy') }), 14, 28);
     pdf.text(t('dashboardMetricas.pdf.generatedOn', { data: format(new Date(), 'dd/MM/yyyy HH:mm') }), 14, 34);
 
     const imgW = pdfW - 28;
@@ -369,9 +402,6 @@ export default function DashboardMetricasPage() {
     );
   };
 
-  const handleRetornosClick = () => {
-    navigate(isPreview ? '/vitrine/dashboard' : '/dashboard');
-  };
 
   // ---- Modal com lista de pacientes por card ----------------------------
   const abrirLista = (titulo: string, pacientes: Paciente[]) => {
@@ -407,9 +437,15 @@ export default function DashboardMetricasPage() {
   const pacsEndocrino = filteredPacientes.filter(p => p.status_ficha === 'encaminhada_endocrino');
 
   // Encerramentos
-  const pacsAtivas = filteredPacientes.filter(p => !motivoDe(p));
   const pacsPorMotivo = (m: string) => filteredPacientes.filter(p => motivoDe(p) === m);
-  const pacsEncerradas = filteredPacientes.filter(p => !!motivoDe(p));
+  const pacsEncerradas = filteredPacientes.filter(encerrada);
+
+  // Retornos vencidos → abre só as gestantes com retorno vencido (antes levava
+  // para a lista inteira de gestantes).
+  const handleRetornosClick = () => {
+    if (!retornosVencidos) return;
+    abrirLista(t('dashboardMetricas.kpi.overdue'), pacsRetornoVencido);
+  };
 
 
   return (
@@ -669,7 +705,7 @@ export default function DashboardMetricasPage() {
             <CleanStatCard dotColor="#F472B6" icon={Stethoscope} label={t('dashboardMetricas.closures.toEndo')} value={encerramentos.insulinizacao} onClick={() => abrirLista(t('dashboardMetricas.closures.toEndo'), pacsPorMotivo('insulinizacao'))} />
             <CleanStatCard dotColor="#94A3B8" icon={Activity} label={t('dashboardMetricas.closures.miscarriage')} value={encerramentos.aborto} onClick={() => abrirLista(t('dashboardMetricas.closures.miscarriage'), pacsPorMotivo('aborto'))} />
             <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.closures.noReturn')} value={encerramentos.nao_retornou} detail={temEncerramentos ? t('dashboardMetricas.closures.noReturnRate', { pct: naoRetornouTaxa }) : undefined} onClick={() => abrirLista(t('dashboardMetricas.closures.noReturn'), pacsPorMotivo('nao_retornou'))} />
-            <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.closures.total')} value={encerradasCount} onClick={() => abrirLista(t('dashboardMetricas.closures.total'), pacsEncerradas)} />
+            <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.closures.total')} value={encerradasCount} detail={pacsAfastadasEncerradas.length ? t('dashboardMetricas.closures.totalInclRuledOut', { count: pacsAfastadasEncerradas.length }) : undefined} onClick={() => abrirLista(t('dashboardMetricas.closures.total'), pacsEncerradas)} />
           </div>
         </section>
 

@@ -3086,7 +3086,8 @@
       "miscarriage": "Closed by miscarriage",
       "noReturn": "Did not return",
       "noReturnRate": "{{pct}}% of closures",
-      "total": "Total closures"
+      "total": "Total closures",
+      "totalInclRuledOut": "includes {{count}} with GDM ruled out"
     },
     "overview": {
       "awaitingGj": "Awaiting FPG",
