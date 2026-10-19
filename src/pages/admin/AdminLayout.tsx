@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
@@ -68,8 +68,10 @@ export default function AdminLayout() {
         <div className="min-h-screen flex w-full bg-[#F8FAFC]">
           <AdminSidebar nome={nomeAdmin} email={user?.email} />
           <div className="flex-1 flex flex-col min-w-0">
-            {/* Barra de topo: seletor de idioma (admin multilíngue). */}
-            <div className="flex justify-end items-center px-4 md:px-6 lg:px-8 pt-4">
+            {/* Barra de topo: botão do menu (só no celular — lá o menu lateral
+                vira gaveta e não havia como abri-lo) + seletor de idioma. */}
+            <div className="flex justify-between md:justify-end items-center gap-3 px-4 md:px-6 lg:px-8 pt-4">
+              <SidebarTrigger className="md:hidden h-10 w-10 rounded-full border border-[#E2E8F0] bg-white text-[#64748B] shadow-sm" />
               <LanguageSwitcher variant="compact" />
             </div>
 

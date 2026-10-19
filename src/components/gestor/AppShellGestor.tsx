@@ -15,10 +15,10 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useMenuLateralMobile } from "@/hooks/useMenuLateralMobile";
 
 // Chaves i18n (traduzidas no render — antes i18n.t no módulo não trocava de idioma).
 const buildItems = (base: string) => [
@@ -38,8 +38,7 @@ const buildItems = (base: string) => [
 
 function GestorSidebar({ nome, unidade, email, basePath, onSair }: { nome: string; unidade: string; email: string; basePath: string; onSair: () => void }) {
   const { t } = useTranslation();
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
+  const { collapsed } = useMenuLateralMobile();
   const { pathname } = useLocation();
   const items = buildItems(basePath);
   const isVitrine = basePath.startsWith("/vitrine");
