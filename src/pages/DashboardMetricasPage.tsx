@@ -11,6 +11,7 @@ import {
 import {
   BarChart3, Download, Loader2, Users, AlertTriangle, ChevronRight,
   FileText, Activity, Baby, Clock, Stethoscope, CheckCircle, HelpCircle,
+  Syringe, Target, Timer, Cake, History, CalendarCheck, ClipboardList, Scale,
 } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ptBR, enUS, es } from 'date-fns/locale';
@@ -22,6 +23,10 @@ import {
 import { parseDateLocal } from '@/lib/dateUtils';
 import { isPacienteEncerrada } from '@/lib/fichaUtils';
 import { resolverMotivoEfetivo, type MotivoEncerramento } from '@/lib/motivoEncerramento';
+import {
+  perfilGestantes, controleGlicemico, extrairPartos, desfechosParto, engajamento,
+  type PerfilMetrica, type PartoTabela, type FaixaEtaria,
+} from '@/lib/dashboardConsultorioMetricas';
 
 interface Paciente {
   id: string;
@@ -32,6 +37,10 @@ interface Paciente {
   profissional_id: string;
   unidade_id: string | null;
   motivo_encerramento?: string | null;
+  data_nascimento?: string | null;
+  dmg_gestacao_anterior?: boolean | null;
+  data_encerramento?: string | null;
+  data_ultima_consulta?: string | null;
 }
 
 interface Consulta {
@@ -40,6 +49,10 @@ interface Consulta {
   cenario_clinico: string | null;
   tipo: string;
   created_at: string;
+  data?: string | null;
+  ig_semanas?: number | null;
+  ig_dias?: number | null;
+  observacoes?: string | null;
 }
 
 interface ExameGlicemia {
@@ -78,6 +91,15 @@ const DATE_LOCALES: Record<string, Locale> = {
   'es': es,
 };
 
+// Chave i18n de cada faixa etária (o rótulo exibido vem do locale).
+const FAIXA_KEY: Record<FaixaEtaria, string> = {
+  '<25': 'lt25',
+  '25–29': 'a25_29',
+  '30–34': 'a30_34',
+  '35–39': 'a35_39',
+  '≥40': 'gte40',
+};
+
 export default function DashboardMetricasPage() {
   const { t, i18n } = useTranslation();
   const dateLocale = DATE_LOCALES[i18n.language] || ptBR;
@@ -89,6 +111,8 @@ export default function DashboardMetricasPage() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [exames, setExames] = useState<ExameGlicemia[]>([]);
+  const [perfis, setPerfis] = useState<PerfilMetrica[]>([]);
+  const [partosTabela, setPartosTabela] = useState<PartoTabela[]>([]);
   const [loading, setLoading] = useState(true);
 
   const defaultEnd = new Date();
@@ -101,6 +125,8 @@ export default function DashboardMetricasPage() {
       setPacientes(generatePreviewData());
       setConsultas(generatePreviewConsultas());
       setExames(generatePreviewExames());
+      setPerfis(generatePreviewPerfis());
+      setPartosTabela([]);
       setLoading(false);
       return;
     }
@@ -114,16 +140,26 @@ export default function DashboardMetricasPage() {
 
     const isInstitucional = !!profissionalData.unidade_id;
 
-    let pacQuery = supabase.from('pacientes').select('id, nome, status_ficha, created_at, data_proximo_retorno, profissional_id, unidade_id, motivo_encerramento').eq('is_rascunho', false);
+    let pacQuery = supabase.from('pacientes').select('id, nome, status_ficha, created_at, data_proximo_retorno, profissional_id, unidade_id, motivo_encerramento, data_nascimento, dmg_gestacao_anterior, data_encerramento, data_ultima_consulta').eq('is_rascunho', false);
     if (isInstitucional) {
       pacQuery = pacQuery.eq('unidade_id', profissionalData.unidade_id!);
     } else {
       pacQuery = pacQuery.eq('profissional_id', profissionalData.id);
     }
 
-    let conQuery = supabase.from('consultas').select('id, paciente_id, cenario_clinico, tipo, created_at');
+    // observacoes: o registro de parto guarda ali o JSON com via, peso, IG etc.
+    let conQuery = supabase.from('consultas').select('id, paciente_id, cenario_clinico, tipo, created_at, data, ig_semanas, ig_dias, observacoes').eq('is_rascunho', false);
     if (!isInstitucional) {
       conQuery = conQuery.eq('profissional_id', profissionalData.id);
+    }
+
+    let perfQuery = supabase.from('perfis_glicemicos').select('paciente_id, percentual_meta, data_inicio, created_at');
+    let partoQuery = supabase.from('partos').select('paciente_id, via_parto, classificacao_rn, peso_rn_g, ig_parto_semanas, ig_parto_dias, intercorrencia_materna, intercorrencia_neonatal').eq('is_rascunho', false);
+    if (isInstitucional) {
+      partoQuery = partoQuery.eq('unidade_id', profissionalData.unidade_id!);
+    } else {
+      perfQuery = perfQuery.eq('profissional_id', profissionalData.id);
+      partoQuery = partoQuery.eq('profissional_id', profissionalData.id);
     }
 
     let exQuery = supabase.from('exames_glicemia').select('id, paciente_id, ig_semanas_na_data, consulta_id');
@@ -131,9 +167,9 @@ export default function DashboardMetricasPage() {
       exQuery = exQuery.eq('profissional_id', profissionalData.id);
     }
 
-    const [pacRes, conRes, exRes] = await Promise.all([pacQuery, conQuery, exQuery]);
+    const [pacRes, conRes, exRes, perfRes, partoRes] = await Promise.all([pacQuery, conQuery, exQuery, perfQuery, partoQuery]);
 
-    const pacs = (pacRes.data as Paciente[]) || [];
+    const pacs = (pacRes.data) || [];
     setPacientes(pacs);
 
     let filteredConsultas = (conRes.data as Consulta[]) || [];
@@ -149,6 +185,12 @@ export default function DashboardMetricasPage() {
       filteredExames = filteredExames.filter(e => patientIds.has(e.paciente_id));
     }
     setExames(filteredExames);
+
+    // Perfis/partos: restringe às gestantes carregadas (no institucional a RLS
+    // pode trazer outras unidades).
+    const idsPac = new Set(pacs.map(p => p.id));
+    setPerfis(((perfRes.data as PerfilMetrica[]) || []).filter(pf => idsPac.has(pf.paciente_id)));
+    setPartosTabela(((partoRes.data as PartoTabela[]) || []).filter(pt => idsPac.has(pt.paciente_id)));
     setLoading(false);
   };
 
@@ -269,21 +311,40 @@ export default function DashboardMetricasPage() {
     { name: t('dashboardMetricas.pie.gttTardio'), value: gttTardio, color: BRAND.lilas },
   ].filter(d => d.value > 0);
 
-  // --- TRATAMENTO ---
+  // --- CONTROLE GLICÊMICO ---
+  // A MARI acompanha o DMG com dieta + perfil glicêmico; quando a insulina é
+  // indicada, o acompanhamento encerra (Família 42). Por isso não existe mais
+  // "associada ao endócrino": o bloco mostra dieta × indicação de insulina.
   const patientsWithInsulin = new Set([
     ...filteredConsultas
       .filter(c => cc(c) === '3' || cc(c) === '7')
       .map(c => c.paciente_id),
     ...filteredPacientes.filter(p => motivoEfetivo(p) === 'insulinizacao').map(p => p.id),
   ]);
-  const withInsulin = patientsWithInsulin.size;
-  const endocrino = filteredPacientes.filter(p => p.status_ficha === 'encaminhada_endocrino').length;
-  const dietOnly = dmgConfirmados.filter(p => !patientsWithInsulin.has(p.id)).length;
+  const idsFiltrados = new Set(filteredPacientes.map(p => p.id));
+  const filteredPerfis = perfis.filter(pf => idsFiltrados.has(pf.paciente_id));
+  const controle = controleGlicemico(dmgConfirmados, patientsWithInsulin, filteredPerfis, filteredConsultas);
+  const pctDe = (n: number, de: number) => (de > 0 ? Math.round((n / de) * 100) : 0);
 
-  const dmgTratamento = dmgCount > 0 ? dmgCount : 1;
-  const dietOnlyPercent = Math.round((dietOnly / dmgTratamento) * 100);
-  const withInsulinPercent = Math.round((withInsulin / dmgTratamento) * 100);
-  const endocrinoPercent = Math.round((endocrino / dmgTratamento) * 100);
+  // --- PERFIL DAS GESTANTES ---
+  const perfil = perfilGestantes(filteredPacientes, temDmg, filteredConsultas);
+
+  // --- DESFECHOS DO PARTO ---
+  const partos = extrairPartos(filteredConsultas, partosTabela.filter(pt => idsFiltrados.has(pt.paciente_id)));
+  const desfechos = desfechosParto(partos);
+  const pacsDosPartos = (lista: { paciente_id: string }[]) => {
+    const ids = new Set(lista.map(x => x.paciente_id));
+    return filteredPacientes.filter(p => ids.has(p.id));
+  };
+
+  // Formatação curta (locale do usuário)
+  const fmtNum = (x: number | null, casas = 0) =>
+    x == null ? '—' : x.toLocaleString(i18n.language, { minimumFractionDigits: casas, maximumFractionDigits: casas });
+  const fmtIg = (x: number | null) => {
+    if (x == null) return '—';
+    const totalDias = Math.round(x * 7);
+    return t('dashboardMetricas.igFormat', { s: Math.floor(totalDias / 7), d: totalDias % 7 });
+  };
 
   // --- ENCERRAMENTOS & ACOMPANHAMENTO ---
   // Motivo derivado: status resultado_parto → parto; encaminhada_endocrino ou
@@ -312,6 +373,15 @@ export default function DashboardMetricasPage() {
   const naoRetornouTaxa = encerradasCount > 0 ? Math.round((encerramentos.nao_retornou / encerradasCount) * 100) : 0;
   const taxaDmg = allPacientesCount > 0 ? Math.round((dmgCount / allPacientesCount) * 100) : 0;
   const temEncerramentos = encerradasCount > 0;
+
+  // --- ENGAJAMENTO ---
+  const engaj = engajamento(filteredPacientes, filteredConsultas, filteredPerfis, dmgCount, encerrada);
+  // Retornos em dia: gestantes com DMG em acompanhamento que têm retorno marcado.
+  const pacsComRetorno = filteredPacientes.filter(p =>
+    p.status_ficha === 'dmg_confirmado' && !encerrada(p) && !!p.data_proximo_retorno
+  );
+  const idsVencidas = new Set(pacsRetornoVencido.map(p => p.id));
+  const pacsRetornoEmDia = pacsComRetorno.filter(p => !idsVencidas.has(p.id));
 
   // --- EVOLUÇÃO MENSAL ---
   const startDate = parseDateLocal(dateStart) ?? new Date();
@@ -431,10 +501,6 @@ export default function DashboardMetricasPage() {
   );
   const aguardandoDiagnosticoCount = pacsAguardandoDiagnostico.length;
 
-  // Tratamento
-  const pacsDietOnly = pacsDmgConfirmado.filter(p => !patientsWithInsulin.has(p.id));
-  const pacsWithInsulin = filteredPacientes.filter(p => patientsWithInsulin.has(p.id));
-  const pacsEndocrino = filteredPacientes.filter(p => p.status_ficha === 'encaminhada_endocrino');
 
   // Encerramentos
   const pacsPorMotivo = (m: string) => filteredPacientes.filter(p => motivoDe(p) === m);
@@ -686,15 +752,76 @@ export default function DashboardMetricasPage() {
 
         </section>
 
-        {/* Tratamento */}
+        {/* Perfil das gestantes */}
         <section className="flex flex-col gap-4">
-          <AdminSectionTitle>{t('dashboardMetricas.sections.treatment')}</AdminSectionTitle>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.treatment.dietOnly')} value={dietOnly} detail={t('dashboardMetricas.pctOfDmg', { pct: dietOnlyPercent })} onClick={() => abrirLista(t('dashboardMetricas.treatment.dietOnly'), pacsDietOnly)} />
-            <CleanStatCard dotColor={BRAND.lilas} icon={Activity} label={t('dashboardMetricas.treatment.withInsulin')} value={withInsulin} detail={t('dashboardMetricas.pctOfDmg', { pct: withInsulinPercent })} onClick={() => abrirLista(t('dashboardMetricas.treatment.withInsulin'), pacsWithInsulin)} />
-            <CleanStatCard dotColor={BRAND.roxoEscuro} icon={Stethoscope} label={t('dashboardMetricas.treatment.withEndo')} value={endocrino} detail={t('dashboardMetricas.pctOfDmg', { pct: endocrinoPercent })} onClick={() => abrirLista(t('dashboardMetricas.treatment.withEndo'), pacsEndocrino)} />
+          <AdminSectionTitle>{t('dashboardMetricas.sections.profile')}</AdminSectionTitle>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <CleanStatCard dotColor={BRAND.teal} icon={Cake} label={t('dashboardMetricas.profile.avgAge')} value={perfil.idadeMedia == null ? '—' : t('dashboardMetricas.profile.years', { n: fmtNum(perfil.idadeMedia, 1) })} detail={perfil.comIdade ? t('dashboardMetricas.profile.basedOn', { count: perfil.comIdade }) : t('dashboardMetricas.profile.noBirthDate')} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={History} label={t('dashboardMetricas.profile.previousDmg')} value={perfil.dmgComAnterior.length} detail={t('dashboardMetricas.profile.ofDmg', { n: perfil.dmgComAnterior.length, de: perfil.dmgTotal, pct: pctDe(perfil.dmgComAnterior.length, perfil.dmgTotal) })} onClick={() => abrirLista(t('dashboardMetricas.profile.previousDmg'), perfil.dmgComAnterior)} />
+            <CleanStatCard dotColor="#F472B6" icon={Activity} label={t('dashboardMetricas.profile.recurrence')} value={perfil.comDmgAnterior.length ? `${pctDe(perfil.dmgComAnterior.length, perfil.comDmgAnterior.length)}%` : '—'} detail={perfil.comDmgAnterior.length ? t('dashboardMetricas.profile.recurrenceDetail', { n: perfil.dmgComAnterior.length, de: perfil.comDmgAnterior.length }) : t('dashboardMetricas.profile.noPreviousDmg')} onClick={() => abrirLista(t('dashboardMetricas.profile.recurrence'), perfil.comDmgAnterior)} />
+            <CleanStatCard dotColor="#F59E0B" icon={Clock} label={t('dashboardMetricas.profile.gaAtDiagnosis')} value={fmtIg(perfil.igMediaDiagnostico)} detail={perfil.comIgDiagnostico ? t('dashboardMetricas.profile.basedOnDmg', { count: perfil.comIgDiagnostico }) : undefined} />
+          </div>
+
+          {perfil.comIdade > 0 && (
+            <AdminChartCard title={t('dashboardMetricas.profile.ageChartTitle')}>
+              {perfil.faixaMaiorPrevalencia && (
+                <div className="-mt-2 mb-5 inline-flex flex-wrap items-center gap-2 rounded-full px-4 py-2 text-sm" style={{ backgroundColor: BRAND.bgTealSuave, color: BRAND.tealEscuro, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+                  <Target className="h-4 w-4" />
+                  {t('dashboardMetricas.profile.highestPrevalence', {
+                    faixa: t(`dashboardMetricas.profile.ageBands.${FAIXA_KEY[perfil.faixaMaiorPrevalencia.faixa]}`),
+                    n: perfil.faixaMaiorPrevalencia.dmg,
+                    de: perfil.faixaMaiorPrevalencia.total,
+                    pct: pctDe(perfil.faixaMaiorPrevalencia.dmg, perfil.faixaMaiorPrevalencia.total),
+                  })}
+                </div>
+              )}
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={perfil.faixas.map(f => ({ name: t(`dashboardMetricas.profile.ageBands.${FAIXA_KEY[f.faixa]}`), semDmg: f.total - f.dmg, dmg: f.dmg }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: BRAND.textLabel }} axisLine={{ stroke: '#E2E8F0' }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: BRAND.textLabel }} allowDecimals={false} axisLine={false} tickLine={false} />
+                  <RechartsTooltip />
+                  <Legend iconType="circle" wrapperStyle={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontSize: 12 }} />
+                  <Bar dataKey="semDmg" name={t('dashboardMetricas.profile.withoutDmg')} stackId="a" fill={BRAND.verdaAgua}>
+                    <LabelList dataKey="semDmg" content={renderLabel} />
+                  </Bar>
+                  <Bar dataKey="dmg" name={t('dashboardMetricas.profile.withDmg')} stackId="a" fill={BRAND.teal} radius={[6, 6, 0, 0]}>
+                    <LabelList dataKey="dmg" content={renderLabel} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </AdminChartCard>
+          )}
+        </section>
+
+        {/* Controle glicêmico (substitui "Tratamento": insulina encerra a MARI) */}
+        <section className="flex flex-col gap-4">
+          <AdminSectionTitle>{t('dashboardMetricas.sections.control')}</AdminSectionTitle>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <CleanStatCard dotColor={BRAND.verdaAgua} icon={CheckCircle} label={t('dashboardMetricas.control.dietOnly')} value={controle.soDieta.length} detail={t('dashboardMetricas.pctOfDmg', { pct: pctDe(controle.soDieta.length, dmgCount) })} onClick={() => abrirLista(t('dashboardMetricas.control.dietOnly'), controle.soDieta)} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={Syringe} label={t('dashboardMetricas.control.insulin')} value={controle.comInsulina.length} detail={t('dashboardMetricas.pctOfDmg', { pct: pctDe(controle.comInsulina.length, dmgCount) })} onClick={() => abrirLista(t('dashboardMetricas.control.insulin'), controle.comInsulina)} />
+            <CleanStatCard dotColor={BRAND.teal} icon={Target} label={t('dashboardMetricas.control.inTarget')} value={controle.mediaNaMeta == null ? '—' : `${fmtNum(controle.mediaNaMeta)}%`} detail={controle.comPerfil ? t('dashboardMetricas.control.inTargetDetail', { count: controle.comPerfil }) : t('dashboardMetricas.control.noProfiles')} />
+            <CleanStatCard dotColor="#F59E0B" icon={Timer} label={t('dashboardMetricas.control.daysToInsulin')} value={controle.diasAteInsulina == null ? '—' : t('dashboardMetricas.control.days', { n: fmtNum(controle.diasAteInsulina) })} detail={controle.comDiasAteInsulina ? t('dashboardMetricas.control.daysToInsulinDetail', { count: controle.comDiasAteInsulina }) : undefined} />
           </div>
         </section>
+
+        {/* Desfechos do parto */}
+        <BentoPanel title={t('dashboardMetricas.sections.outcomes')} eyebrow={t('dashboardMetricas.outcomes.deliveriesCount', { count: desfechos.total })}>
+          {desfechos.total === 0 ? (
+            <p className="text-sm" style={{ color: BRAND.textLabel, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+              {t('dashboardMetricas.outcomes.noDeliveries')}
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <BentoItem accent={BRAND.lilas} label={t('dashboardMetricas.outcomes.cesarean')} value={`${pctDe(desfechos.cesarea.length, desfechos.total)}%`} detail={t('dashboardMetricas.outcomes.nOfTotal', { n: desfechos.cesarea.length, de: desfechos.total })} onClick={() => abrirLista(t('dashboardMetricas.outcomes.cesarean'), pacsDosPartos(desfechos.cesarea))} />
+              <BentoItem accent={BRAND.teal} label={t('dashboardMetricas.outcomes.gaAtBirth')} value={fmtIg(desfechos.igMedia)} detail={t('dashboardMetricas.outcomes.preterm', { count: desfechos.prematuros.length })} onClick={desfechos.prematuros.length ? () => abrirLista(t('dashboardMetricas.outcomes.pretermTitle'), pacsDosPartos(desfechos.prematuros)) : undefined} />
+              <BentoItem accent={BRAND.verdaAgua} label={t('dashboardMetricas.outcomes.birthWeight')} value={desfechos.pesoMedio == null ? '—' : `${fmtNum(desfechos.pesoMedio)} g`} detail={t('dashboardMetricas.outcomes.macrosomia', { count: desfechos.macrossomia.length })} onClick={desfechos.macrossomia.length ? () => abrirLista(t('dashboardMetricas.outcomes.macrosomiaTitle'), pacsDosPartos(desfechos.macrossomia)) : undefined} />
+              <BentoItem accent="#F472B6" label={t('dashboardMetricas.outcomes.lga')} value={desfechos.gig.length} detail={t('dashboardMetricas.outcomes.rnClass', { aig: desfechos.aig.length, pig: desfechos.pig.length })} onClick={() => abrirLista(t('dashboardMetricas.outcomes.lga'), pacsDosPartos(desfechos.gig))} />
+              <BentoItem accent="#F59E0B" label={t('dashboardMetricas.outcomes.complications')} value={pacsDosPartos([...desfechos.intercorrenciaMaterna, ...desfechos.intercorrenciaNeonatal]).length} detail={t('dashboardMetricas.outcomes.complicationsDetail', { mat: desfechos.intercorrenciaMaterna.length, neo: desfechos.intercorrenciaNeonatal.length })} onClick={() => abrirLista(t('dashboardMetricas.outcomes.complications'), pacsDosPartos([...desfechos.intercorrenciaMaterna, ...desfechos.intercorrenciaNeonatal]))} />
+              <BentoItem accent="#5EEAD4" label={t('dashboardMetricas.outcomes.breastfeeding')} value={desfechos.comAleitamento ? `${pctDe(desfechos.aleitamento, desfechos.comAleitamento)}%` : '—'} detail={desfechos.comAleitamento ? t('dashboardMetricas.outcomes.nOfTotal', { n: desfechos.aleitamento, de: desfechos.comAleitamento }) : undefined} />
+            </div>
+          )}
+        </BentoPanel>
 
         {/* Encerramentos & acompanhamento */}
         <section className="flex flex-col gap-4">
@@ -706,6 +833,17 @@ export default function DashboardMetricasPage() {
             <CleanStatCard dotColor="#94A3B8" icon={Activity} label={t('dashboardMetricas.closures.miscarriage')} value={encerramentos.aborto} onClick={() => abrirLista(t('dashboardMetricas.closures.miscarriage'), pacsPorMotivo('aborto'))} />
             <CleanStatCard dotColor="#94A3B8" icon={Clock} label={t('dashboardMetricas.closures.noReturn')} value={encerramentos.nao_retornou} detail={temEncerramentos ? t('dashboardMetricas.closures.noReturnRate', { pct: naoRetornouTaxa }) : undefined} onClick={() => abrirLista(t('dashboardMetricas.closures.noReturn'), pacsPorMotivo('nao_retornou'))} />
             <CleanStatCard dotColor="#94A3B8" icon={Users} label={t('dashboardMetricas.closures.total')} value={encerradasCount} detail={pacsAfastadasEncerradas.length ? t('dashboardMetricas.closures.totalInclRuledOut', { count: pacsAfastadasEncerradas.length }) : undefined} onClick={() => abrirLista(t('dashboardMetricas.closures.total'), pacsEncerradas)} />
+          </div>
+        </section>
+
+        {/* Engajamento */}
+        <section className="flex flex-col gap-4">
+          <AdminSectionTitle>{t('dashboardMetricas.sections.engagement')}</AdminSectionTitle>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <CleanStatCard dotColor={BRAND.teal} icon={ClipboardList} label={t('dashboardMetricas.engagement.consults')} value={engaj.consultas} detail={engaj.consultasPorGestante == null ? undefined : t('dashboardMetricas.engagement.perPatient', { n: fmtNum(engaj.consultasPorGestante, 1) })} />
+            <CleanStatCard dotColor={BRAND.lilas} icon={Scale} label={t('dashboardMetricas.engagement.profiles')} value={engaj.perfis} detail={engaj.perfisPorDmg == null ? undefined : t('dashboardMetricas.engagement.perDmg', { n: fmtNum(engaj.perfisPorDmg, 1) })} />
+            <CleanStatCard dotColor="#0EA5A5" icon={CalendarCheck} label={t('dashboardMetricas.engagement.onTime')} value={pacsComRetorno.length ? `${pctDe(pacsRetornoEmDia.length, pacsComRetorno.length)}%` : '—'} detail={pacsComRetorno.length ? t('dashboardMetricas.engagement.onTimeDetail', { n: pacsRetornoEmDia.length, de: pacsComRetorno.length }) : undefined} onClick={pacsRetornoEmDia.length ? () => abrirLista(t('dashboardMetricas.engagement.onTime'), pacsRetornoEmDia) : undefined} />
+            <CleanStatCard dotColor="#F59E0B" icon={Clock} label={t('dashboardMetricas.engagement.followUp')} value={engaj.semanasAcompanhamento == null ? '—' : t('dashboardMetricas.engagement.weeks', { n: fmtNum(engaj.semanasAcompanhamento, 1) })} detail={t('dashboardMetricas.engagement.followUpDetail')} />
           </div>
         </section>
 
@@ -907,13 +1045,13 @@ function BentoItem({
   onClick,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   detail?: string;
   accent: string;
   highlight?: boolean;
   onClick?: () => void;
 }) {
-  const clickable = !!onClick && value > 0;
+  const clickable = !!onClick && (typeof value === 'number' ? value > 0 : value !== '—');
   const Tag: any = clickable ? 'button' : 'div';
   return (
     <Tag
@@ -922,7 +1060,7 @@ function BentoItem({
       style={{ borderLeft: `4px solid ${accent}` }}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm" style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+        <p className="text-sm leading-snug" style={{ color: '#64748B', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
           {label}
         </p>
         <p
@@ -954,12 +1092,12 @@ function CleanStatCard({
 }: {
   icon: React.ElementType;
   label: string;
-  value: number;
+  value: number | string;
   detail?: string;
   dotColor: string;
   onClick?: () => void;
 }) {
-  const clickable = !!onClick && value > 0;
+  const clickable = !!onClick && (typeof value === 'number' ? value > 0 : value !== '—');
   const Tag: any = clickable ? 'button' : 'div';
   return (
     <Tag
@@ -1058,8 +1196,21 @@ function AdminChartCard({ title, children }: { title: string; children: React.Re
  * Evolução: Fev=3(2 DMG), Mar=4(3 DMG), Abr=1(0 DMG)
  */
 
+// Campos extras da vitrine (idade, DMG anterior, encerramento) para os blocos
+// Perfil das gestantes / Controle glicêmico / Engajamento.
+const PREVIEW_EXTRA: Record<string, Partial<Paciente>> = {
+  p1: { data_nascimento: '1992-05-14', dmg_gestacao_anterior: true },
+  p2: { data_nascimento: '1999-02-03', dmg_gestacao_anterior: false },
+  p3: { data_nascimento: '1995-08-21', dmg_gestacao_anterior: false },
+  p4: { data_nascimento: '2001-11-30', dmg_gestacao_anterior: false },
+  p5: { data_nascimento: '1989-03-09', dmg_gestacao_anterior: true },
+  p6: { data_nascimento: '1990-07-17', dmg_gestacao_anterior: false },
+  p7: { data_nascimento: '1993-12-01', dmg_gestacao_anterior: false, data_encerramento: '2026-09-02' },
+  p8: { data_nascimento: '1984-06-25', dmg_gestacao_anterior: true, data_encerramento: '2026-04-10' },
+};
+
 function generatePreviewData(): Paciente[] {
-  return [
+  return ([
     { id: 'p1', nome: 'Moara de Carvalho', status_ficha: 'dmg_confirmado', created_at: '2026-03-10T10:00:00Z', data_proximo_retorno: null, profissional_id: 'preview', unidade_id: null },
     { id: 'p2', nome: 'Maria Luísa Ferreira', status_ficha: 'aguardando_gj', created_at: '2026-04-05T10:00:00Z', data_proximo_retorno: null, profissional_id: 'preview', unidade_id: null },
     { id: 'p3', nome: 'Ana Carolina Souza', status_ficha: 'aguardando_gtt', created_at: '2026-03-15T10:00:00Z', data_proximo_retorno: null, profissional_id: 'preview', unidade_id: null },
@@ -1068,11 +1219,14 @@ function generatePreviewData(): Paciente[] {
     { id: 'p6', nome: 'Camila Rodrigues', status_ficha: 'dmg_confirmado', created_at: '2026-03-22T10:00:00Z', data_proximo_retorno: null, profissional_id: 'preview', unidade_id: null },
     { id: 'p7', nome: 'Fernanda Costa Lima', status_ficha: 'resultado_parto', created_at: '2026-02-05T10:00:00Z', data_proximo_retorno: null, profissional_id: 'preview', unidade_id: null },
     { id: 'p8', nome: 'Beatriz Mendes', status_ficha: 'encaminhada_endocrino', created_at: '2026-03-28T10:00:00Z', data_proximo_retorno: '2026-04-10T10:00:00Z', profissional_id: 'preview', unidade_id: null },
-  ];
+  ]).map(p => ({ ...p, ...PREVIEW_EXTRA[p.id] }));
 }
 
+// IG (semanas) das consultas diagnósticas da vitrine.
+const PREVIEW_IG: Record<string, number> = { c1b: 14, c5c: 26, c6c: 30, c7b: 12, c8c: 26 };
+
 function generatePreviewConsultas(): Consulta[] {
-  return [
+  return ([
     // Moara (p1): Caso Novo → Retorno 1 com GJ ≥92 → cenário 1
     { id: 'c1a', paciente_id: 'p1', cenario_clinico: null, tipo: 'consulta_1', created_at: '2026-03-10T10:00:00Z' },
     { id: 'c1b', paciente_id: 'p1', cenario_clinico: '1', tipo: 'retorno_1', created_at: '2026-03-17T10:00:00Z' },
@@ -1110,6 +1264,31 @@ function generatePreviewConsultas(): Consulta[] {
     { id: 'c8b', paciente_id: 'p8', cenario_clinico: '2', tipo: 'retorno_1', created_at: '2026-04-04T10:00:00Z' },
     { id: 'c8c', paciente_id: 'p8', cenario_clinico: '6', tipo: 'retorno_2', created_at: '2026-04-08T10:00:00Z' },
     { id: 'c8d', paciente_id: 'p8', cenario_clinico: '7', tipo: 'retorno_3', created_at: '2026-04-10T10:00:00Z' },
+
+    // Fernanda (p7): registro de parto (dados em observacoes, como no app)
+    {
+      id: 'c7c', paciente_id: 'p7', cenario_clinico: '5', tipo: 'registro_parto', created_at: '2026-09-02T10:00:00Z',
+      observacoes: JSON.stringify({
+        via_parto: 'vaginal', ig_semanas: 38, ig_dias: 4, peso_rn_g: 3420, classificacao_rn: 'AIG',
+        intercorrencias_maternas: false, intercorrencias_neonatais: false, aleitamento_sala_parto: true,
+      }),
+    },
+  ] as Consulta[]).map(c => ({
+    ...c,
+    data: c.created_at.slice(0, 10),
+    ig_semanas: PREVIEW_IG[c.id] ?? null,
+    ig_dias: PREVIEW_IG[c.id] != null ? 0 : null,
+  }));
+}
+
+function generatePreviewPerfis(): PerfilMetrica[] {
+  return [
+    { paciente_id: 'p1', percentual_meta: 72, data_inicio: '2026-03-18', created_at: '2026-03-25T10:00:00Z' },
+    { paciente_id: 'p1', percentual_meta: 88, data_inicio: '2026-04-01', created_at: '2026-04-08T10:00:00Z' },
+    { paciente_id: 'p5', percentual_meta: 81, data_inicio: '2026-03-16', created_at: '2026-03-23T10:00:00Z' },
+    { paciente_id: 'p6', percentual_meta: 54, data_inicio: '2026-04-09', created_at: '2026-04-16T10:00:00Z' },
+    { paciente_id: 'p7', percentual_meta: 90, data_inicio: '2026-02-13', created_at: '2026-02-20T10:00:00Z' },
+    { paciente_id: 'p8', percentual_meta: 48, data_inicio: '2026-04-08', created_at: '2026-04-09T10:00:00Z' },
   ];
 }
 
