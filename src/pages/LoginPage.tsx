@@ -26,12 +26,15 @@ export default function LoginPage() {
 
   const isFormValid = email.trim() !== '' && password.length >= 6;
 
+  // Quem já está logado (sessão salva no aparelho) vai direto para a sua tela —
+  // antes só redirecionava depois de digitar a senha, e abrir o site (que cai em
+  // /login) parecia ter deslogado. Sem perfil vinculado, só após o envio.
   useEffect(() => {
-    if (!submitted || loading) return;
+    if (loading) return;
     if (!user) return;
 
     if (profile === null) {
-      navigate('/onboarding', { replace: true });
+      if (submitted) navigate('/onboarding', { replace: true });
       return;
     }
     if (profile) {

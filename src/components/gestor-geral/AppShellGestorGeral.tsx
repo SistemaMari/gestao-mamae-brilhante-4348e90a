@@ -12,12 +12,12 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { SidebarLogo, SidebarRodapeUsuario } from "@/components/shell/SidebarMarca";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useMenuLateralMobile } from "@/hooks/useMenuLateralMobile";
 
 const buildItems = (base: string, t: (key: string) => string) => [
   { title: t("gestorGeral.appShell.navVisaoGeral"), path: `${base}/visao-geral`, icon: LayoutGrid, exact: false },
@@ -45,8 +45,7 @@ function GestorGeralSidebar({
   onSair: () => void;
 }) {
   const { t } = useTranslation();
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
+  const { collapsed } = useMenuLateralMobile();
   const { pathname } = useLocation();
   const items = buildItems(basePath, t);
   const isVitrine = basePath.startsWith("/vitrine");

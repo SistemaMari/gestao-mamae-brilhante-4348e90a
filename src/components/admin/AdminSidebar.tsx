@@ -13,11 +13,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useMenuLateralMobile } from "@/hooks/useMenuLateralMobile";
 import mariLogo from "@/assets/mari-logo.png";
 
 const baseItems = [
@@ -55,8 +55,7 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ nome, email, onSair }: AdminSidebarProps = {}) {
   const { t } = useTranslation();
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
+  const { collapsed } = useMenuLateralMobile();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();

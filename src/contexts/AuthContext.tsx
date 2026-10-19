@@ -3,6 +3,9 @@ import { User, Session } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import i18n from '@/i18n';
+import {
+  marcarSessaoPlantao, limparSessaoPlantao, sessaoPlantaoExpirada, INTERVALO_BATIMENTO_MS,
+} from '@/lib/sessaoPlantao';
 
 export type UserProfile = 'consultorio' | 'institucional' | 'gestor' | 'gestor_geral' | 'admin';
 
@@ -27,7 +30,10 @@ const ROLE_PRIORITY: UserProfile[] = [
 ];
 
 async function rolesFromUserRoles(userId: string): Promise<UserProfile[]> {
-  for (let tentativa = 0; tentativa < 2; tentativa++) {
+  // Ao abrir/atualizar a página o token pode estar sendo renovado e a 1ª
+  // consulta falhar; sem perfil a pessoa caía no onboarding como se tivesse
+  // sido deslogada. Tenta algumas vezes, com espera crescente.
+  for (let tentativa = 0; tentativa < 4; tentativa++) {
     const { data, error } = await supabase
       .from('user_roles')
       .select('role')
@@ -35,7 +41,7 @@ async function rolesFromUserRoles(userId: string): Promise<UserProfile[]> {
     if (!error && data) {
       return (data.map((r) => r.role) as UserProfile[]) ?? [];
     }
-    if (tentativa === 0) await new Promise((r) => setTimeout(r, 150));
+    if (tentativa < 3) await new Promise((r) => setTimeout(r, 300 * (tentativa + 1)));
   }
   return [];
 }
@@ -115,6 +121,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const resolverPerfil = async (uid: string) => {
       try {
         const p = await determineProfile(uid);
+        // Institucional: a sessão vale só enquanto o navegador estiver aberto
+        // (computador da unidade é dividido entre plantões). Demais perfis
+        // seguem logados até sair. Ver src/lib/sessaoPlantao.ts.
+        if (p === 'institucional') {
+          if (sessaoPlantaoExpirada()) {
+            limparSessaoPlantao();
+            await supabase.auth.signOut({ scope: 'local' });
+            return;
+          }
+          marcarSessaoPlantao();
+        } else {
+          limparSessaoPlantao();
+        }
         if (!cancelado) setProfile(p);
       } catch {
         if (!cancelado) setProfile(null);
@@ -169,6 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             resolverPerfil(newSession.user.id);
           }, 0);
         } else {
+          limparSessaoPlantao();
           queryClient.clear();
           setProfile(null);
           setLoading(false);
@@ -193,13 +213,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [queryClient]);
 
+  // Plantão do institucional: enquanto houver uma aba aberta, renova o sinal de
+  // vida (permite abrir outra aba sem perder o login).
+  useEffect(() => {
+    if (profile !== 'institucional') return;
+    const bater = () => marcarSessaoPlantao();
+    bater();
+    const id = window.setInterval(bater, INTERVALO_BATIMENTO_MS);
+    const aoVoltar = () => { if (document.visibilityState === 'visible') bater(); };
+    document.addEventListener('visibilitychange', aoVoltar);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', aoVoltar);
+    };
+  }, [profile]);
+
   const signIn = async (email: string, password: string) => {
+    // Login digitado agora = plantão novo nesta aba (antes do perfil resolver,
+    // para o institucional não ser deslogado logo em seguida).
+    marcarSessaoPlantao();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: 'E-mail ou senha incorretos.' };
     return { error: null };
   };
 
   const signOut = async () => {
+    limparSessaoPlantao();
     await supabase.auth.signOut();
     try {
       sessionStorage.clear();
