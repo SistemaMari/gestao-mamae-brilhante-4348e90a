@@ -3086,7 +3086,8 @@
       "miscarriage": "Cerradas por aborto",
       "noReturn": "No regresaron",
       "noReturnRate": "{{pct}}% de los cierres",
-      "total": "Total de cierres"
+      "total": "Total de cierres",
+      "totalInclRuledOut": "incluye {{count}} con DMG descartado"
     },
     "overview": {
       "awaitingGj": "Esperando GB",
