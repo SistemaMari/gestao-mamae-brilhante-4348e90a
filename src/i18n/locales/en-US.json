@@ -539,6 +539,72 @@
     }
   },
   "admin": {
+    "pagamentosKanban": {
+      "titulo": "Payments and renewals",
+      "subtitulo": "Each practice account sits in the column of the situation that needs action first. Cards move on their own as payments arrive from Asaas.",
+      "atualizar": "Refresh",
+      "buscar": "Search by name or email",
+      "erro": "Couldn't load payments right now. Try refreshing in a moment.",
+      "vazio": "No accounts here",
+      "mesDe": "Month {{mes}} of 12",
+      "parcela": "Installment {{n}}",
+      "parcelasPagas": "{{pagas}} of {{total}} installments paid",
+      "kpiValorAtraso": "Overdue amount",
+      "kpiContas_one": "{{count}} account",
+      "kpiContas_other": "{{count}} accounts",
+      "kpiAReceber": "Due in the next 30 days",
+      "kpiRenovar": "Renewing within 60 days",
+      "kpiContasAtivas": "Active accounts",
+      "filtro": {
+        "todas": "All payment methods",
+        "pixBoleto": "Pix or bank slip"
+      },
+      "forma": {
+        "cartao": "Card",
+        "pix": "Pix",
+        "boleto": "Bank slip",
+        "aEscolher": "Method to choose"
+      },
+      "coluna": {
+        "em_dia": "Up to date",
+        "vence_em_breve": "Due within 5 days",
+        "atraso": "Overdue payment",
+        "quitado": "Paid in full",
+        "renovar": "Renew · within 60 days",
+        "encerrado": "Closed"
+      },
+      "ajuda": {
+        "em_dia": "Installments paid to date.",
+        "vence_em_breve": "Pix or bank slip installment coming due — worth a reminder.",
+        "atraso": "Overdue installment: collect or decide on cancellation.",
+        "quitado": "Paid upfront or already paid every installment.",
+        "renovar": "The paid year ends within 60 days: time for sales.",
+        "encerrado": "Plan expired, cancelled, or access revoked."
+      },
+      "tag": {
+        "atraso_one": "Installment {{parcela}} · {{count}} day late",
+        "atraso_other": "Installment {{parcela}} · {{count}} days late",
+        "inadimplente": "Marked as delinquent",
+        "vence": "Due {{data}}",
+        "aVista": "Paid upfront",
+        "quitado": "{{n}} of {{n}} installments paid",
+        "renovar_one": "Expires {{data}} · {{count}} day",
+        "renovar_other": "Expires {{data}} · {{count}} days",
+        "vencido": "Expired on {{data}}",
+        "cancelado": "Plan cancelled",
+        "revogado": "Access revoked",
+        "naoRenova": "Asked not to renew",
+        "falhaAsaas": "Asaas didn't respond — refresh",
+        "semCobrancas": "No charges in Asaas"
+      },
+      "situacao": {
+        "pago": "Paid",
+        "vencido": "Overdue",
+        "a_vencer": "Upcoming",
+        "em_analise": "Under review",
+        "estornado": "Refunded"
+      }
+    },
     "renovacoes": {
       "titulo": "Renewals and cancellations",
       "subtitulo": "MARI is annual and doesn't renew on its own. See who expires soon, who asked not to renew and who left.",
@@ -849,6 +915,7 @@
       "professionalAccounts": "Professional Accounts",
       "reportTexts": "Report Texts",
       "plans": "Plans",
+      "paymentsKanban": "Payments",
       "renewals": "Renewals",
       "dashboardTips": "Dashboard Tips",
       "feedbacks": "Feedback",

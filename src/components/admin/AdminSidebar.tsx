@@ -1,4 +1,4 @@
-import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, CreditCard, Lightbulb, MessageSquareHeart, Heart, Settings, LogOut, CalendarClock } from "lucide-react";
+import { BarChart3, Map, Download, Users, Building2, Stethoscope, FileText, PlayCircle, Film, CreditCard, Lightbulb, MessageSquareHeart, Heart, Settings, LogOut, CalendarClock, SquareKanban } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -29,6 +29,7 @@ const baseItems = [
   { titleKey: "admin.sidebar.professionalAccounts", path: "/profissionais", icon: Stethoscope, exact: false },
   { titleKey: "admin.sidebar.reportTexts", path: "/laudos", icon: FileText, exact: false },
   { titleKey: "admin.sidebar.plans", path: "/planos", icon: CreditCard, exact: false },
+  { titleKey: "admin.sidebar.paymentsKanban", path: "/pagamentos", icon: SquareKanban, exact: false },
   { titleKey: "admin.sidebar.renewals", path: "/renovacoes", icon: CalendarClock, exact: false },
   { titleKey: "admin.sidebar.dashboardTips", path: "/dicas", icon: Lightbulb, exact: false },
   { titleKey: "admin.sidebar.feedbacks", path: "/feedbacks", icon: MessageSquareHeart, exact: false, badge: "feedbacks_novos" as const },
