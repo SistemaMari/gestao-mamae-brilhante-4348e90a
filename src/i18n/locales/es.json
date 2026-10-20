@@ -539,6 +539,72 @@
     }
   },
   "admin": {
+    "pagamentosKanban": {
+      "titulo": "Pagos y renovaciones",
+      "subtitulo": "Cada cuenta de consultorio está en la columna de la situación que pide acción primero. Las tarjetas cambian de columna solas a medida que llegan los pagos de Asaas.",
+      "atualizar": "Actualizar",
+      "buscar": "Buscar por nombre o correo",
+      "erro": "No fue posible cargar los pagos ahora. Intenta actualizar en unos instantes.",
+      "vazio": "Ninguna cuenta aquí",
+      "mesDe": "Mes {{mes}} de 12",
+      "parcela": "Cuota {{n}}",
+      "parcelasPagas": "{{pagas}} de {{total}} cuotas pagadas",
+      "kpiValorAtraso": "Monto atrasado",
+      "kpiContas_one": "{{count}} cuenta",
+      "kpiContas_other": "{{count}} cuentas",
+      "kpiAReceber": "Por cobrar en 30 días",
+      "kpiRenovar": "Renuevan en hasta 60 días",
+      "kpiContasAtivas": "Cuentas activas",
+      "filtro": {
+        "todas": "Todas las formas de pago",
+        "pixBoleto": "Pix o boleto"
+      },
+      "forma": {
+        "cartao": "Tarjeta",
+        "pix": "Pix",
+        "boleto": "Boleto",
+        "aEscolher": "Forma por elegir"
+      },
+      "coluna": {
+        "em_dia": "Al día",
+        "vence_em_breve": "Vence en hasta 5 días",
+        "atraso": "Pago atrasado",
+        "quitado": "Pagado",
+        "renovar": "Renovar · hasta 60 días",
+        "encerrado": "Cerradas"
+      },
+      "ajuda": {
+        "em_dia": "Cuotas pagadas hasta hoy.",
+        "vence_em_breve": "Cuota de Pix o boleto por vencer: conviene un recordatorio.",
+        "atraso": "Cuota vencida sin pago: cobrar o decidir la cancelación.",
+        "quitado": "Pagó al contado o ya pagó todas las cuotas.",
+        "renovar": "El año pagado termina en hasta 60 días: momento del equipo comercial.",
+        "encerrado": "Plan vencido, cancelado o con acceso revocado."
+      },
+      "tag": {
+        "atraso_one": "Cuota {{parcela}} · {{count}} día de atraso",
+        "atraso_other": "Cuota {{parcela}} · {{count}} días de atraso",
+        "inadimplente": "Marcada como morosa",
+        "vence": "Vence {{data}}",
+        "aVista": "Pagado al contado",
+        "quitado": "{{n}} de {{n}} cuotas pagadas",
+        "renovar_one": "Vence {{data}} · {{count}} día",
+        "renovar_other": "Vence {{data}} · {{count}} días",
+        "vencido": "Venció el {{data}}",
+        "cancelado": "Plan cancelado",
+        "revogado": "Acceso revocado",
+        "naoRenova": "Pidió no renovar",
+        "falhaAsaas": "Asaas no respondió — actualiza",
+        "semCobrancas": "Sin cobros en Asaas"
+      },
+      "situacao": {
+        "pago": "Pagada",
+        "vencido": "Atrasada",
+        "a_vencer": "Por vencer",
+        "em_analise": "En análisis",
+        "estornado": "Reembolsada"
+      }
+    },
     "renovacoes": {
       "titulo": "Renovaciones y cancelaciones",
       "subtitulo": "MARI es anual y no se renueva sola. Aquí ves quién vence pronto, quién pidió no renovar y quién salió.",
@@ -849,6 +915,7 @@
       "professionalAccounts": "Cuentas profesionales",
       "reportTexts": "Textos de informe",
       "plans": "Planes",
+      "paymentsKanban": "Pagos",
       "renewals": "Renovaciones",
       "dashboardTips": "Consejos del panel",
       "feedbacks": "Comentarios",
