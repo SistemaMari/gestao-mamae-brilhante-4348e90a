@@ -183,6 +183,13 @@
       "when": 1792033503813,
       "tag": "0025_admin_audit_log_libera_acoes",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792508708941,
+      "tag": "0026_corrige_vencimento_plano_anual",
+      "breakpoints": true
     }
   ]
 }
