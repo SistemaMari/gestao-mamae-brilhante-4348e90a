@@ -197,6 +197,13 @@
       "when": 1792619130003,
       "tag": "0027_staging_laudo_trad",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1792619805020,
+      "tag": "0028_deprecate_staging_laudo_trad",
+      "breakpoints": true
     }
   ]
 }
