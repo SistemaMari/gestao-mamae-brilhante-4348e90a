@@ -1049,7 +1049,7 @@
       "title": "Textos de Laudo",
       "subtitleBase": "Edite os textos exibidos nos laudos.",
       "idiomaLabel": "Idioma do laudo",
-      "idiomaAjuda": "Cada idioma é editado separadamente. Um ajuste feito no português precisa ser replicado aqui manualmente.",
+      "idiomaAjuda": "Tradução automática: ao salvar um rascunho em português, ele é traduzido para inglês e espanhol e aparece aqui como rascunho. Publicar no português publica os três idiomas juntos. Você pode ajustar a tradução aqui antes de publicar — mas, se o português for editado de novo, a tradução é refeita.",
       "rotulos": {
         "tipo": {
           "consulta_1": "Caso Novo",
@@ -1168,7 +1168,17 @@
       "textoPublicado": "Texto publicado. Já vale nos novos laudos.",
       "publicarError": "Erro ao publicar.",
       "rascunhoDescartado": "Rascunho descartado.",
-      "descartarError": "Erro ao descartar o rascunho."
+      "descartarError": "Erro ao descartar o rascunho.",
+      "editarDescriptionTraduz": "A edição vira um rascunho e é traduzida automaticamente para inglês e espanhol; nada muda no laudo até você publicar.",
+      "salvarRascunhoTraduzir": "Salvar e traduzir",
+      "traduzindo": "Traduzindo para inglês e espanhol…",
+      "rascunhoSalvoTraduzido": "Rascunho salvo e traduzido para inglês e espanhol. Publique para valer no laudo.",
+      "traducaoError": "Rascunho em português salvo, mas a tradução automática falhou. Salve de novo para tentar outra vez ou ajuste nas abas de inglês e espanhol.",
+      "traducaoVariaveisError": "Rascunho em português salvo, mas a tradução alterou variáveis [entre colchetes] e foi descartada. Salve de novo para tentar outra vez.",
+      "publicarConfirmDescTraducoes": "O rascunho em português e as traduções em inglês e espanhol substituirão as versões publicadas e passarão a aparecer nos novos laudos.",
+      "descartarConfirmDescTraducoes": "A edição não publicada e as traduções automáticas em inglês e espanhol serão perdidas. As versões publicadas continuam como estão.",
+      "textoPublicadoTraducoes": "Texto publicado em português, inglês e espanhol. Já vale nos novos laudos.",
+      "textoPublicadoSemTraducao": "Texto publicado em português. Não havia tradução em rascunho: inglês e espanhol continuam com a versão anterior."
     },
     "filtros": {
       "selectPeriod": "Selecionar período",
