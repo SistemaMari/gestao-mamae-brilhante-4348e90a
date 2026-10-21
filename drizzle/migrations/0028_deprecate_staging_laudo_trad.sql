@@ -1,0 +1,2 @@
+TRUNCATE TABLE public._staging_laudo_trad;
+COMMENT ON TABLE public._staging_laudo_trad IS 'DEPRECATED: tabela de apoio usada em 21/out/2026 para a traducao em lote dos laudos (PT -> EN/ES); vazia, pode ser removida depois.';
