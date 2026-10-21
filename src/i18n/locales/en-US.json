@@ -1049,7 +1049,7 @@
       "title": "Report Texts",
       "subtitleBase": "Edit the texts shown in the reports.",
       "idiomaLabel": "Report language",
-      "idiomaAjuda": "Each language is edited separately. A change made in Portuguese must be replicated here manually.",
+      "idiomaAjuda": "Automatic translation: when a draft is saved in Portuguese, it is translated into English and Spanish and shows up here as a draft. Publishing in Portuguese publishes all three languages together. You can adjust the translation here before publishing — but if the Portuguese is edited again, the translation is redone.",
       "rotulos": {
         "tipo": {
           "consulta_1": "New Case",
@@ -1168,7 +1168,17 @@
       "textoPublicado": "Text published. It now applies to new reports.",
       "publicarError": "Error publishing.",
       "rascunhoDescartado": "Draft discarded.",
-      "descartarError": "Error discarding the draft."
+      "descartarError": "Error discarding the draft.",
+      "editarDescriptionTraduz": "The edit becomes a draft and is automatically translated into English and Spanish; nothing changes in the report until you publish.",
+      "salvarRascunhoTraduzir": "Save and translate",
+      "traduzindo": "Translating into English and Spanish…",
+      "rascunhoSalvoTraduzido": "Draft saved and translated into English and Spanish. Publish it to apply it to the report.",
+      "traducaoError": "Portuguese draft saved, but the automatic translation failed. Save again to retry, or adjust it in the English and Spanish tabs.",
+      "traducaoVariaveisError": "Portuguese draft saved, but the translation changed [bracketed] variables and was discarded. Save again to retry.",
+      "publicarConfirmDescTraducoes": "The Portuguese draft and the English and Spanish translations will replace the published versions and will appear in new reports.",
+      "descartarConfirmDescTraducoes": "The unpublished edit and the automatic English and Spanish translations will be lost. The published versions stay as they are.",
+      "textoPublicadoTraducoes": "Text published in Portuguese, English and Spanish. It now applies to new reports.",
+      "textoPublicadoSemTraducao": "Text published in Portuguese. There was no draft translation: English and Spanish keep the previous version."
     },
     "filtros": {
       "selectPeriod": "Select period",

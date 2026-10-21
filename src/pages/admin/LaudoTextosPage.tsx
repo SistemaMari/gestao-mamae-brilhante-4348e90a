@@ -28,6 +28,12 @@ import {
   cenarioTecnicoOculto, familiaTipo, tipoRepresentante, notaFamilia,
   ordemFamilia, ordemDesfecho, rotuloCenario, ehPedidoExame, type LaudoTextoRow,
 } from '@/lib/laudoTextosAdmin';
+import type { Traducoes } from '../../../supabase/functions/_shared/traducaoLaudo';
+
+// O português é a fonte: salvar um rascunho em PT gera os rascunhos traduzidos
+// em EN/ES, e publicar o PT publica os três juntos.
+const IDIOMA_ORIGEM: SupportedLanguage = 'pt-BR';
+const IDIOMAS_TRADUZIDOS = ['en-US', 'es'] as const;
 
 interface BlocoAgrupado {
   bloco: string;
@@ -64,6 +70,7 @@ export default function LaudoTextosPage() {
   const [formTexto, setFormTexto] = useState('');
   const [formTitulo, setFormTitulo] = useState('');
   const [saving, setSaving] = useState(false);
+  const [traduzindo, setTraduzindo] = useState(false);
   const [publicarAlvo, setPublicarAlvo] = useState<BlocoAgrupado | null>(null);
   const [descartarAlvo, setDescartarAlvo] = useState<BlocoAgrupado | null>(null);
 
@@ -118,6 +125,104 @@ export default function LaudoTextosPage() {
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['admin-laudo-textos'] });
 
+  // Registros EN/ES (publicados e rascunhos) do mesmo bloco do PT.
+  const buscarTraducoesDoBloco = async (bloco: BlocoAgrupado) => {
+    const ref = bloco.publicados[0] ?? bloco.rascunhos[0];
+    const tipos = [...new Set([...bloco.publicados, ...bloco.rascunhos].map((r) => r.tipo_consulta))];
+    const { data, error } = await supabase
+      .from('laudo_textos')
+      .select('id, tipo_consulta, desfecho_clinico, bloco, ordem_bloco, titulo_bloco, texto, versao, status, observacoes, idioma')
+      .in('idioma', [...IDIOMAS_TRADUZIDOS])
+      .in('tipo_consulta', tipos)
+      .eq('desfecho_clinico', ref.desfecho_clinico)
+      .eq('bloco', ref.bloco)
+      .in('status', ['publicado', 'rascunho']);
+    if (error) throw error;
+    return (data ?? []) as LaudoTextoRow[];
+  };
+
+  // Traduz o texto PT (Edge Function) e grava/atualiza os rascunhos EN/ES.
+  // Devolve o código do erro, ou null se deu certo.
+  const gerarRascunhosTraduzidos = async (bloco: BlocoAgrupado, titulo: string, texto: string) => {
+    const { data, error } = await supabase.functions.invoke('traduzir-laudo-texto', {
+      body: { titulo, texto },
+    });
+    if (error || data?.status !== 'ok') {
+      let payload: { codigo?: string; mensagem?: string } | null = data ?? null;
+      if (error) {
+        try {
+          payload = await (error as { context?: Response }).context?.json?.();
+        } catch {
+          payload = null;
+        }
+      }
+      console.error('[laudo-textos] traduzir:', payload ?? error);
+      return payload?.codigo ?? 'falha_servico';
+    }
+    const traducoes = data.traducoes as Traducoes;
+    const existentes = await buscarTraducoesDoBloco(bloco);
+    for (const lng of IDIOMAS_TRADUZIDOS) {
+      const tr = traducoes[lng];
+      for (const pub of bloco.publicados) {
+        const doIdioma = existentes.filter((r) => r.idioma === lng && r.tipo_consulta === pub.tipo_consulta);
+        const rasc = doIdioma.find((r) => r.status === 'rascunho');
+        const pubAlvo = doIdioma.find((r) => r.status === 'publicado');
+        if (rasc) {
+          const { error: e } = await supabase
+            .from('laudo_textos')
+            .update({ texto: tr.texto, titulo_bloco: tr.titulo || null })
+            .eq('id', rasc.id);
+          if (e) throw e;
+        } else {
+          const { error: e } = await supabase.from('laudo_textos').insert({
+            tipo_consulta: pub.tipo_consulta,
+            desfecho_clinico: pub.desfecho_clinico,
+            bloco: pub.bloco,
+            ordem_bloco: pub.ordem_bloco,
+            titulo_bloco: tr.titulo || null,
+            texto: tr.texto,
+            status: 'rascunho',
+            versao: (pubAlvo?.versao ?? 0) + 1,
+            criado_por: user?.id ?? null,
+            idioma: lng,
+          });
+          if (e) throw e;
+        }
+      }
+    }
+    return null;
+  };
+
+  // Publica os rascunhos EN/ES do bloco (gerados a partir do PT). Devolve quantos publicou.
+  const publicarTraducoes = async (bloco: BlocoAgrupado) => {
+    const existentes = await buscarTraducoesDoBloco(bloco);
+    const agora = new Date().toISOString();
+    let publicados = 0;
+    for (const rasc of existentes.filter((r) => r.status === 'rascunho')) {
+      const pubAlvo = existentes.find(
+        (r) => r.status === 'publicado' && r.idioma === rasc.idioma && r.tipo_consulta === rasc.tipo_consulta,
+      );
+      if (pubAlvo) {
+        const { error: upErr } = await supabase
+          .from('laudo_textos')
+          .update({ texto: rasc.texto, titulo_bloco: rasc.titulo_bloco, publicado_em: agora, publicado_por: user?.id ?? null })
+          .eq('id', pubAlvo.id);
+        if (upErr) throw upErr;
+        const { error: delErr } = await supabase.from('laudo_textos').delete().eq('id', rasc.id);
+        if (delErr) throw delErr;
+      } else {
+        // Bloco ainda sem versão neste idioma: o próprio rascunho vira o publicado.
+        const { error: upErr } = await supabase
+          .from('laudo_textos')
+          .update({ status: 'publicado', publicado_em: agora, publicado_por: user?.id ?? null })
+          .eq('id', rasc.id);
+        if (upErr) throw upErr;
+      }
+      publicados++;
+    }
+    return publicados;
+  };
+
   const abrirEdicao = (cenario: CenarioAgrupado, bloco: BlocoAgrupado) => {
     const base = bloco.rascunhos[0] ?? bloco.publicados[0];
     setEditando({ cenario, bloco });
@@ -159,7 +264,24 @@ export default function LaudoTextosPage() {
           if (error) throw error;
         }
       }
-      toast.success(t('admin.laudoTextos.rascunhoSalvo'));
+
+      // O rascunho em PT já está salvo; agora gera as traduções EN/ES. Se a
+      // tradução falhar, o PT continua salvo e é só salvar de novo.
+      if (idioma === IDIOMA_ORIGEM) {
+        setTraduzindo(true);
+        let codigo: string | null;
+        try {
+          codigo = await gerarRascunhosTraduzidos(editando.bloco, formTitulo.trim(), formTexto);
+        } catch (e) {
+          console.error('[laudo-textos] gravar traduções:', e);
+          codigo = 'falha_gravar';
+        }
+        if (codigo === null) toast.success(t('admin.laudoTextos.rascunhoSalvoTraduzido'));
+        else if (codigo === 'variaveis_alteradas') toast.warning(t('admin.laudoTextos.traducaoVariaveisError'));
+        else toast.warning(t('admin.laudoTextos.traducaoError'));
+      } else {
+        toast.success(t('admin.laudoTextos.rascunhoSalvo'));
+      }
       setEditando(null);
       refresh();
     } catch (e) {
@@ -167,6 +289,7 @@ export default function LaudoTextosPage() {
       toast.error(t('admin.laudoTextos.rascunhoSalvarError'));
     } finally {
       setSaving(false);
+      setTraduzindo(false);
     }
   };
 
@@ -192,7 +315,15 @@ export default function LaudoTextosPage() {
         const { error: delErr } = await supabase.from('laudo_textos').delete().eq('id', rasc.id);
         if (delErr) throw delErr;
       }
-      toast.success(t('admin.laudoTextos.textoPublicado'));
+      // Publicar o PT publica junto as traduções EN/ES em rascunho.
+      if (idioma === IDIOMA_ORIGEM) {
+        const traduzidos = await publicarTraducoes(alvo);
+        toast.success(
+          t(traduzidos > 0 ? 'admin.laudoTextos.textoPublicadoTraducoes' : 'admin.laudoTextos.textoPublicadoSemTraducao'),
+        );
+      } else {
+        toast.success(t('admin.laudoTextos.textoPublicado'));
+      }
       setPublicarAlvo(null);
       refresh();
     } catch (e) {
@@ -211,6 +342,14 @@ export default function LaudoTextosPage() {
       for (const rasc of alvo.rascunhos) {
         const { error } = await supabase.from('laudo_textos').delete().eq('id', rasc.id);
         if (error) throw error;
+      }
+      // Descartar o PT descarta junto as traduções EN/ES geradas a partir dele.
+      if (idioma === IDIOMA_ORIGEM) {
+        const traducoes = (await buscarTraducoesDoBloco(alvo)).filter((r) => r.status === 'rascunho');
+        for (const rasc of traducoes) {
+          const { error } = await supabase.from('laudo_textos').delete().eq('id', rasc.id);
+          if (error) throw error;
+        }
       }
       toast.success(t('admin.laudoTextos.rascunhoDescartado'));
       setDescartarAlvo(null);
@@ -408,7 +547,8 @@ export default function LaudoTextosPage() {
               {editando
                 ? rotuloCenario(editando.cenario.familia, editando.cenario.desfecho_clinico, tt)
                 : ''}
-              {' · '}{t('admin.laudoTextos.editarDescription')}
+              {' · '}
+              {t(idioma === IDIOMA_ORIGEM ? 'admin.laudoTextos.editarDescriptionTraduz' : 'admin.laudoTextos.editarDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -464,7 +604,9 @@ export default function LaudoTextosPage() {
               disabled={saving}
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t('admin.laudoTextos.salvarRascunho')}
+              {traduzindo
+                ? t('admin.laudoTextos.traduzindo')
+                : t(idioma === IDIOMA_ORIGEM ? 'admin.laudoTextos.salvarRascunhoTraduzir' : 'admin.laudoTextos.salvarRascunho')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -476,7 +618,7 @@ export default function LaudoTextosPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('admin.laudoTextos.publicarConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('admin.laudoTextos.publicarConfirmDesc')}
+              {t(idioma === IDIOMA_ORIGEM ? 'admin.laudoTextos.publicarConfirmDescTraducoes' : 'admin.laudoTextos.publicarConfirmDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -499,7 +641,7 @@ export default function LaudoTextosPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('admin.laudoTextos.descartarConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('admin.laudoTextos.descartarConfirmDesc')}
+              {t(idioma === IDIOMA_ORIGEM ? 'admin.laudoTextos.descartarConfirmDescTraducoes' : 'admin.laudoTextos.descartarConfirmDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

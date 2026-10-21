@@ -1049,7 +1049,7 @@
       "title": "Textos de Informe",
       "subtitleBase": "Edita los textos que se muestran en los informes.",
       "idiomaLabel": "Idioma del informe",
-      "idiomaAjuda": "Cada idioma se edita por separado. Un ajuste hecho en portugués debe replicarse aquí manualmente.",
+      "idiomaAjuda": "Traducción automática: al guardar un borrador en portugués, se traduce al inglés y al español y aparece aquí como borrador. Publicar en portugués publica los tres idiomas juntos. Puedes ajustar la traducción aquí antes de publicar, pero si el portugués se edita de nuevo, la traducción se rehace.",
       "rotulos": {
         "tipo": {
           "consulta_1": "Caso Nuevo",
@@ -1168,7 +1168,17 @@
       "textoPublicado": "Texto publicado. Ya vale en los nuevos informes.",
       "publicarError": "Error al publicar.",
       "rascunhoDescartado": "Borrador descartado.",
-      "descartarError": "Error al descartar el borrador."
+      "descartarError": "Error al descartar el borrador.",
+      "editarDescriptionTraduz": "La edición se convierte en un borrador y se traduce automáticamente al inglés y al español; nada cambia en el informe hasta que publiques.",
+      "salvarRascunhoTraduzir": "Guardar y traducir",
+      "traduzindo": "Traduciendo al inglés y al español…",
+      "rascunhoSalvoTraduzido": "Borrador guardado y traducido al inglés y al español. Publícalo para que valga en el informe.",
+      "traducaoError": "Borrador en portugués guardado, pero la traducción automática falló. Guarda de nuevo para reintentar o ajústala en las pestañas de inglés y español.",
+      "traducaoVariaveisError": "Borrador en portugués guardado, pero la traducción alteró variables [entre corchetes] y se descartó. Guarda de nuevo para reintentar.",
+      "publicarConfirmDescTraducoes": "El borrador en portugués y las traducciones al inglés y al español sustituirán las versiones publicadas y aparecerán en los nuevos informes.",
+      "descartarConfirmDescTraducoes": "La edición no publicada y las traducciones automáticas al inglés y al español se perderán. Las versiones publicadas siguen como están.",
+      "textoPublicadoTraducoes": "Texto publicado en portugués, inglés y español. Ya vale en los nuevos informes.",
+      "textoPublicadoSemTraducao": "Texto publicado en portugués. No había traducción en borrador: inglés y español mantienen la versión anterior."
     },
     "filtros": {
       "selectPeriod": "Seleccionar período",
