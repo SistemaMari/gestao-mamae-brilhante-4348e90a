@@ -442,7 +442,7 @@ export default function LaudoTextosPage() {
                     </span>
                     {pedidoExame && (
                       <Badge className="border-0 bg-[#CCFBF1] text-[#0F766E]">
-                        {t('admin.laudoTextos.pedidoExameBadge')}
+                        {tt('admin.laudoTextos.pedidoExameBadge')}
                       </Badge>
                     )}
                     {ajuda && (
