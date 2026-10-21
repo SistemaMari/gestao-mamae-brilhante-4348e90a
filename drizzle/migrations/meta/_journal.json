@@ -190,6 +190,13 @@
       "when": 1792508708941,
       "tag": "0026_corrige_vencimento_plano_anual",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1792619130003,
+      "tag": "0027_staging_laudo_trad",
+      "breakpoints": true
     }
   ]
 }
