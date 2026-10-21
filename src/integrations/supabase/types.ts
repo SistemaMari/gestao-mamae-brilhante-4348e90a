@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      _staging_laudo_trad: {
+        Row: {
+          bloco: string
+          desfecho: string
+          idioma: string
+          texto: string
+          tipos: string[]
+          titulo: string
+        }
+        Insert: {
+          bloco: string
+          desfecho: string
+          idioma: string
+          texto: string
+          tipos: string[]
+          titulo: string
+        }
+        Update: {
+          bloco?: string
+          desfecho?: string
+          idioma?: string
+          texto?: string
+          tipos?: string[]
+          titulo?: string
+        }
+        Relationships: []
+      }
       admin_access_log: {
         Row: {
           admin_id: string
