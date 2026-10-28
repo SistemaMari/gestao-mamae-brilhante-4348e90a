@@ -24,8 +24,8 @@ import { parseDateLocal } from '@/lib/dateUtils';
 import { isPacienteEncerrada } from '@/lib/fichaUtils';
 import { resolverMotivoEfetivo, type MotivoEncerramento } from '@/lib/motivoEncerramento';
 import {
-  perfilGestantes, controleGlicemico, extrairPartos, desfechosParto, engajamento,
-  type PerfilMetrica, type PartoTabela, type FaixaEtaria,
+  perfilGestantes, controleGlicemico, engajamento,
+  type PerfilMetrica, type FaixaEtaria,
 } from '@/lib/dashboardConsultorioMetricas';
 
 interface Paciente {
@@ -112,7 +112,6 @@ export default function DashboardMetricasPage() {
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [exames, setExames] = useState<ExameGlicemia[]>([]);
   const [perfis, setPerfis] = useState<PerfilMetrica[]>([]);
-  const [partosTabela, setPartosTabela] = useState<PartoTabela[]>([]);
   const [loading, setLoading] = useState(true);
 
   const defaultEnd = new Date();
@@ -126,7 +125,6 @@ export default function DashboardMetricasPage() {
       setConsultas(generatePreviewConsultas());
       setExames(generatePreviewExames());
       setPerfis(generatePreviewPerfis());
-      setPartosTabela([]);
       setLoading(false);
       return;
     }
@@ -147,19 +145,14 @@ export default function DashboardMetricasPage() {
       pacQuery = pacQuery.eq('profissional_id', profissionalData.id);
     }
 
-    // observacoes: o registro de parto guarda ali o JSON com via, peso, IG etc.
-    let conQuery = supabase.from('consultas').select('id, paciente_id, cenario_clinico, tipo, created_at, data, ig_semanas, ig_dias, observacoes').eq('is_rascunho', false);
+    let conQuery = supabase.from('consultas').select('id, paciente_id, cenario_clinico, tipo, created_at, data, ig_semanas, ig_dias').eq('is_rascunho', false);
     if (!isInstitucional) {
       conQuery = conQuery.eq('profissional_id', profissionalData.id);
     }
 
     let perfQuery = supabase.from('perfis_glicemicos').select('paciente_id, percentual_meta, data_inicio, created_at');
-    let partoQuery = supabase.from('partos').select('paciente_id, via_parto, classificacao_rn, peso_rn_g, ig_parto_semanas, ig_parto_dias, intercorrencia_materna, intercorrencia_neonatal').eq('is_rascunho', false);
-    if (isInstitucional) {
-      partoQuery = partoQuery.eq('unidade_id', profissionalData.unidade_id!);
-    } else {
+    if (!isInstitucional) {
       perfQuery = perfQuery.eq('profissional_id', profissionalData.id);
-      partoQuery = partoQuery.eq('profissional_id', profissionalData.id);
     }
 
     let exQuery = supabase.from('exames_glicemia').select('id, paciente_id, ig_semanas_na_data, consulta_id');
@@ -167,7 +160,7 @@ export default function DashboardMetricasPage() {
       exQuery = exQuery.eq('profissional_id', profissionalData.id);
     }
 
-    const [pacRes, conRes, exRes, perfRes, partoRes] = await Promise.all([pacQuery, conQuery, exQuery, perfQuery, partoQuery]);
+    const [pacRes, conRes, exRes, perfRes] = await Promise.all([pacQuery, conQuery, exQuery, perfQuery]);
 
     const pacs = (pacRes.data) || [];
     setPacientes(pacs);
@@ -186,11 +179,10 @@ export default function DashboardMetricasPage() {
     }
     setExames(filteredExames);
 
-    // Perfis/partos: restringe às gestantes carregadas (no institucional a RLS
-    // pode trazer outras unidades).
+    // Perfis: restringe às gestantes carregadas (no institucional a RLS pode
+    // trazer outras unidades).
     const idsPac = new Set(pacs.map(p => p.id));
     setPerfis(((perfRes.data as PerfilMetrica[]) || []).filter(pf => idsPac.has(pf.paciente_id)));
-    setPartosTabela(((partoRes.data as PartoTabela[]) || []).filter(pt => idsPac.has(pt.paciente_id)));
     setLoading(false);
   };
 
@@ -325,14 +317,6 @@ export default function DashboardMetricasPage() {
 
   // --- PERFIL DAS GESTANTES ---
   const perfil = perfilGestantes(filteredPacientes, temDmg, filteredConsultas);
-
-  // --- DESFECHOS DO PARTO ---
-  const partos = extrairPartos(filteredConsultas, partosTabela.filter(pt => idsFiltrados.has(pt.paciente_id)));
-  const desfechos = desfechosParto(partos);
-  const pacsDosPartos = (lista: { paciente_id: string }[]) => {
-    const ids = new Set(lista.map(x => x.paciente_id));
-    return filteredPacientes.filter(p => ids.has(p.id));
-  };
 
   // Formatação curta (locale do usuário)
   const fmtNum = (x: number | null, casas = 0) =>
@@ -815,24 +799,6 @@ export default function DashboardMetricasPage() {
             <CleanStatCard dotColor="#F59E0B" icon={Timer} label={t('dashboardMetricas.control.daysToInsulin')} value={controle.diasAteInsulina == null ? '—' : t('dashboardMetricas.control.days', { n: fmtNum(controle.diasAteInsulina) })} detail={controle.comDiasAteInsulina ? t('dashboardMetricas.control.daysToInsulinDetail', { count: controle.comDiasAteInsulina }) : undefined} />
           </div>
         </section>
-
-        {/* Desfechos do parto */}
-        <BentoPanel title={t('dashboardMetricas.sections.outcomes')} eyebrow={t('dashboardMetricas.outcomes.deliveriesCount', { count: desfechos.total })}>
-          {desfechos.total === 0 ? (
-            <p className="text-sm" style={{ color: BRAND.textLabel, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
-              {t('dashboardMetricas.outcomes.noDeliveries')}
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              <BentoItem accent={BRAND.lilas} label={t('dashboardMetricas.outcomes.cesarean')} value={`${pctDe(desfechos.cesarea.length, desfechos.total)}%`} detail={t('dashboardMetricas.outcomes.nOfTotal', { n: desfechos.cesarea.length, de: desfechos.total })} onClick={() => abrirLista(t('dashboardMetricas.outcomes.cesarean'), pacsDosPartos(desfechos.cesarea))} />
-              <BentoItem accent={BRAND.teal} label={t('dashboardMetricas.outcomes.gaAtBirth')} value={fmtIg(desfechos.igMedia)} detail={t('dashboardMetricas.outcomes.preterm', { count: desfechos.prematuros.length })} onClick={desfechos.prematuros.length ? () => abrirLista(t('dashboardMetricas.outcomes.pretermTitle'), pacsDosPartos(desfechos.prematuros)) : undefined} />
-              <BentoItem accent={BRAND.verdaAgua} label={t('dashboardMetricas.outcomes.birthWeight')} value={desfechos.pesoMedio == null ? '—' : `${fmtNum(desfechos.pesoMedio)} g`} detail={t('dashboardMetricas.outcomes.macrosomia', { count: desfechos.macrossomia.length })} onClick={desfechos.macrossomia.length ? () => abrirLista(t('dashboardMetricas.outcomes.macrosomiaTitle'), pacsDosPartos(desfechos.macrossomia)) : undefined} />
-              <BentoItem accent="#F472B6" label={t('dashboardMetricas.outcomes.lga')} value={desfechos.gig.length} detail={t('dashboardMetricas.outcomes.rnClass', { aig: desfechos.aig.length, pig: desfechos.pig.length })} onClick={() => abrirLista(t('dashboardMetricas.outcomes.lga'), pacsDosPartos(desfechos.gig))} />
-              <BentoItem accent="#F59E0B" label={t('dashboardMetricas.outcomes.complications')} value={pacsDosPartos([...desfechos.intercorrenciaMaterna, ...desfechos.intercorrenciaNeonatal]).length} detail={t('dashboardMetricas.outcomes.complicationsDetail', { mat: desfechos.intercorrenciaMaterna.length, neo: desfechos.intercorrenciaNeonatal.length })} onClick={() => abrirLista(t('dashboardMetricas.outcomes.complications'), pacsDosPartos([...desfechos.intercorrenciaMaterna, ...desfechos.intercorrenciaNeonatal]))} />
-              <BentoItem accent="#5EEAD4" label={t('dashboardMetricas.outcomes.breastfeeding')} value={desfechos.comAleitamento ? `${pctDe(desfechos.aleitamento, desfechos.comAleitamento)}%` : '—'} detail={desfechos.comAleitamento ? t('dashboardMetricas.outcomes.nOfTotal', { n: desfechos.aleitamento, de: desfechos.comAleitamento }) : undefined} />
-            </div>
-          )}
-        </BentoPanel>
 
         {/* Encerramentos & acompanhamento */}
         <section className="flex flex-col gap-4">
