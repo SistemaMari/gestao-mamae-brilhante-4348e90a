@@ -1985,25 +1985,6 @@ export default function FichaPacientePage() {
                             {c.grid_valores && c.grid_valores.length > 0 && (
                               <FichaACReadOnlyGrid gridValores={c.grid_valores} tipoPosPrandial={c.tipo_pos_prandial ?? '1h'} />
                             )}
-                            {/* Checklist do Retorno 2 visível na ficha salva (read-only) — o dado
-                                já vem hidratado em c.checklist_* pelo fetchPaciente. */}
-                            <div className="mb-4 space-y-3">
-                              <ChecklistRetorno2ReadOnly
-                                igSemanas={c.ig_semanas ?? null}
-                                value={{
-                                  dieta: c.checklist_dieta ?? null,
-                                  exercicio: c.checklist_exercicio ?? null,
-                                  ganho_peso: c.checklist_ganho_peso ?? null,
-                                  pfe_us: c.checklist_pfe_us ?? null,
-                                  ca: c.checklist_ca ?? null,
-                                  la: c.checklist_la ?? null,
-                                }}
-                              />
-                              <DecisaoExtrasReadOnly
-                                pactuacao={c.pactuacao_adesao ?? null}
-                                memoria={c.memoria_glicosimetro ?? null}
-                              />
-                            </div>
                             {semDecisao ? (
                               <PlaceholderBlocoLaudo
                                 titulo={t('fichaPaciente.placeholderBloco.titulo')}
@@ -2041,6 +2022,26 @@ export default function FichaPacientePage() {
                                 }}
                               />
                             )}
+                            {/* Checklist do Retorno 2 visível na ficha salva (read-only), logo
+                                abaixo do resultado — o dado já vem hidratado em c.checklist_*
+                                pelo fetchPaciente. */}
+                            <div className="mt-4 mb-4 space-y-3">
+                              <ChecklistRetorno2ReadOnly
+                                igSemanas={c.ig_semanas ?? null}
+                                value={{
+                                  dieta: c.checklist_dieta ?? null,
+                                  exercicio: c.checklist_exercicio ?? null,
+                                  ganho_peso: c.checklist_ganho_peso ?? null,
+                                  pfe_us: c.checklist_pfe_us ?? null,
+                                  ca: c.checklist_ca ?? null,
+                                  la: c.checklist_la ?? null,
+                                }}
+                              />
+                              <DecisaoExtrasReadOnly
+                                pactuacao={c.pactuacao_adesao ?? null}
+                                memoria={c.memoria_glicosimetro ?? null}
+                              />
+                            </div>
                           </>
                         );
                       }
