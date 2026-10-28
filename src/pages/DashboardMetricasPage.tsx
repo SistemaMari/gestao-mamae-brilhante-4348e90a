@@ -293,17 +293,14 @@ export default function DashboardMetricasPage() {
     return exames.filter(e => patientIds.has(e.paciente_id));
   }, [exames, filteredPacientes]);
 
-  const gttNormal = filteredConsultas.filter(c => {
-    if (!ehGtt(c)) return false;
+  const ehGttTardio = (c: Consulta) => {
     const ex = filteredExames.find(e => e.consulta_id === c.id);
-    return !ex || !ex.ig_semanas_na_data || ex.ig_semanas_na_data <= 28;
-  }).length;
-
-  const gttTardio = filteredConsultas.filter(c => {
-    if (!ehGtt(c)) return false;
-    const ex = filteredExames.find(e => e.consulta_id === c.id);
-    return ex && ex.ig_semanas_na_data && ex.ig_semanas_na_data > 28;
-  }).length;
+    return !!ex?.ig_semanas_na_data && ex.ig_semanas_na_data > 28;
+  };
+  const consultasGttNormal = filteredConsultas.filter(c => ehGtt(c) && !ehGttTardio(c));
+  const consultasGttTardio = filteredConsultas.filter(c => ehGtt(c) && ehGttTardio(c));
+  const gttNormal = consultasGttNormal.length;
+  const gttTardio = consultasGttTardio.length;
 
   const diagPieData = [
     { name: t('dashboardMetricas.pie.diagGj'), value: dmgByGJ, color: BRAND.teal },
@@ -487,13 +484,26 @@ export default function DashboardMetricasPage() {
 
   // Listas derivadas por card (Visão Geral por status_ficha)
   const pacsByStatus = (status: string) => filteredPacientes.filter(p => p.status_ficha === status);
-  const pacsDmgConfirmado = filteredPacientes.filter(p => p.status_ficha === 'dmg_confirmado' || p.status_ficha === 'encaminhada_endocrino');
+  // Quem encerrou por insulinização já conta no card "Encerrada por insulinização";
+  // o encerramento manual (42E) mantém status dmg_confirmado e contava nos dois.
+  const pacsDmgConfirmado = filteredPacientes.filter(p =>
+    (p.status_ficha === 'dmg_confirmado' || p.status_ficha === 'encaminhada_endocrino') &&
+    motivoDe(p) !== 'insulinizacao'
+  );
 
   // Diagnóstico — usa consulta_id p/ inferir origem
   const patientIdsByGJ = new Set(filteredConsultas.filter(c => cc(c) === '1' || (cc(c) === '8' && c.tipo === 'retorno_1')).map(c => c.paciente_id));
   const patientIdsByGTT = new Set(filteredConsultas.filter(ehGtt).map(c => c.paciente_id));
   const pacsDmgByGJ = filteredPacientes.filter(p => patientIdsByGJ.has(p.id));
   const pacsDmgByGTT = filteredPacientes.filter(p => patientIdsByGTT.has(p.id));
+  // Fatias do "Momento do diagnóstico": cada uma abre só as suas gestantes
+  // (antes as duas fatias do GTT abriam a lista inteira do GTT).
+  const pacsDasConsultas = (cs: Consulta[]) => {
+    const ids = new Set(cs.map(c => c.paciente_id));
+    return filteredPacientes.filter(p => ids.has(p.id));
+  };
+  const pacsGttNormal = pacsDasConsultas(consultasGttNormal);
+  const pacsGttTardio = pacsDasConsultas(consultasGttTardio);
   const pacsDmgAfastado = filteredPacientes.filter(p => p.status_ficha === 'dmg_afastado');
   // "Aguardando diagnóstico" = pacientes ainda sem desfecho diagnóstico
   const pacsAguardandoDiagnostico = filteredPacientes.filter(p =>
@@ -613,7 +623,7 @@ export default function DashboardMetricasPage() {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <BentoItem accent="#94A3B8" label={t('dashboardMetricas.overview.awaitingGj')} value={statusCounts.aguardando_gj} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gj) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGj'), pacsByStatus('aguardando_gj'))} />
             <BentoItem accent={BRAND.verdaAgua} label={t('dashboardMetricas.overview.awaitingGtt')} value={statusCounts.aguardando_gtt} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.aguardando_gtt) })} onClick={() => abrirLista(t('dashboardMetricas.overview.awaitingGtt'), pacsByStatus('aguardando_gtt'))} />
-            <BentoItem accent={BRAND.teal} highlight label={t('dashboardMetricas.overview.dmgConfirmed')} value={statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_confirmado + statusCounts.encaminhada_endocrino) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgConfirmed'), pacsDmgConfirmado)} />
+            <BentoItem accent={BRAND.teal} highlight label={t('dashboardMetricas.overview.dmgConfirmed')} value={pacsDmgConfirmado.length} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(pacsDmgConfirmado.length) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgConfirmed'), pacsDmgConfirmado)} />
             <BentoItem accent="#5EEAD4" label={t('dashboardMetricas.overview.dmgRuledOut')} value={statusCounts.dmg_afastado} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.dmg_afastado) })} onClick={() => abrirLista(t('dashboardMetricas.overview.dmgRuledOut'), pacsByStatus('dmg_afastado'))} />
             <BentoItem accent={BRAND.lilas} label={t('dashboardMetricas.overview.deliveryResult')} value={statusCounts.resultado_parto} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(statusCounts.resultado_parto) })} onClick={() => abrirLista(t('dashboardMetricas.overview.deliveryResult'), pacsByStatus('resultado_parto'))} />
             <BentoItem accent={BRAND.lilasClaro} label={t('dashboardMetricas.overview.associateEndo')} value={encerramentos.insulinizacao} detail={t('dashboardMetricas.pctOfTotal', { pct: pct(encerramentos.insulinizacao) })} onClick={() => abrirLista(t('dashboardMetricas.overview.associateEndo'), filteredPacientes.filter(p => motivoDe(p) === 'insulinizacao'))} />
@@ -643,7 +653,8 @@ export default function DashboardMetricasPage() {
             const diagTotal = diagPieData.reduce((s, d) => s + d.value, 0);
             const listaDe = (name: string) => {
               if (name === t('dashboardMetricas.pie.diagGj')) return pacsDmgByGJ;
-              if (name === t('dashboardMetricas.pie.gttNormal') || name === t('dashboardMetricas.pie.gttTardio')) return pacsDmgByGTT;
+              if (name === t('dashboardMetricas.pie.gttNormal')) return pacsGttNormal;
+              if (name === t('dashboardMetricas.pie.gttTardio')) return pacsGttTardio;
               return [];
             };
             return diagTotal > 0 ? (
