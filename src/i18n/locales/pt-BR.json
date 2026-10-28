@@ -3152,7 +3152,7 @@
       "tracked": "Gestantes acompanhadas",
       "trackedSub": "no período",
       "dmgRate": "Taxa de DMG",
-      "dmgRateSub": "{{count}} com diagnóstico",
+      "dmgRateSub": "{{count}} com DMG",
       "active": "Em acompanhamento",
       "activeSub": "gestações ativas",
       "overdue": "Retornos vencidos",
@@ -3187,7 +3187,7 @@
       "title": "Momento do diagnóstico",
       "diagGj": "Diagnóstico na GJ",
       "gttNormal": "GTT 75g (24-28 sem)",
-      "gttTardio": "GTT 75g tardio (>29 sem)"
+      "gttTardio": "GTT 75g tardio (>28 sem)"
     },
     "treatment": {
       "dietOnly": "Controle só com dieta",
@@ -3222,7 +3222,7 @@
       }
     },
     "control": {
-      "dietOnly": "Controle só com dieta",
+      "dietOnly": "Sem indicação de insulina",
       "insulin": "Indicação de insulina",
       "inTarget": "Medidas na meta",
       "inTargetDetail_one": "média do último perfil de {{count}} gestante",
@@ -3239,7 +3239,7 @@
       "profiles": "Perfis glicêmicos avaliados",
       "perDmg": "{{n}} por gestante com DMG",
       "onTime": "Retornos em dia",
-      "onTimeDetail": "{{n}} de {{de}} gestantes com DMG em acompanhamento",
+      "onTimeDetail": "{{n}} de {{de}} gestantes com DMG com retorno marcado",
       "followUp": "Tempo médio de acompanhamento",
       "weeks": "{{n}} semanas",
       "followUpDetail": "do cadastro ao encerramento (ou até hoje)"
@@ -3269,7 +3269,7 @@
     },
     "chart": {
       "title": "Evolução mensal",
-      "newPatients": "Novas gestantes",
+      "newPatients": "Novas gestantes sem DMG",
       "dmgConfirmed": "DMG confirmado"
     },
     "pdf": {

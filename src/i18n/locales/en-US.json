@@ -3152,7 +3152,7 @@
       "tracked": "Pregnancies tracked",
       "trackedSub": "in the period",
       "dmgRate": "GDM rate",
-      "dmgRateSub": "{{count}} diagnosed",
+      "dmgRateSub": "{{count}} with GDM",
       "active": "In follow-up",
       "activeSub": "active pregnancies",
       "overdue": "Overdue returns",
@@ -3187,7 +3187,7 @@
       "title": "Time of diagnosis",
       "diagGj": "Diagnosis at FPG",
       "gttNormal": "75g OGTT (24-28 wk)",
-      "gttTardio": "Late 75g OGTT (>29 wk)"
+      "gttTardio": "Late 75g OGTT (>28 wk)"
     },
     "treatment": {
       "dietOnly": "Diet control only",
@@ -3222,7 +3222,7 @@
       }
     },
     "control": {
-      "dietOnly": "Diet-only control",
+      "dietOnly": "No insulin indicated",
       "insulin": "Insulin indicated",
       "inTarget": "Readings in target",
       "inTargetDetail_one": "average of the latest profile of {{count}} patient",
@@ -3239,7 +3239,7 @@
       "profiles": "Glycemic profiles reviewed",
       "perDmg": "{{n}} per patient with GDM",
       "onTime": "Returns on time",
-      "onTimeDetail": "{{n}} of {{de}} patients with GDM in follow-up",
+      "onTimeDetail": "{{n}} of {{de}} patients with GDM with a scheduled return",
       "followUp": "Average follow-up time",
       "weeks": "{{n}} weeks",
       "followUpDetail": "from registration to closure (or today)"
@@ -3269,7 +3269,7 @@
     },
     "chart": {
       "title": "Monthly trend",
-      "newPatients": "New patients",
+      "newPatients": "New patients without GDM",
       "dmgConfirmed": "GDM confirmed"
     },
     "pdf": {
