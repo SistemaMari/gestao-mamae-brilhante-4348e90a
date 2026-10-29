@@ -60,6 +60,20 @@ const AGUARDANDO_PESO: EstadoTextos = {
 
 const ERRO_GENERICO = 'Não foi possível carregar os textos do laudo. Tente novamente em instantes.';
 
+/**
+ * Chave do dedupe: consulta + tipo + desfecho + idioma. O desfecho entra na
+ * chave porque "Editar valores" muda o resultado da MESMA consulta (ex.:
+ * adequado → inadequado) — com a chave só por consulta, o laudo ficava preso
+ * no texto do primeiro resultado.
+ */
+function chaveDedupe(
+  consultaId: string,
+  tipoConsulta: string | null | undefined,
+  desfechoClinico: string | null | undefined,
+): string {
+  return `${consultaId}::${tipoConsulta ?? ''}::${desfechoClinico ?? ''}::${normalizeLang(i18n.language)}`;
+}
+
 interface UseLaudoTextosOptions {
   isPreview: boolean;
 }
@@ -209,9 +223,9 @@ export function useLaudoTextos({ isPreview }: UseLaudoTextosOptions) {
       tipoConsulta: string | null | undefined,
       desfechoClinico: string | null | undefined,
     ) => {
-      // Dedupe por consulta + idioma: trocar o idioma do app deve refazer a
-      // busca (o texto pt em cache não serve pro preview em en/es).
-      const chave = `${consultaId}::${normalizeLang(i18n.language)}`;
+      // Dedupe por consulta + desfecho + idioma: editar os valores (novo
+      // desfecho) ou trocar o idioma do app refaz a busca.
+      const chave = chaveDedupe(consultaId, tipoConsulta, desfechoClinico);
       if (tentadosRef.current.has(chave)) return;
       tentadosRef.current.add(chave);
       void carregar(consultaId, tipoConsulta, desfechoClinico);
@@ -239,7 +253,7 @@ export function useLaudoTextos({ isPreview }: UseLaudoTextosOptions) {
       tipoConsulta: string | null | undefined,
       desfechoClinico: string | null | undefined,
     ) => {
-      tentadosRef.current.delete(`${consultaId}::${normalizeLang(i18n.language)}`);
+      tentadosRef.current.delete(chaveDedupe(consultaId, tipoConsulta, desfechoClinico));
       void carregar(consultaId, tipoConsulta, desfechoClinico);
     },
     [carregar],

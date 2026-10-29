@@ -20,8 +20,8 @@ import {
 } from 'lucide-react';
 import ExcluirGestanteModal from '@/components/ExcluirGestanteModal';
 import { differenceInDays } from 'date-fns';
-import { parseDateLocal, formatDateBR } from '@/lib/dateUtils';
-import { getStatusPacienteChip, isPacienteEncerrada } from '@/lib/fichaUtils';
+import { parseDateLocal, formatDateBR, formatDateISO } from '@/lib/dateUtils';
+import { getStatusPacienteChip, isPacienteEncerrada, dataAlvoIgLista } from '@/lib/fichaUtils';
 import { useIgBatch, formatIg } from '@/lib/getIg';
 
 interface Paciente extends PreviewPaciente {}
@@ -167,7 +167,7 @@ export default function DashboardPage() {
 
     const { data } = await supabase
       .from('pacientes')
-      .select('id, nome, numero_identificacao, dum, usg_data, usg_ig_semanas, usg_ig_dias, status_ficha, motivo_encerramento, dmg_gestacao_anterior, data_ultima_consulta, data_proximo_retorno, tipo_retorno')
+      .select('id, nome, numero_identificacao, dum, usg_data, usg_ig_semanas, usg_ig_dias, status_ficha, motivo_encerramento, data_encerramento, dmg_gestacao_anterior, data_ultima_consulta, data_proximo_retorno, tipo_retorno')
       .eq('is_rascunho', false)
       .order('data_ultima_consulta', { ascending: false, nullsFirst: false });
 
@@ -245,11 +245,12 @@ export default function DashboardPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // 34C-B: IG da listagem vem da função única `calcular_ig` (RPC) na data da
-  // última consulta da paciente — valor clínico estável, não "IG hoje".
-  // Pacientes sem âncora ou sem última consulta ficam com "—" (sem 0s 0d).
+  // 34C-B: IG da listagem vem da função única `calcular_ig` (RPC). Coluna
+  // "IG hoje" = IG na data de hoje, a mesma da ficha (dataAlvoIgLista; só
+  // parto/aborto congelam na data do evento). Sem âncora → "—" (sem 0s 0d).
+  const hojeISO = formatDateISO(new Date());
   const { igs: igMap } = useIgBatch(
-    paginated.map(p => ({ key: p.id, pacienteId: p.id, dataAlvo: p.data_ultima_consulta })),
+    paginated.map(p => ({ key: p.id, pacienteId: p.id, dataAlvo: dataAlvoIgLista(p, hojeISO) })),
   );
 
   const handleNovaPaciente = async () => {

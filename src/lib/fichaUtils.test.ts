@@ -5,6 +5,7 @@ import {
   resolveUsgAtiva,
   getStatusPacienteChip,
   isPacienteEncerrada,
+  dataAlvoIgLista,
   STATUS_CONFIG,
   type UsgRefInput,
 } from './fichaUtils';
@@ -278,5 +279,27 @@ describe('isPacienteEncerrada — filtro "mostrar encerradas"', () => {
     expect(isPacienteEncerrada({ status_ficha: 'resultado_parto' })).toBe(true);
     expect(isPacienteEncerrada({ status_ficha: 'dmg_afastado' })).toBe(true);
     expect(isPacienteEncerrada({ status_ficha: 'encaminhada_endocrino' })).toBe(true);
+  });
+});
+
+describe('dataAlvoIgLista — coluna "IG hoje" das listas', () => {
+  const HOJE = '2026-10-29';
+  const base = { data_ultima_consulta: '2026-09-21', data_encerramento: '2026-09-21' };
+
+  it('em acompanhamento → hoje', () => {
+    expect(dataAlvoIgLista({ ...base, status_ficha: 'dmg_confirmado' }, HOJE)).toBe(HOJE);
+  });
+
+  it('encerrada com gestação seguindo (insulinização, não retornou, DMG afastado) → hoje, igual à ficha', () => {
+    expect(dataAlvoIgLista({ ...base, status_ficha: 'encerrada_insulinizacao' }, HOJE)).toBe(HOJE);
+    expect(dataAlvoIgLista({ ...base, status_ficha: 'dmg_confirmado', motivo_encerramento: 'insulinizacao' }, HOJE)).toBe(HOJE);
+    expect(dataAlvoIgLista({ ...base, status_ficha: 'dmg_confirmado', motivo_encerramento: 'nao_retornou' }, HOJE)).toBe(HOJE);
+    expect(dataAlvoIgLista({ ...base, status_ficha: 'dmg_afastado' }, HOJE)).toBe(HOJE);
+  });
+
+  it('parto/aborto → IG congelada na data do evento', () => {
+    expect(dataAlvoIgLista({ ...base, status_ficha: 'dmg_confirmado', motivo_encerramento: 'parto', data_encerramento: '2026-10-01' }, HOJE)).toBe('2026-10-01');
+    expect(dataAlvoIgLista({ ...base, status_ficha: 'dmg_confirmado', motivo_encerramento: 'aborto', data_encerramento: null }, HOJE)).toBe('2026-09-21');
+    expect(dataAlvoIgLista({ ...base, status_ficha: 'resultado_parto', data_encerramento: null }, HOJE)).toBe('2026-09-21');
   });
 });

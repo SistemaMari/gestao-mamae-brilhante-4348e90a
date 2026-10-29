@@ -117,9 +117,11 @@ export function getChipPorChave(chave: string): { label: string; color: string; 
 }
 
 /**
- * Data-alvo da coluna IG das listas: gestante em acompanhamento → IG de HOJE;
- * encerrada → IG no encerramento (data_encerramento ou, sem ela, a última
- * consulta — ex.: DMG afastado, que encerra no próprio GTT).
+ * Data-alvo da coluna "IG hoje" das listas. Enquanto a gestação continua —
+ * inclusive encerrada na MARI por insulinização, não retorno, DMG afastado
+ * etc. — é a IG de HOJE, a mesma da ficha. Só parto/aborto congelam a IG na
+ * data do evento (data_encerramento ou, sem ela, a última consulta), porque
+ * depois disso não existe mais "IG hoje".
  */
 export function dataAlvoIgLista(
   p: {
@@ -130,7 +132,10 @@ export function dataAlvoIgLista(
   },
   hojeISO: string,
 ): string | null {
-  if (!isPacienteEncerrada(p)) return hojeISO;
+  const motivo = resolverMotivoEfetivo(p);
+  const gestacaoTerminou =
+    motivo === 'parto' || motivo === 'aborto' || p.status_ficha === 'resultado_parto';
+  if (!gestacaoTerminou) return hojeISO;
   return p.data_encerramento ?? p.data_ultima_consulta;
 }
 
