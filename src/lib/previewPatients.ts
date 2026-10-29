@@ -89,6 +89,8 @@ export interface PreviewPaciente {
   /** Ajustes V3 itens 5/6 — fonte de verdade do encerramento (parto/aborto/
    *  não retornou/outro grava só isto; insulinização grava isto + status_ficha). */
   motivo_encerramento?: MotivoEncerramento | null;
+  /** Data do parto/aborto — congela a coluna "IG hoje" da lista (dataAlvoIgLista). */
+  data_encerramento?: string | null;
   dmg_gestacao_anterior: boolean | null;
   data_ultima_consulta: string | null;
   data_proximo_retorno: string | null;

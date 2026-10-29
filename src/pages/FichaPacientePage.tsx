@@ -756,7 +756,8 @@ export default function FichaPacientePage() {
       laudoTextos.garantir(c.id, c.tipo, desfecho);
     }
     // Fase 2: reexecuta ao trocar o idioma do app → o preview do laudo é
-    // re-buscado no novo idioma (o dedupe do hook é por consulta::idioma).
+    // re-buscado no novo idioma. O dedupe do hook é por consulta + desfecho +
+    // idioma, então "Editar valores" que muda o resultado também re-busca.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paciente?.id, consultas, i18n.language]);
 
